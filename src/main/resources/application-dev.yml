@@ -1,0 +1,42 @@
+server:
+  port: 10012
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/yituliu?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true
+    username: root
+    password: root
+  redis:
+    host: 192.168.142.133
+    port: 6379
+    database: 0
+    connect-timeout: 1800000
+    lettuce:
+      pool:
+        max-active: 20
+        max-wait: -1
+        max-idle: 5
+        min-idle: 0
+    password: j1hxu31hkxai
+
+
+
+filePath:
+  penguin: src/main/resources/penguin/
+  item: src/main/resources/item/
+  frontEnd: src/main/resources/frontEnd/
+  backup: src/main/resources/backups/
+  schedule: src/main/resources/schedule/
+
+
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+swagger2:
+   enable: true
+
+
+
