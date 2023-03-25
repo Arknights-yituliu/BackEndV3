@@ -183,14 +183,15 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 #### 响应数据
 
-|    字段名    |  数据类型  |    说明    |
-|:---------:|:------:|:--------:|
-|  itemId   | String |  物品 id   |
-| itemName  | String |   物品名称   |
-| itemValue |  Int   |   物品价值   |
-|   type    | String |  物品稀有度   |
-|  rarity   | String |  物品稀有度   |
-|  cardNum  | String | 前端排序的用索引 |
+|     字段名     |  数据类型   |     说明     |
+|:-----------:|:-------:|:----------:|
+|   itemId    | String  |    物品id    |
+|  itemName   | String  |    物品名称    |
+|  itemValue  | Double  | 物品价值（单位绿票） |
+| itemValueAp | Double  | 物品价值（单位理智） |
+|    type     | String  |   物品稀有度    |
+|   rarity    | Integer |   物品稀有度    |
+|   cardNum   | Integer |  前端排序的用索引  |
 
 ### 获取历史活动最优图(JsonArray)
 
@@ -206,21 +207,21 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 #### 响应数据
 
-|       字段名        |  数据类型  |                                说明                                |
-|:----------------:|:------:|:----------------------------------------------------------------:|
-| stageEfficiency  | Double | 与所有常驻关卡中，无活动加成时综合效率最高者相比，该关卡的效率为 103.6%。该效率是统计了所有产物的综合效率，长期最优的结果 |
-|    stageCode     | String |                             关卡的显示名称                              |
-|     itemType     | String |                           该关卡属于某一材料体系                            |
-|   secondaryId    | String |                        副产物的物品 ID，1 为无副产物                         |
-| sampleConfidence | Double |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
-|    stageState    | String |            关卡状态，0:无事发生 1:SideStory 2:故事集 3:理智小样+物资补给             |
-|   activityName   | String |                             活动或章节名称                              |
-|   knockRating    | Double |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
-|    updateTime    | String |                             数据统计的时间                              |
-|    sampleSize    |  Int   |                               样本数量                               |
-|    secondary     | String |                         副产物的物品名称，1 为无副产物                         |
-|     apExpect     | Double |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
-|      itemId      | String |                            主产物的物品 ID                             |
-|       spm        | String |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
-|    stageColor    |  Int   | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
+|       字段名        |  数据类型   |                                说明                                |
+|:----------------:|:-------:|:----------------------------------------------------------------:|
+| stageEfficiency  | Double  | 与所有常驻关卡中，无活动加成时综合效率最高者相比，该关卡的效率为 103.6%。该效率是统计了所有产物的综合效率，长期最优的结果 |
+|    stageCode     | String  |                             关卡的显示名称                              |
+|     itemType     | String  |                           该关卡属于某一材料体系                            |
+|   secondaryId    | String  |                        副产物的物品 ID，1 为无副产物                         |
+| sampleConfidence | Double  |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
+|    stageState    | String  |            关卡状态，0:无事发生 1:SideStory 2:故事集 3:理智小样+物资补给             |
+|   activityName   | String  |                             活动或章节名称                              |
+|   knockRating    | Double  |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
+|    updateTime    | String  |                             数据统计的时间                              |
+|    sampleSize    | Integer |                               样本数量                               |
+|    secondary     | String  |                         副产物的物品名称，1 为无副产物                         |
+|     apExpect     | Double  |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
+|      itemId      | String  |                            主产物的物品 ID                             |
+|       spm        | String  |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
+|    stageColor    | Integer | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
 
