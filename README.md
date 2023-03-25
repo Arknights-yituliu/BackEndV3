@@ -2,7 +2,7 @@
 项目框架:
 ![](https://img.shields.io/badge/java-17-blue)
 ![](https://img.shields.io/badge/SpringBoot-2.5.5-brightgreen) 
-![](https://img.shields.io/badge/Mysql-5.7以上-blue)
+![](https://img.shields.io/badge/Mysql-5.7。3-blue)
 ![](https://img.shields.io/badge/Redis-7.0.5-red) 
 
 联系我们：
