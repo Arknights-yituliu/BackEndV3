@@ -1,5 +1,6 @@
 package com.lhs.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -53,7 +54,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
     public HashMap<String, Double> stageResultCal(List<Item> items, Double expCoefficient, Integer sampleSize) {
 
         //将企鹅物流的数据转成集合
-//        String response = HttpRequestUtil.doGet("https://penguin-stats.io/PenguinStats/api/v2/_private/result/matrix/CN/global/automated",new HashMap<>());
         String saveData = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date());
         String response = FileUtil.read(FileConfig.Penguin + "matrix " + saveData + " global.json");  //读取企鹅物流数据文件
         List<PenguinDataResponseVo> penguinDataResponseVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataResponseVo.class);//将企鹅物流文件的内容转为集合
@@ -72,7 +72,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         List<StageResult> stageResultList = new ArrayList<>();    //关卡效率的计算结果的集合
         long id = new Date().getTime() * 100000;   //id为时间戳后加00001至99999
 
-        log.info("开始计算，企鹅数据有" + penguinDataResponseVos.size() + "条，关卡信息数据有" + stageInfoMap.keySet().size() + "条，材料信息数据有" + itemValueMap.keySet().size() + "条");
+        log.info("开始计算，企鹅数据" + penguinDataResponseVos.size() + "条，关卡数据有" + stageInfoMap.keySet().size() + "条，材料数据有" + itemValueMap.keySet().size() + "条");
 
 
         Date createTime = new Date();
@@ -87,7 +87,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
             double sampleConfidence = sampleConfidence(penguinData.getTimes(), stage, item.getItemValue(), knockRating, quantileTables); //置信度
             StageResult stageResult = stageResultBuilder.sampleSize(penguinData.getTimes()).sampleConfidence(sampleConfidence).itemRarity(item.getRarity()).knockRating(knockRating).stageColor(2)
                     .apExpect(stage.getApCost() / knockRating).result(item.getItemValue() * knockRating).spm(stage.getSpm()).updateTime(createTime)
-                    .openTime(stage.getOpenTime()).build();
+                    .openTime(stage.getOpenTime()).build();   //写入关卡表的各种信息
 
             BeanUtils.copyProperties(stage, stageResult);  //复制关卡表的信息
             BeanUtils.copyProperties(item, stageResult);   //复制材料表的信息
@@ -96,7 +96,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
             stageResult.setId(id++);
             stageResultList.add(stageResult);
 //            if("落叶逐火".equals(stageResult.getZoneName())) System.out.println(stageResult);
-            //判断是否为活动本（展示状态为1，不参与定价），再次加上商店无限龙门币的价值
+            //判断是否为活动本（展示状态为1，但不参与定价），复制一条该关卡的结果，但加上商店无限龙门币的价值
             if (stage.getIsShow() == 1 && stage.getIsValue() == 0 && !(stage.getStageId().startsWith("act24side"))) {
                 StageResult efficiencyResultCopy = SerializationUtils.clone(stageResult);
                 efficiencyResultCopy.setId(id + 100000);
@@ -116,11 +116,8 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                     Double apCost = list.get(0).getApCost(); //拿到关卡的消耗
                     list.forEach(result -> {
                         double efficiency = sum / apCost + 0.054;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.0045*1.2
-
                         if (result.getStageId().startsWith("act24side")) {
-//
                             efficiency = (efficiency - 0.054) / 40 * gachaBoxExpectValue + 0.054;
-
                         }
                         result.setEfficiency(efficiency);
                         result.setStageEfficiency(efficiency / 1.25 * 100);    //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
@@ -128,16 +125,15 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                     });
                 });
 
-        //  <蓝材料名称 , 蓝材料对应的常驻最高关卡效率En>  value用于下面蓝材料的计算，
-        HashMap<String, Double> itemNameAndStageEffMap = new HashMap<>();
 
-        //将关卡效率计算结果根据材料类别分组，存入上面的 itemNameAndStageEffMap
-        stageResultList.stream()
-                .filter(stageResult -> stageResult.getItemType() != null && stageResult.getIsValue() == 1)
-                .sorted(Comparator.comparing(StageResult::getEfficiency).reversed())
-                .collect(Collectors.groupingBy(StageResult::getItemType))
+        HashMap<String, Double> itemNameAndStageEffMap = new HashMap<>();  //  <蓝材料名称 , 蓝材料对应的常驻最高关卡效率En>  value用于下面蓝材料的计算
+
+        stageResultList.stream()   //将关卡效率计算结果根据材料类别分组，存入上面的 itemNameAndStageEffMap
+                .filter(stageResult -> stageResult.getItemType() != null && stageResult.getIsValue() == 1)  //过滤掉材料类型为空和不参与定价的关卡，活动本不参与定价，只有关卡中主产物计算结果的材料类型不为空
+                .sorted(Comparator.comparing(StageResult::getEfficiency).reversed())  //根据关卡效率降序排列结果
+                .collect(Collectors.groupingBy(StageResult::getItemType))  //根据材料类型分类结果
                 .forEach((itemName, list) -> {
-                    setStageColor(list);   //设置关卡的颜色级别
+                    setStageColor(list);   //设置该材料的前8个关卡的颜色级别
                     itemNameAndStageEffMap.put(itemName, list.get(0).getEfficiency());  //拿到该种材料的最优关卡
                     log.info(itemName + "的最优本是" + list.get(0).getStageCode());
                     log.info(itemName + "的回归系数是" + 1.25 / list.get(0).getEfficiency());
@@ -146,6 +142,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
         stageResultMapper.deleteTableTemp();   //清空数据库
         boolean b = saveBatch(stageResultList);//保存结果到数据库
+        FileUtil.save(FileConfig.Item,"itemAndBestStageEff.json", JSON.toJSONString(itemNameAndStageEffMap));
         return itemNameAndStageEffMap;
 
     }
@@ -173,7 +170,12 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         }
     }
 
-
+    /**
+     * 炼金池每抽期望价值计算
+     * @param penguinDataResponseVoList  企鹅物流源石数据
+     * @param itemValueMap  材料价值表的map
+     * @return    炼金池每抽期望价值
+     */
     private Double gachaBoxExpectValue(List<PenguinDataResponseVo> penguinDataResponseVoList, Map<String, Item> itemValueMap) {
         double gachaBoxItemExpect = 0.0;
         List<PenguinDataResponseVo> collect = penguinDataResponseVoList.stream().filter(penguinData -> "act24side_gacha".equals(penguinData.getStageId())).collect(Collectors.toList());
@@ -209,7 +211,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
     /**
      * 企鹅物流数据中的磨难与标准关卡合并掉落次数和样本量
-     *
      * @param penguinDataList 企鹅物流数据
      * @return 合并完的企鹅数据
      */
@@ -226,6 +227,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
     }
 
     /**
+     * 置信度计算
      * @param penguinDataTimes 样本量
      * @param stage            关卡信息
      * @param itemValue        材料价值

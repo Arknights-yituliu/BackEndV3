@@ -65,7 +65,7 @@ public class APIService {
 
                     if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
                     List<StageResultVo> stageResultVo_item = new ArrayList<>();
-                    stageResultsByItemType.forEach(stageResult -> {
+                    stageResultsByItemType.forEach(stageResult -> {     //将关卡结果表的数据复制到前端返回对象上再返回
                         StageResultVo stageResultVo = new StageResultVo();
                         BeanUtils.copyProperties(stageResult, stageResultVo);
                         stageResultVo_item.add(stageResultVo);
@@ -94,7 +94,7 @@ public class APIService {
             if (stageResultListByItemName.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
             List<StageResultVo> stageResultVo_item = new ArrayList<>();
             stageResultListByItemName.forEach(stageResult -> {
-                StageResultVo stageResultVo = new StageResultVo();
+                StageResultVo stageResultVo = new StageResultVo();    //将关卡结果表的数据复制到前端返回对象上再返回
                 BeanUtils.copyProperties(stageResult, stageResultVo);
                 stageResultVo_item.add(stageResultVo);
             });
@@ -107,7 +107,7 @@ public class APIService {
     }
 
     /**
-     * 查询已关闭的获得
+     * 查询已关闭的活动
      * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
      * @param sampleSize  样本大小
      * @return
@@ -120,22 +120,19 @@ public class APIService {
         List<StageResultActVo> stageResultListCopy = new ArrayList<>();
         stageResultListByIsShow.forEach(stageResult -> {
             StageResultActVo stageResultVo = new StageResultActVo();
-            BeanUtils.copyProperties(stageResult, stageResultVo);
-            stageResultVo.setStageEfficiency(stageResultVo.getStageEfficiency()+7.2);
+            BeanUtils.copyProperties(stageResult, stageResultVo);      //将关卡结果表的数据复制到前端返回对象上再返回
+            stageResultVo.setStageEfficiency(stageResultVo.getStageEfficiency()+7.2);  //给结果加上商店的无限龙门币的效率
 
             stageResultListCopy.add(stageResultVo);
         });
 
 
-        List<List<StageResultActVo>>  stageResultVoList = new ArrayList<>();
+        List<List<StageResultActVo>>  stageResultVoList = new ArrayList<>();  //返回的结果集合
         stageResultListCopy.stream()
-                .collect(Collectors.groupingBy(StageResultActVo::getZoneName))
+                .collect(Collectors.groupingBy(StageResultActVo::getZoneName))  //根据zoneName分类结果
                 .entrySet().stream()
-                .sorted((p2, p1) -> p1.getValue().get(0).getOpenTime().compareTo(p2.getValue().get(0).getOpenTime()))
-                .forEach(entry ->{
-                    List<StageResultActVo> list = new ArrayList<>(entry.getValue().subList(0, Math.min(entry.getValue().size(), 3)));
-                    stageResultVoList.add( list);
-                });
+                .sorted((p2, p1) -> p1.getValue().get(0).getOpenTime().compareTo(p2.getValue().get(0).getOpenTime())) //比较活动开启时间，倒序排列
+                .forEach(entry -> stageResultVoList.add( new ArrayList<>(entry.getValue())));  //存入结果集合中
 
         redisTemplate.opsForValue().set("stage/closed/" + expCoefficient, stageResultVoList, 1800, TimeUnit.SECONDS);
         return stageResultVoList;
@@ -203,14 +200,12 @@ public class APIService {
     /**
      * 保存企鹅物流数据到本地
      * @param dataType  企鹅有两种数据，一种是仅MAA上传的数据，参数值auto；一种是全局数据，参数值global
-     * @param url  企鹅的数据链接
+     * @param url  企鹅的数据API链接
      */
     public void savePenguinData(String dataType,String url) {
-
         String response = HttpRequestUtil.doGet(url,new HashMap<>());
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");// 设置日期格式
-        String saveTime = simpleDateFormat.format(new Date());
-        if ("auto".equals(dataType)) FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
-        if ("global".equals(dataType)) FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
+        String saveTime = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式
+        FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
+
     }
 }

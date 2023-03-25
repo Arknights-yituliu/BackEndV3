@@ -1,0 +1,807 @@
+[
+  {
+    "id": 1,
+    "cost": 80,
+    "itemName": "RMA70-24",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 75,
+    "itemName": "五水研磨石",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 80,
+    "itemName": "三水锰矿",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 65,
+    "itemName": "白马醇",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 85,
+    "itemName": "改量装置",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 85,
+    "itemName": "酮阵列",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 80,
+    "itemName": "聚酸酯块",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 90,
+    "itemName": "异铁块",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 75,
+    "itemName": "糖聚块",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "提纯源岩",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 65,
+    "itemName": "聚合凝胶",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 75,
+    "itemName": "炽合金块",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 90,
+    "itemName": "晶体电路",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 70,
+    "itemName": "精炼溶剂",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 70,
+    "itemName": "切削原液",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 90,
+    "itemName": "转质盐聚块",
+    "quantity": 1,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 45,
+    "itemName": "轻锰矿",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "RMA70-12",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 50,
+    "itemName": "研磨石",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "扭转醇",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "全新装置",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 45,
+    "itemName": "酮凝集组",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 35,
+    "itemName": "聚酸酯组",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 45,
+    "itemName": "异铁组",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 35,
+    "itemName": "糖组",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "固源岩组",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 50,
+    "itemName": "凝胶",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "炽合金",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "晶体元件",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 50,
+    "itemName": "半自然溶剂",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 50,
+    "itemName": "化合切削液",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 55,
+    "itemName": "转质盐组",
+    "quantity": 2,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "装置",
+    "quantity": 4,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "酮凝集",
+    "quantity": 4,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "异铁",
+    "quantity": 4,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 25,
+    "itemName": "聚酸酯",
+    "quantity": 4,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 25,
+    "itemName": "糖",
+    "quantity": 4,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "固源岩",
+    "quantity": 4,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "破损装置",
+    "quantity": 8,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "双酮",
+    "quantity": 8,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "异铁碎片",
+    "quantity": 8,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 25,
+    "itemName": "代糖",
+    "quantity": 8,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 25,
+    "itemName": "酯原料",
+    "quantity": 8,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "源岩",
+    "quantity": 8,
+    "storeType": "orange"
+  },
+  {
+    "id": 1,
+    "cost": 35,
+    "itemName": "轻锰矿",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 45,
+    "itemName": "RMA70-12",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "研磨石",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "扭转醇",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 45,
+    "itemName": "全新装置",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 35,
+    "itemName": "酮凝集组",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "聚酸酯组",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 35,
+    "itemName": "异铁组",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "糖组",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 25,
+    "itemName": "固源岩组",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "半自然溶剂",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "化合切削液",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 40,
+    "itemName": "凝胶",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 35,
+    "itemName": "炽合金",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 30,
+    "itemName": "晶体元件",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 45,
+    "itemName": "转质盐组",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "招聘许可",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 450,
+    "itemName": "寻访凭证",
+    "quantity": 1,
+    "storeType": "green"
+  },
+  {
+    "id": 1,
+    "cost": 20,
+    "itemName": "合成玉",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 85,
+    "itemName": "改量装置",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 50,
+    "itemName": "提纯源岩",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 65,
+    "itemName": "酮阵列",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "糖聚块",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 70,
+    "itemName": "异铁块",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "聚酸酯块",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "五水研磨石",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "三水锰矿",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 60,
+    "itemName": "炽合金块",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 50,
+    "itemName": "聚合凝胶",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 70,
+    "itemName": "晶体电路",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 65,
+    "itemName": "RMA70-24",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 50,
+    "itemName": "白马醇",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "龙门币",
+    "quantity": 2000,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 55,
+    "itemName": "精炼溶剂",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 55,
+    "itemName": "切削原液",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "高级作战记录",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 20,
+    "itemName": "技巧概要·卷3",
+    "quantity": 1,
+    "storeType": "purple"
+  },
+  {
+    "id": 1,
+    "cost": 20,
+    "itemName": "改量装置",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 10,
+    "itemName": "提纯源岩",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "酮阵列",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 10,
+    "itemName": "糖聚块",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "异铁块",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 10,
+    "itemName": "聚酸酯块",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 10,
+    "itemName": "五水研磨石",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 10,
+    "itemName": "三水锰矿",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "炽合金块",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "聚合凝胶",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "RMA70-24",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "晶体电路",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 10,
+    "itemName": "白马醇",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 20,
+    "itemName": "模组数据块",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 15,
+    "itemName": "芯片助剂",
+    "quantity": 1,
+    "storeType": "yellow"
+  },
+  {
+    "id": 1,
+    "cost": 1800,
+    "itemName": "龙门币",
+    "quantity": 100,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 9,
+    "itemName": "基础作战记录",
+    "quantity": 100,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 9,
+    "itemName": "初级作战记录",
+    "quantity": 100,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 160,
+    "itemName": "招聘许可",
+    "quantity": 1,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 160,
+    "itemName": "赤金",
+    "quantity": 6,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 160,
+    "itemName": "技巧概要·卷1",
+    "quantity": 5,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 200,
+    "itemName": "技巧概要·卷2",
+    "quantity": 3,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 100,
+    "itemName": "源岩",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 100,
+    "itemName": "代糖",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 100,
+    "itemName": "酯原料",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 120,
+    "itemName": "异铁碎片",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 120,
+    "itemName": "双酮",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 80,
+    "itemName": "破损装置",
+    "quantity": 1,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 200,
+    "itemName": "固源岩",
+    "quantity": 3,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 200,
+    "itemName": "糖",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 200,
+    "itemName": "聚酸酯",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 240,
+    "itemName": "异铁",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 240,
+    "itemName": "酮凝集",
+    "quantity": 2,
+    "storeType": "grey"
+  },
+  {
+    "id": 1,
+    "cost": 160,
+    "itemName": "装置",
+    "quantity": 1,
+    "storeType": "grey"
+  }
+]

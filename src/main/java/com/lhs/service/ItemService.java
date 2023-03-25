@@ -8,16 +8,18 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhs.common.config.FileConfig;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.entity.ResultVo;
-import com.lhs.entity.Stage;
+import com.lhs.common.util.ResultCode;
+
 import com.lhs.mapper.ItemMapper;
 import com.lhs.entity.Item;
-import com.lhs.mapper.ResultMapper;
+
 import com.lhs.service.resultVo.CompositeTable;
 import com.lhs.service.resultVo.ItemCost;
 
 import com.lhs.service.resultVo.ItemVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -35,13 +37,13 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Slf4j
 public class ItemService extends ServiceImpl<ItemMapper,Item>  {
 
 
     @Resource
     private ItemMapper itemMapper;
-    @Resource
-    private ResultMapper resultMapper;
+
     @Resource
     private RedisTemplate<String,Object> redisTemplate;
 
@@ -52,53 +54,59 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
      * @return  新的材料信息表Vn+1
      */
     @Transactional
-    public List<Item> ItemValueCalculation(List<Item> items, HashMap<String, Double> itemNameAndStageEff,Double expCoefficient) {
+    public List<Item> ItemValueCalculation(List<Item> items, JSONObject itemNameAndStageEff,Double expCoefficient) {
 
-        JSONObject byProductJson = JSONObject.parseObject(resultMapper.selectOne(new QueryWrapper<ResultVo>().eq("path","product_value")
-                .orderByDesc("create_time").last("limit 1")).getResult());  //读取根据Vn计算出的副产物价值
+        String workShopProductsValueJson = FileUtil.read(FileConfig.Item + "workShopProductsValue.json");
+        String compositeTableJson = FileUtil.read(FileConfig.Item + "compositeTable.json");
+        if(compositeTableJson==null||workShopProductsValueJson==null||compositeTableJson.length()<10||workShopProductsValueJson.length()<10)
+            throw new ServiceException(ResultCode.DATA_NONE);
 
-        List<CompositeTable> composite_table = JSONArray.parseArray(resultMapper.selectOne(new QueryWrapper<ResultVo>().eq("path","composite_table")
-                .orderByDesc("create_time").last("limit 1")).getResult(), CompositeTable.class);  //读取加工站合成表
+        JSONObject workShopProductsValue = JSONObject.parseObject(workShopProductsValueJson);  //读取根据Vn计算出的副产物价值
+        List<CompositeTable> compositeTable = JSONArray.parseArray(compositeTableJson, CompositeTable.class);  //读取加工站合成表
 
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));  //将旧的材料Vn集合转成map方便调用
 
         items.forEach(item -> item.setExpCoefficient(expCoefficient));//经验书系数
-        itemNameAndStageEff.forEach((id,En)-> itemValueMap.get(id).setItemValue(itemValueMap.get(id).getItemValue()*1.25/En)); //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1.25/En
+        itemNameAndStageEff.forEach((id,En)-> itemValueMap.get(id).setItemValue(itemValueMap.get(id).getItemValue()*1.25/Double.parseDouble(String.valueOf(En)))); //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1.25/En
 
-        composite_table.forEach(table->{
+
+        compositeTable.forEach(table->{     //循环加工站合成表计算新价值
             Integer rarity = itemValueMap.get(table.getId()).getRarity();
             double itemValueNew = 0.0;
+
             if(rarity<3){
                     for(ItemCost itemCost : table.getItemCost()){    itemValueNew += itemValueMap.get(itemCost.getId()).getItemValue()/itemCost.getCount(); } //灰，绿色品质是向下拆解   Vn+1 += Vn+1/合成需求个数
-                    itemValueNew += Double.parseDouble(byProductJson.getString("rarity_"+(rarity))) -0.45*rarity;    //灰，绿色材料是+副产物价值    灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
+                    itemValueNew += Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.45*rarity;    //灰，绿色材料是+副产物价值    灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
                 }else  {
                     for(ItemCost itemCost :table.getItemCost()){  itemValueNew += itemValueMap.get(itemCost.getId()).getItemValue()*itemCost.getCount();  }//紫，金色品质是向上合成    Vn+1 +=Vn+1*合成需求个数
-                    itemValueNew -= Double.parseDouble(byProductJson.getString("rarity_"+(rarity-1))) -0.45*rarity;  //紫，金色材料是减副产物价值   蓝材料  + 龙门币 - 副产物 = 紫，金色材料
+                    itemValueNew -= Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) -0.45*rarity;  //紫，金色材料是减副产物价值   蓝材料  + 龙门币 - 副产物 = 紫，金色材料
                 }
 
-            itemValueMap.get(table.getId()).setItemValue(itemValueNew);
+            itemValueMap.get(table.getId()).setItemValue(itemValueNew);  //存入新材料价值
         });
 
         itemValueMap.forEach((k,item)->item.setItemValueAp(item.getItemValue()/1.25));
         saveByProductValue(items);  //保存Vn+1的加工站副产物平均产出价值
         updateBatchById(items);  //更新材料表
-        List<ItemVo> itemVoList = new ArrayList<>();
-        items.forEach(item -> {
+        List<ItemVo> itemVoList = new ArrayList<>();    //价值表的前端专用返回对象集合
+        items.forEach(item -> { //将价值表对象复制到前端对象
             ItemVo itemVo = new ItemVo();
             BeanUtils.copyProperties(item,itemVo);
             itemVoList.add(itemVo);
         });
-        redisTemplate.opsForValue().set("item/value/"+expCoefficient,itemVoList);
+        redisTemplate.opsForValue().set("item/value/"+expCoefficient,itemVoList);  //存入redis
 
         String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
+        FileUtil.save(FileConfig.Backup,"itemValue_"+saveDate +"_"+expCoefficient+".json",JSON.toJSONString(items));  //价值表备份
 
-        FileUtil.save(FileConfig.Backup,"itemValue_"+saveDate +"_"+expCoefficient+".json",JSON.toJSONString(items));
         return items;
+
+
     }
 
     /**
      * 保存加工站副产品期望价值
-     * @param items  材料信息表Vn+1
+     * @param items  新材料信息表Vn+1
      */
     public void saveByProductValue(List<Item> items) {
         double knockRating = 0.18;
@@ -110,7 +118,8 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
                     hashMap.put( "rarity_"+rarity, list.stream().mapToDouble(item -> item.getItemValue() * item.getWeight())
                             .sum() / items.size() * knockRating );
                 } );
-        resultMapper.insert(new ResultVo("product_value", JSON.toJSONString(hashMap)));
+        FileUtil.save(FileConfig.Item,"workShopProductsValue.json", JSON.toJSONString(hashMap));
+
     }
 
     /**

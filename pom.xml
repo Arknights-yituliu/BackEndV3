@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.lhs</groupId>
-    <artifactId>yituliuBackEndV3</artifactId>
+    <artifactId>BackEndV3</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>yituliuBackEndV3</name>
-    <description>yituliuBackEndV3</description>
+    <name>BackEndV3</name>
+    <description>BackEndV3</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>

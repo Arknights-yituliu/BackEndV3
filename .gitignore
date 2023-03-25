@@ -34,6 +34,5 @@ build/
 /src/main/resources/application-pro.yml
 /src/main/resources/penguin/
 /src/main/resources/schedule/
-/src/main/resources/item/
 /src/main/resources/backups/
 /src/main/java/com/lhs/controller/internal/

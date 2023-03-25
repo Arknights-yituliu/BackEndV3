@@ -24,7 +24,6 @@ public class ToolService {
         String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         Visits visitResult = visitsMapper.selectOne(new QueryWrapper<Visits>()
                 .eq("date", today));
-
         if(visitResult==null){
             visitResult = new Visits();
             visitResult.init();

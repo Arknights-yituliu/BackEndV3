@@ -17,10 +17,10 @@ import com.lhs.entity.MaaRecruitData;
 import com.lhs.entity.MaaRecruitStatistical;
 import com.lhs.entity.ResultVo;
 import com.lhs.entity.Schedule;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
@@ -28,13 +28,13 @@ import java.util.List;
 @Service
 public class MaaService {
 
-    @Autowired
+    @Resource
     private MaaRecruitMapper maaRecruitMapper;
-    @Autowired
+    @Resource
     private MaaRecruitStatisticalMapper maaStatisticalMapper;
-    @Autowired
+    @Resource
     private ResultMapper resultMapper;
-    @Autowired
+    @Resource
     private ScheduleMapper scheduleMapper;
 
     

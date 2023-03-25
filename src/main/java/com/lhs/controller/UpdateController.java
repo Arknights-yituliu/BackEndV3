@@ -2,6 +2,7 @@ package com.lhs.controller;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.config.FileConfig;
@@ -63,10 +64,10 @@ public class UpdateController {
             @ApiImplicitParam(name = "sampleSize", value = "样本大小", dataType = "Integer", paramType = "query", defaultValue = "100", required = false)})
     public Result updateStageData(@RequestParam Double expCoefficient,@RequestParam Integer sampleSize) {
 
-        List<Item> items = itemMapper.selectList(null);   //找出该经验书价值系数版本的材料信息表Vn
-        HashMap<String, Double> itemNameAndStageEffMap = stageResultService.stageResultCal(items,expCoefficient,sampleSize);//计算第一次关卡效率 拿到map<蓝材料名称，蓝材料对应的常驻最高关卡效率En>
-        items = itemService.ItemValueCalculation(items, itemNameAndStageEffMap,expCoefficient);  //用上面的map计算新的材料信息表
-        stageResultService.stageResultCal(items,expCoefficient,sampleSize);      //用Vn+1再次计算关卡效率En+1
+        List<Item> items = itemMapper.selectList(null);   //找出该经验书价值系数版本的材料价值表Vn
+        JSONObject itemNameAndBestStageEffJson = JSONObject.parseObject(FileUtil.read(FileConfig.Item + "itemAndBestStageEff.json")); //读取上次关卡效率计算的结果中蓝材料对应的常驻最高关卡效率En
+        items = itemService.ItemValueCalculation(items, itemNameAndBestStageEffJson,expCoefficient);  //用上面蓝材料对应的常驻最高关卡效率En计算新的新材料价值表Vn+1
+        stageResultService.stageResultCal(items,expCoefficient,sampleSize);      //用新材料价值表Vn+1再次计算新关卡效率En+1
         return Result.success();
     }
 
