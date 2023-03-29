@@ -59,9 +59,9 @@ public class APIService {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
                 "聚酸酯组", "晶体元件", "固源岩组", "半自然溶剂", "化合切削液", "转质盐组").forEach(type -> {
-                    List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1).eq("item_type", type)
-                            .eq("exp_coefficient", expCoefficient).ge("efficiency", 1.0).ge("sample_size", sampleSize)
-                            .orderByDesc("stage_efficiency").last("limit 8"));      //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
+                    List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
+                            .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 1.0)
+                            .ge("sample_size", sampleSize).orderByDesc("stage_efficiency").last("limit 8"));      //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
 
                     if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
                     List<StageResultVo> stageResultVo_item = new ArrayList<>();
@@ -207,5 +207,18 @@ public class APIService {
         String saveTime = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式
         FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
 
+    }
+
+    public List<StageResultVo> queryStageResultData_newChapter(String zone) {
+        List<StageResult> stageResultsByZone = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
+                .isNotNull("item_type").eq("exp_coefficient", 0.625).like("stage_code", zone)
+                .ge("efficiency", 0.8).orderByAsc("stage_id"));
+        List<StageResultVo> stageResultVoList = new ArrayList<>();
+        stageResultsByZone.forEach(stageResult -> {
+            StageResultVo stageResultVo = new StageResultVo();    //将关卡结果表的数据复制到前端返回对象上再返回
+            BeanUtils.copyProperties(stageResult, stageResultVo);
+            stageResultVoList.add(stageResultVo);
+        });
+        return stageResultVoList;
     }
 }

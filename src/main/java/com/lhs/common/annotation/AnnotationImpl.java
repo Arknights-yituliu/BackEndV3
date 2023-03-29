@@ -1,25 +1,25 @@
 package com.lhs.common.annotation;
 
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Result;
-import com.lhs.common.util.ResultCode;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.reflect.CodeSignature;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Aspect
 @Component
 @Slf4j
-public class AnnotationUtils {
+public class AnnotationImpl {
     private  static final ThreadLocal<Long> startTime = new ThreadLocal<>();
 
     @Resource
@@ -35,11 +35,25 @@ public class AnnotationUtils {
     @Around("@annotation(redisCacheable)")
     public Object redis(ProceedingJoinPoint pjp,RedisCacheable redisCacheable) throws Throwable {
         Object[] args = pjp.getArgs();
-        StringBuilder key = new StringBuilder(redisCacheable.key());
-        if(redisCacheable.isArg()) {
-            Arrays.stream(redisCacheable.argList().split(",")).forEach(index->key.append(args[Integer.parseInt(index)]));
+        String[] argNames = ((CodeSignature) pjp.getSignature()).getParameterNames();
+        Map<String, Object> argMap = new HashMap<>();
+        for (int i = 0; i < argNames.length; i++) {
+            argMap.put(argNames[i], args[i]);
         }
-        Object resultVo = redisTemplate.opsForValue().get(key.toString());
+
+        String[] key = redisCacheable.key().split("#");
+        Object resultVo = "";
+        if(key.length==1)  {
+             resultVo = redisTemplate.opsForValue().get(key[0]);
+        }else {
+            StringBuilder redisKey = new StringBuilder(key[0]);
+            for (int i = 1; i < key.length; i++) {
+                redisKey.append(argMap.get(key[i]));
+            }
+
+            resultVo = redisTemplate.opsForValue().get(String.valueOf(redisKey));
+
+        }
         log.info(pjp.getSignature().getName()+"缓存的内容：");
         if (resultVo != null) return Result.success(resultVo);
         log.info("数据库的内容：");

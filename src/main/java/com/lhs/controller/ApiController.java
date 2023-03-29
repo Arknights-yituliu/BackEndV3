@@ -36,7 +36,7 @@ public class ApiController {
     private StageResultService stageResultService;
 
     @TakeCount(method = "物品价值")
-    @RedisCacheable(key = "item/value/",isArg = true,argList = "0")
+    @RedisCacheable(key = "item/value/#expCoefficient")
     @ApiOperation("获取物品价值")
     @GetMapping("/find/item/value")
     @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)})
@@ -46,7 +46,7 @@ public class ApiController {
     }
 
     @TakeCount(method = "蓝材料推荐关卡")
-    @RedisCacheable(key = "stage/t3/",isArg = true,argList = "0")
+    @RedisCacheable(key = "stage/t3/#expCoefficient")
     @ApiOperation("获取蓝材料推荐关卡按效率倒序")
     @GetMapping("/find/stage/t3")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
@@ -57,7 +57,7 @@ public class ApiController {
     }
 
     @TakeCount(method = "绿材料推荐关卡")
-    @RedisCacheable(key = "stage/t2/",isArg = true,argList = "0")
+    @RedisCacheable(key = "stage/t2/#expCoefficient")
     @ApiOperation("获取绿材料推荐关卡按期望正序")
     @GetMapping("/find/stage/t2")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
@@ -67,7 +67,7 @@ public class ApiController {
     }
 
     @TakeCount(method = "历史活动关卡")
-    @RedisCacheable(key = "stage/closed/",isArg = true,argList = "0")
+    @RedisCacheable(key = "stage/closed/#expCoefficient")
     @ApiOperation("获取历史活动关卡")
     @GetMapping("/find/stage/closed")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
@@ -85,6 +85,18 @@ public class ApiController {
         List<OrundumPerApResultVo> OrundumPerApResultVoList = apiService.queryStageResultData_Orundum(0.625, 100);
         return Result.success(OrundumPerApResultVoList);
     }
+
+    @TakeCount(method = "新章关卡置信度情况")
+    @RedisCacheable(key = "stage/newChapter")
+    @ApiOperation("新章关卡置信度情况")
+    @GetMapping("/find/stage/newChapter")
+    @ApiImplicitParam(name = "zone", value = "章节名称", dataType = "String", paramType = "query", defaultValue = "11-", required = false)
+    public Result queryStageResult_newChapter(@RequestParam String zone) {
+        List<StageResultVo> stageResultVoList = apiService.queryStageResultData_newChapter(zone);
+        return Result.success(stageResultVoList);
+    }
+
+
 
     @TakeCount(method = "常驻商店性价比")
     @ApiOperation("获取常驻商店性价比")
