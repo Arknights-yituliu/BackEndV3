@@ -2,10 +2,10 @@ package com.lhs.controller;
 
 
 
-import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.util.Result;
 import com.lhs.entity.Item;
+import com.lhs.entity.StageResult;
 import com.lhs.service.*;
 
 import com.lhs.service.resultVo.OrundumPerApResultVo;
@@ -14,13 +14,11 @@ import com.lhs.service.resultVo.StageResultVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @Api(tags = "获取数据API")
@@ -90,12 +88,20 @@ public class ApiController {
     @GetMapping("/find/stage/newChapter")
     @ApiImplicitParam(name = "zone", value = "章节名称", dataType = "String", paramType = "query", defaultValue = "11-", required = false)
     public Result queryStageResult_newChapter(@RequestParam String zone) {
-
-        List<StageResultVo> stageResultVoList = apiService.queryStageResultData_newChapter(zone);
+        List<StageResultVo> stageResultVoList = apiService.queryStageResultDataByZoneName(zone);
 
         return Result.success(stageResultVoList);
     }
 
+    @TakeCount(method = "查询关卡详细信息")
+    @ApiOperation("查询关卡详细信息")
+    @GetMapping("/find/stage/detail")
+    @ApiImplicitParam(name = "stageCode", value = "章节名称", dataType = "String", paramType = "query", defaultValue = "11-", required = false)
+    public Result queryStageResult_detail(@RequestParam String stageCode) {
+        List<StageResult> stageResultVoList = apiService.queryStageResultDataDetailByStageCode(stageCode);
+
+        return Result.success(stageResultVoList);
+    }
 
 
     @TakeCount(method = "常驻商店性价比")

@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -167,8 +166,9 @@ public class APIService {
     }
 
 
+
     @RedisCacheable(key = "stage/newChapter")
-    public List<StageResultVo> queryStageResultData_newChapter(String zone) {
+    public List<StageResultVo> queryStageResultDataByZoneName(String zone) {
         List<StageResult> stageResultsByZone = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
                 .isNotNull("item_type").eq("exp_coefficient", 0.625).like("stage_code", zone)
                 .ge("efficiency", 0.8).orderByAsc("stage_id"));
@@ -179,9 +179,22 @@ public class APIService {
             BeanUtils.copyProperties(stageResult, stageResultVo);
             stageResultVoList.add(stageResultVo);
         });
-
         return stageResultVoList;
     }
+
+
+    public List<StageResult> queryStageResultDataDetailByStageCode(String stageCode) {
+        List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
+                .eq("exp_coefficient", 0.625).like("stage_code", stageCode)
+                .ge("efficiency", 0.8).orderByAsc("stage_id"));
+        if(stageResultsByStageCode==null||stageResultsByStageCode.size()<1) throw new ServiceException(ResultCode.DATA_NONE);
+
+        return stageResultsByStageCode;
+    }
+
+
+
+
 
     public void savePenguinData(String dataType,String url) {
         String response = HttpRequestUtil.doGet(url,new HashMap<>());
