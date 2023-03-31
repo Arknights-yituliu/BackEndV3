@@ -41,13 +41,13 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm>  {
      * 更新常驻商店性价比
      */
     @Transactional
-    public void updateStorePermDate() {
+    public void updateStorePerm() {
 
         List<StorePerm> storePerms = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.queryItemList(0.625).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
+        Map<String, Item> collect = itemService.queryItemList(0.625,200).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
+        System.out.println(collect);
         storePerms.forEach(storePerm -> {
-
-            storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValue() * storePerm.getQuantity() / storePerm.getCost() );
+            storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValueAp() * storePerm.getQuantity() / storePerm.getCost() );
             if ("grey".equals(storePerm.getStoreType())) storePerm.setCostPer(storePerm.getCostPer() * 100);
             storePerm.setRarity(collect.get(storePerm.getItemName()).getRarity());
             storePerm.setItemId(collect.get(storePerm.getItemName()).getItemId());
@@ -65,7 +65,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm>  {
    
     public void updateStoreActByJson(MultipartFile file) {
 
-        List<Item> items = itemService.queryItemList(0.625);
+        List<Item> items = itemService.queryItemList(0.625,200);
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         JSONArray storeActDataList = JSONArray.parseArray(FileUtil.read(file));
 
@@ -75,7 +75,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm>  {
                 JSONObject storeActData = JSONObject.parseObject(obj.toString());
                 List<StoreActJsonVo> actStores = JSONArray.parseArray(storeActData.getString("actStore"), StoreActJsonVo.class);
                 actStores.forEach(actStore -> {
-                    actStore.setItemPPR(itemMap.get(actStore.getItemName()).getItemValue() * actStore.getItemQuantity() / actStore.getItemPrice());
+                    actStore.setItemPPR(itemMap.get(actStore.getItemName()).getItemValueAp() * actStore.getItemQuantity() / actStore.getItemPrice());
                     actStore.setItemId(itemMap.get(actStore.getItemName()).getItemId());
                 });
                 actStores.sort(Comparator.comparing(StoreActJsonVo::getItemPPR).reversed());
@@ -97,7 +97,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm>  {
 
         List<ItemCustomValue> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValue.class);
         Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValue::getItemName, ItemCustomValue::getItemValue));
-        itemService.queryItemList(0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
+        itemService.queryItemList(0.625,1000).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
         JSONArray packList = JSONArray.parseArray(packStr);
 

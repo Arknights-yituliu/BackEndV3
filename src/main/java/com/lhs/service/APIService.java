@@ -61,7 +61,7 @@ public class APIService {
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
                 "聚酸酯组", "晶体元件", "固源岩组", "半自然溶剂", "化合切削液", "转质盐组").forEach(type -> {
                     List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
-                            .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 1.0)
+                            .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 0.75)
                             .ge("sample_size", sampleSize).orderByDesc("stage_efficiency").last("limit 8"));      //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
 
                     if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);

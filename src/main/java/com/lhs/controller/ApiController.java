@@ -38,7 +38,7 @@ public class ApiController {
     @GetMapping("/find/item/value")
     @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)})
     public Result queryItemValue(@RequestParam Double expCoefficient) {
-        List<Item> items = itemService.queryItemList(expCoefficient);
+        List<Item> items = itemService.queryItemList(expCoefficient,1000);
         return Result.success(items);
     }
 

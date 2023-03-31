@@ -61,7 +61,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity())); //将item表的各项信息转为Map  <itemId,Item类 >
         Map<String, Stage> stageInfoMap = stageService.findAll(new QueryWrapper<Stage>().notLike("stage_id", "tough")).stream().collect(Collectors.toMap(Stage::getStageId, Function.identity()));  //将stage的各项信息转为Map <stageId,stage类 >
         List<QuantileTable> quantileTables = quantileMapper.selectList(null);
-        Double gachaBoxExpectValue = gachaBoxExpectValue(penguinDataResponseVos, itemValueMap);
+//        Double gachaBoxExpectValue = gachaBoxExpectValue(penguinDataResponseVos, itemValueMap);
         penguinDataResponseVos = penguinDataResponseVos.stream()
                 .filter(penguinData -> penguinData.getTimes() > sampleSize && itemValueMap.get(penguinData.getItemId()) != null  //过滤掉（该条记录的样本低于300 & 该条记录的掉落材料不存在于材料表中 & 该条记录的关卡ID不存在于关卡表中）的数据
                         && stageInfoMap.get(penguinData.getStageId()) != null)
@@ -84,9 +84,9 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
             Item item = itemValueMap.get(penguinData.getItemId());
             double knockRating = ((double) penguinData.getQuantity() / (double) penguinData.getTimes());  //材料掉率
             if (knockRating == 0) continue; //÷0就跳过
-            double sampleConfidence = sampleConfidence(penguinData.getTimes(), stage, item.getItemValue(), knockRating, quantileTables); //置信度
+            double sampleConfidence = sampleConfidence(penguinData.getTimes(), stage, item.getItemValueAp(), knockRating, quantileTables); //置信度
             StageResult stageResult = stageResultBuilder.sampleSize(penguinData.getTimes()).sampleConfidence(sampleConfidence).itemRarity(item.getRarity()).knockRating(knockRating).stageColor(2)
-                    .apExpect(stage.getApCost() / knockRating).result(item.getItemValue() * knockRating).spm(stage.getSpm()).updateTime(createTime)
+                    .apExpect(stage.getApCost() / knockRating).result(item.getItemValueAp() * knockRating).spm(stage.getSpm()).updateTime(createTime)
                     .openTime(stage.getOpenTime()).build();   //写入关卡表的各种信息
 
             BeanUtils.copyProperties(stage, stageResult);  //复制关卡表的信息
@@ -101,7 +101,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                 StageResult efficiencyResultCopy = SerializationUtils.clone(stageResult);
                 efficiencyResultCopy.setId(id + 100000);
                 efficiencyResultCopy.setStageId(stage.getStageId() + "_LMD");
-                efficiencyResultCopy.setResult(efficiencyResultCopy.getResult() + stage.getApCost() * 0.09);
+                efficiencyResultCopy.setResult(efficiencyResultCopy.getResult() + stage.getApCost() * 0.72);
                 efficiencyResultCopy.setStageColor(-1);
                 stageResultList.add(efficiencyResultCopy);
             }
@@ -115,12 +115,12 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                     double sampleConfidence = list.stream().mapToDouble(StageResult::getSampleConfidence).min().orElse(0.0);
                     Double apCost = list.get(0).getApCost(); //拿到关卡的消耗
                     list.forEach(result -> {
-                        double efficiency = sum / apCost + 0.054;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.0045*1.2
-                        if (result.getStageId().startsWith("act24side")) {
-                            efficiency = (efficiency - 0.054) / 40 * gachaBoxExpectValue + 0.054;
-                        }
+                        double efficiency = sum / apCost + 0.0432;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.0045*1.2
+//                        if (result.getStageId().startsWith("act24side")) {
+//                            efficiency = (efficiency - 0.054) / 40 * gachaBoxExpectValue + 0.054;
+//                        }
                         result.setEfficiency(efficiency);
-                        result.setStageEfficiency(efficiency / 1.25 * 100);    //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
+                        result.setStageEfficiency(efficiency  * 100);    //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
                         result.setSampleConfidence(sampleConfidence);
                     });
                 });
@@ -136,7 +136,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                     setStageColor(list);   //设置该材料的前8个关卡的颜色级别
                     itemNameAndStageEffMap.put(itemName, list.get(0).getEfficiency());  //拿到该种材料的最优关卡
                     log.info(itemName + "的最优本是" + list.get(0).getStageCode());
-                    log.info(itemName + "的回归系数是" + 1.25 / list.get(0).getEfficiency());
+                    log.info(itemName + "的回归系数是" + 1 / list.get(0).getEfficiency());
                 });
 
 
@@ -187,15 +187,15 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 //                    log.info("龙门币概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + 0.0045 * 2000 * data.getQuantity() / data.getTimes());
                     break;
                 case "31063":
-                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes();
+                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValueAp() * data.getQuantity() / data.getTimes();
 //                    log.info("转质盐组概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes());
                     break;
                 case "30063":
-                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes();
+                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValueAp() * data.getQuantity() / data.getTimes();
 //                    log.info("全新装置概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes());
                     break;
                 case "30033":
-                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes();
+                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValueAp() * data.getQuantity() / data.getTimes();
 //                    log.info("聚酸酯组概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes());
                     break;
                 case "furni":

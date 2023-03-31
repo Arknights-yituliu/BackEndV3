@@ -68,7 +68,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));  //将旧的材料Vn集合转成map方便调用
 
         items.forEach(item -> item.setExpCoefficient(expCoefficient));//经验书系数
-        itemNameAndStageEff.forEach((id,En)-> itemValueMap.get(id).setItemValue(itemValueMap.get(id).getItemValue()*1.25/Double.parseDouble(String.valueOf(En)))); //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1.25/En
+        itemNameAndStageEff.forEach((id,En)-> itemValueMap.get(id).setItemValueAp(itemValueMap.get(id).getItemValueAp()*1/Double.parseDouble(String.valueOf(En)))); //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1/En
 
 
         compositeTable.forEach(table->{     //循环加工站合成表计算新价值
@@ -76,26 +76,19 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
             double itemValueNew = 0.0;
 
             if(rarity<3){
-                    for(ItemCost itemCost : table.getItemCost()){    itemValueNew += itemValueMap.get(itemCost.getId()).getItemValue()/itemCost.getCount(); } //灰，绿色品质是向下拆解   Vn+1 += Vn+1/合成需求个数
-                    itemValueNew += Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.45*rarity;    //灰，绿色材料是+副产物价值    灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
+                    for(ItemCost itemCost : table.getItemCost()){    itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp()/itemCost.getCount(); } //灰，绿色品质是向下拆解   Vn+1 += Vn+1/合成需求个数
+                    itemValueNew += Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.36*rarity;    //灰，绿色材料是+副产物价值    灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
                 }else  {
-                    for(ItemCost itemCost :table.getItemCost()){  itemValueNew += itemValueMap.get(itemCost.getId()).getItemValue()*itemCost.getCount();  }//紫，金色品质是向上合成    Vn+1 +=Vn+1*合成需求个数
-                    itemValueNew -= Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) -0.45*rarity;  //紫，金色材料是减副产物价值   蓝材料  + 龙门币 - 副产物 = 紫，金色材料
+                    for(ItemCost itemCost :table.getItemCost()){  itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp()*itemCost.getCount();  }//紫，金色品质是向上合成    Vn+1 +=Vn+1*合成需求个数
+                    itemValueNew -= Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) -0.36*rarity;  //紫，金色材料是减副产物价值   蓝材料  + 龙门币 - 副产物 = 紫，金色材料
                 }
 
-            itemValueMap.get(table.getId()).setItemValue(itemValueNew);  //存入新材料价值
+            itemValueMap.get(table.getId()).setItemValueAp(itemValueNew);  //存入新材料价值
         });
 
-        itemValueMap.forEach((k,item)->item.setItemValueAp(item.getItemValue()/1.25));
+        itemValueMap.forEach((k,item)->item.setItemValue(item.getItemValueAp()*1.25));
         saveByProductValue(items);  //保存Vn+1的加工站副产物平均产出价值
         updateBatchById(items);  //更新材料表
-        List<ItemVo> itemVoList = new ArrayList<>();    //价值表的前端专用返回对象集合
-        items.forEach(item -> { //将价值表对象复制到前端对象
-            ItemVo itemVo = new ItemVo();
-            BeanUtils.copyProperties(item,itemVo);
-            itemVoList.add(itemVo);
-        });
-        redisTemplate.opsForValue().set("item/value/"+expCoefficient,itemVoList);  //存入redis
 
         String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
         FileUtil.save(FileConfig.Backup,"itemValue_"+saveDate +"_"+expCoefficient+".json",JSON.toJSONString(items));  //价值表备份
@@ -116,9 +109,9 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
                 .filter(item -> item.getWeight() > 0)
                 .collect(Collectors.groupingBy(Item::getRarity))
                 .forEach((rarity,list)->{
-                    hashMap.put( "rarity_"+rarity, list.stream().mapToDouble(item -> item.getItemValue() * item.getWeight())
+                    hashMap.put( "rarity_"+rarity, list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight())
                             .sum() / items.size() * knockRating );
-                } );
+                });
         FileUtil.save(FileConfig.Item,"workShopProductsValue.json", JSON.toJSONString(hashMap));
 
     }
@@ -126,11 +119,12 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
     /**
      * 获取材料信息表
      * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
+     * @param id  一般情况下有些材料是不需要全部查出来的，大部分情况id在200之前的足够用了，200之后的都是诸如多索雷斯的特殊掉落或者自定义材料
      * @return  材料信息表
      */
     @RedisCacheable(key = "item/value/#expCoefficient")
-    public List<Item> queryItemList(Double expCoefficient) {
-        return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", "199"));
+    public List<Item> queryItemList(Double expCoefficient,Integer id) {
+        return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", id));
     }
 
 
@@ -141,7 +135,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
             String fileName = URLEncoder.encode("itemValue", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
-            List<Item> list = itemMapper.selectList(new QueryWrapper<Item>().le("id",200));
+            List<Item> list = queryItemList(0.625,200);
             List<ItemVo> itemVoList = new ArrayList<>();
             for(Item item:list){
                 ItemVo itemVo = new ItemVo();
@@ -156,7 +150,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
     }
 
     public void exportItemJson(HttpServletResponse response) {
-        List<Item> list = itemMapper.selectList(new QueryWrapper<Item>().le("id",200));
+        List<Item> list = queryItemList(0.625,200);
         List<ItemVo> itemVoList = new ArrayList<>();
         for(Item item:list){
             ItemVo itemVo = new ItemVo();
