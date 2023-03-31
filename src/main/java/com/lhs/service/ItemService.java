@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
@@ -127,6 +128,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
      * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
      * @return  材料信息表
      */
+    @RedisCacheable(key = "item/value/#expCoefficient")
     public List<Item> queryItemList(Double expCoefficient) {
         return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", "199"));
     }

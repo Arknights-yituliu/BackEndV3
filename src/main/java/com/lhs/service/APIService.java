@@ -1,6 +1,7 @@
 package com.lhs.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
@@ -55,6 +56,7 @@ public class APIService {
      * @param sampleSize  样本大小
      * @return
      */
+    @RedisCacheable(key = "stage/t3/#expCoefficient")
     public List<List<StageResultVo>> queryStageResultData_t3(Double expCoefficient, Integer sampleSize) {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
@@ -74,7 +76,7 @@ public class APIService {
                 });
 
 
-        redisTemplate.opsForValue().set("stage/t3/" + expCoefficient, stageResultVoList, 1800, TimeUnit.SECONDS);
+
         return stageResultVoList;
     }
 
@@ -84,6 +86,7 @@ public class APIService {
      * @param sampleSize  样本大小
      * @return
      */
+    @RedisCacheable(key = "stage/t2/#expCoefficient")
     public List<List<StageResultVo>> queryStageResultData_t2(Double expCoefficient, Integer sampleSize) {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
 
@@ -102,7 +105,7 @@ public class APIService {
         });
 
 
-        redisTemplate.opsForValue().set("stage/t2/" + expCoefficient, stageResultVoList, 1800, TimeUnit.SECONDS);
+
         return stageResultVoList;
     }
 
@@ -112,6 +115,7 @@ public class APIService {
      * @param sampleSize  样本大小
      * @return
      */
+    @RedisCacheable(key = "stage/closed/#expCoefficient")
     public List<List<StageResultActVo>> queryStageResultData_closedActivities(Double expCoefficient, Integer sampleSize) {
         List<StageResult> stageResultListByIsShow = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 0)
                 .isNotNull("item_type").notLike("stage_code","DH").eq("exp_coefficient", expCoefficient)
@@ -134,7 +138,7 @@ public class APIService {
                 .sorted((p2, p1) -> p1.getValue().get(0).getOpenTime().compareTo(p2.getValue().get(0).getOpenTime())) //比较活动开启时间，倒序排列
                 .forEach(entry -> stageResultVoList.add( new ArrayList<>(entry.getValue())));  //存入结果集合中
 
-        redisTemplate.opsForValue().set("stage/closed/" + expCoefficient, stageResultVoList, 1800, TimeUnit.SECONDS);
+
         return stageResultVoList;
     }
 
@@ -144,6 +148,7 @@ public class APIService {
      * @param sampleSize  样本大小
      * @return
      */
+    @RedisCacheable(key = "stage/orundum")
     public List<OrundumPerApResultVo> queryStageResultData_Orundum(Double expCoefficient, Integer sampleSize) {
         List<OrundumPerApResultVo> OrundumPerApResultVoList = new ArrayList<>();
         List<StageResult> stageResultByItemName = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1).eq("exp_coefficient", expCoefficient)
@@ -157,8 +162,32 @@ public class APIService {
         });
         OrundumPerApResultVoList.sort(Comparator.comparing(OrundumPerApResultVo::getOrundumPerAp).reversed());
         log.info("搓玉效率结果数据正常");
-        redisTemplate.opsForValue().set("stage/orundum", OrundumPerApResultVoList);
+
         return OrundumPerApResultVoList;
+    }
+
+
+    @RedisCacheable(key = "stage/newChapter")
+    public List<StageResultVo> queryStageResultData_newChapter(String zone) {
+        List<StageResult> stageResultsByZone = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
+                .isNotNull("item_type").eq("exp_coefficient", 0.625).like("stage_code", zone)
+                .ge("efficiency", 0.8).orderByAsc("stage_id"));
+
+        List<StageResultVo> stageResultVoList = new ArrayList<>();
+        stageResultsByZone.forEach(stageResult -> {
+            StageResultVo stageResultVo = new StageResultVo();    //将关卡结果表的数据复制到前端返回对象上再返回
+            BeanUtils.copyProperties(stageResult, stageResultVo);
+            stageResultVoList.add(stageResultVo);
+        });
+
+        return stageResultVoList;
+    }
+
+    public void savePenguinData(String dataType,String url) {
+        String response = HttpRequestUtil.doGet(url,new HashMap<>());
+        String saveTime = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式
+        FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
+
     }
 
     /**
@@ -202,23 +231,7 @@ public class APIService {
      * @param dataType  企鹅有两种数据，一种是仅MAA上传的数据，参数值auto；一种是全局数据，参数值global
      * @param url  企鹅的数据API链接
      */
-    public void savePenguinData(String dataType,String url) {
-        String response = HttpRequestUtil.doGet(url,new HashMap<>());
-        String saveTime = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式
-        FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
 
-    }
 
-    public List<StageResultVo> queryStageResultData_newChapter(String zone) {
-        List<StageResult> stageResultsByZone = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
-                .isNotNull("item_type").eq("exp_coefficient", 0.625).like("stage_code", zone)
-                .ge("efficiency", 0.8).orderByAsc("stage_id"));
-        List<StageResultVo> stageResultVoList = new ArrayList<>();
-        stageResultsByZone.forEach(stageResult -> {
-            StageResultVo stageResultVo = new StageResultVo();    //将关卡结果表的数据复制到前端返回对象上再返回
-            BeanUtils.copyProperties(stageResult, stageResultVo);
-            stageResultVoList.add(stageResultVo);
-        });
-        return stageResultVoList;
-    }
+
 }
