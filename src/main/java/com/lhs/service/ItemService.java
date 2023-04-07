@@ -49,7 +49,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
     private RedisTemplate<String,Object> redisTemplate;
 
     /**
-     *  //根据蓝材料对应的常驻最高关卡效率En和旧蓝材料价值Vn计算新的蓝材料价值Vn+1  ，  Vn+1= Vn*1.25/En
+     *  //根据蓝材料对应的常驻最高关卡效率En和旧蓝材料价值Vn计算新的蓝材料价值Vn+1  ，  Vn+1= Vn*1/En
      * @param items   材料信息表Vn
      * @param itemNameAndStageEff  map<蓝材料名称，蓝材料对应的常驻最高关卡效率En>
      * @return  新的材料信息表Vn+1
@@ -124,7 +124,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
      */
     @RedisCacheable(key = "item/value/#expCoefficient")
     public List<Item> queryItemList(Double expCoefficient,Integer id) {
-        return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", id));
+        return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", id).orderByDesc("item_value_ap"));
     }
 
 

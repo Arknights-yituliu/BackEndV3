@@ -31,20 +31,22 @@ public class StageResult implements Serializable {
     private Integer isShow;   // 是否显示
     private Integer isValue;  //是否参与定价
     private Double apCost;  //理智消耗
+
     private String main; // 主材料
     private String secondary; // 副材料
 
-    private String secondaryId; // 副材料id
-    private String itemId;   //材料ID
-    private String itemName;    //材料名称
-    private String itemType;  //材料类型
-    private Integer itemRarity;  //材料类型
+    private String secondaryId; //  副材料id
+    private String itemId;   // 材料ID
+    private String itemName;    //  材料名称
+    private String itemType;  //  材料类型
+    private Integer itemRarity;  //  材料类型
     private Integer sampleSize;  // 样本次数
     private Double knockRating;   // 概率
     private Double apExpect; // 期望理智
     private Double result;   // 单项结果
-    private Double efficiency; //绿票转化率
-    private Double stageEfficiency;    //理智转化率
+    private Double efficiency; //  转化率
+
+    private Double stageEfficiency;    //转化率百分比
     private Integer stageColor ;   //关卡在前端显示的颜色
     private Double expCoefficient;   //关卡在前端显示的颜色
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")

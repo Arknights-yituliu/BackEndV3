@@ -22,7 +22,7 @@ public class Item {
     private Long id;
     private String itemId;  //物品id
     private String itemName; //物品名称
-    @TableField(value ="item_value_commendation_cert")
+    @TableField(value ="item_value_cert")
     private Double itemValue; //物品价值 单位：绿票
     @TableField(value ="item_value_ap")
     private Double itemValueAp; //物品价值 单位：理智

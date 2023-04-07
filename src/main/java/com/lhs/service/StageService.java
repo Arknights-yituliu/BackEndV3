@@ -48,7 +48,6 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
             EasyExcel.read(file.getInputStream(), Stage.class, new AnalysisEventListener<Stage>() {
                
                 public void invoke(Stage stage, AnalysisContext analysisContext) {
-
                     try {
                         if (!"0".equals(stage.getMain())) stage.setMainRarity(itemMap.get(stage.getMain()).getRarity());
                         if (!"0".equals(stage.getMain())) stage.setItemType(itemType_table.getString(stage.getMain()));

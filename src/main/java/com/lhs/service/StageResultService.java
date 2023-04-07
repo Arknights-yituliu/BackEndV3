@@ -58,14 +58,19 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         String response = FileUtil.read(FileConfig.Penguin + "matrix " + saveData + " global.json");  //读取企鹅物流数据文件
         List<PenguinDataResponseVo> penguinDataResponseVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataResponseVo.class);//将企鹅物流文件的内容转为集合
         penguinDataResponseVos = mergePenguinData(penguinDataResponseVos);  //合并企鹅物流的标准和磨难关卡的样本
+
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity())); //将item表的各项信息转为Map  <itemId,Item类 >
         Map<String, Stage> stageInfoMap = stageService.findAll(new QueryWrapper<Stage>().notLike("stage_id", "tough")).stream().collect(Collectors.toMap(Stage::getStageId, Function.identity()));  //将stage的各项信息转为Map <stageId,stage类 >
         List<QuantileTable> quantileTables = quantileMapper.selectList(null);
 //        Double gachaBoxExpectValue = gachaBoxExpectValue(penguinDataResponseVos, itemValueMap);
+//        penguinDataResponseVos.forEach(e-> System.out.println(e));
         penguinDataResponseVos = penguinDataResponseVos.stream()
                 .filter(penguinData -> penguinData.getTimes() > sampleSize && itemValueMap.get(penguinData.getItemId()) != null  //过滤掉（该条记录的样本低于300 & 该条记录的掉落材料不存在于材料表中 & 该条记录的关卡ID不存在于关卡表中）的数据
                         && stageInfoMap.get(penguinData.getStageId()) != null)
                 .collect(Collectors.toList());
+
+        HashMap<String, Double> ApSupplyAndRandomMaterialAndApCostMap = new HashMap<>();
+
 
 
 //      保存企鹅物流每一条记录的计算结果
@@ -77,17 +82,31 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
         Date createTime = new Date();
         for (PenguinDataResponseVo penguinData : penguinDataResponseVos) {
-
             StageResult.StageResultBuilder stageResultBuilder = StageResult.builder();
+
 
             Stage stage = stageInfoMap.get(penguinData.getStageId());
             Item item = itemValueMap.get(penguinData.getItemId());
+            System.out.println(stage.getStageCode());
             double knockRating = ((double) penguinData.getQuantity() / (double) penguinData.getTimes());  //材料掉率
             if (knockRating == 0) continue; //÷0就跳过
             double sampleConfidence = sampleConfidence(penguinData.getTimes(), stage, item.getItemValueAp(), knockRating, quantileTables); //置信度
             StageResult stageResult = stageResultBuilder.sampleSize(penguinData.getTimes()).sampleConfidence(sampleConfidence).itemRarity(item.getRarity()).knockRating(knockRating).stageColor(2)
                     .apExpect(stage.getApCost() / knockRating).result(item.getItemValueAp() * knockRating).spm(stage.getSpm()).updateTime(createTime)
                     .openTime(stage.getOpenTime()).build();   //写入关卡表的各种信息
+
+            if("randomMaterial_8".equals(item.getItemId())) {
+                ApSupplyAndRandomMaterialAndApCostMap.put("result_"+stage.getStageId(),item.getItemValueAp() * knockRating);
+//                log.info("物资箱期望价值："+(item.getItemValueAp() * knockRating));
+                stageResult.setResult(0.0);
+            }
+            if("ap_supply_lt_010".equals(item.getItemId())) {
+                ApSupplyAndRandomMaterialAndApCostMap.put("apCost_"+stage.getStageId(),stage.getApCost()-10*knockRating);
+//                log.info(stage.getStageCode()+"的体力消耗扣除后是："+(stage.getApCost()-10*knockRating));
+                stageResult.setResult(0.0);
+            }
+
+
 
             BeanUtils.copyProperties(stage, stageResult);  //复制关卡表的信息
             BeanUtils.copyProperties(item, stageResult);   //复制材料表的信息
@@ -111,16 +130,25 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         stageResultList.stream()
                 .collect(Collectors.groupingBy(StageResult::getStageId))   //把计算结果根据stageId分组
                 .forEach((stageId, list) -> {      //list是相同关卡的所有材料的单条计算结果
+//                    System.out.println(stageId);
                     double sum = list.stream().mapToDouble(StageResult::getResult).sum();   //计算关卡的材料产出价值之和V
+                    double result_randomMaterial = ApSupplyAndRandomMaterialAndApCostMap.get("result_"+stageId)==null?0.0:ApSupplyAndRandomMaterialAndApCostMap.get("result_"+stageId);
+                    double apCostDeductedApSupply = ApSupplyAndRandomMaterialAndApCostMap.get("apCost_"+stageId)==null?0.0:ApSupplyAndRandomMaterialAndApCostMap.get("apCost_"+stageId);
+
                     double sampleConfidence = list.stream().mapToDouble(StageResult::getSampleConfidence).min().orElse(0.0);
                     Double apCost = list.get(0).getApCost(); //拿到关卡的消耗
                     list.forEach(result -> {
                         double efficiency = sum / apCost + 0.0432;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.0045*1.2
+                        double efficiencyAddRandomMaterial = (sum+result_randomMaterial)/apCostDeductedApSupply + 0.0432;
+
 //                        if (result.getStageId().startsWith("act24side")) {
 //                            efficiency = (efficiency - 0.054) / 40 * gachaBoxExpectValue + 0.054;
 //                        }
                         result.setEfficiency(efficiency);
-                        result.setStageEfficiency(efficiency  * 100);    //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
+                        result.setStageEfficiency(efficiency  * 100);
+                      if((apCostDeductedApSupply>1)) result.setStageEfficiency((efficiencyAddRandomMaterial  * 100)); //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
+
+
                         result.setSampleConfidence(sampleConfidence);
                     });
                 });
@@ -217,10 +245,15 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
     public List<PenguinDataResponseVo> mergePenguinData(List<PenguinDataResponseVo> penguinDataList) {
         Map<String, PenguinDataResponseVo> collect = penguinDataList.stream().collect(Collectors.toMap(entity -> entity.getStageId() + entity.getItemId(), Function.identity()));
         penguinDataList.stream()
-                .filter(penguinData -> penguinData.getStageId().startsWith("main_10") || penguinData.getStageId().startsWith("main_11"))
+                .filter(penguinData -> penguinData.getStageId().startsWith("main_10") || penguinData.getStageId().startsWith("main_11")|| penguinData.getStageId().startsWith("main_12"))
                 .forEach(entity -> {
-                    entity.setTimes(entity.getTimes() + collect.get(entity.getStageId() + entity.getItemId()).getTimes());
-                    entity.setQuantity(entity.getQuantity() + collect.get(entity.getStageId() + entity.getItemId()).getQuantity());
+//                    System.out.println("合并前："+entity);
+                    if(collect.get(entity.getStageId().replace("main","tough") + entity.getItemId())!=null) {
+                       PenguinDataResponseVo toughData = collect.get(entity.getStageId().replace("main","tough") + entity.getItemId());
+                        entity.setTimes(entity.getTimes() + toughData.getTimes());
+                        entity.setQuantity(entity.getQuantity() + toughData.getQuantity());
+                    }
+//                    System.out.println("合并后："+entity);
                 });
 
         return penguinDataList;
@@ -236,7 +269,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
      * @return 置信度
      */
     public Double sampleConfidence(Integer penguinDataTimes, Stage stage, double itemValue, double probability, List<QuantileTable> quantileTables) {
-        double quantileValue = 0.03 * stage.getApCost() * 1.25 / itemValue / Math.sqrt(1 * probability * (1 - probability) / (penguinDataTimes - 1));
+        double quantileValue = 0.03 * stage.getApCost()  / itemValue / Math.sqrt(1 * probability * (1 - probability) / (penguinDataTimes - 1));
         if (quantileValue >= 3.09023 || Double.isNaN(quantileValue)) return 99.9;
         List<QuantileTable> collect = quantileTables.stream()
                 .filter(quantileTable -> quantileTable.getValue() <= quantileValue).collect(Collectors.toList());

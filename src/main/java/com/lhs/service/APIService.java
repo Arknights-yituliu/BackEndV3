@@ -171,7 +171,7 @@ public class APIService {
     public List<StageResultVo> queryStageResultDataByZoneName(String zone) {
         List<StageResult> stageResultsByZone = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
                 .isNotNull("item_type").eq("exp_coefficient", 0.625).like("stage_code", zone)
-                .ge("efficiency", 0.8).orderByAsc("stage_id"));
+                .ge("efficiency", 0.3).orderByAsc("stage_id"));
 
         List<StageResultVo> stageResultVoList = new ArrayList<>();
         stageResultsByZone.forEach(stageResult -> {

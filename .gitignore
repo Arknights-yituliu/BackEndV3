@@ -35,4 +35,4 @@ build/
 /src/main/resources/penguin/
 /src/main/resources/schedule/
 /src/main/resources/backups/
-/src/main/java/com/lhs/controller/internal/
+/src/main/java/com/lhs/controller/Controller.java

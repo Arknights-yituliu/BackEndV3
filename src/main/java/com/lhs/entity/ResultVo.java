@@ -15,7 +15,7 @@ import java.util.Date;
 public class ResultVo {   //储存各种结果的表
     @TableId
     private Long id;
-    private String path;  //api路径
+    private String path;  //路径
     private String result;  //各种计算结果
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

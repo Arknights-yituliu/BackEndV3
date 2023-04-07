@@ -54,9 +54,9 @@ public class AnnotationImpl {
         }
 
         redisValue = redisTemplate.opsForValue().get(String.valueOf(redisKey));
-        log.info(pjp.getSignature().getName() + "读取缓存内容");
+//        log.info(pjp.getSignature().getName() + "读取缓存内容");
         if (redisValue != null) return redisValue;
-        log.info("读取数据库内容");
+//        log.info("读取数据库内容");
         Object proceed = pjp.proceed();
         redisTemplate.opsForValue().set(String.valueOf(redisKey), proceed, timeOut, TimeUnit.SECONDS);
         log.info("存入redis");
@@ -66,7 +66,7 @@ public class AnnotationImpl {
     //接口方法执行完成之后
     @After("@annotation(takeCount)")
     public void takeCountAfter(TakeCount takeCount) {
-        log.info(takeCount.method() + "接口耗时：" + (System.currentTimeMillis() - startTime.get()) + "ms");
+//        log.info(takeCount.method() + "接口耗时：" + (System.currentTimeMillis() - startTime.get()) + "ms");
         startTime.remove();
     }
 

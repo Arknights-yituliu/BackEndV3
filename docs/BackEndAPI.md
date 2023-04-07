@@ -68,7 +68,6 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 |     itemType     | String |                           该关卡属于某一材料体系                            |
 |   secondaryId    | String |                        副产物的物品 ID，1 为无副产物                         |
 | sampleConfidence | Double |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
-|    stageState    | String |            关卡状态，0:无事发生 1:SideStory 2:故事集 3:理智小样+物资补给             |
 |   activityName   | String |                             活动或章节名称                              |
 |   knockRating    | Double |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
 |    updateTime    | String |                             数据统计的时间                              |
@@ -100,7 +99,6 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 |     itemType     | String |                           该关卡属于某一材料体系                            |
 |   secondaryId    | String |                        副产物的物品 ID，1 为无副产物                         |
 | sampleConfidence | Double |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
-|    stageState    | String |            关卡状态，0:无事发生 1:SideStory 2:故事集 3:理智小样+物资补给             |
 |   activityName   | String |                             活动或章节名称                              |
 |   knockRating    | Double |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
 |    updateTime    | String |                             数据统计的时间                              |
@@ -214,7 +212,6 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 |     itemType     | String  |                           该关卡属于某一材料体系                            |
 |   secondaryId    | String  |                        副产物的物品 ID，1 为无副产物                         |
 | sampleConfidence | Double  |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
-|    stageState    | String  |            关卡状态，0:无事发生 1:SideStory 2:故事集 3:理智小样+物资补给             |
 |   activityName   | String  |                             活动或章节名称                              |
 |   knockRating    | Double  |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
 |    updateTime    | String  |                             数据统计的时间                              |

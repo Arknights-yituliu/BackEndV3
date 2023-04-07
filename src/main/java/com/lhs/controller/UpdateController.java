@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,22 +40,14 @@ import java.util.Map;
 @Slf4j
 public class UpdateController {
 
-    @Autowired
-    private ItemService itemService;
-    @Autowired
-    private ItemMapper itemMapper;
-    @Autowired
-    private StageResultService stageResultService;
-    @Autowired
+
+    @Resource
     private StoreService storeService;
-    @Autowired
+    @Resource
     private StageService stageService;
-    @Autowired
-    private VisitsMapper visitsMapper;
-    @Autowired
+    @Resource
     private ToolService toolService;
-    @Autowired
-    private APIService apiService;
+
 
 
     @ApiOperation(value = "更新礼包商店性价比")

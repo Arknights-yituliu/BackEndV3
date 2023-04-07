@@ -37,10 +37,6 @@ public class MaaService {
     @Resource
     private ScheduleMapper scheduleMapper;
 
-    
-
-
-
     public String saveMaaRecruitData(MaaRecruitData maaRecruitData) {
         int insert = maaRecruitMapper.insert(maaRecruitData);
         return null;
