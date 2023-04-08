@@ -47,6 +47,14 @@ public class UpdateController {
     private StageService stageService;
     @Resource
     private ToolService toolService;
+    @Resource
+    private APIService apiService;
+    @Resource
+    private ItemService itemService;
+    @Resource
+    private ItemMapper itemMapper;
+    @Resource
+    private StageResultService stageResultService;
 
 
 
@@ -69,7 +77,47 @@ public class UpdateController {
         return Result.success();
     }
 
+    @TakeCount(method = "更新关卡推荐数据")
+    @ApiOperation("更新关卡推荐数据")
+    @GetMapping("stage/update")
+    @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false),
+            @ApiImplicitParam(name = "sampleSize", value = "样本大小", dataType = "Integer", paramType = "query", defaultValue = "100", required = false)})
+    public Result updateStageData(@RequestParam Double expCoefficient,@RequestParam Integer sampleSize) {
+        List<Item> items = itemMapper.selectList(null);   //找出该经验书价值系数版本的材料价值表Vn
+        JSONObject itemNameAndBestStageEffJson = JSONObject.parseObject(FileUtil.read(FileConfig.Item + "itemAndBestStageEff.json")); //读取上次关卡效率计算的结果中蓝材料对应的常驻最高关卡效率En
+        items = itemService.ItemValueCalculation(items, itemNameAndBestStageEffJson,expCoefficient);  //用上面蓝材料对应的常驻最高关卡效率En计算新的新材料价值表Vn+1
+        stageResultService.stageResultCal(items,expCoefficient,sampleSize);      //用新材料价值表Vn+1再次计算新关卡效率En+1
+        return Result.success();
+    }
 
+    @TakeCount(method = "保存关卡推荐结果")
+    @ApiOperation("保存关卡推荐结果")
+    @GetMapping("stage/save")
+    @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false),
+            @ApiImplicitParam(name = "sampleSize", value = "样本大小", dataType = "Integer", paramType = "query", defaultValue = "200", required = false)})
+    public Result saveStageResults(@RequestParam Double expCoefficient,@RequestParam Integer sampleSize) {
+        String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
+        List<List<StageResultVo>> stageResultVoList_t3 = apiService.queryStageResultData_t3(expCoefficient, sampleSize);
+        FileUtil.save(FileConfig.Backup,"stageResult "+saveDate +" "+expCoefficient+" t3.json", JSON.toJSONString(stageResultVoList_t3));
+        List<List<StageResultActVo>> stageResultVoList_closed = apiService.queryStageResultData_closedActivities(expCoefficient, sampleSize);
+        FileUtil.save(FileConfig.Backup,"stageResult "+saveDate +" "+expCoefficient+" closed.json",JSON.toJSONString(stageResultVoList_closed));
+        return Result.success();
+    }
 
+    @TakeCount(method = "保存企鹅物流数据")
+    @ApiOperation("保存企鹅物流数据")
+    @GetMapping("save/penguinData")
+    public Result savePenguinData(@RequestParam String dataType,@RequestParam String url) {
+        apiService.savePenguinData(dataType,url);
+        return Result.success();
+    }
+
+    @TakeCount(method = "更新常驻商店")
+    @ApiOperation("更新常驻商店")
+    @GetMapping("update/store/perm")
+    public Result updateStorePerm() {
+        storeService.updateStorePerm();
+        return Result.success();
+    }
 
 }

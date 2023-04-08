@@ -87,7 +87,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
             Stage stage = stageInfoMap.get(penguinData.getStageId());
             Item item = itemValueMap.get(penguinData.getItemId());
-            System.out.println(stage.getStageCode());
+//            System.out.println(stage.getStageCode());
             double knockRating = ((double) penguinData.getQuantity() / (double) penguinData.getTimes());  //材料掉率
             if (knockRating == 0) continue; //÷0就跳过
             double sampleConfidence = sampleConfidence(penguinData.getTimes(), stage, item.getItemValueAp(), knockRating, quantileTables); //置信度
@@ -102,7 +102,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
             }
             if("ap_supply_lt_010".equals(item.getItemId())) {
                 ApSupplyAndRandomMaterialAndApCostMap.put("apCost_"+stage.getStageId(),stage.getApCost()-10*knockRating);
-//                log.info(stage.getStageCode()+"的体力消耗扣除后是："+(stage.getApCost()-10*knockRating));
+                log.info(stage.getStageCode()+"的体力消耗扣除后是："+(stage.getApCost()-10*knockRating));
                 stageResult.setResult(0.0);
             }
 
@@ -146,8 +146,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 //                        }
                         result.setEfficiency(efficiency);
                         result.setStageEfficiency(efficiency  * 100);
-                      if((apCostDeductedApSupply>1)) result.setStageEfficiency((efficiencyAddRandomMaterial  * 100)); //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
-
+//                      if((apCostDeductedApSupply>1)) result.setStageEfficiency((efficiencyAddRandomMaterial  * 100)); //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
 
                         result.setSampleConfidence(sampleConfidence);
                     });

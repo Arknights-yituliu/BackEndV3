@@ -49,7 +49,7 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 ### 获取蓝材料最优图(JsonArray)
 
-终结点：`/api/find/stage/t3`
+终结点：`/stage/t3`
 <br>
 请求类型：Get
 
@@ -71,16 +71,16 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 |   activityName   | String |                             活动或章节名称                              |
 |   knockRating    | Double |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
 |    updateTime    | String |                             数据统计的时间                              |
-|    sampleSize    |  Int   |                               样本数量                               |
+|    sampleSize    |  Integer   |                               样本数量                               |
 |    secondary     | String |                         副产物的物品名称，1 为无副产物                         |
 |     apExpect     | Double |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
 |      itemId      | String |                            主产物的物品 ID                             |
 |       spm        | String |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
-|    stageColor    |  Int   | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
+|    stageColor    |  Integer   | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
 
 ### 获取绿材料最优图(JsonArray)
 
-终结点：`/api/find/stage/t2`
+终结点：`/stage/t2`
 <br>
 请求类型：Get
 
@@ -102,16 +102,16 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 |   activityName   | String |                             活动或章节名称                              |
 |   knockRating    | Double |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
 |    updateTime    | String |                             数据统计的时间                              |
-|    sampleSize    |  Int   |                               样本数量                               |
+|    sampleSize    |  Integer   |                               样本数量                               |
 |    secondary     | String |                         副产物的物品名称，1 为无副产物                         |
 |     apExpect     | Double |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
 |      itemId      | String |                            主产物的物品 ID                             |
 |       spm        | String |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
-|    stageColor    |  Int   | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
+|    stageColor    |  Integer   | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
 
 ### 获取常驻商店性价比(JsonObject)
 
-终结点：`/api/find/store/perm`
+终结点：`/store/perm`
 <br>
 请求类型：Get
 
@@ -138,7 +138,7 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 ### 获取活动商店性价比(JsonArray)
 
-终结点：`/api/find/store/act`
+终结点：`/store/act`
 <br>
 请求类型：Get
 
@@ -160,16 +160,16 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 |     字段名      |  数据类型  |          说明          |
 |:------------:|:------:|:--------------------:|
-|   itemArea   |  Int   | 区域索引，用于判断是无限池区还是有限池区 |
+|   itemArea   |  Integer   | 区域索引，用于判断是无限池区还是有限池区 |
 |   itemName   | String |         材料名称         |
 |   itemPPR    | Double |        材料性价比         |
-|  itemPrice   |  Int   |         商店售价         |
-| itemQuantity |  Int   |       商店每次售卖个数       |
-|  itemStock   |  Int   |         商店库存         |
+|  itemPrice   |  Integer   |         商店售价         |
+| itemQuantity |  Integer   |       商店每次售卖个数       |
+|  itemStock   |  Integer   |         商店库存         |
 
 ### 获取所有物品价值(JsonArray)
 
-终结点：`/api/find/item/value/`
+终结点：`/item/value/`
 <br>
 请求类型：Get
 
@@ -193,7 +193,7 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 ### 获取历史活动最优图(JsonArray)
 
-终结点：`/api/find/stage/closed`
+终结点：`/stage/closed`
 <br>
 请求类型：Get
 
