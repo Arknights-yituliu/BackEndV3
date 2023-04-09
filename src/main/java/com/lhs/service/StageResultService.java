@@ -54,8 +54,8 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
     public HashMap<String, Double> stageResultCal(List<Item> items, Double expCoefficient, Integer sampleSize) {
 
         //将企鹅物流的数据转成集合
-        String saveData = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date());
-        String response = FileUtil.read(FileConfig.Penguin + "matrix " + saveData + " global.json");  //读取企鹅物流数据文件
+
+        String response = FileUtil.read(FileConfig.Penguin + "matrix global.json");  //读取企鹅物流数据文件
         List<PenguinDataResponseVo> penguinDataResponseVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataResponseVo.class);//将企鹅物流文件的内容转为集合
         penguinDataResponseVos = mergePenguinData(penguinDataResponseVos);  //合并企鹅物流的标准和磨难关卡的样本
 

@@ -81,7 +81,7 @@ public class UpdateController {
     @ApiOperation("更新关卡推荐数据")
     @GetMapping("stage/update")
     @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false),
-            @ApiImplicitParam(name = "sampleSize", value = "样本大小", dataType = "Integer", paramType = "query", defaultValue = "100", required = false)})
+            @ApiImplicitParam(name = "sampleSize", value = "样本大小", dataType = "Integer", paramType = "query", defaultValue = "300", required = false)})
     public Result updateStageData(@RequestParam Double expCoefficient,@RequestParam Integer sampleSize) {
         List<Item> items = itemMapper.selectList(null);   //找出该经验书价值系数版本的材料价值表Vn
         JSONObject itemNameAndBestStageEffJson = JSONObject.parseObject(FileUtil.read(FileConfig.Item + "itemAndBestStageEff.json")); //读取上次关卡效率计算的结果中蓝材料对应的常驻最高关卡效率En
@@ -107,6 +107,8 @@ public class UpdateController {
     @TakeCount(method = "保存企鹅物流数据")
     @ApiOperation("保存企鹅物流数据")
     @GetMapping("save/penguinData")
+    @ApiImplicitParams({@ApiImplicitParam(name = "dataType", value = "自动或全局数据", dataType = "String", paramType = "query", defaultValue = "global", required = false),
+            @ApiImplicitParam(name = "url", value = "企鹅物流API", dataType = "String", paramType = "query", defaultValue = "https://penguin-stats.io/PenguinStats/api/v2/result/matrix?show_closed_zones=true", required = false)})
     public Result savePenguinData(@RequestParam String dataType,@RequestParam String url) {
         apiService.savePenguinData(dataType,url);
         return Result.success();
