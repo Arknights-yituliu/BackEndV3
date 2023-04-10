@@ -76,11 +76,11 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
             double itemValueNew = 0.0;
 
             if(rarity<3){
-                    for(ItemCost itemCost : table.getItemCost()){    itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp()/itemCost.getCount(); } //灰，绿色品质是向下拆解   Vn+1 += Vn+1/合成需求个数
-                    itemValueNew += Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.36*rarity;    //灰，绿色材料是+副产物价值    灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
+                    for(ItemCost itemCost : table.getItemCost()){    itemValueNew = (itemValueMap.get(itemCost.getId()).getItemValueAp() +
+                            Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.36*rarity)/itemCost.getCount(); } //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
                 }else  {
-                    for(ItemCost itemCost :table.getItemCost()){  itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp()*itemCost.getCount();  }//紫，金色品质是向上合成    Vn+1 +=Vn+1*合成需求个数
-                    itemValueNew -= Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) -0.36*rarity;  //紫，金色材料是减副产物价值   蓝材料  + 龙门币 - 副产物 = 紫，金色材料
+                    for(ItemCost itemCost :table.getItemCost()){  itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp()*itemCost.getCount(); }//紫，金色品质是向上合成    蓝材料  + 龙门币 - 副产物 = 紫，金色材料
+                    itemValueNew -= Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) -0.36*rarity;
                 }
 
             itemValueMap.get(table.getId()).setItemValueAp(itemValueNew);  //存入新材料价值

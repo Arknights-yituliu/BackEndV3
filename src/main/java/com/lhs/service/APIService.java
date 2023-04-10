@@ -199,7 +199,7 @@ public class APIService {
     public void savePenguinData(String dataType,String url) {
         String response = HttpRequestUtil.doGet(url,new HashMap<>());
         String saveTime = new SimpleDateFormat("yyyy-MM-dd HH mm").format(new Date()); // 设置日期格式
-         FileUtil.save(FileConfig.Penguin, "matrix " + dataType + ".json", response);
+        FileUtil.save(FileConfig.Penguin, "matrix " + dataType + ".json", response);
         FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
 
     }

@@ -102,7 +102,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
             }
             if("ap_supply_lt_010".equals(item.getItemId())) {
                 ApSupplyAndRandomMaterialAndApCostMap.put("apCost_"+stage.getStageId(),stage.getApCost()-10*knockRating);
-                log.info(stage.getStageCode()+"的体力消耗扣除后是："+(stage.getApCost()-10*knockRating));
+//                log.info(stage.getStageCode()+"的体力消耗扣除后是："+(stage.getApCost()-10*knockRating));
                 stageResult.setResult(0.0);
             }
 

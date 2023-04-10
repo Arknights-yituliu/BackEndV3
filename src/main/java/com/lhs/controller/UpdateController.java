@@ -96,7 +96,7 @@ public class UpdateController {
     @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false),
             @ApiImplicitParam(name = "sampleSize", value = "样本大小", dataType = "Integer", paramType = "query", defaultValue = "200", required = false)})
     public Result saveStageResults(@RequestParam Double expCoefficient,@RequestParam Integer sampleSize) {
-        String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
+        String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm").format(new Date());
         List<List<StageResultVo>> stageResultVoList_t3 = apiService.queryStageResultData_t3(expCoefficient, sampleSize);
         FileUtil.save(FileConfig.Backup,"stageResult "+saveDate +" "+expCoefficient+" t3.json", JSON.toJSONString(stageResultVoList_t3));
         List<List<StageResultActVo>> stageResultVoList_closed = apiService.queryStageResultData_closedActivities(expCoefficient, sampleSize);

@@ -5,6 +5,7 @@ package com.lhs.controller;
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.util.Result;
 import com.lhs.entity.Item;
+import com.lhs.entity.Stage;
 import com.lhs.entity.StageResult;
 import com.lhs.service.*;
 
@@ -31,14 +32,25 @@ public class ApiController {
     @Resource
     private ItemService itemService ;
 
+    @Resource
+    private StageService stageService ;
 
-    @TakeCount(method = "物品价值")
-    @ApiOperation("获取物品价值")
+
+    @TakeCount(method = "物品价值表")
+    @ApiOperation("获取物品价值表")
     @GetMapping("/item/value")
     @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)})
     public Result queryItemValue(@RequestParam Double expCoefficient) {
         List<Item> items = itemService.queryItemList(expCoefficient,1000);
         return Result.success(items);
+    }
+
+    @TakeCount(method = "关卡信息表")
+    @ApiOperation("获取关卡信息表")
+    @GetMapping("/stage")
+    public Result queryStage() {
+        List<Stage> all = stageService.findAll(null);
+        return Result.success(all);
     }
 
     @TakeCount(method = "蓝材料推荐关卡")
