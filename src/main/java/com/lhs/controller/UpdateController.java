@@ -3,35 +3,27 @@ package com.lhs.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.Result;
 import com.lhs.mapper.ItemMapper;
-import com.lhs.mapper.VisitsMapper;
 import com.lhs.entity.Item;
-import com.lhs.entity.Visits;
 import com.lhs.service.*;
-import com.lhs.service.resultVo.StageResultActVo;
-import com.lhs.service.resultVo.StageResultVo;
+import com.lhs.service.response.StageResultActVo;
+import com.lhs.service.response.StageResultVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Api(tags = "更新数据和文件导入导出")

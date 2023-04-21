@@ -50,6 +50,4 @@ public class Stage {
     private String type;  //关卡类型
 
 
-
-
 }

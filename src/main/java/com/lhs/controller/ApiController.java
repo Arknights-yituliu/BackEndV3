@@ -9,17 +9,21 @@ import com.lhs.entity.Stage;
 import com.lhs.entity.StageResult;
 import com.lhs.service.*;
 
-import com.lhs.service.resultVo.OrundumPerApResultVo;
-import com.lhs.service.resultVo.StageResultActVo;
-import com.lhs.service.resultVo.StageResultVo;
+import com.lhs.service.request.EmailRequest;
+import com.lhs.service.response.OrundumPerApResultVo;
+import com.lhs.service.response.StageResultActVo;
+import com.lhs.service.response.StageResultVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.catalina.User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Api(tags = "获取数据API")
@@ -31,7 +35,8 @@ public class ApiController {
     private APIService apiService;
     @Resource
     private ItemService itemService ;
-
+    @Resource
+    private UserService userService ;
     @Resource
     private StageService stageService ;
 
@@ -49,8 +54,9 @@ public class ApiController {
     @ApiOperation("获取关卡信息表")
     @GetMapping("/stage")
     public Result queryStage() {
-        List<Stage> all = stageService.findAll(null);
-        return Result.success(all);
+        LinkedHashMap<String, List<Stage>> stringListMap = stageService.queryStageTable();
+
+        return Result.success(stringListMap);
     }
 
     @TakeCount(method = "蓝材料推荐关卡")
@@ -107,9 +113,18 @@ public class ApiController {
     @TakeCount(method = "查询关卡详细信息")
     @ApiOperation("查询关卡详细信息")
     @GetMapping("/stage/detail")
-    @ApiImplicitParam(name = "stageCode", value = "章节名称", dataType = "String", paramType = "query", defaultValue = "11-", required = false)
+    @ApiImplicitParam(name = "stageCode", value = "关卡名称", dataType = "String", paramType = "query", defaultValue = "11-", required = false)
     public Result queryStageResult_detail(@RequestParam String stageCode) {
         List<StageResult> stageResultVoList = apiService.queryStageResultDataDetailByStageCode(stageCode);
+        return Result.success(stageResultVoList);
+    }
+
+    @TakeCount(method = "查询关卡详细信息")
+    @ApiOperation("查询关卡详细信息")
+    @GetMapping("/stage/detail/{stageId}")
+    public Result queryStageResult_detailByStageId(@PathVariable String stageId) {
+        System.out.println(stageId);
+        List<StageResult> stageResultVoList = apiService.queryStageResultDataDetailByStageId(stageId);
         return Result.success(stageResultVoList);
     }
 
@@ -129,6 +144,15 @@ public class ApiController {
         Object resultVo = apiService.queryResultByApiPath("store/act");
         return Result.success(resultVo);
     }
+
+
+//    @ApiOperation("发送邮件")
+//    @PostMapping("/sendEmail")
+//    public Result sendEmail(@RequestBody EmailRequest emailRequest) {
+//        userService.sendMail(emailRequest);
+//        return Result.success();
+//    }
+
 
 //    @TakeCount(method = "礼包商店性价比")
 //    @ApiOperation("获取礼包商店性价比")

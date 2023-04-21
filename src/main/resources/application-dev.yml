@@ -20,6 +20,19 @@ spring:
         max-idle: 5
         min-idle: 0
     password: j1hxu31hkxai
+  mail:
+    host: smtp.qq.com #邮件服务器地址
+    port: 465 #端口号
+    username: 1820702789@qq.com
+    password:
+    default-encoding: UTF-8 #默认编码格式
+    properties:
+      mail:
+        debug: true #启动debug调试
+        smtp:
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory #SSL连接配置
+
 
 
 

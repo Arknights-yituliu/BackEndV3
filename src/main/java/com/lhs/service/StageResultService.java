@@ -7,13 +7,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.SerializationUtils;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.entity.*;
 import com.lhs.mapper.QuantileMapper;
 import com.lhs.mapper.StageResultMapper;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.config.FileConfig;
-import com.lhs.service.resultVo.PenguinDataResponseVo;
+import com.lhs.service.response.PenguinDataResponseVo;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.BeanUtils;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,14 +53,16 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
         //将企鹅物流的数据转成集合
 
-        String response = FileUtil.read(FileConfig.Penguin + "matrix global.json");  //读取企鹅物流数据文件
+        String response = FileUtil.read(FileConfig.Penguin + "matrix auto.json");  //读取企鹅物流数据文件
+
         List<PenguinDataResponseVo> penguinDataResponseVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataResponseVo.class);//将企鹅物流文件的内容转为集合
         penguinDataResponseVos = mergePenguinData(penguinDataResponseVos);  //合并企鹅物流的标准和磨难关卡的样本
-
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity())); //将item表的各项信息转为Map  <itemId,Item类 >
         Map<String, Stage> stageInfoMap = stageService.findAll(new QueryWrapper<Stage>().notLike("stage_id", "tough")).stream().collect(Collectors.toMap(Stage::getStageId, Function.identity()));  //将stage的各项信息转为Map <stageId,stage类 >
         List<QuantileTable> quantileTables = quantileMapper.selectList(null);
 //        Double gachaBoxExpectValue = gachaBoxExpectValue(penguinDataResponseVos, itemValueMap);
+        double gachaBoxExpectValue = 22.40;
+
 //        penguinDataResponseVos.forEach(e-> System.out.println(e));
         penguinDataResponseVos = penguinDataResponseVos.stream()
                 .filter(penguinData -> penguinData.getTimes() > sampleSize && itemValueMap.get(penguinData.getItemId()) != null  //过滤掉（该条记录的样本低于300 & 该条记录的掉落材料不存在于材料表中 & 该条记录的关卡ID不存在于关卡表中）的数据
@@ -120,7 +120,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                 StageResult efficiencyResultCopy = SerializationUtils.clone(stageResult);
                 efficiencyResultCopy.setId(id + 100000);
                 efficiencyResultCopy.setStageId(stage.getStageId() + "_LMD");
-                efficiencyResultCopy.setResult(efficiencyResultCopy.getResult() + stage.getApCost() * 0.72);
+                efficiencyResultCopy.setResult(efficiencyResultCopy.getResult());
                 efficiencyResultCopy.setStageColor(-1);
                 stageResultList.add(efficiencyResultCopy);
             }
@@ -137,19 +137,26 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
                     double sampleConfidence = list.stream().mapToDouble(StageResult::getSampleConfidence).min().orElse(0.0);
                     Double apCost = list.get(0).getApCost(); //拿到关卡的消耗
-                    list.forEach(result -> {
-                        double efficiency = sum / apCost + 0.0432;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.0045*1.2
+
+                    for(StageResult result:list){
                         double efficiencyAddRandomMaterial = (sum+result_randomMaterial)/apCostDeductedApSupply + 0.0432;
+                        double efficiency = sum / apCost + 0.0432;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.036*1.2
+                        if (result.getStageId().startsWith("act24side")) {
+                            efficiency = (efficiency - 0.0432) / 40 * gachaBoxExpectValue + 0.0432;
+                            System.out.println(result.getStageCode() +":"+ efficiency);
+                        }
 
-//                        if (result.getStageId().startsWith("act24side")) {
-//                            efficiency = (efficiency - 0.054) / 40 * gachaBoxExpectValue + 0.054;
-//                        }
+                        if (result.getStageId().endsWith("LMD")) {
+                            efficiency  = efficiency +0.072;
+                        }
                         result.setEfficiency(efficiency);
-                        result.setStageEfficiency(efficiency  * 100);
+                        result.setStageEfficiency(efficiency * 100);
 //                      if((apCostDeductedApSupply>1)) result.setStageEfficiency((efficiencyAddRandomMaterial  * 100)); //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
-
                         result.setSampleConfidence(sampleConfidence);
-                    });
+
+                    }
+
+
                 });
 
 

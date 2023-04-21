@@ -108,7 +108,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>easyexcel</artifactId>
-            <version>2.1.1</version>
+            <version>3.2.1</version>
         </dependency>
 
         <dependency>
@@ -124,8 +124,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
-            <version>2.6.0</version>
+            <version>2.11.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
 
 
 
@@ -140,6 +146,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.5.5</version>
             </plugin>
+
         </plugins>
     </build>
 

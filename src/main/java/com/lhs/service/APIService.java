@@ -11,9 +11,9 @@ import com.lhs.entity.ResultVo;
 import com.lhs.entity.StageResult;
 
 import com.lhs.mapper.StageResultMapper;
-import com.lhs.service.resultVo.OrundumPerApResultVo;
-import com.lhs.service.resultVo.StageResultActVo;
-import com.lhs.service.resultVo.StageResultVo;
+import com.lhs.service.response.OrundumPerApResultVo;
+import com.lhs.service.response.StageResultActVo;
+import com.lhs.service.response.StageResultVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +24,7 @@ import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -61,7 +62,7 @@ public class APIService {
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
                 "聚酸酯组", "晶体元件", "固源岩组", "半自然溶剂", "化合切削液", "转质盐组").forEach(type -> {
                     List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
-                            .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 0.75)
+                            .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 0.6)
                             .ge("sample_size", sampleSize).orderByDesc("stage_efficiency").last("limit 8"));      //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
 
                     if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
@@ -69,6 +70,7 @@ public class APIService {
                     stageResultsByItemType.forEach(stageResult -> {     //将关卡结果表的数据复制到前端返回对象上再返回
                         StageResultVo stageResultVo = new StageResultVo();
                         BeanUtils.copyProperties(stageResult, stageResultVo);
+
                         stageResultVo_item.add(stageResultVo);
                     });
                     stageResultVoList.add(stageResultVo_item);
@@ -160,6 +162,7 @@ public class APIService {
             OrundumPerApResultVoList.add(resultVo);
         });
         OrundumPerApResultVoList.sort(Comparator.comparing(OrundumPerApResultVo::getOrundumPerAp).reversed());
+
 //        log.info("搓玉效率结果数据正常");
 
         return OrundumPerApResultVoList;
@@ -171,7 +174,7 @@ public class APIService {
     public List<StageResultVo> queryStageResultDataByZoneName(String zone) {
         List<StageResult> stageResultsByZone = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
                 .isNotNull("item_type").eq("exp_coefficient", 0.625).like("stage_code", zone)
-                .ge("efficiency", 0.3).orderByAsc("stage_id"));
+                .orderByAsc("stage_id").last("limit 3"));
 
         List<StageResultVo> stageResultVoList = new ArrayList<>();
         stageResultsByZone.forEach(stageResult -> {
@@ -184,15 +187,22 @@ public class APIService {
 
 
     public List<StageResult> queryStageResultDataDetailByStageCode(String stageCode) {
-        List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
-                .eq("exp_coefficient", 0.625).like("stage_code", stageCode)
-                .ge("efficiency", 0.8).orderByAsc("stage_id"));
+        List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(new QueryWrapper<StageResult>()
+                .eq("exp_coefficient", 0.625).likeRight("stage_code", stageCode)
+                .orderByAsc("stage_id"));
         if(stageResultsByStageCode==null||stageResultsByStageCode.size()<1) throw new ServiceException(ResultCode.DATA_NONE);
 
         return stageResultsByStageCode;
     }
 
+    public List<StageResult> queryStageResultDataDetailByStageId(String stageId) {
+        List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(new QueryWrapper<StageResult>()
+                .eq("exp_coefficient", 0.625).eq("stage_id", stageId)
+                .orderByAsc("result"));
+        if(stageResultsByStageCode==null||stageResultsByStageCode.size()<1) throw new ServiceException(ResultCode.DATA_NONE);
 
+        return stageResultsByStageCode;
+    }
 
 
 

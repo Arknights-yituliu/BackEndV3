@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.Result;
 import com.lhs.entity.MaaRecruitData;
-import com.lhs.service.resultVo.MaaRecruitRequestVo;
+import com.lhs.service.request.MaaRecruitRequestVo;
 import com.lhs.service.MaaService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

@@ -1,13 +1,9 @@
 package com.lhs.common.config;
 
 
-import com.lhs.service.resultVo.PenguinDataResponseVo;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Component
 public class FileConfig implements InitializingBean {

@@ -16,10 +16,10 @@ import com.lhs.common.util.ResultCode;
 import com.lhs.mapper.ItemMapper;
 import com.lhs.entity.Item;
 
-import com.lhs.service.resultVo.CompositeTable;
-import com.lhs.service.resultVo.ItemCost;
+import com.lhs.service.request.CompositeTableJsonVo;
+import com.lhs.service.request.ItemCost;
 
-import com.lhs.service.resultVo.ItemVo;
+import com.lhs.service.response.ItemVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -59,28 +60,52 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
 
         String workShopProductsValueJson = FileUtil.read(FileConfig.Item + "workShopProductsValue.json");
         String compositeTableJson = FileUtil.read(FileConfig.Item + "compositeTable.json");
+
         if(compositeTableJson==null||workShopProductsValueJson==null||compositeTableJson.length()<10||workShopProductsValueJson.length()<10)
             throw new ServiceException(ResultCode.DATA_NONE);
 
         JSONObject workShopProductsValue = JSONObject.parseObject(workShopProductsValueJson);  //读取根据Vn计算出的副产物价值
-        List<CompositeTable> compositeTable = JSONArray.parseArray(compositeTableJson, CompositeTable.class);  //读取加工站合成表
-
+        List<CompositeTableJsonVo> compositeTableJsonVo = JSONArray.parseArray(compositeTableJson, CompositeTableJsonVo.class);  //读取加工站合成表
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));  //将旧的材料Vn集合转成map方便调用
 
         items.forEach(item -> item.setExpCoefficient(expCoefficient));//经验书系数
         itemNameAndStageEff.forEach((id,En)-> itemValueMap.get(id).setItemValueAp(itemValueMap.get(id).getItemValueAp()*1/Double.parseDouble(String.valueOf(En)))); //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1/En
 
-
-        compositeTable.forEach(table->{     //循环加工站合成表计算新价值
+        compositeTableJsonVo.forEach(table->{     //循环加工站合成表计算新价值
             Integer rarity = itemValueMap.get(table.getId()).getRarity();
             double itemValueNew = 0.0;
-
+             StringBuilder message = new StringBuilder(itemValueMap.get(table.getId()).getItemName()).append(" = ( ");
             if(rarity<3){
-                    for(ItemCost itemCost : table.getItemCost()){    itemValueNew = (itemValueMap.get(itemCost.getId()).getItemValueAp() +
-                            Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.36*rarity)/itemCost.getCount(); } //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
+                    for(ItemCost itemCost : table.getItemCost()){
+                        itemValueNew = (itemValueMap.get(itemCost.getId()).getItemValueAp() +
+                            Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.36*rarity)
+                                / itemCost.getCount();
+
+                        message.append(itemValueMap.get(itemCost.getId()).getItemValueAp())
+                                 .append(" + ")
+                                 .append(Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))))
+                                 .append(" - ")
+                                 .append(0.36*rarity)
+                                 .append(" ) / ")
+                                 .append(itemCost.getCount());
+//                        System.out.println(message);
+                    } //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
+
                 }else  {
-                    for(ItemCost itemCost :table.getItemCost()){  itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp()*itemCost.getCount(); }//紫，金色品质是向上合成    蓝材料  + 龙门币 - 副产物 = 紫，金色材料
-                    itemValueNew -= Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) -0.36*rarity;
+                    for(ItemCost itemCost :table.getItemCost()){
+
+                        message.append(itemValueMap.get(itemCost.getId()).getItemValueAp())
+                                .append(" * ")
+                                .append(itemCost.getCount())
+                                .append(" + ");
+                        itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp() * itemCost.getCount();
+
+                    }//紫，金色品质是向上合成    蓝材料  + 龙门币 - 副产物 = 紫，金色材料
+                    itemValueNew = itemValueNew + 0.36* (rarity-1) - Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) ;
+
+                    message.append(" ) + ").append(0.36 * (rarity-1)).append(" - ")
+                           .append(Double.parseDouble(workShopProductsValue.getString("rarity_" + (rarity - 1))));
+//                System.out.println(message);
                 }
 
             itemValueMap.get(table.getId()).setItemValueAp(itemValueNew);  //存入新材料价值
@@ -103,7 +128,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
      * @param items  新材料信息表Vn+1
      */
     public void saveByProductValue(List<Item> items) {
-        double knockRating = 0.18;
+        double knockRating = 0.2;
         HashMap<Object, Object> hashMap = new HashMap<>();
         items.stream()
                 .filter(item -> item.getWeight() > 0)
@@ -162,4 +187,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
                 SerializerFeature.WriteNullListAsEmpty);
         FileUtil.save(response,FileConfig.Item,"ItemValue.json",jsonForMat);
     }
+
+
+
 }
