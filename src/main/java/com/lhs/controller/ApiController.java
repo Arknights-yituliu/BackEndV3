@@ -65,7 +65,7 @@ public class ApiController {
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
     public Result queryStageResult_t3(@RequestParam Double expCoefficient) {
 
-        List<List<StageResultVo>> stageResultVoList = apiService.queryStageResultData_t3(expCoefficient, 200);
+        List<List<StageResultVo>> stageResultVoList = apiService.queryStageResultData_t3(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
     }
@@ -75,7 +75,7 @@ public class ApiController {
     @GetMapping("/stage/t2")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
     public Result queryStageResult_t2(@RequestParam Double expCoefficient) {
-        List<List<StageResultVo>> stageResultVoList = apiService.queryStageResultData_t2(expCoefficient, 200);
+        List<List<StageResultVo>> stageResultVoList = apiService.queryStageResultData_t2(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
     }
@@ -85,7 +85,7 @@ public class ApiController {
     @GetMapping("/stage/closed")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
     public Result queryStageResult_closedActivities(@RequestParam Double expCoefficient) {
-        List<List<StageResultActVo>> stageResultVoList = apiService.queryStageResultData_closedActivities(expCoefficient, 200);
+        List<List<StageResultActVo>> stageResultVoList = apiService.queryStageResultData_closedActivities(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
     }

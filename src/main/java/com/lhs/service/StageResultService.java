@@ -120,6 +120,8 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                 StageResult efficiencyResultCopy = SerializationUtils.clone(stageResult);
                 efficiencyResultCopy.setId(id + 100000);
                 efficiencyResultCopy.setStageId(stage.getStageId() + "_LMD");
+                efficiencyResultCopy.setSecondary("龙门币");
+                efficiencyResultCopy.setSecondaryId("4001");
                 efficiencyResultCopy.setResult(efficiencyResultCopy.getResult());
                 efficiencyResultCopy.setStageColor(-1);
                 stageResultList.add(efficiencyResultCopy);
@@ -142,36 +144,41 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                         double efficiencyAddRandomMaterial = (sum+result_randomMaterial)/apCostDeductedApSupply + 0.0432;
                         double efficiency = sum / apCost + 0.0432;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.036*1.2
                         if (result.getStageId().startsWith("act24side")) {
-                            efficiency = (efficiency - 0.0432) / 40 * gachaBoxExpectValue + 0.0432;
-                            System.out.println(result.getStageCode() +":"+ efficiency);
+                            efficiency = (sum / apCost) / 40 * gachaBoxExpectValue + 0.0432;
+//                            System.out.println(result.getStageCode() +":"+ efficiency);
                         }
 
                         if (result.getStageId().endsWith("LMD")) {
                             efficiency  = efficiency +0.072;
                         }
+
                         result.setEfficiency(efficiency);
                         result.setStageEfficiency(efficiency * 100);
 //                      if((apCostDeductedApSupply>1)) result.setStageEfficiency((efficiencyAddRandomMaterial  * 100)); //效率的百分比  因为材料单位是绿票，最高转化率为1.25理智（1.25理智=1绿票）
                         result.setSampleConfidence(sampleConfidence);
-
                     }
-
-
                 });
 
 
         HashMap<String, Double> itemNameAndStageEffMap = new HashMap<>();  //  <蓝材料名称 , 蓝材料对应的常驻最高关卡效率En>  value用于下面蓝材料的计算
 
-        stageResultList.stream()   //将关卡效率计算结果根据材料类别分组，存入上面的 itemNameAndStageEffMap
-                .filter(stageResult -> stageResult.getItemType() != null && stageResult.getIsValue() == 1)  //过滤掉材料类型为空和不参与定价的关卡，活动本不参与定价，只有关卡中主产物计算结果的材料类型不为空
+        Map<String, List<StageResult>> resultByItemType = stageResultList.stream().filter(stageResult -> stageResult.getItemType() != null)
                 .sorted(Comparator.comparing(StageResult::getEfficiency).reversed())  //根据关卡效率降序排列结果
-                .collect(Collectors.groupingBy(StageResult::getItemType))  //根据材料类型分类结果
-                .forEach((itemName, list) -> {
-                    setStageColor(list);   //设置该材料的前8个关卡的颜色级别
-                    itemNameAndStageEffMap.put(itemName, list.get(0).getEfficiency());  //拿到该种材料的最优关卡
-                    log.info(itemName + "的最优本是" + list.get(0).getStageCode());
-                    log.info(itemName + "的回归系数是" + 1 / list.get(0).getEfficiency());
-                });
+                .collect(Collectors.groupingBy(StageResult::getItemType));//根据材料类型分类结果
+
+
+        resultByItemType.forEach((itemName, list)->{
+            list =  list.stream().filter(result->result.getIsShow() == 1 && result.getStageColor() != -1).collect(Collectors.toList());
+            setStageColor(list);
+
+            list =  list.stream().filter(result->result.getIsValue() == 1).collect(Collectors.toList());
+            if(list.size()>0){
+               if(!"兽之泪".equals(itemName))  itemNameAndStageEffMap.put(itemName, list.get(0).getEfficiency());  //拿到该种材料的最优关卡
+                log.info(itemName + "的最优本是" + list.get(0).getStageCode());
+                log.info(itemName + "的回归系数是" + 1 / list.get(0).getEfficiency());
+            }
+
+        });
 
 
         stageResultMapper.deleteTableTemp();   //清空数据库
@@ -181,20 +188,28 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
     }
 
+
+
+
     /**
      * 设置当前相同材料的关卡集合在前端显示的颜色,橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1
      *
      * @param stageResultList 相同材料的关卡集合
      */
     private static void setStageColor(List<StageResult> stageResultList) {
+        if(stageResultList.size()<1) return;
         String stageId_effMax = stageResultList.get(0).getStageId();   //拿到效率最高的关卡id
         stageResultList.get(0).setStageColor(3);  //效率最高为3
 
+//        stageResultList.forEach(result-> System.out.println(result.getStageCode()
+//                +"  颜色:"+result.getStageColor()+"  效率:"+result.getStageEfficiency()));
+
         stageResultList = stageResultList.stream()
-                .filter(stageResult -> stageResult.getIsShow() == 1)  //过滤掉已经关闭的关卡
+//                .filter(stageResult -> stageResult.getIsShow() == 1)  //过滤掉已经关闭的关卡
                 .limit(8)  //限制个数
                 .sorted(Comparator.comparing(StageResult::getApExpect))  //根据期望理智排序
                 .collect(Collectors.toList());  //流转为集合
+
         String stageId_expectMin = stageResultList.get(0).getStageId(); //拿到期望理智最低的关卡id
 
         if (stageId_effMax.equals(stageId_expectMin)) {  //对比俩个id是否一致
@@ -202,6 +217,9 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         } else {
             stageResultList.get(0).setStageColor(1); // 不一致为1
         }
+
+//        stageResultList.forEach(result-> System.out.println(result.getStageCode()
+//                +"  颜色:"+result.getStageColor()+"  效率:"+result.getStageEfficiency()));
     }
 
     /**

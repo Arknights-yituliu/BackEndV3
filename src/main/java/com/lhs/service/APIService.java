@@ -119,14 +119,14 @@ public class APIService {
     @RedisCacheable(key = "stage/closed/#expCoefficient")
     public List<List<StageResultActVo>> queryStageResultData_closedActivities(Double expCoefficient, Integer sampleSize) {
         List<StageResult> stageResultListByIsShow = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 0)
-                .isNotNull("item_type").notLike("stage_code","DH").eq("exp_coefficient", expCoefficient)
+                .isNotNull("item_type").notLike("stage_code","DH").notLike("stage_id","perm").eq("exp_coefficient", expCoefficient)
                 .ge("sample_size", sampleSize).ge("item_rarity", 3).ne("item_type", "0").orderByDesc("stage_id")
                 .orderByDesc("open_time")); //条件：不可展示，符合材料名称，符合经验书系数，效率>1.0，材料类型不为空，样本大于传入参数，材料类型不为0，按stageId降序
         List<StageResultActVo> stageResultListCopy = new ArrayList<>();
         stageResultListByIsShow.forEach(stageResult -> {
             StageResultActVo stageResultVo = new StageResultActVo();
             BeanUtils.copyProperties(stageResult, stageResultVo);      //将关卡结果表的数据复制到前端返回对象上再返回
-            stageResultVo.setStageEfficiency(stageResultVo.getStageEfficiency()+7.2);  //给结果加上商店的无限龙门币的效率
+            if(!stageResultVo.getStageCode().startsWith("CF")) stageResultVo.setStageEfficiency(stageResultVo.getStageEfficiency()+7.2);  //给结果加上商店的无限龙门币的效率
 
             stageResultListCopy.add(stageResultVo);
         });
@@ -151,21 +151,32 @@ public class APIService {
      */
     @RedisCacheable(key = "stage/orundum")
     public List<OrundumPerApResultVo> queryStageResultData_Orundum(Double expCoefficient, Integer sampleSize) {
-        List<OrundumPerApResultVo> OrundumPerApResultVoList = new ArrayList<>();
+        List<OrundumPerApResultVo> orundumPerApResultVoList = new ArrayList<>();
         List<StageResult> stageResultByItemName = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1).eq("exp_coefficient", expCoefficient)
                 .in("item_name", "固源岩", "源岩", "装置", "破损装置").ge("sample_size", sampleSize).orderByDesc("stage_efficiency"));
         if (stageResultByItemName.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
         stageResultByItemName.stream().collect(Collectors.groupingBy(StageResult::getStageId)).forEach((k, list) -> {
             HashMap<String, Double> calResult = orundumPerApCal(list);
-            OrundumPerApResultVo resultVo = OrundumPerApResultVo.builder().stageCode(list.get(0).getStageCode()).stageEfficiency(list.get(0).getStageEfficiency())
-                    .orundumPerAp(calResult.get("orundumPerAp")).lMDCost(calResult.get("LMDCost")).orundumPerApEfficiency(calResult.get("orundumPerAp") / 1.09*100).build();
-            OrundumPerApResultVoList.add(resultVo);
+            if(calResult.get("orundumPerAp")>0.5) {
+                OrundumPerApResultVo resultVo = OrundumPerApResultVo.builder()
+                        .stageCode(list.get(0).getStageCode())
+                        .stageEfficiency(list.get(0).getStageEfficiency())
+                        .orundumPerAp(calResult.get("orundumPerAp"))
+                        .lMDCost(calResult.get("LMDCost"))
+                        .orundumPerApEfficiency(calResult.get("orundumPerAp") / 1.09 * 100)
+                        .build();
+                orundumPerApResultVoList.add(resultVo);
+            }
+
         });
-        OrundumPerApResultVoList.sort(Comparator.comparing(OrundumPerApResultVo::getOrundumPerAp).reversed());
+
+        orundumPerApResultVoList.sort(Comparator.comparing(OrundumPerApResultVo::getOrundumPerAp).reversed());
+
 
 //        log.info("搓玉效率结果数据正常");
 
-        return OrundumPerApResultVoList;
+
+        return orundumPerApResultVoList;
     }
 
 
