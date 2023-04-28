@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.OperatorDataMapper">
+
+    <insert id="insertBatch">
+        INSERT INTO ${tableName}
+        (`id`, `uploader_id`, `char_id`, `char_name`, `own`, `elite`, `level`, `potential`,
+        `rarity`,`create_time_stamp`)
+        VALUES
+        <foreach collection="operatorBox" item="operator" separator=",">
+            (#{operator.id}, #{operator.uploaderId}, #{operator.charId}, #{operator.charName},
+            #{operator.own}, #{operator.elite}, #{operator.level}, #{operator.potential},
+            #{operator.rarity},#{operator.createTimeStamp})
+        </foreach>
+    </insert>
+
+    <select id="selectOperatorDataById" resultType="com.lhs.entity.OperatorData">
+        select * from ${tableName}
+        <where>
+            <if test="id != null and id != ''">
+                id = #{id};
+            </if>
+        </where>
+
+    </select>
+
+    <select id="queryById" resultType="com.lhs.entity.OperatorData">
+        select * from ${tableName}
+        <where>
+            <if test="id != null and id != ''">
+                id = #{id};
+            </if>
+        </where>
+
+    </select>
+
+    <select id="selectByTimeStamp" resultType="com.lhs.entity.OperatorDataVo">
+        select char_name,
+               elite,
+               `level`,
+               potential,
+               rarity
+        from ${tableName}
+        where create_time_stamp &gt; #{startTime}
+          AND create_time_stamp &lt;= #{endTime}
+    </select>
+
+
+    <insert id="insertStatisticsBatch">
+        INSERT INTO `operator_statistics`
+        (`char_name`,
+        `holdings`,
+        `phases1`, `phases2`,
+        `potential_ranks`,
+        `skill1`, `skill2`, `skill3`
+        )
+        VALUES
+        <foreach collection="operatorStatisticsList" item="operatorStatistics" separator=",">
+            (
+            #{operatorStatistics.charName},
+            #{operatorStatistics.holdings},
+            #{operatorStatistics.phases1},#{operatorStatistics.phases2},
+            #{operatorStatistics.potentialRanks},
+            #{operatorStatistics.skill1},#{operatorStatistics.skill2},#{operatorStatistics.skill3}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectStatisticsByCharName" resultType="com.lhs.entity.OperatorStatistics">
+        select *
+        from `operator_statistics`
+        where char_name = #{charName}
+    </select>
+
+    <update id="updateStatisticsByCharName">
+        UPDATE `operator_statistics`
+        SET holdings    = #{statistics.holdings},
+            phases1         = #{statistics.phases1},
+            phases2         = #{statistics.phases2},
+            potential_ranks = #{statistics.potentialRanks},
+            skill1          = #{statistics.skill1},
+            skill2          = #{statistics.skill2},
+            skill3          = #{statistics.skill3}
+        WHERE `char_name` = #{statistics.charName};
+    </update>
+
+    <select id="selectConfigByKey" resultType="com.lhs.entity.OperatorStatisticsConfig">
+        select config_value
+        from operator_statistics_config
+        where config_key = #{configKey}
+    </select>
+
+    <update id="updateConfigByKey" >
+        UPDATE `operator_statistics_config`
+        SET config_value = #{configValue}
+        WHERE config_key = #{configKey} ;
+
+    </update>
+
+</mapper>

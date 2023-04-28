@@ -7,12 +7,15 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.SerializationUtils;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lhs.entity.*;
 import com.lhs.mapper.QuantileMapper;
 import com.lhs.mapper.StageResultMapper;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.config.FileConfig;
-import com.lhs.service.response.PenguinDataResponseVo;
+import com.lhs.entity.Item;
+import com.lhs.entity.QuantileTable;
+import com.lhs.entity.Stage;
+import com.lhs.entity.StageResult;
+import com.lhs.service.vo.PenguinDataVo;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.BeanUtils;
@@ -55,8 +58,8 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
         String response = FileUtil.read(FileConfig.Penguin + "matrix auto.json");  //读取企鹅物流数据文件
 
-        List<PenguinDataResponseVo> penguinDataResponseVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataResponseVo.class);//将企鹅物流文件的内容转为集合
-        penguinDataResponseVos = mergePenguinData(penguinDataResponseVos);  //合并企鹅物流的标准和磨难关卡的样本
+        List<PenguinDataVo> penguinDataVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataVo.class);//将企鹅物流文件的内容转为集合
+        penguinDataVos = mergePenguinData(penguinDataVos);  //合并企鹅物流的标准和磨难关卡的样本
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity())); //将item表的各项信息转为Map  <itemId,Item类 >
         Map<String, Stage> stageInfoMap = stageService.findAll(new QueryWrapper<Stage>().notLike("stage_id", "tough")).stream().collect(Collectors.toMap(Stage::getStageId, Function.identity()));  //将stage的各项信息转为Map <stageId,stage类 >
         List<QuantileTable> quantileTables = quantileMapper.selectList(null);
@@ -64,7 +67,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         double gachaBoxExpectValue = 22.40;
 
 //        penguinDataResponseVos.forEach(e-> System.out.println(e));
-        penguinDataResponseVos = penguinDataResponseVos.stream()
+        penguinDataVos = penguinDataVos.stream()
                 .filter(penguinData -> penguinData.getTimes() > sampleSize && itemValueMap.get(penguinData.getItemId()) != null  //过滤掉（该条记录的样本低于300 & 该条记录的掉落材料不存在于材料表中 & 该条记录的关卡ID不存在于关卡表中）的数据
                         && stageInfoMap.get(penguinData.getStageId()) != null)
                 .collect(Collectors.toList());
@@ -77,11 +80,11 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         List<StageResult> stageResultList = new ArrayList<>();    //关卡效率的计算结果的集合
         long id = new Date().getTime() * 100000;   //id为时间戳后加00001至99999
 
-        log.info("开始计算，企鹅数据" + penguinDataResponseVos.size() + "条，关卡数据有" + stageInfoMap.keySet().size() + "条，材料数据有" + itemValueMap.keySet().size() + "条");
+        log.info("开始计算，企鹅数据" + penguinDataVos.size() + "条，关卡数据有" + stageInfoMap.keySet().size() + "条，材料数据有" + itemValueMap.keySet().size() + "条");
 
 
         Date createTime = new Date();
-        for (PenguinDataResponseVo penguinData : penguinDataResponseVos) {
+        for (PenguinDataVo penguinData : penguinDataVos) {
             StageResult.StageResultBuilder stageResultBuilder = StageResult.builder();
 
 
@@ -224,15 +227,15 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
     /**
      * 炼金池每抽期望价值计算
-     * @param penguinDataResponseVoList  企鹅物流源石数据
+     * @param penguinDataVoList  企鹅物流源石数据
      * @param itemValueMap  材料价值表的map
      * @return    炼金池每抽期望价值
      */
-    private Double gachaBoxExpectValue(List<PenguinDataResponseVo> penguinDataResponseVoList, Map<String, Item> itemValueMap) {
+    private Double gachaBoxExpectValue(List<PenguinDataVo> penguinDataVoList, Map<String, Item> itemValueMap) {
         double gachaBoxItemExpect = 0.0;
-        List<PenguinDataResponseVo> collect = penguinDataResponseVoList.stream().filter(penguinData -> "act24side_gacha".equals(penguinData.getStageId())).collect(Collectors.toList());
+        List<PenguinDataVo> collect = penguinDataVoList.stream().filter(penguinData -> "act24side_gacha".equals(penguinData.getStageId())).collect(Collectors.toList());
 
-        for (PenguinDataResponseVo data : collect) {
+        for (PenguinDataVo data : collect) {
             switch (data.getItemId()) {
                 case "4001_2000":
                     gachaBoxItemExpect += 0.0045 * 2000 * data.getQuantity() / data.getTimes();
@@ -266,14 +269,14 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
      * @param penguinDataList 企鹅物流数据
      * @return 合并完的企鹅数据
      */
-    public List<PenguinDataResponseVo> mergePenguinData(List<PenguinDataResponseVo> penguinDataList) {
-        Map<String, PenguinDataResponseVo> collect = penguinDataList.stream().collect(Collectors.toMap(entity -> entity.getStageId() + entity.getItemId(), Function.identity()));
+    public List<PenguinDataVo> mergePenguinData(List<PenguinDataVo> penguinDataList) {
+        Map<String, PenguinDataVo> collect = penguinDataList.stream().collect(Collectors.toMap(entity -> entity.getStageId() + entity.getItemId(), Function.identity()));
         penguinDataList.stream()
                 .filter(penguinData -> penguinData.getStageId().startsWith("main_10") || penguinData.getStageId().startsWith("main_11")|| penguinData.getStageId().startsWith("main_12"))
                 .forEach(entity -> {
 //                    System.out.println("合并前："+entity);
                     if(collect.get(entity.getStageId().replace("main","tough") + entity.getItemId())!=null) {
-                       PenguinDataResponseVo toughData = collect.get(entity.getStageId().replace("main","tough") + entity.getItemId());
+                       PenguinDataVo toughData = collect.get(entity.getStageId().replace("main","tough") + entity.getItemId());
                         entity.setTimes(entity.getTimes() + toughData.getTimes());
                         entity.setQuantity(entity.getQuantity() + toughData.getQuantity());
                     }

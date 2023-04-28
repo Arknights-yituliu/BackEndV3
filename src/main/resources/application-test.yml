@@ -5,11 +5,11 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/yituliu?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true
+    url: jdbc:mysql://localhost:3306/数据库名?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true
     username: root
     password: root
   redis:
-    host: 192.168.142.129
+    host:
     port: 6379
     database: 0
     connect-timeout: 1800000
@@ -19,11 +19,11 @@ spring:
         max-wait: -1
         max-idle: 5
         min-idle: 0
-    password: j1hxu31hkxai
+    password:
   mail:
     host: smtp.qq.com #邮件服务器地址
     port: 465 #端口号
-    username: 1820702789@qq.com
+    username:
     password:
     default-encoding: UTF-8 #默认编码格式
     properties:
@@ -42,7 +42,8 @@ filePath:
   frontEnd: src/main/resources/frontEnd/
   backup: src/main/resources/backups/
   schedule: src/main/resources/schedule/
-
+  operatorBox: src/main/resources/operatorBox/
+  secret:1111111111111111
 
 #mybatis-plus:
 #  configuration:

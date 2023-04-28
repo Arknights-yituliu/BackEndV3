@@ -1,4 +1,4 @@
-package com.lhs.service.response;
+package com.lhs.service.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

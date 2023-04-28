@@ -9,21 +9,18 @@ import com.lhs.entity.Stage;
 import com.lhs.entity.StageResult;
 import com.lhs.service.*;
 
-import com.lhs.service.request.EmailRequest;
-import com.lhs.service.response.OrundumPerApResultVo;
-import com.lhs.service.response.StageResultActVo;
-import com.lhs.service.response.StageResultVo;
+import com.lhs.service.vo.OrundumPerApResultVo;
+import com.lhs.service.vo.StageResultActVo;
+import com.lhs.service.vo.StageResultVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.catalina.User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Api(tags = "获取数据API")

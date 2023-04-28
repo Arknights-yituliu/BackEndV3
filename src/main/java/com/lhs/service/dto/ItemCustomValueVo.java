@@ -1,8 +1,8 @@
-package com.lhs.service.request;
+package com.lhs.service.dto;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 
-public class ItemCustomValueJsonVo {
+public class ItemCustomValueVo {
 
     @ExcelProperty("物品名称")
     private String itemName;

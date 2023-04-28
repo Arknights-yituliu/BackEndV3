@@ -16,10 +16,10 @@ import com.lhs.common.util.ResultCode;
 import com.lhs.mapper.ItemMapper;
 import com.lhs.entity.Item;
 
-import com.lhs.service.request.CompositeTableJsonVo;
-import com.lhs.service.request.ItemCost;
+import com.lhs.service.dto.CompositeTableVo;
+import com.lhs.service.dto.ItemCost;
 
-import com.lhs.service.response.ItemVo;
+import com.lhs.service.vo.ItemVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -65,13 +64,13 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
             throw new ServiceException(ResultCode.DATA_NONE);
 
         JSONObject workShopProductsValue = JSONObject.parseObject(workShopProductsValueJson);  //读取根据Vn计算出的副产物价值
-        List<CompositeTableJsonVo> compositeTableJsonVo = JSONArray.parseArray(compositeTableJson, CompositeTableJsonVo.class);  //读取加工站合成表
+        List<CompositeTableVo> compositeTableVo = JSONArray.parseArray(compositeTableJson, CompositeTableVo.class);  //读取加工站合成表
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));  //将旧的材料Vn集合转成map方便调用
 
         items.forEach(item -> item.setExpCoefficient(expCoefficient));//经验书系数
         itemNameAndStageEff.forEach((id,En)-> itemValueMap.get(id).setItemValueAp(itemValueMap.get(id).getItemValueAp()*1/Double.parseDouble(String.valueOf(En)))); //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1/En
 
-        compositeTableJsonVo.forEach(table->{     //循环加工站合成表计算新价值
+        compositeTableVo.forEach(table->{     //循环加工站合成表计算新价值
             Integer rarity = itemValueMap.get(table.getId()).getRarity();
             double itemValueNew = 0.0;
              StringBuilder message = new StringBuilder(itemValueMap.get(table.getId()).getItemName()).append(" = ( ");

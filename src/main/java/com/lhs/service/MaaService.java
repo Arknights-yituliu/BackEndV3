@@ -5,27 +5,24 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
-import com.lhs.mapper.MaaRecruitMapper;
-import com.lhs.mapper.MaaRecruitStatisticalMapper;
-import com.lhs.mapper.ResultMapper;
-import com.lhs.mapper.ScheduleMapper;
-import com.lhs.entity.MaaRecruitData;
-import com.lhs.entity.MaaRecruitStatistical;
-import com.lhs.entity.ResultVo;
-import com.lhs.entity.Schedule;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.lhs.entity.*;
+import com.lhs.mapper.*;
+import com.lhs.service.dto.MaaOperBoxVo;
+import com.lhs.service.dto.OperBox;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
+@Slf4j
 public class MaaService {
 
     @Resource
@@ -37,11 +34,94 @@ public class MaaService {
     @Resource
     private ScheduleMapper scheduleMapper;
 
+    @Resource
+    private MaaUserMapper maaUserMapper;
+
+    @Resource
+    private OperatorDataMapper operatorDataMapper;
+
     public String saveMaaRecruitData(MaaRecruitData maaRecruitData) {
         int insert = maaRecruitMapper.insert(maaRecruitData);
         return null;
     }
 
+    public String saveMaaOperatorBoxData(MaaOperBoxVo maaOperBoxVo, String ipAddress) {
+
+        List<OperBox> operatorBox = JSONArray.parseArray(JSON.toJSONString(maaOperBoxVo.getOperBox()), OperBox.class);//maa返回的干员box信息
+        int operatorTotal = operatorBox.size();      //干员box的干员总数
+        ipAddress = AES.encrypt(ipAddress,FileConfig.Secret);  //ip加密
+        ipAddress = ipAddress + new Random().nextInt(999999);
+        QueryWrapper<MaaUser> queryWrapperUser = new QueryWrapper<>();
+        queryWrapperUser.eq("ip",ipAddress);
+        log.info("ip:"+ipAddress);
+        MaaUser maaUser = maaUserMapper.selectOne(queryWrapperUser);
+        Date date = new Date();
+
+        long millis = System.currentTimeMillis();
+        int end3 = new Random().nextInt(9999);
+        long id = millis*1000+end3;
+
+        String table = "operator_box_data_";
+
+
+        if(maaUser == null){
+             maaUser = MaaUser.builder()
+                     .id(id)
+                    .penguinId(maaOperBoxVo.getUuid())
+                    .server(maaOperBoxVo.getServer())
+                    .source(maaOperBoxVo.getSource())
+                    .version(maaOperBoxVo.getVersion())
+                    .operatorTotal(operatorTotal)
+                    .tableName(table+1)
+                    .ip(ipAddress)
+                    .createTime(date)
+                    .updateTime(date)
+                    .build();
+            int insert = maaUserMapper.insert(maaUser);
+        }else {
+            log.info("已经存在");
+             maaUser.setOperatorTotal(operatorTotal);
+             maaUser.setUpdateTime(date);
+             maaUser.setServer(maaOperBoxVo.getServer());
+             maaUser.setSource(maaOperBoxVo.getSource());
+             maaUser.setVersion(maaOperBoxVo.getVersion());
+             maaUser.setPenguinId(maaOperBoxVo.getUuid());
+             id = maaUser.getId();
+            int insert = maaUserMapper.updateById(maaUser);
+        }
+
+
+
+
+        List<OperatorData> operatorDataList = new ArrayList<>();
+
+        for (int i = 0; i < operatorBox.size(); i++) {
+            OperBox operator = operatorBox.get(i);
+            OperatorData operatorData =
+                    operatorDataMapper.selectOperatorDataById(maaUser.getTableName(),id + "_" + operator.getId());
+
+            if(operatorData !=null) continue;
+            OperatorData build = OperatorData.builder().id(id +"_"+ operator.getId())
+                    .uploaderId(id)
+                    .charId(operator.getId())
+                    .charName(operator.getName())
+                    .elite(operator.getElite())
+                    .rarity(operator.getRarity())
+                    .level(operator.getLevel())
+                    .own(operator.getOwn())
+                    .potential(operator.getPotential())
+                    .createTimeStamp(new Date().getTime())
+                    .build();
+
+            operatorDataList.add(build);
+        }
+
+        if(operatorDataList.size()>0){
+            Integer integer = operatorDataMapper.insertBatch(maaUser.getTableName(), operatorDataList);
+        }
+
+        return null;
+    }
     
     public void saveScheduleJson(String scheduleJson, Long scheduleId) {
         Schedule schedule = new Schedule();

@@ -1,6 +1,7 @@
 package com.lhs.common.config;
 
 
+import com.lhs.common.util.FileUtil;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,10 @@ public class FileConfig implements InitializingBean {
     private String backup;  //    备份文件路径
     @Value("${filePath.schedule}")
     private String schedule;
+    @Value("${filePath.operatorBox}")
+    private String operatorBox;
+    @Value("${filePath.secret}")
+    private String secret;
 
 
     public static String Penguin;
@@ -25,6 +30,8 @@ public class FileConfig implements InitializingBean {
     public static String FrontEnd;
     public static String Backup;
     public static String Schedule;
+    public static String OperatorBox;
+    public static String Secret;
 
 
     @Override
@@ -34,7 +41,7 @@ public class FileConfig implements InitializingBean {
         FrontEnd = frontEnd;
         Backup = backup;
         Schedule = schedule;
-
-
+        OperatorBox = operatorBox;
+        Secret = secret;
     }
 }

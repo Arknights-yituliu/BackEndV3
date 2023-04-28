@@ -11,8 +11,8 @@ import com.lhs.common.util.ResultCode;
 import com.lhs.mapper.StorePermMapper;
 import com.lhs.entity.Item;
 import com.lhs.entity.StorePerm;
-import com.lhs.service.request.ItemCustomValueJsonVo;
-import com.lhs.service.request.StoreActJsonVo;
+import com.lhs.service.dto.ItemCustomValueVo;
+import com.lhs.service.dto.StoreActJsonVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -95,8 +95,8 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm>  {
         String fileStr = FileUtil.read(FileConfig.Item + "itemCustomValue.json");
         if (fileStr == null) throw new ServiceException(ResultCode.DATA_NONE);
 
-        List<ItemCustomValueJsonVo> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValueJsonVo.class);
-        Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValueJsonVo::getItemName, ItemCustomValueJsonVo::getItemValue));
+        List<ItemCustomValueVo> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValueVo.class);
+        Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValueVo::getItemName, ItemCustomValueVo::getItemValue));
         itemService.queryItemList(0.625,1000).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
         JSONArray packList = JSONArray.parseArray(packStr);

@@ -41,7 +41,7 @@ public class FileUtil {
     public static void save(HttpServletResponse response, String filePath, String fileName, String jsonForMat) {
         try {
             // 拼接文件完整路径
-            String fullPath = filePath + fileName + ".json";
+            String fullPath = filePath + fileName ;
 
             // 保证创建一个新文件
             File file = new File(fullPath);

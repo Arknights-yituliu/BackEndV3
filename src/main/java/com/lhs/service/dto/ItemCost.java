@@ -1,4 +1,4 @@
-package com.lhs.service.request;
+package com.lhs.service.dto;
 
 import lombok.Data;
 
