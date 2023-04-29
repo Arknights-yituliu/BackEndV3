@@ -1,6 +1,5 @@
 package com.lhs.common.annotation;
 
-import com.lhs.common.util.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -12,7 +11,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @Component
 @Slf4j
-public class AnnotationImpl {
+public class AnnotationAOP {
     private static final ThreadLocal<Long> startTime = new ThreadLocal<>();
 
     @Resource
@@ -66,7 +64,15 @@ public class AnnotationImpl {
     //接口方法执行完成之后
     @After("@annotation(takeCount)")
     public void takeCountAfter(TakeCount takeCount) {
-//        log.info(takeCount.method() + "接口耗时：" + (System.currentTimeMillis() - startTime.get()) + "ms");
+        long timeCost =  (System.currentTimeMillis() - startTime.get());
+        if(timeCost<1000) {
+            log.info(takeCount.method() + "接口耗时：" + timeCost + "ms");
+        }else {
+            log.info(takeCount.method() + "接口耗时：" + (timeCost/1000) + "s");
+        }
+
+
+
         startTime.remove();
     }
 

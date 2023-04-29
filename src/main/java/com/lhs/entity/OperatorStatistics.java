@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OperatorStatistics {
     private String charName;
+    private String charId;
     private Long holdings;
     private Long phases1;
     private Long phases2;

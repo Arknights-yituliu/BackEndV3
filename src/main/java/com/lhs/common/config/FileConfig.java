@@ -19,8 +19,8 @@ public class FileConfig implements InitializingBean {
     private String backup;  //    备份文件路径
     @Value("${filePath.schedule}")
     private String schedule;
-    @Value("${filePath.operatorBox}")
-    private String operatorBox;
+    @Value("${filePath.operator}")
+    private String operator;
     @Value("${filePath.secret}")
     private String secret;
 
@@ -30,18 +30,18 @@ public class FileConfig implements InitializingBean {
     public static String FrontEnd;
     public static String Backup;
     public static String Schedule;
-    public static String OperatorBox;
+    public static String Operator;
     public static String Secret;
 
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         Penguin = penguin;
         Item = item;
         FrontEnd = frontEnd;
         Backup = backup;
         Schedule = schedule;
-        OperatorBox = operatorBox;
+        Operator = operator;
         Secret = secret;
     }
 }

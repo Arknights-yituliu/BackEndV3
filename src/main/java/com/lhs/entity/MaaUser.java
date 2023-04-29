@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Random;
 
 @Data
-@TableName("operator_box_user")
+@TableName("maa_user")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

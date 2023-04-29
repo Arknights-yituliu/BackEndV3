@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OperatorData {
     private String id;
-    private Long uploaderId;
+    private Long userId;
     private String charId;
     private String charName;
     private Boolean own;
@@ -20,4 +20,5 @@ public class OperatorData {
     private Integer potential;
     private Integer rarity;
     private Long createTimeStamp;
+    private Long updateTimeStamp;
 }

@@ -3,18 +3,21 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhs.mapper.OperatorDataMapper">
 
-    <insert id="insertBatch">
+
+    <!-- 干员练度信息表，批量插入-->
+    <insert id="insertOperatorDataBatch">
         INSERT INTO ${tableName}
-        (`id`, `uploader_id`, `char_id`, `char_name`, `own`, `elite`, `level`, `potential`,
-        `rarity`,`create_time_stamp`)
+        (`id`, `user_id`, `char_id`, `char_name`, `own`, `elite`, `level`, `potential`,
+        `rarity`,`create_time_stamp`,`update_time_stamp`)
         VALUES
         <foreach collection="operatorBox" item="operator" separator=",">
-            (#{operator.id}, #{operator.uploaderId}, #{operator.charId}, #{operator.charName},
+            (#{operator.id}, #{operator.userId}, #{operator.charId}, #{operator.charName},
             #{operator.own}, #{operator.elite}, #{operator.level}, #{operator.potential},
-            #{operator.rarity},#{operator.createTimeStamp})
+            #{operator.rarity},#{operator.createTimeStamp},#{operator.updateTimeStamp})
         </foreach>
     </insert>
 
+    <!-- 干员练度信息表，根据id查询-->
     <select id="selectOperatorDataById" resultType="com.lhs.entity.OperatorData">
         select * from ${tableName}
         <where>
@@ -22,43 +25,48 @@
                 id = #{id};
             </if>
         </where>
-
     </select>
 
-    <select id="queryById" resultType="com.lhs.entity.OperatorData">
-        select * from ${tableName}
-        <where>
-            <if test="id != null and id != ''">
-                id = #{id};
-            </if>
-        </where>
+    <!-- 干员练度信息表，根据id更新-->
+    <update id="updateOperatorDataById">
+        UPDATE ${tableName}
+        SET `elite`             = #{operator.elite},
+            `level`             = #{operator.level},
+            `potential`         = #{operator.potential},
+            `update_time_stamp` = #{operator.updateTimeStamp}
+        WHERE `id` = #{operator.id};
+    </update>
 
-    </select>
-
-    <select id="selectByTimeStamp" resultType="com.lhs.entity.OperatorDataVo">
-        select char_name,
-               elite,
-               `level`,
-               potential,
-               rarity
+    <!-- 干员练度信息表，根据uid查询-->
+    <select id="selectOperatorDataByUserId" resultType="com.lhs.entity.OperatorDataVo">
+        select
+        `char_id`,
+        `char_name`,
+        `elite`,
+        `level`,
+        `potential`,
+        `rarity`
         from ${tableName}
-        where create_time_stamp &gt; #{startTime}
-          AND create_time_stamp &lt;= #{endTime}
+        where `user_id` in
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
     </select>
 
+    <!-- maa用户表-->
+    <select id="selectIdsByPage" resultType="java.lang.Long">
+        select `id`
+        from maa_user
+    </select>
 
+     <!--    干员练度统计表批量插入-->
     <insert id="insertStatisticsBatch">
         INSERT INTO `operator_statistics`
-        (`char_name`,
-        `holdings`,
-        `phases1`, `phases2`,
-        `potential_ranks`,
-        `skill1`, `skill2`, `skill3`
-        )
+        (`char_name`,`char_id`,`holdings`,`phases1`, `phases2`,`potential_ranks`,`skill1`,`skill2`,`skill3`)
         VALUES
         <foreach collection="operatorStatisticsList" item="operatorStatistics" separator=",">
             (
-            #{operatorStatistics.charName},
+            #{operatorStatistics.charName},#{operatorStatistics.charId},
             #{operatorStatistics.holdings},
             #{operatorStatistics.phases1},#{operatorStatistics.phases2},
             #{operatorStatistics.potentialRanks},
@@ -67,35 +75,44 @@
         </foreach>
     </insert>
 
+
+    <!--    干员练度统计表，清空表-->
+    <delete id="truncateOperatorStatisticsTable">
+        truncate table `operator_statistics`
+    </delete>
+
+    <!--    干员练度统计表，根据干员名称查询-->
     <select id="selectStatisticsByCharName" resultType="com.lhs.entity.OperatorStatistics">
         select *
         from `operator_statistics`
-        where char_name = #{charName}
+        where `char_name` = #{charName}
     </select>
 
+    <!--    干员练度统计表，根据干员名称更新-->
     <update id="updateStatisticsByCharName">
         UPDATE `operator_statistics`
-        SET holdings    = #{statistics.holdings},
-            phases1         = #{statistics.phases1},
-            phases2         = #{statistics.phases2},
-            potential_ranks = #{statistics.potentialRanks},
-            skill1          = #{statistics.skill1},
-            skill2          = #{statistics.skill2},
-            skill3          = #{statistics.skill3}
+        SET `holdings`        = #{statistics.holdings},
+            `phases1`         = #{statistics.phases1},
+            `phases2`         = #{statistics.phases2},
+            `potential_ranks` = #{statistics.potentialRanks},
+            `skill1`          = #{statistics.skill1},
+            `skill2`          = #{statistics.skill2},
+            `skill3`          = #{statistics.skill3}
         WHERE `char_name` = #{statistics.charName};
     </update>
 
+    <!--    干员练度统计表配置，根据key查询-->
     <select id="selectConfigByKey" resultType="com.lhs.entity.OperatorStatisticsConfig">
-        select config_value
+        select `config_value`
         from operator_statistics_config
-        where config_key = #{configKey}
+        where `config_key` = #{configKey}
     </select>
 
-    <update id="updateConfigByKey" >
+    <!--    干员练度统计表配置，根据key更新-->
+    <update id="updateConfigByKey">
         UPDATE `operator_statistics_config`
-        SET config_value = #{configValue}
-        WHERE config_key = #{configKey} ;
-
+        SET `config_value` = #{configValue}
+        WHERE `config_key` = #{configKey};
     </update>
 
 </mapper>

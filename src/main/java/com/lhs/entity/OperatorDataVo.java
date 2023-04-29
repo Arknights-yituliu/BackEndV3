@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class OperatorDataVo {
     private String charName;
+    private String charId;
     private Integer elite;
     private Integer level;
     private Integer potential;

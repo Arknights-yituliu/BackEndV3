@@ -13,10 +13,13 @@ import com.lhs.mapper.OperatorDataMapper;
 import com.lhs.mapper.MaaUserMapper;
 import com.lhs.service.*;
 import com.lhs.service.dto.MaaOperBoxVo;
+import com.lhs.service.dto.OperBox;
+import com.sun.org.apache.bcel.internal.generic.LSTORE;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import javax.xml.crypto.Data;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,14 +48,17 @@ class DemoApplicationTests {
     @Test
     void uploadData() {
         for (int i = 0; i < 20000; i++) {
-            maaService.saveMaaOperatorBoxData(maaOperBoxVo, "1321e121e21");
+            maaService.saveMaaOperatorBoxData(maaOperBoxVo, "1k2j8x4g1n"+i);
         }
     }
+
+
 
     @Test
     void testMaaJson() {
         String read = FileUtil.read("src/main/resources/operBox.json");
         JSONArray own_opers = JSONArray.parseArray(JSONObject.parseObject(read).getString("own_opers"));
+
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("uuid", "11131231");
         hashMap.put("operBox", own_opers);
@@ -62,85 +68,18 @@ class DemoApplicationTests {
         System.out.println(JSON.toJSONString(hashMap));
     }
 
+
     @Test
-    void selectByTimeStamp() {
+    void endTime(){
+        long end =  1682679361900L;
 
-        //获取上次统计的最后时间戳
-        OperatorStatisticsConfig config = operatorDataMapper.selectConfigByKey("lastTime");
-        long startTime = Long.parseLong(config.getConfigValue());
-        //当前时间戳
-        long endTime = new Date().getTime();
-        //以上次时间戳做start，当前时间戳作end，查询这个时间段的时间
-        List<OperatorDataVo> operator_box_data =
-                operatorDataMapper.selectByTimeStamp("operator_data_1", startTime, endTime);
-
-        //根据干员名称分组
-        Map<String, List<OperatorDataVo>> collectByCharName = operator_box_data.stream()
-                .collect(Collectors.groupingBy(OperatorDataVo::getCharName));
-
-        //如果这个干员没有被统计，需要插入的新统计数据
-        List<OperatorStatistics> operatorStatisticsList = new ArrayList<>();
-
-        //循环这个分组后的map
-        collectByCharName.forEach((k, list) -> {
-
-            long holdings = list.size();
-            //根据精英化等级分类
-            Map<Integer, Long> collectByPhases = list.stream()
-                    .collect(Collectors.groupingBy(OperatorDataVo::getElite, Collectors.counting()));
-            //该干员精英等级一的数量
-            long phases1 = collectByPhases.get(1) == null ? 0 : collectByPhases.get(1).intValue();
-            //该干员精英等级二的数量
-            long phases2 = collectByPhases.get(2) == null ? 0 : collectByPhases.get(2).intValue();
-            //根据该干员的潜能等级分组统计  map(潜能等级,该等级的数量)
-            Map<Integer, Long> collectByPotential = list.stream().collect(Collectors.groupingBy(OperatorDataVo::getPotential, Collectors.counting()));
-            //json化方便存储
-            String potentialStr = JSON.toJSONString(collectByPotential);
-            //查询是否有这条记录
-            OperatorStatistics operatorStatistics = operatorDataMapper.selectStatisticsByCharName(k);
-
-            if (operatorStatistics == null) {
-                OperatorStatistics statistics = OperatorStatistics.builder()
-                        .charName(k)
-                        .holdings(holdings)
-                        .phases1(phases1)
-                        .phases2(phases2 + 100)
-                        .potentialRanks(potentialStr)
-                        .build();
-                //没有的话塞入集合准备新增
-                operatorStatisticsList.add(statistics);
-            } else {
-                //有记录的话直接更新
-                holdings += operatorStatistics.getHoldings();
-                phases1 += operatorStatistics.getPhases1();
-                phases2 += operatorStatistics.getPhases2();
-
-                //合并该干员上次和本次潜能统计的数据
-                JSONObject jsonObject =JSONObject.parseObject(operatorStatistics.getPotentialRanks());
-                Map<Integer, Long> potentialRanksNew = new HashMap<>();
-                jsonObject.forEach((p,v)->potentialRanksNew.put(Integer.parseInt(p),Long.parseLong(String.valueOf(v))));
-                collectByPotential.forEach((potential,v)->potentialRanksNew.merge(potential, v, Long::sum));
-                potentialStr = JSON.toJSONString(potentialRanksNew);
-
-                OperatorStatistics statistics = OperatorStatistics.builder()
-                        .charName(k)
-                        .holdings(holdings)
-                        .phases1(phases1)
-                        .phases2(phases2 + 100)
-                        .potentialRanks(potentialStr)
-                        .build();
-                operatorDataMapper.updateStatisticsByCharName(statistics);
-            }
-
-        });
-
-        //保存本次时间段统计的最后时间
-        operatorDataMapper.updateConfigByKey("lastTime", String.valueOf(endTime));
-
-        //如果有没统计的干员就新增
-        if (operatorStatisticsList.size() > 0) operatorDataMapper.insertStatisticsBatch(operatorStatisticsList);
-
+        for (int i = 0; i < 100; i++) {
+            end+=100;
+            System.out.println(end);
+        }
     }
+
+
 
     @Test
     void statisticsTest() {
@@ -152,11 +91,52 @@ class DemoApplicationTests {
     @Test
     void secretTest() {
         String SECRET = FileConfig.Secret;
-        System.out.println(SECRET);
-        String ip = "127.0.0.1";
+        String ip = "211.94.226.154";
         System.out.println(AES.encrypt(ip, SECRET));
         System.out.println(AES.encrypt(ip, SECRET));
     }
 
+
+    @Test
+    void equalsTest(){
+        OperBox operBox1 = new OperBox();
+        operBox1.setElite(2);
+        operBox1.setLevel(30);
+        operBox1.setPotential(1);
+        OperBox operBox2 = new OperBox();
+        operBox2.setElite(2);
+        operBox2.setLevel(30);
+        operBox2.setPotential(1);
+
+        System.out.println(Objects.equals(operBox1.getElite(), operBox2.getElite()));
+        System.out.println(Objects.equals(operBox1.getLevel(), operBox2.getLevel()));
+        System.out.println(Objects.equals(operBox1.getPotential(), operBox2.getPotential()));
+    }
+
+    @Test
+    void group(){
+        List<Long> userIds = operatorDataMapper.selectIdsByPage();
+
+        List<List<Long>> userIdsGroup = new ArrayList<>();
+
+        int length = userIds.size();
+        // 计算可以分成多少组
+        int num = length/400+1;
+        int start = 0;
+        int end = 400;
+        for (int i = 0; i < num; i++) {
+            end = Math.min(end, userIds.size());
+            System.out.println("start:"+start+"---end:"+end);
+            userIdsGroup.add(userIds.subList(start,end));
+            start+=400;
+            end+=400;
+        }
+
+        for(List<Long> list :userIdsGroup){
+            System.out.println(list.get(0));
+            System.out.println(list.get(list.size()-1));
+        }
+
+    }
 
 }

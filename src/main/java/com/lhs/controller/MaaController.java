@@ -2,6 +2,8 @@ package com.lhs.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.AES;
+import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
 import com.lhs.entity.MaaRecruitData;
@@ -46,11 +48,10 @@ public class MaaController {
     public Result MaaOperatorBoxResult(HttpServletRequest httpServletRequest, @RequestBody MaaOperBoxVo maaOperBoxVo) {
 
         String ipAddress = IpUtil.getIpAddress(httpServletRequest);
+        ipAddress = AES.encrypt(ipAddress, FileConfig.Secret);  //加密
+        HashMap<String, Long> result = maaService.saveMaaOperatorBoxData(maaOperBoxVo, ipAddress);
 
-
-
-        maaService.saveMaaOperatorBoxData(maaOperBoxVo,ipAddress);
-        return Result.success();
+        return Result.success(result);
     }
 
 
