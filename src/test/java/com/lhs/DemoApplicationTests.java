@@ -7,19 +7,18 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.entity.OperatorStatistics;
-import com.lhs.entity.OperatorDataVo;
 import com.lhs.entity.OperatorStatisticsConfig;
 import com.lhs.mapper.OperatorDataMapper;
 import com.lhs.mapper.MaaUserMapper;
 import com.lhs.service.*;
 import com.lhs.service.dto.MaaOperBoxVo;
 import com.lhs.service.dto.OperBox;
-import com.sun.org.apache.bcel.internal.generic.LSTORE;
+import com.lhs.service.vo.OperatorStatisticsVo;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
-import javax.xml.crypto.Data;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,7 +34,7 @@ class DemoApplicationTests {
     @Resource
     private MaaUserMapper maaUserMapper;
     @Resource
-    private MaaService maaService;
+    private OperatorSurveyService operatorSurveyService;
 
     @Test
     void readGameData() {
@@ -48,7 +47,7 @@ class DemoApplicationTests {
     @Test
     void uploadData() {
         for (int i = 0; i < 20000; i++) {
-            maaService.saveMaaOperatorBoxData(maaOperBoxVo, "1k2j8x4g1n"+i);
+            operatorSurveyService.saveMaaOperatorBoxData(maaOperBoxVo, "1k2j8x4g1n"+i);
         }
     }
 
@@ -84,14 +83,54 @@ class DemoApplicationTests {
     @Test
     void statisticsTest() {
 
+        List<OperatorStatistics> operatorStatisticsList = operatorDataMapper.selectStatisticsList();
+        OperatorStatisticsConfig config1 = operatorDataMapper.selectConfigByKey("user_count");
+        double userCount = Double.parseDouble(config1.getConfigValue());
+
+        List<OperatorStatisticsVo> statisticsVoResultList = new ArrayList<>();
+
+        DecimalFormat df=new DecimalFormat("0.00");
+
+        for(OperatorStatistics statistics:operatorStatisticsList){
+            int i = new Random().nextInt(5000);
+
+            JSONObject jsonObject = JSONObject.parseObject(statistics.getPotentialRanks());
+            Map<Integer, Long> potentialRanks = new HashMap<>();
+            jsonObject.forEach((p, v) -> potentialRanks.put(Integer.parseInt(p), Long.parseLong(String.valueOf(v))));
+
+            Map<Integer, Double> potentialRanksResult = new HashMap<>();
+            potentialRanks.forEach((k,v)->{
+                potentialRanksResult.put(k,Double.parseDouble(df.format((v/userCount*100))));
+            });
+
+            JSONObject result = JSONObject.parseObject(JSON.toJSONString(potentialRanksResult));
+
+            OperatorStatisticsVo operatorStatisticsVo = OperatorStatisticsVo.builder()
+                    .charId(statistics.getCharId())
+                    .charName(statistics.getCharName())
+                    .rarity(statistics.getRarity())
+                    .owningRate(Double.parseDouble(df.format((statistics.getHoldings()-i)/userCount*100)))
+                    .phases1Rate(Double.parseDouble(df.format(statistics.getPhases1()/userCount*100)))
+                    .phases2Rate(Double.parseDouble(df.format(statistics.getPhases2()/userCount*100)))
+                    .potentialRanks(result)
+                    .build();
+              statisticsVoResultList.add(operatorStatisticsVo);
+        }
+
+        statisticsVoResultList = statisticsVoResultList.stream().filter(e->e.getRarity()>5).collect(Collectors.toList());
+
+        statisticsVoResultList.sort(Comparator.comparing(OperatorStatisticsVo::getOwningRate).reversed());
+        System.out.println(JSON.toJSONString(statisticsVoResultList));
 
     }
+
+
 
 
     @Test
     void secretTest() {
         String SECRET = FileConfig.Secret;
-        String ip = "211.94.226.154";
+        String ip = "117.11.47.234";
         System.out.println(AES.encrypt(ip, SECRET));
         System.out.println(AES.encrypt(ip, SECRET));
     }

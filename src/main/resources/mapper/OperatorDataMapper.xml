@@ -19,7 +19,7 @@
 
     <!-- 干员练度信息表，根据id查询-->
     <select id="selectOperatorDataById" resultType="com.lhs.entity.OperatorData">
-        select * from ${tableName}
+        SELECT * FROM ${tableName}
         <where>
             <if test="id != null and id != ''">
                 id = #{id};
@@ -30,7 +30,8 @@
     <!-- 干员练度信息表，根据id更新-->
     <update id="updateOperatorDataById">
         UPDATE ${tableName}
-        SET `elite`             = #{operator.elite},
+        SET `rarity`            = #{operator.rarity},
+            `elite`             = #{operator.elite},
             `level`             = #{operator.level},
             `potential`         = #{operator.potential},
             `update_time_stamp` = #{operator.updateTimeStamp}
@@ -39,15 +40,15 @@
 
     <!-- 干员练度信息表，根据uid查询-->
     <select id="selectOperatorDataByUserId" resultType="com.lhs.entity.OperatorDataVo">
-        select
+        SELECT
         `char_id`,
         `char_name`,
         `elite`,
         `level`,
         `potential`,
         `rarity`
-        from ${tableName}
-        where `user_id` in
+        FROM ${tableName}
+        WHERE `user_id` IN
         <foreach collection="userIds" item="userId" open="(" separator="," close=")">
             #{userId}
         </foreach>
@@ -59,15 +60,15 @@
         from maa_user
     </select>
 
-     <!--    干员练度统计表批量插入-->
+    <!--    干员练度统计表批量插入-->
     <insert id="insertStatisticsBatch">
         INSERT INTO `operator_statistics`
-        (`char_name`,`char_id`,`holdings`,`phases1`, `phases2`,`potential_ranks`,`skill1`,`skill2`,`skill3`)
+        (`char_name`,`char_id`,`rarity`,`holdings`,`phases1`, `phases2`,`potential_ranks`,`skill1`,`skill2`,`skill3`)
         VALUES
         <foreach collection="operatorStatisticsList" item="operatorStatistics" separator=",">
             (
             #{operatorStatistics.charName},#{operatorStatistics.charId},
-            #{operatorStatistics.holdings},
+            #{operatorStatistics.rarity},#{operatorStatistics.holdings},
             #{operatorStatistics.phases1},#{operatorStatistics.phases2},
             #{operatorStatistics.potentialRanks},
             #{operatorStatistics.skill1},#{operatorStatistics.skill2},#{operatorStatistics.skill3}
@@ -78,14 +79,19 @@
 
     <!--    干员练度统计表，清空表-->
     <delete id="truncateOperatorStatisticsTable">
-        truncate table `operator_statistics`
+        TRUNCATE TABLE  `operator_statistics`
     </delete>
+
+    <select id="selectStatisticsList" resultType="com.lhs.entity.OperatorStatistics">
+        Select *
+        FROM `operator_statistics`
+    </select>
 
     <!--    干员练度统计表，根据干员名称查询-->
     <select id="selectStatisticsByCharName" resultType="com.lhs.entity.OperatorStatistics">
-        select *
-        from `operator_statistics`
-        where `char_name` = #{charName}
+        SELECT *
+        FROM `operator_statistics`
+        WHERE `char_name` = #{charName}
     </select>
 
     <!--    干员练度统计表，根据干员名称更新-->
@@ -101,11 +107,12 @@
         WHERE `char_name` = #{statistics.charName};
     </update>
 
+
     <!--    干员练度统计表配置，根据key查询-->
     <select id="selectConfigByKey" resultType="com.lhs.entity.OperatorStatisticsConfig">
-        select `config_value`
-        from operator_statistics_config
-        where `config_key` = #{configKey}
+        SELECT `config_value`
+        FROM operator_statistics_config
+        WHERE `config_key` = #{configKey}
     </select>
 
     <!--    干员练度统计表配置，根据key更新-->

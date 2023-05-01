@@ -27,13 +27,30 @@ public class Swagger2Config {
 	@Bean
 	public Docket ApiConfig() {
 		return new Docket(DocumentationType.SWAGGER_2)
-				.groupName("API")
+				.groupName("api")
 				//设置基本信息
 				.apiInfo(apiInfo())
 				//初始化并返回一个API选择构造器
 				.select()
 				//指定扫描的Controller包结构
 				.apis(RequestHandlerSelectors.basePackage("com.lhs.controller"))
+				//设置路径筛选
+				.paths(PathSelectors.any())
+				//构建
+				.build();
+	}
+
+	@ConditionalOnProperty(prefix = "swagger2",value = {"type"},havingValue = "dev")
+	@Bean
+	public Docket PrivateConfig() {
+		return new Docket(DocumentationType.SWAGGER_2)
+				.groupName("private")
+				//设置基本信息
+				.apiInfo(apiInfo())
+				//初始化并返回一个API选择构造器
+				.select()
+				//指定扫描的Controller包结构
+				.apis(RequestHandlerSelectors.basePackage("com.lhs.dev"))
 				//设置路径筛选
 				.paths(PathSelectors.any())
 				//构建

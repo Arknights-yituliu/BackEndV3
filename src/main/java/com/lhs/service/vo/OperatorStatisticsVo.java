@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class OperatorStatisticsVo {
 
     private String charName;
+    private Integer rarity;
     private String charId;
     private Double owningRate;
     private Double phases1Rate;

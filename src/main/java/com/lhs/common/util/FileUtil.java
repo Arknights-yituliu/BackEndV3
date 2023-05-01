@@ -63,7 +63,7 @@ public class FileUtil {
 
 //          response.setContentType("application/force-download");
             response.setCharacterEncoding("utf-8");
-            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".json");
+            response.setHeader("Content-disposition", "attachment;filename=" + fileName );
             OutputStream outputStream = response.getOutputStream();
             byte[] buf = new byte[1024];
             int len = 0;

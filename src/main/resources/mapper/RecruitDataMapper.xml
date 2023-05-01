@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.RecruitDataMapper">
+
+    <insert id="insertRecruitData">
+        INSERT INTO ${tableName}
+        (`id`, `create_time`, `level`, `server`, `source`, `tag`, `uid`, `version`)
+        VALUES (#{recruitData.id}, #{recruitData.createTime}, #{recruitData.level}, #{recruitData.server},
+                #{recruitData.source}, #{recruitData.tag}, #{recruitData.uid}, #{recruitData.version})
+    </insert>
+
+    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.RecruitData">
+        SELECT *
+        FROM  `recruit_data_1`
+        WHERE
+       `create_time` &gt; #{startTime} AND
+        `create_time` &lt;= #{endTime}
+    </select>
+
+    <insert id="insertRecruitStatistics">
+        INSERT INTO `recruit_statistics`
+            ( `statistical_item`, `statistical_result`)
+        VALUES (#{statistics.statisticalItem}, #{statistics.statisticalResult});
+    </insert>
+
+    <update id="updateRecruitStatistics">
+        UPDATE `recruit_statistics`
+        SET   `statistical_result` = #{statistics.statisticalResult}
+        WHERE `statistical_item`   = #{statistics.statisticalItem}
+    </update>
+
+    <select id="selectRecruitStatistics" resultType="com.lhs.entity.RecruitStatistics">
+         SELECT * FROM `recruit_statistics`
+    </select>
+
+    <select id="selectRecruitStatisticsByItem" resultType="com.lhs.entity.RecruitStatistics">
+        SELECT * FROM `recruit_statistics` WHERE  `statistical_item` = #{statisticalItem}
+    </select>
+
+
+    <!--    公招统计表配置，根据key查询-->
+    <select id="selectConfigByKey" resultType="com.lhs.entity.RecruitStatisticsConfig">
+        SELECT `config_value`
+        FROM `recruit_statistics_config`
+        WHERE `config_key` = #{configKey}
+    </select>
+
+    <!--    公招统计表配置，根据key更新-->
+    <update id="updateConfigByKey">
+        UPDATE `recruit_statistics_config`
+        SET `config_value` = #{configValue}
+        WHERE `config_key` = #{configKey};
+    </update>
+
+
+</mapper>

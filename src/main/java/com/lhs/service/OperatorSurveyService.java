@@ -23,14 +23,9 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class MaaService {
+public class OperatorSurveyService {
 
-    @Resource
-    private MaaRecruitMapper maaRecruitMapper;
-    @Resource
-    private MaaRecruitStatisticalMapper maaStatisticalMapper;
-    @Resource
-    private ResultMapper resultMapper;
+
     @Resource
     private ScheduleMapper scheduleMapper;
 
@@ -41,15 +36,18 @@ public class MaaService {
     private OperatorDataMapper operatorDataMapper;
 
 
+
+
     public HashMap<String, Long> saveMaaOperatorBoxData(MaaOperBoxVo maaOperBoxVo, String ipAddress) {
 
         List<OperBox> operatorBox = JSONArray.parseArray(JSON.toJSONString(maaOperBoxVo.getOperBox()), OperBox.class);//maa返回的干员box信息
         int operatorTotal = operatorBox.size();      //干员box的干员总数
 
-        ipAddress = ipAddress + new Random().nextInt(9999999);   //测试ip+随机数
+//       ipAddress = ipAddress + new Random().nextInt(9999999);   //测试ip+随机数
+
         QueryWrapper<MaaUser> queryWrapperUser = new QueryWrapper<>();
         queryWrapperUser.eq("ip", ipAddress);  //根据ip查找
-        log.info("ip: " + ipAddress);
+
         MaaUser maaUser = maaUserMapper.selectOne(queryWrapperUser);  //查询是否有这个用户
         Date date = new Date();  //获取当前时间
         long timeStamp = date.getTime();
@@ -60,15 +58,16 @@ public class MaaService {
         long id = millis * 100 + end3;  //分配的id
 
         OperatorStatisticsConfig config = operatorDataMapper.selectConfigByKey("tableName");
+
         String tableName = config.getConfigValue();  //存入的数据表的表名
 
         long rowsAffected = 0;
 
         if(operatorBox.size()<2) {
-             throw new ServiceException(ResultCode.PARAM_IS_BLANK);
+             throw new ServiceException(ResultCode.PARAM_IS_BLANK);   //干员过少不收录
         }
 
-        if (maaUser == null) {
+        if (maaUser == null) {        //用户不存在新建
             maaUser = MaaUser.builder()
                     .id(id)
                     .penguinId(maaOperBoxVo.getUuid())
@@ -83,7 +82,9 @@ public class MaaService {
                     .build();
             int insert = maaUserMapper.insert(maaUser);
         } else {
-            log.info("用户已经存在");
+            //用户存在更新各种信息
+            tableName = maaUser.getTableName();
+            log.info("ip: " + ipAddress+"----用户已经存在");
             maaUser.setOperatorTotal(operatorTotal);
             maaUser.setUpdateTime(date);
             maaUser.setServer(maaOperBoxVo.getServer());
@@ -96,10 +97,12 @@ public class MaaService {
 
         List<OperatorData> operatorDataList = new ArrayList<>();
 
-        tableName = maaUser.getTableName();
+
 
 
         for (OperBox operator : operatorBox) {
+
+            if("".equals(operator.getId())||operator.getId()==null) continue;
             OperatorData operatorData_DB =
                     operatorDataMapper.selectOperatorDataById(maaUser.getTableName(), id + "_" + operator.getId());
 
@@ -141,9 +144,9 @@ public class MaaService {
         }
 
         HashMap<String, Long> hashMap = new HashMap<>();
-        hashMap.put("rows affected", rowsAffected);
+        hashMap.put("rowsAffected", rowsAffected);
         hashMap.put("uid", id);
-
+        System.out.println(hashMap);
         return hashMap;
     }
 
@@ -198,23 +201,22 @@ public class MaaService {
             //循环这个分组后的map
             collectByCharName.forEach((k, list) -> {
 
-                long holdings = list.size();
+                int holdings = list.size();
 
-                String charId = "1";
+                String charId = list.get(0).getCharId();
+                int rarity = list.get(0).getRarity();
 
-                if(list.get(0).getCharId()!=null) {
-                    charId = list.get(0).getCharId();
-                }
                 //根据精英化等级分类
                 Map<Integer, Long> collectByPhases = list.stream()
                         .collect(Collectors.groupingBy(OperatorDataVo::getElite, Collectors.counting()));
                 //该干员精英等级一的数量
-                long phases1 = collectByPhases.get(1) == null ? 0 : collectByPhases.get(1).intValue();
+                int phases1 = collectByPhases.get(1) == null ? 0 : collectByPhases.get(1).intValue();
                 //该干员精英等级二的数量
-                long phases2 = collectByPhases.get(2) == null ? 0 : collectByPhases.get(2).intValue();
+                int phases2 = collectByPhases.get(2) == null ? 0 : collectByPhases.get(2).intValue();
+
                 //根据该干员的潜能等级分组统计  map(潜能等级,该等级的数量)
                 Map<Integer, Long> collectByPotential = list.stream().collect(Collectors.groupingBy(OperatorDataVo::getPotential, Collectors.counting()));
-                //json化方便存储
+                //json字符串化
                 String potentialStr = JSON.toJSONString(collectByPotential);
                 //查询是否有这条记录
                 OperatorStatistics operatorStatistics = operatorDataMapper.selectStatisticsByCharName(k);
@@ -223,9 +225,10 @@ public class MaaService {
                     operatorStatistics = OperatorStatistics.builder()
                             .charId(charId)
                             .charName(k)
+                            .rarity(rarity)
                             .holdings(holdings)
                             .phases1(phases1)
-                            .phases2(phases2 + 100)
+                            .phases2(phases2)
                             .potentialRanks(potentialStr)
                             .build();
                     //没有的话塞入集合准备新增
@@ -240,6 +243,7 @@ public class MaaService {
                     JSONObject jsonObject = JSONObject.parseObject(operatorStatistics.getPotentialRanks());
                     Map<Integer, Long> potentialRanksNew = new HashMap<>();
                     jsonObject.forEach((p, v) -> potentialRanksNew.put(Integer.parseInt(p), Long.parseLong(String.valueOf(v))));
+
                     collectByPotential.forEach((potential, v) -> potentialRanksNew.merge(potential, v, Long::sum));
                     potentialStr = JSON.toJSONString(potentialRanksNew);
 
@@ -248,7 +252,7 @@ public class MaaService {
                             .charName(k)
                             .holdings(holdings)
                             .phases1(phases1)
-                            .phases2(phases2 + 100)
+                            .phases2(phases2 )
                             .potentialRanks(potentialStr)
                             .build();
                     operatorDataMapper.updateStatisticsByCharName(operatorStatistics);
@@ -285,160 +289,22 @@ public class MaaService {
                 SerializerFeature.WriteNullListAsEmpty);
 //        System.out.println(FileConfig.Schedule);
 
-        FileUtil.save(response, FileConfig.Schedule, scheduleId.toString(), jsonForMat);
+        FileUtil.save(response, FileConfig.Schedule, scheduleId.toString()+".json", jsonForMat);
     }
 
 
-    public String exportScheduleJson(Long scheduleId) {
-//        Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id",scheduleId));
-        String read = FileUtil.read(FileConfig.Schedule + scheduleId + ".json");
-        if (read == null) throw new ServiceException(ResultCode.DATA_NONE);
-//        if(schedule.getSchedule()==null) throw new ServiceException(ResultCode.DATA_NONE);
-        return read;
-    }
+    public String retrieveScheduleJson(Long scheduleId) {
+        Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id",scheduleId));
 
-
-    public String saveMaaRecruitData(MaaRecruitData maaRecruitData) {
-        int insert = maaRecruitMapper.insert(maaRecruitData);
-        return null;
-    }
-
-
-    public void maaRecruitDataCalculation() {
-
-        List<MaaRecruitStatistical> maaRecruitStatisticalList = maaStatisticalMapper.selectList(
-                new QueryWrapper<MaaRecruitStatistical>().orderByDesc("create_time"));
-        Date date = new Date();
-        List<MaaRecruitData> maaRecruitDataList = maaRecruitMapper.selectList(
-                new QueryWrapper<MaaRecruitData>().between("create_time", maaRecruitStatisticalList.get(0).getLastTime(), date));
-
-        int topOperator = 0;  //高级资深总数
-        int seniorOperator = 0; //资深总数
-        int topAndSeniorOperator = 0; //高级资深含有资深总数
-        int seniorOperatorCount = 0;  //五星TAG总数
-        int rareOperatorCount = 0;   //四星TAG总数
-        int commonOperatorCount = 0; //三星TAG总数
-        int robot = 0;                //小车TAG总数
-        int robotChoice = 0;       //小车和其他组合共同出现次数
-        int vulcan = 0;             //火神出现次数
-        int gravel = 0;            //砾出现次数
-        int jessica = 0;         //杰西卡次数
-        int count = 1;
-        for (MaaRecruitData maaRecruitData : maaRecruitDataList) {
-
-            int topAndSeniorOperatorSign = 0;  //高资与资深标记
-            boolean vulcanSignMain = false; //火神标记
-            boolean vulcanSignItem = false; //火神标记
-            boolean jessicaSignMain = false; //杰西卡标记
-            boolean jessicaSignItem = false;  //杰西卡标记
-            boolean gravelSign = false; //砾标记
-
-
-            List<String> tags = JSONArray.parseArray(maaRecruitData.getTag(), String.class);
-
-            for (String tag : tags) {
-                if ("高级资深干员".equals(tag)) {
-                    topOperator++;
-                    topAndSeniorOperatorSign++;
-                }
-                if ("资深干员".equals(tag)) {
-                    seniorOperator++;
-                    topAndSeniorOperatorSign++;
-                }
-                if ("支援机械".equals(tag)) {
-                    robot++;
-                    if (maaRecruitData.getLevel() > 3) robotChoice++;
-                }
-                if ("生存".equals(tag)) {
-                    vulcanSignMain = true;
-                    jessicaSignMain = true;
-                }
-                if ("重装干员".equals(tag) || "防护".equals(tag)) {
-                    vulcanSignItem = true;
-                }
-                if ("狙击干员".equals(tag) || "远程位".equals(tag)) {
-                    jessicaSignItem = true;
-                }
-                if ("快速复活".equals(tag)) {
-                    gravelSign = true;
-                }
-
-            }
-
-            if (maaRecruitData.getLevel() == 6) {
-                vulcanSignMain = false;
-                gravelSign = false;
-                jessicaSignMain = false;
-            }
-            if (maaRecruitData.getLevel() == 5) {
-                seniorOperatorCount++;
-                gravelSign = false;
-                jessicaSignMain = false;
-            }
-            if (maaRecruitData.getLevel() == 4) rareOperatorCount++;
-            if (maaRecruitData.getLevel() == 3) commonOperatorCount++;
-            if (topAndSeniorOperatorSign > 1) topAndSeniorOperator++;
-
-            if (vulcanSignMain && vulcanSignItem) {
-                vulcan++;
-            }
-            if (jessicaSignMain && jessicaSignItem) {
-                jessica++;
-            }
-            if (gravelSign) {
-                gravel++;
-            }
-            if (jessicaSignMain && jessicaSignItem) {
-                jessica++;
-            }
-
-
-            count++;
+        if(schedule==null){
+            String read = FileUtil.read(FileConfig.Schedule + scheduleId + ".json");
+            if (read == null) throw new ServiceException(ResultCode.DATA_NONE);
+            return read;
         }
 
-
-        MaaRecruitStatistical maaRecruitStatistical =
-                MaaRecruitStatistical.builder().id(date.getTime()).topOperator(topOperator).seniorOperator(seniorOperator)
-                        .topAndSeniorOperator(topAndSeniorOperator).seniorOperatorCount(seniorOperatorCount).rareOperatorCount(rareOperatorCount)
-                        .commonOperatorCount(commonOperatorCount).robot(robot).robotChoice(robotChoice).vulcan(vulcan).gravel(gravel).jessica(jessica)
-                        .maaRecruitDataCount(maaRecruitDataList.size()).lastTime(maaRecruitDataList.get(maaRecruitDataList.size() - 1).getCreateTime())
-                        .createTime(date).build();
-
-        maaStatisticalMapper.insert(maaRecruitStatistical);
-
-        maaRecruitStatisticalList.add(maaRecruitStatistical);
-        MaaRecruitStatistical statistical = statistical(maaRecruitStatisticalList);
-        String result = JSON.toJSONString(statistical);
-        resultMapper.insert(new ResultVo("maa/statistical", result));
+        return schedule.getSchedule();
     }
 
-
-    private static MaaRecruitStatistical statistical(List<MaaRecruitStatistical> statisticalList) {
-        MaaRecruitStatistical statistical = new MaaRecruitStatistical();
-
-        statistical.setTopOperator(statisticalList.stream().mapToInt(MaaRecruitStatistical::getTopOperator).sum());
-        statistical.setSeniorOperator(statisticalList.stream().mapToInt(MaaRecruitStatistical::getSeniorOperator).sum());
-        statistical.setTopAndSeniorOperator(statisticalList.stream().mapToInt(MaaRecruitStatistical::getTopAndSeniorOperator).sum());
-        statistical.setSeniorOperatorCount(statisticalList.stream().mapToInt(MaaRecruitStatistical::getSeniorOperatorCount).sum());
-        statistical.setRareOperatorCount(statisticalList.stream().mapToInt(MaaRecruitStatistical::getRareOperatorCount).sum());
-        statistical.setCommonOperatorCount(statisticalList.stream().mapToInt(MaaRecruitStatistical::getCommonOperatorCount).sum());
-        statistical.setRobot(statisticalList.stream().mapToInt(MaaRecruitStatistical::getRobot).sum());
-        statistical.setRobotChoice(statisticalList.stream().mapToInt(MaaRecruitStatistical::getRobotChoice).sum());
-        statistical.setVulcan(statisticalList.stream().mapToInt(MaaRecruitStatistical::getVulcan).sum());
-        statistical.setGravel(statisticalList.stream().mapToInt(MaaRecruitStatistical::getGravel).sum());
-        statistical.setJessica(statisticalList.stream().mapToInt(MaaRecruitStatistical::getJessica).sum());
-        statistical.setMaaRecruitDataCount(statisticalList.stream().mapToInt(MaaRecruitStatistical::getMaaRecruitDataCount).sum());
-        statistical.setCreateTime(new Date());
-
-        return statistical;
-    }
-
-
-    public String maaRecruitStatistical() {
-        ResultVo resultVo = resultMapper.selectOne(new QueryWrapper<ResultVo>().eq("path", "maa/statistical").orderByDesc("create_time").last("limit 1"));
-        if (resultVo.getId() == null) throw new ServiceException(ResultCode.DATA_NONE);
-        return resultVo.getResult();
-    }
 
 
 }

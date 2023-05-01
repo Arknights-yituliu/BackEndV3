@@ -43,6 +43,7 @@ public class AnnotationAOP {
         int timeOut = redisCacheable.timeOut();
 
         String[] key = redisCacheable.key().split("#");
+
         StringBuilder redisKey = new StringBuilder(key[0]);
         Object redisValue = "";
         if (key.length > 1) {

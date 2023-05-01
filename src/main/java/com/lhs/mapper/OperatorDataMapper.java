@@ -31,4 +31,6 @@ public interface OperatorDataMapper extends BaseMapper<OperatorData> {
     Integer updateConfigByKey(@Param("configKey")String configKey,@Param("configValue")String configValue);
 
     void truncateOperatorStatisticsTable();
+
+    List<OperatorStatistics> selectStatisticsList();
 }

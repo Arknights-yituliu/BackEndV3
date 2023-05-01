@@ -36,4 +36,5 @@ build/
 /src/main/resources/penguin/
 /src/main/resources/schedule/
 /src/main/resources/backups/
-/src/main/java/com/lhs/controller/Controller.java
+/src/main/java/com/lhs/dev/
+/src/main/java/com/lhs/mapper/DeveloperMapper.java

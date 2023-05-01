@@ -1,13 +1,13 @@
 package com.lhs.controller;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
-import com.lhs.entity.MaaRecruitData;
-import com.lhs.service.MaaService;
+import com.lhs.service.OperatorSurveyService;
+import com.lhs.service.RecruitSurveyService;
 import com.lhs.service.dto.MaaOperBoxVo;
 import com.lhs.service.dto.MaaRecruitVo;
 import io.swagger.annotations.Api;
@@ -15,10 +15,12 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 @RestController
@@ -26,20 +28,16 @@ import java.util.Random;
 @RequestMapping(value = "/maa")
 @CrossOrigin(maxAge = 86400)
 public class MaaController {
-    @Autowired
-    private MaaService maaService;
+    @Resource
+    private OperatorSurveyService operatorSurveyService;
+
+    @Resource
+    private RecruitSurveyService recruitSurveyService;
 
     @ApiOperation("MAA公招记录上传")
     @PostMapping("/upload/recruit")
     public Result MaaTagResult(@RequestBody MaaRecruitVo maaTagRequestVo) {
-
-        MaaRecruitData maaRecruitData = new MaaRecruitData(maaTagRequestVo.getUuid(), JSON.toJSONString(maaTagRequestVo.getTags()),
-                maaTagRequestVo.getLevel(),new Date(),maaTagRequestVo.getServer(), maaTagRequestVo.getSource()
-                , maaTagRequestVo.getVersion());
-        maaRecruitData.init();
-        maaRecruitData.setTag(JSON.toJSONString(maaTagRequestVo.getTags()));
-
-        String string = maaService.saveMaaRecruitData(maaRecruitData);
+        String string = recruitSurveyService.saveMaaRecruitDataNew(maaTagRequestVo);
         return Result.success(string);
     }
 
@@ -49,25 +47,41 @@ public class MaaController {
 
         String ipAddress = IpUtil.getIpAddress(httpServletRequest);
         ipAddress = AES.encrypt(ipAddress, FileConfig.Secret);  //加密
-        HashMap<String, Long> result = maaService.saveMaaOperatorBoxData(maaOperBoxVo, ipAddress);
+        HashMap<String, Long> result = operatorSurveyService.saveMaaOperatorBoxData(maaOperBoxVo, ipAddress);
 
         return Result.success(result);
     }
 
+    @ApiOperation("MAA干员信息上传")
+    @PostMapping(value = "/upload/operBox/manual",produces = "application/json;charset=UTF-8")
+    public Result MaaOperatorBoxResult(HttpServletRequest httpServletRequest, @RequestBody JSONArray operBox) {
 
-    @ApiOperation("各类公招统计结果计算")
-    @GetMapping("/recruit/cal")
-    public Result saveMaaRecruitStatistical() {
-        maaService.maaRecruitDataCalculation();
-        return Result.success();
+        String ipAddress = IpUtil.getIpAddress(httpServletRequest);
+        ipAddress = AES.encrypt(ipAddress, FileConfig.Secret);  //加密
+        MaaOperBoxVo maaOperBoxVo = new MaaOperBoxVo();
+        maaOperBoxVo.setServer("custom");
+        maaOperBoxVo.setSource("custom");
+        maaOperBoxVo.setVersion("custom_v1");
+        maaOperBoxVo.setOperBox(operBox);
+        HashMap<String, Long> result = operatorSurveyService.saveMaaOperatorBoxData(maaOperBoxVo, ipAddress);
+//        System.out.println(result);
+        return Result.success(result);
     }
 
-    @ApiOperation("各类公招统计结果")
-    @GetMapping("/recruit/statistical")
+    @ApiOperation("公招结果统计")
+    @GetMapping("/recruit/statistics")
+    public Result saveMaaRecruitStatistical() {
+        Map<String, Integer> result = recruitSurveyService.recruitStatistics();
+        return Result.success(result);
+    }
+
+
+    @ApiOperation("公招统计结果")
+    @GetMapping("/recruit/result")
     public Result queryMaaRecruitStatistical() {
-        String result = maaService.maaRecruitStatistical();
-        JSONObject jsonObject = JSONObject.parseObject(result);
-        return Result.success(jsonObject);
+        HashMap<String, Object> result = recruitSurveyService.statisticalResult();
+
+        return Result.success(result);
     }
 
     @ApiOperation("生成基建排班协议文件")
@@ -76,7 +90,7 @@ public class MaaController {
 
         schedule_id = new Date().getTime() * 1000 +new Random().nextInt(1000);   //id为时间戳后加0001至999
 
-        maaService.saveScheduleJson(scheduleJson,schedule_id);
+        operatorSurveyService.saveScheduleJson(scheduleJson,schedule_id);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("uid",schedule_id);
         hashMap.put("message","生成成功");
@@ -87,13 +101,13 @@ public class MaaController {
     @ApiOperation("导出基建排班协议文件")
     @GetMapping("/schedule/export")
     public void exportMaaScheduleJson(HttpServletResponse response, @RequestParam Long schedule_id) {
-        maaService.exportScheduleFile(response, schedule_id);
+        operatorSurveyService.exportScheduleFile(response, schedule_id);
     }
 
     @ApiOperation("找回基建排班协议文件")
     @GetMapping("/schedule/retrieve")
     public Result retrieveMaaScheduleJson(@RequestParam Long schedule_id) {
-        String str = maaService.exportScheduleJson(schedule_id);
+        String str = operatorSurveyService.retrieveScheduleJson(schedule_id);
         JSONObject jsonObject = JSONObject.parseObject(str);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("schedule",jsonObject);

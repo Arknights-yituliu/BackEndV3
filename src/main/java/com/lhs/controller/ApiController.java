@@ -9,6 +9,7 @@ import com.lhs.entity.Stage;
 import com.lhs.entity.StageResult;
 import com.lhs.service.*;
 
+import com.lhs.service.dto.EmailRequest;
 import com.lhs.service.vo.OrundumPerApResultVo;
 import com.lhs.service.vo.StageResultActVo;
 import com.lhs.service.vo.StageResultVo;
@@ -143,12 +144,12 @@ public class ApiController {
     }
 
 
-//    @ApiOperation("发送邮件")
-//    @PostMapping("/sendEmail")
-//    public Result sendEmail(@RequestBody EmailRequest emailRequest) {
-//        userService.sendMail(emailRequest);
-//        return Result.success();
-//    }
+    @ApiOperation("发送邮件")
+    @PostMapping("/sendEmail")
+    public Result sendEmail(@RequestBody EmailRequest emailRequest) {
+        userService.sendMail(emailRequest);
+        return Result.success();
+    }
 
 
 //    @TakeCount(method = "礼包商店性价比")

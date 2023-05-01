@@ -16,9 +16,10 @@ import lombok.NoArgsConstructor;
 public class OperatorStatistics {
     private String charName;
     private String charId;
-    private Long holdings;
-    private Long phases1;
-    private Long phases2;
+    private Integer rarity;
+    private Integer holdings;
+    private Integer phases1;
+    private Integer phases2;
     private String potentialRanks;
     private String skill1;
     private String skill2;

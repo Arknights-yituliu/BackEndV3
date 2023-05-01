@@ -1,17 +1,16 @@
 package com.lhs.controller;
 
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.Result;
-import com.lhs.entity.MaaRecruitData;
+import com.lhs.service.RecruitSurveyService;
 import com.lhs.service.dto.MaaRecruitVo;
-import com.lhs.service.MaaService;
+import com.lhs.service.OperatorSurveyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.HashMap;
@@ -23,37 +22,42 @@ import java.util.Random;
 @CrossOrigin(maxAge = 86400)
 public class MaaApiController {
 
-    @Autowired
-    private MaaService maaService;
+    @Resource
+    private OperatorSurveyService operatorSurveyService;
+
+    @Resource
+    private RecruitSurveyService recruitSurveyService;
 
     @ApiOperation("MAA公招记录上传")
     @PostMapping("/recruitUpload")
     public Result MaaTagResult(@RequestBody MaaRecruitVo maaTagRequestVo) {
 
-        MaaRecruitData maaRecruitData = new MaaRecruitData(maaTagRequestVo.getUuid(),JSON.toJSONString(maaTagRequestVo.getTags()),
-                maaTagRequestVo.getLevel(),new Date(),maaTagRequestVo.getServer(), maaTagRequestVo.getSource()
-                , maaTagRequestVo.getVersion());
-        maaRecruitData.init();
-        maaRecruitData.setTag(JSON.toJSONString(maaTagRequestVo.getTags()));
+//        MaaRecruitData maaRecruitData = new MaaRecruitData(maaTagRequestVo.getUuid(),JSON.toJSONString(maaTagRequestVo.getTags()),
+//                maaTagRequestVo.getLevel(),new Date(),maaTagRequestVo.getServer(), maaTagRequestVo.getSource()
+//                , maaTagRequestVo.getVersion());
+//        maaRecruitData.init();
+//        maaRecruitData.setTag(JSON.toJSONString(maaTagRequestVo.getTags()));
+//
+//        String string = recruitSurveyService.saveMaaRecruitData(maaRecruitData);
 
-        String string = maaService.saveMaaRecruitData(maaRecruitData);
-        return Result.success(string);
+
+        return Result.success();
     }
 
 
     @ApiOperation("各类公招统计结果计算")
     @GetMapping("/recruit/cal")
     public Result saveMaaRecruitStatistical() {
-        maaService.maaRecruitDataCalculation();
+//        recruitSurveyService.maaRecruitDataCalculation();
         return Result.success();
     }
 
     @ApiOperation("各类公招统计结果")
     @GetMapping("/recruit/statistical")
     public Result queryMaaRecruitStatistical() {
-        String result = maaService.maaRecruitStatistical();
-        JSONObject jsonObject = JSONObject.parseObject(result);
-        return Result.success(jsonObject);
+        HashMap<String, Object> result = recruitSurveyService.statisticalResult();
+
+        return Result.success(result);
     }
 
     @ApiOperation("生成基建排班协议文件")
@@ -62,7 +66,7 @@ public class MaaApiController {
 
         schedule_id = new Date().getTime() * 1000 +new Random().nextInt(1000);   //id为时间戳后加0001至999
 
-        maaService.saveScheduleJson(scheduleJson,schedule_id);
+        operatorSurveyService.saveScheduleJson(scheduleJson,schedule_id);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("uid",schedule_id);
         hashMap.put("message","生成成功");
@@ -73,13 +77,13 @@ public class MaaApiController {
     @ApiOperation("导出基建排班协议文件")
     @GetMapping("/building/schedule/export")
     public void exportMaaScheduleJson(HttpServletResponse response,@RequestParam Long schedule_id) {
-        maaService.exportScheduleFile(response, schedule_id);
+        operatorSurveyService.exportScheduleFile(response, schedule_id);
     }
 
     @ApiOperation("找回基建排班协议文件")
     @GetMapping("/building/schedule/retrieve")
     public Result retrieveMaaScheduleJson(@RequestParam Long schedule_id) {
-        String str = maaService.exportScheduleJson(schedule_id);
+        String str = operatorSurveyService.retrieveScheduleJson(schedule_id);
         JSONObject jsonObject = JSONObject.parseObject(str);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("schedule",jsonObject);
