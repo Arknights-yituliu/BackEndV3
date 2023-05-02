@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 @RestController
-@Api(tags = "MAA接口-新")
+@Api(tags = "调查接口")
 @RequestMapping(value = "/survey")
 @CrossOrigin(maxAge = 86400)
 public class SurveyController {

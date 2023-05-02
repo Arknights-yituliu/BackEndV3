@@ -7,7 +7,6 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.common.util.ResultCode;
-import com.lhs.entity.ResultVo;
 import com.lhs.entity.StageResult;
 
 import com.lhs.mapper.StageResultMapper;
@@ -34,9 +33,7 @@ public class APIService {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    private static QueryWrapper<ResultVo> ResultVoWrapper(String path) {
-        return new QueryWrapper<ResultVo>().eq("path", path).orderByDesc("create_time").last("limit 1");
-    }
+
 
     /**
      * 根据key查找redis中缓存的数据的通用方法

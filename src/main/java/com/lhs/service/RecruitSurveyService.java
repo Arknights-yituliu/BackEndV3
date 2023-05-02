@@ -2,17 +2,10 @@ package com.lhs.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.ResultCode;
 import com.lhs.entity.*;
-import com.lhs.mapper.MaaRecruitMapper;
-import com.lhs.mapper.MaaRecruitStatisticalMapper;
 import com.lhs.mapper.RecruitDataMapper;
-import com.lhs.mapper.ResultMapper;
 import com.lhs.service.dto.MaaRecruitVo;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,12 +13,7 @@ import java.util.stream.Collectors;
 @Service
 public class RecruitSurveyService {
 
-    @Resource
-    private MaaRecruitMapper maaRecruitMapper;
-    @Resource
-    private MaaRecruitStatisticalMapper maaStatisticalMapper;
-    @Resource
-    private ResultMapper resultMapper;
+
     @Resource
     private RecruitDataMapper recruitDataMapper;
 
@@ -92,8 +80,8 @@ public class RecruitSurveyService {
         }
 
         List<RecruitData> commonOperatorCountResult = new ArrayList<>();
-        if(collect.get(4)!=null){
-            commonOperatorCountResult = collect.get(4);
+        if(collect.get(3)!=null){
+            commonOperatorCountResult = collect.get(3);
         }
 
 
@@ -231,4 +219,6 @@ public class RecruitSurveyService {
 
         return hashMap;
     }
+
+
 }

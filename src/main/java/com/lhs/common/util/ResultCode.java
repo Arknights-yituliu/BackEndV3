@@ -14,7 +14,7 @@ public enum ResultCode {
 	PARAM_IS_BLANK(10002, "参数为空"),
 	PARAM_TYPE_BIND_ERROR(10003, "参数类型错误"),
 	PARAM_NOT_COMPLETE(10004, "参数缺失"),
-	
+	MAA_LOW_VERSION(10005, "数据不完整，请将MAA版本升级到V4.16.2版本之后"),
 	
 	/* 用户错误：20001-29999*/
 	USER_NOT_LOGIN(20001, "用户未登录"),
@@ -34,6 +34,7 @@ public enum ResultCode {
 	DATA_NONE(50001, "数据未找到"),
 	DATA_WRONG(50002, "数据错误"),
 	DATA_EXISTED(50003, "数据已存在"),
+
 	
 	
 	/* 接口错误：60001-69999 */

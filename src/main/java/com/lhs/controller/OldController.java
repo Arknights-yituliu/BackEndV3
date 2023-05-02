@@ -4,6 +4,7 @@ package com.lhs.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.Result;
 import com.lhs.service.RecruitSurveyService;
+import com.lhs.service.ScheduleService;
 import com.lhs.service.dto.MaaRecruitVo;
 import com.lhs.service.OperatorSurveyService;
 import io.swagger.annotations.Api;
@@ -20,10 +21,11 @@ import java.util.Random;
 @Api(tags = "MAA接口")
 @RequestMapping(value = "/tool")
 @CrossOrigin(maxAge = 86400)
-public class MaaApiController {
+public class OldController {
+
 
     @Resource
-    private OperatorSurveyService operatorSurveyService;
+    private ScheduleService scheduleService;
 
     @Resource
     private RecruitSurveyService recruitSurveyService;
@@ -66,7 +68,7 @@ public class MaaApiController {
 
         schedule_id = new Date().getTime() * 1000 +new Random().nextInt(1000);   //id为时间戳后加0001至999
 
-        operatorSurveyService.saveScheduleJson(scheduleJson,schedule_id);
+        scheduleService.saveScheduleJson(scheduleJson,schedule_id);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("uid",schedule_id);
         hashMap.put("message","生成成功");
@@ -77,13 +79,13 @@ public class MaaApiController {
     @ApiOperation("导出基建排班协议文件")
     @GetMapping("/building/schedule/export")
     public void exportMaaScheduleJson(HttpServletResponse response,@RequestParam Long schedule_id) {
-        operatorSurveyService.exportScheduleFile(response, schedule_id);
+        scheduleService.exportScheduleFile(response, schedule_id);
     }
 
     @ApiOperation("找回基建排班协议文件")
     @GetMapping("/building/schedule/retrieve")
     public Result retrieveMaaScheduleJson(@RequestParam Long schedule_id) {
-        String str = operatorSurveyService.retrieveScheduleJson(schedule_id);
+        String str = scheduleService.retrieveScheduleJson(schedule_id);
         JSONObject jsonObject = JSONObject.parseObject(str);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("schedule",jsonObject);

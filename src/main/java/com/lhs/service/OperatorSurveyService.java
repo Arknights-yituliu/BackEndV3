@@ -3,21 +3,19 @@ package com.lhs.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhs.common.config.FileConfig;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.*;
 import com.lhs.mapper.*;
 import com.lhs.service.dto.MaaOperBoxVo;
 import com.lhs.service.dto.OperBox;
+import com.lhs.service.vo.OperatorStatisticsVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,16 +24,13 @@ import java.util.stream.Collectors;
 public class OperatorSurveyService {
 
 
-    @Resource
-    private ScheduleMapper scheduleMapper;
+
 
     @Resource
     private MaaUserMapper maaUserMapper;
 
     @Resource
     private OperatorDataMapper operatorDataMapper;
-
-
 
 
     public HashMap<String, Long> saveMaaOperatorBoxData(MaaOperBoxVo maaOperBoxVo, String ipAddress) {
@@ -102,7 +97,14 @@ public class OperatorSurveyService {
 
         for (OperBox operator : operatorBox) {
 
-            if("".equals(operator.getId())||operator.getId()==null) continue;
+            if(operator.getId()==null||"".equals(operator.getId())){
+                continue;
+            }
+
+            if(isNotNull(operator)) {
+                throw new ServiceException(ResultCode.MAA_LOW_VERSION);
+            }
+
             OperatorData operatorData_DB =
                     operatorDataMapper.selectOperatorDataById(maaUser.getTableName(), id + "_" + operator.getId());
 
@@ -146,7 +148,6 @@ public class OperatorSurveyService {
         HashMap<String, Long> hashMap = new HashMap<>();
         hashMap.put("rowsAffected", rowsAffected);
         hashMap.put("uid", id);
-        System.out.println(hashMap);
         return hashMap;
     }
 
@@ -177,7 +178,7 @@ public class OperatorSurveyService {
         for (int i = 0; i < num; i++) {
             toIndex = Math.min(toIndex, userIds.size());
             System.out.println("fromIndex:"+fromIndex+"---toIndex:"+toIndex);
-            userIdsGroup.add(userIds.subList(fromIndex,toIndex));
+//            userIdsGroup.add(userIds.subList(fromIndex,toIndex));
             fromIndex+=500;
             toIndex+=500;
         }
@@ -268,41 +269,64 @@ public class OperatorSurveyService {
         }
     }
 
+    public List<OperatorStatisticsVo> operatorBoxResult() {
+        List<OperatorStatistics> operatorStatisticsList = operatorDataMapper.selectStatisticsList();
+        OperatorStatisticsConfig config = operatorDataMapper.selectConfigByKey("user_count");  //读取配置表中的总人数
+        double userCount = Double.parseDouble(config.getConfigValue());  //总人数
 
-    public void saveScheduleJson(String scheduleJson, Long scheduleId) {
-        Schedule schedule = new Schedule();
-        schedule.setUid(scheduleId);
-        schedule.setScheduleId(scheduleId);
-        JSONObject jsonObject = JSONObject.parseObject(scheduleJson);
-        jsonObject.put("id", scheduleId);
-        schedule.setSchedule(JSON.toJSONString(jsonObject));
-        schedule.setCreateTime(new Date());
-        scheduleMapper.insert(schedule);
-    }
+        List<OperatorStatisticsVo> statisticsVoResultList = new ArrayList<>();  //所有统计项
 
+        DecimalFormat df=new DecimalFormat("0.00");
 
-    public void exportScheduleFile(HttpServletResponse response, Long scheduleId) {
+        for(OperatorStatistics statistics:operatorStatisticsList){
 
-        Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id", scheduleId));
-        String jsonForMat = JSON.toJSONString(JSONObject.parseObject(schedule.getSchedule()), SerializerFeature.PrettyFormat,
-                SerializerFeature.WriteDateUseDateFormat, SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteNullListAsEmpty);
-//        System.out.println(FileConfig.Schedule);
+            JSONObject jsonObject = JSONObject.parseObject(statistics.getPotentialRanks());
+            Map<Integer, Long> potentialRanks = new HashMap<>();  //潜能分布情况
+            jsonObject.forEach((p, v) -> potentialRanks.put(Integer.parseInt(p), Long.parseLong(String.valueOf(v))));
 
-        FileUtil.save(response, FileConfig.Schedule, scheduleId.toString()+".json", jsonForMat);
-    }
+            Map<Integer, Double> potentialRanksResult = new HashMap<>();
+            potentialRanks.forEach((k,v)->{  //潜能分布情况计算
+                potentialRanksResult.put(k,Double.parseDouble(df.format((v/userCount*100))));
+            });
 
+            JSONObject result = JSONObject.parseObject(JSON.toJSONString(potentialRanksResult));
 
-    public String retrieveScheduleJson(Long scheduleId) {
-        Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id",scheduleId));
-
-        if(schedule==null){
-            String read = FileUtil.read(FileConfig.Schedule + scheduleId + ".json");
-            if (read == null) throw new ServiceException(ResultCode.DATA_NONE);
-            return read;
+            OperatorStatisticsVo operatorStatisticsVo = OperatorStatisticsVo.builder()
+                    .charId(statistics.getCharId())
+                    .charName(statistics.getCharName())
+                    .rarity(statistics.getRarity())
+                    .owningRate(Double.parseDouble(df.format((statistics.getHoldings())/userCount*100)))
+                    .phases1Rate(Double.parseDouble(df.format(statistics.getPhases1()/userCount*100)))
+                    .phases2Rate(Double.parseDouble(df.format(statistics.getPhases2()/userCount*100)))
+                    .potentialRanks(result)
+                    .build();
+            statisticsVoResultList.add(operatorStatisticsVo);
         }
 
-        return schedule.getSchedule();
+        statisticsVoResultList = statisticsVoResultList.stream().filter(e->e.getRarity()>5).collect(Collectors.toList());
+
+        statisticsVoResultList.sort(Comparator.comparing(OperatorStatisticsVo::getOwningRate).reversed());
+
+
+        return statisticsVoResultList;
+    }
+
+    private static Boolean isNotNull(OperBox operBox){
+
+        if(operBox.getName()==null||"".equals(operBox.getName())){
+            return true;
+        }
+        if(operBox.getRarity() == null){
+            return true;
+        }
+        if(operBox.getLevel() == null){
+            return true;
+        }
+        if(operBox.getElite() == null){
+            return true;
+        }
+
+        return operBox.getPotential() == null;
     }
 
 
