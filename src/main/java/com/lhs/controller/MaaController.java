@@ -73,8 +73,8 @@ public class MaaController {
     @ApiOperation("干员统计结果")
     @GetMapping("/operator/result")
     public Result MaaOperatorDataResult() {
-        List<OperatorStatisticsVo> statisticsVos = operatorSurveyService.operatorBoxResult();
-        return Result.success(statisticsVos);
+        HashMap<String, Object> result = operatorSurveyService.operatorBoxResult();
+        return Result.success(result);
     }
 
 

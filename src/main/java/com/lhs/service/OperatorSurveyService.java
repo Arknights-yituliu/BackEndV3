@@ -23,9 +23,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OperatorSurveyService {
 
-
-
-
     @Resource
     private MaaUserMapper maaUserMapper;
 
@@ -124,6 +121,7 @@ public class OperatorSurveyService {
                 continue;
             }
 
+
             OperatorData build = OperatorData.builder().id(id + "_" + operator.getId())
                     .userId(id)
                     .charId(operator.getId())
@@ -163,7 +161,8 @@ public class OperatorSurveyService {
             operatorDataMapper.updateConfigByKey("tableName", "operator_data_3");
         }
 
-        operatorDataMapper.updateConfigByKey("user_count ", String.valueOf(userCount));
+        operatorDataMapper.updateConfigByKey("userCount", String.valueOf(userCount));
+        operatorDataMapper.updateConfigByKey("updateTime", String.valueOf(new Date().getTime()));
 
         List<Long> userIds = operatorDataMapper.selectIdsByPage();
 
@@ -177,8 +176,8 @@ public class OperatorSurveyService {
         int toIndex = 500;
         for (int i = 0; i < num; i++) {
             toIndex = Math.min(toIndex, userIds.size());
-            System.out.println("fromIndex:"+fromIndex+"---toIndex:"+toIndex);
-//            userIdsGroup.add(userIds.subList(fromIndex,toIndex));
+//            System.out.println("fromIndex:"+fromIndex+"---toIndex:"+toIndex);
+            userIdsGroup.add(userIds.subList(fromIndex,toIndex));
             fromIndex+=500;
             toIndex+=500;
         }
@@ -266,12 +265,13 @@ public class OperatorSurveyService {
             //如果有没统计的干员就新增
             if (operatorStatisticsList.size() > 0) operatorDataMapper.insertStatisticsBatch(operatorStatisticsList);
 
+
         }
     }
 
-    public List<OperatorStatisticsVo> operatorBoxResult() {
+    public HashMap<String, Object> operatorBoxResult() {
         List<OperatorStatistics> operatorStatisticsList = operatorDataMapper.selectStatisticsList();
-        OperatorStatisticsConfig config = operatorDataMapper.selectConfigByKey("user_count");  //读取配置表中的总人数
+        OperatorStatisticsConfig config = operatorDataMapper.selectConfigByKey("userCount");  //读取配置表中的总人数
         double userCount = Double.parseDouble(config.getConfigValue());  //总人数
 
         List<OperatorStatisticsVo> statisticsVoResultList = new ArrayList<>();  //所有统计项
@@ -308,7 +308,13 @@ public class OperatorSurveyService {
         statisticsVoResultList.sort(Comparator.comparing(OperatorStatisticsVo::getOwningRate).reversed());
 
 
-        return statisticsVoResultList;
+        HashMap<String, Object> hashMap = new HashMap<>();
+          hashMap.put("userCount",userCount);
+          OperatorStatisticsConfig updateTime = operatorDataMapper.selectConfigByKey("updateTime");  //读取配置表中的总人数
+          hashMap.put("updateTime",Long.valueOf(updateTime.getConfigValue()));
+          hashMap.put("result",statisticsVoResultList);
+
+        return hashMap;
     }
 
     private static Boolean isNotNull(OperBox operBox){

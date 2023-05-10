@@ -207,7 +207,7 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     public LinkedHashMap<String, List<Stage>> queryStageTable(){
         List<Stage> stageList = stageMapper.selectList(new QueryWrapper<Stage>().notLike("stage_id","tough").orderByDesc("stage_id"));
         List<Stage> zoneList = stageMapper.selectList(new QueryWrapper<Stage>().notLike("stage_id","tough").groupBy("zone_id").orderByDesc("stage_id"));
-        zoneList.forEach(System.out::println);
+//        zoneList.forEach(System.out::println);
         Map<String, List<Stage>> collect = stageList.stream().collect(Collectors.groupingBy(Stage::getZoneName));
         LinkedHashMap<String, List<Stage>> result = new LinkedHashMap<>();
         zoneList.forEach(stage->result.put(stage.getZoneName(),collect.get(stage.getZoneName())));

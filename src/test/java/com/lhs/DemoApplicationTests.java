@@ -18,7 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import javax.xml.crypto.Data;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -177,5 +179,42 @@ class DemoApplicationTests {
         }
 
     }
+
+    @Test
+    void idTest(){
+        Date date = new Date();
+        HashMap<Long, Long> hashMap = new HashMap<>();
+        int count = 0;
+        for (int i = 0; i < 100; i++) {
+
+
+            int end1 = new Random().nextInt(999);
+            long time = new Date().getTime();
+            long id = time*1000+end1;
+            if(hashMap.get(id)!=null) count++;
+            System.out.println(id);
+            hashMap.put(id,id);
+        }
+        System.out.println(count);
+    }
+
+
+    @Test
+    void readCharId(){
+        String read1 = FileUtil.read("E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\gamedata\\excel\\character_table.json");
+        JSONObject jsonObject = JSONObject.parseObject(read1);
+        HashMap<Object, Object> hashMap = new HashMap<>();
+        jsonObject.forEach((k,v)->{
+            if(k.startsWith("char")){
+            HashMap<Object, Object> character = new HashMap<>();
+            JSONObject characterJson = JSONObject.parseObject(String.valueOf(v));
+            character.put("name",characterJson.getString("name"));
+            character.put("rarity",characterJson.getString("rarity"));
+            hashMap.put(k,character);
+            }
+        });
+        FileUtil.save(FileConfig.Item,"character_table.json",JSON.toJSONString(hashMap));
+    }
+
 
 }

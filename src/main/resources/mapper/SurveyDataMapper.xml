@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.SurveyDataMapper">
+
+
+    <insert id="insertSurveyUser">
+        INSERT INTO `survey_user`
+        (`id`, `user_name`, `create_time`, `update_time`, `ip`, `status`, `char_table`)
+        VALUES (#{user.id}, #{user.userName}, #{user.createTime}, #{user.updateTime},
+                #{user.ip}, #{user.status}, #{user.charTable})
+    </insert>
+
+    <select id="selectSurveyUserByUserName" resultType="com.lhs.entity.SurveyUser">
+        SELECT * FROM `survey_user` WHERE  `user_name` = #{userName}
+    </select>
+
+    <update id="updateSurveyUser">
+        UPDATE `survey_user`
+        SET  `update_time` = #{user.updateTime}
+        Where  `id` = #{user.id}
+    </update>
+
+    <!-- 干员练度信息表，批量插入-->
+    <insert id="insertBatchSurveyDataChar">
+        INSERT INTO ${tableName}
+        (`id`, `uid`, `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`,
+        `mod_y`)
+        VALUES
+        <foreach collection="surveyDataList" item="surveyData" separator=",">
+            (#{surveyData.id}, #{surveyData.uid}, #{surveyData.charId}, #{surveyData.phase},
+            #{surveyData.level}, #{surveyData.potential}, #{surveyData.rarity}, #{surveyData.skill1},
+            #{surveyData.skill2},#{surveyData.skill3},#{surveyData.modX},#{surveyData.modY})
+        </foreach>
+    </insert>
+
+    <!-- 干员练度信息表，根据id查询-->
+    <select id="selectSurveyDataCharById" resultType="com.lhs.entity.SurveyDataChar">
+        SELECT *
+        FROM ${tableName}
+        WHERE id = #{id}
+    </select>
+
+
+    <!-- 干员练度信息表，根据id更新-->
+    <update id="updateSurveyDataCharById">
+        UPDATE ${tableName}
+        SET `phase`     = #{surveyData.phase},
+            `level`     = #{surveyData.level},
+            `potential` = #{surveyData.potential},
+            `skill1`    = #{surveyData.skill1},
+            `skill2`    = #{surveyData.skill2},
+            `skill3`    = #{surveyData.skill3},
+            `mod_x`     = #{surveyData.modX},
+            `mod_y`     = #{surveyData.modY}
+        WHERE `id` = #{surveyData.id};
+    </update>
+
+    <!-- 干员练度信息表，根据uid查询-->
+    <select id="selectSurveyDataCharByUid" resultType="com.lhs.entity.SurveyDataCharVo">
+        SELECT `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`
+        FROM ${tableName}
+        WHERE `uid` IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- maa用户表-->
+    <select id="selectSurveyUserIds" resultType="java.lang.Long">
+        SELECT `id`
+        FROM survey_user
+    </select>
+
+    <!--    干员练度统计表批量插入-->
+    <insert id="insertBatchCharStatistics">
+        INSERT INTO `survey_statistics_char`
+        (`char_id`,`rarity`,`own`,`phase2`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`,`potential_ranks`)
+        VALUES
+        <foreach collection="surveyStatisticsList" item="surveyStatistics" separator=",">
+            ( #{surveyStatistics.charId},#{surveyStatistics.rarity},#{surveyStatistics.own},
+            #{surveyStatistics.phase2},#{surveyStatistics.skill1},#{surveyStatistics.skill2},
+            #{surveyStatistics.skill3},#{surveyStatistics.mod_x},#{surveyStatistics.mod_y},
+            #{surveyStatistics.potentialRanks})
+        </foreach>
+    </insert>
+
+
+    <!--    干员练度统计表，清空表-->
+    <delete id="truncateCharStatisticsTable">
+        TRUNCATE TABLE `survey_statistics_char`
+    </delete>
+
+    <select id="selectCharStatisticsList" resultType="com.lhs.entity.SurveyStatisticsChar">
+        Select *
+        FROM `operator_statistics`
+    </select>
+
+
+    <!--    调查表配置，根据key查询-->
+    <select id="selectConfigByKey" resultType="java.lang.String">
+        SELECT `config_value`
+        FROM `survey_config`
+        WHERE `config_key` = #{configKey}
+    </select>
+
+    <!--    调查表配置，根据key更新-->
+    <update id="updateConfigByKey">
+        UPDATE `survey_config`
+        SET `config_value` = #{configValue}
+        WHERE `config_key` = #{configKey};
+    </update>
+
+</mapper>

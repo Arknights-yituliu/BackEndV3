@@ -21,7 +21,8 @@ public class GlobalExceptionHandler {
 			result = Result.failure(((ServiceException) e).getResultCode());
 		}
 		else {
-			result = Result.failure(500, "服务器意外错误："+e.getMessage());
+//			result = Result.failure(500, "服务器意外错误："+e.getMessage());
+            result = Result.failure(500, "服务器意外错误："+e.getMessage());
 		}
 		return result;
     }

@@ -34,11 +34,11 @@ public class APIService {
     private RedisTemplate<String, Object> redisTemplate;
 
 
-
     /**
      * 根据key查找redis中缓存的数据的通用方法
+     *
      * @param key redis的key
-     * @return  redis缓存的数据
+     * @return redis缓存的数据
      */
     public Object queryResultByApiPath(String key) {
         Object resultVo = redisTemplate.opsForValue().get(key);
@@ -48,8 +48,9 @@ public class APIService {
 
     /**
      * 查询蓝材料的推荐关卡
-     * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
-     * @param sampleSize  样本大小
+     *
+     * @param expCoefficient 经验书系数，一般为0.625（还有1.0和0.0）
+     * @param sampleSize     样本大小
      * @return
      */
     @RedisCacheable(key = "stage/t3/#expCoefficient")
@@ -57,21 +58,20 @@ public class APIService {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
                 "聚酸酯组", "晶体元件", "固源岩组", "半自然溶剂", "化合切削液", "转质盐组").forEach(type -> {
-                    List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
-                            .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 0.6)
-                            .ge("sample_size", sampleSize).orderByDesc("stage_efficiency").last("limit 8"));      //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
+            List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
+                    .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 0.6)
+                    .ge("sample_size", sampleSize).orderByDesc("stage_efficiency").last("limit 8"));      //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
 
-                    if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
-                    List<StageResultVo> stageResultVo_item = new ArrayList<>();
-                    stageResultsByItemType.forEach(stageResult -> {     //将关卡结果表的数据复制到前端返回对象上再返回
-                        StageResultVo stageResultVo = new StageResultVo();
-                        BeanUtils.copyProperties(stageResult, stageResultVo);
+            if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
+            List<StageResultVo> stageResultVo_item = new ArrayList<>();
+            stageResultsByItemType.forEach(stageResult -> {     //将关卡结果表的数据复制到前端返回对象上再返回
+                StageResultVo stageResultVo = new StageResultVo();
+                BeanUtils.copyProperties(stageResult, stageResultVo);
 
-                        stageResultVo_item.add(stageResultVo);
-                    });
-                    stageResultVoList.add(stageResultVo_item);
-                });
-
+                stageResultVo_item.add(stageResultVo);
+            });
+            stageResultVoList.add(stageResultVo_item);
+        });
 
 
         return stageResultVoList;
@@ -79,8 +79,9 @@ public class APIService {
 
     /**
      * 查询绿材料的推荐关卡
-     * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
-     * @param sampleSize  样本大小
+     *
+     * @param expCoefficient 经验书系数，一般为0.625（还有1.0和0.0）
+     * @param sampleSize     样本大小
      * @return
      */
     @RedisCacheable(key = "stage/t2/#expCoefficient")
@@ -102,38 +103,39 @@ public class APIService {
         });
 
 
-
         return stageResultVoList;
     }
 
     /**
      * 查询已关闭的活动
-     * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
-     * @param sampleSize  样本大小
+     *
+     * @param expCoefficient 经验书系数，一般为0.625（还有1.0和0.0）
+     * @param sampleSize     样本大小
      * @return
      */
     @RedisCacheable(key = "stage/closed/#expCoefficient")
     public List<List<StageResultActVo>> queryStageResultData_closedActivities(Double expCoefficient, Integer sampleSize) {
         List<StageResult> stageResultListByIsShow = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 0)
-                .isNotNull("item_type").notLike("stage_code","DH").notLike("stage_id","perm").eq("exp_coefficient", expCoefficient)
+                .isNotNull("item_type").notLike("stage_code", "DH").notLike("stage_id", "perm").eq("exp_coefficient", expCoefficient)
                 .ge("sample_size", sampleSize).ge("item_rarity", 3).ne("item_type", "0").orderByDesc("stage_id")
                 .orderByDesc("open_time")); //条件：不可展示，符合材料名称，符合经验书系数，效率>1.0，材料类型不为空，样本大于传入参数，材料类型不为0，按stageId降序
         List<StageResultActVo> stageResultListCopy = new ArrayList<>();
         stageResultListByIsShow.forEach(stageResult -> {
             StageResultActVo stageResultVo = new StageResultActVo();
             BeanUtils.copyProperties(stageResult, stageResultVo);      //将关卡结果表的数据复制到前端返回对象上再返回
-            if(!stageResultVo.getStageCode().startsWith("CF")) stageResultVo.setStageEfficiency(stageResultVo.getStageEfficiency()+7.2);  //给结果加上商店的无限龙门币的效率
+            if (!stageResultVo.getStageCode().startsWith("CF"))
+                stageResultVo.setStageEfficiency(stageResultVo.getStageEfficiency() + 7.2);  //给结果加上商店的无限龙门币的效率
 
             stageResultListCopy.add(stageResultVo);
         });
 
 
-        List<List<StageResultActVo>>  stageResultVoList = new ArrayList<>();  //返回的结果集合
+        List<List<StageResultActVo>> stageResultVoList = new ArrayList<>();  //返回的结果集合
         stageResultListCopy.stream()
                 .collect(Collectors.groupingBy(StageResultActVo::getZoneName))  //根据zoneName分类结果
                 .entrySet().stream()
                 .sorted((p2, p1) -> p1.getValue().get(0).getOpenTime().compareTo(p2.getValue().get(0).getOpenTime())) //比较活动开启时间，倒序排列
-                .forEach(entry -> stageResultVoList.add( new ArrayList<>(entry.getValue())));  //存入结果集合中
+                .forEach(entry -> stageResultVoList.add(new ArrayList<>(entry.getValue())));  //存入结果集合中
 
 
         return stageResultVoList;
@@ -141,29 +143,32 @@ public class APIService {
 
     /**
      * 查询搓玉推荐关卡
-     * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
-     * @param sampleSize  样本大小
+     *
+     * @param expCoefficient 经验书系数，一般为0.625（还有1.0和0.0）
+     * @param sampleSize     样本大小
      * @return
      */
-    @RedisCacheable(key = "stage/orundum")
+//    @RedisCacheable(key = "stage/orundum")
     public List<OrundumPerApResultVo> queryStageResultData_Orundum(Double expCoefficient, Integer sampleSize) {
         List<OrundumPerApResultVo> orundumPerApResultVoList = new ArrayList<>();
         List<StageResult> stageResultByItemName = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1).eq("exp_coefficient", expCoefficient)
                 .in("item_name", "固源岩", "源岩", "装置", "破损装置").ge("sample_size", sampleSize).orderByDesc("stage_efficiency"));
         if (stageResultByItemName.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
         stageResultByItemName.stream().collect(Collectors.groupingBy(StageResult::getStageId)).forEach((k, list) -> {
-            HashMap<String, Double> calResult = orundumPerApCal(list);
-            if(calResult.get("orundumPerAp")>0.5) {
-                OrundumPerApResultVo resultVo = OrundumPerApResultVo.builder()
-                        .stageCode(list.get(0).getStageCode())
-                        .stageEfficiency(list.get(0).getStageEfficiency())
-                        .orundumPerAp(calResult.get("orundumPerAp"))
-                        .lMDCost(calResult.get("LMDCost"))
-                        .orundumPerApEfficiency(calResult.get("orundumPerAp") / 1.09 * 100)
-                        .build();
-                orundumPerApResultVoList.add(resultVo);
-            }
+            if (!(list.get(0).getIsValue() == 0 && !(list.get(0).getStageId().endsWith("LMD")))) {
+                HashMap<String, Double> calResult = orundumPerApCal(list);
+                if (calResult.get("orundumPerAp") > 0.2) {
 
+                    OrundumPerApResultVo resultVo = OrundumPerApResultVo.builder()
+                            .stageCode(list.get(0).getStageCode())
+                            .stageEfficiency(list.get(0).getStageEfficiency())
+                            .orundumPerAp(calResult.get("orundumPerAp"))
+                            .lMDCost(calResult.get("LMDCost"))
+                            .orundumPerApEfficiency(calResult.get("orundumPerAp") / 1.09 * 100)
+                            .build();
+                    orundumPerApResultVoList.add(resultVo);
+                }
+            }
         });
 
         orundumPerApResultVoList.sort(Comparator.comparing(OrundumPerApResultVo::getOrundumPerAp).reversed());
@@ -174,7 +179,6 @@ public class APIService {
 
         return orundumPerApResultVoList;
     }
-
 
 
     @RedisCacheable(key = "stage/newChapter")
@@ -197,7 +201,8 @@ public class APIService {
         List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(new QueryWrapper<StageResult>()
                 .eq("exp_coefficient", 0.625).likeRight("stage_code", stageCode)
                 .orderByAsc("stage_id"));
-        if(stageResultsByStageCode==null||stageResultsByStageCode.size()<1) throw new ServiceException(ResultCode.DATA_NONE);
+        if (stageResultsByStageCode == null || stageResultsByStageCode.size() < 1)
+            throw new ServiceException(ResultCode.DATA_NONE);
 
         return stageResultsByStageCode;
     }
@@ -206,24 +211,25 @@ public class APIService {
         List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(new QueryWrapper<StageResult>()
                 .eq("exp_coefficient", 0.625).eq("stage_id", stageId)
                 .orderByAsc("result"));
-        if(stageResultsByStageCode==null||stageResultsByStageCode.size()<1) throw new ServiceException(ResultCode.DATA_NONE);
+        if (stageResultsByStageCode == null || stageResultsByStageCode.size() < 1)
+            throw new ServiceException(ResultCode.DATA_NONE);
 
         return stageResultsByStageCode;
     }
 
 
-
-    public void savePenguinData(String dataType,String url) {
-        String response = HttpRequestUtil.doGet(url,new HashMap<>());
+    public void savePenguinData(String dataType, String url) {
+        String response = HttpRequestUtil.doGet(url, new HashMap<>());
         String saveTime = new SimpleDateFormat("yyyy-MM-dd HH mm").format(new Date()); // 设置日期格式
         FileUtil.save(FileConfig.Penguin, "matrix " + dataType + ".json", response);
-        FileUtil.save(FileConfig.Penguin, "matrix " + saveTime +" " + dataType + ".json", response);
+        FileUtil.save(FileConfig.Penguin, "matrix " + saveTime + " " + dataType + ".json", response);
 
     }
 
     /**
      * 搓玉计算
-     * @param stageResults  同一关里的可搓玉材料材料的结果集合
+     *
+     * @param stageResults 同一关里的可搓玉材料材料的结果集合
      * @return
      */
     private HashMap<String, Double> orundumPerApCal(List<StageResult> stageResults) {
@@ -262,7 +268,6 @@ public class APIService {
      * @param dataType  企鹅有两种数据，一种是仅MAA上传的数据，参数值auto；一种是全局数据，参数值global
      * @param url  企鹅的数据API链接
      */
-
 
 
 }

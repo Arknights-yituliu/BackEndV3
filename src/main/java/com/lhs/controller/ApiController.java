@@ -144,12 +144,12 @@ public class ApiController {
     }
 
 
-    @ApiOperation("发送邮件")
-    @PostMapping("/sendEmail")
-    public Result sendEmail(@RequestBody EmailRequest emailRequest) {
-        userService.sendMail(emailRequest);
-        return Result.success();
-    }
+//    @ApiOperation("发送邮件")
+//    @PostMapping("/sendEmail")
+//    public Result sendEmail(@RequestBody EmailRequest emailRequest) {
+//        userService.sendMail(emailRequest);
+//        return Result.success();
+//    }
 
 
 //    @TakeCount(method = "礼包商店性价比")
