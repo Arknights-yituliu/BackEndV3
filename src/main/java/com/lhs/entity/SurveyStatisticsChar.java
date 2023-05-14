@@ -12,13 +12,13 @@ import lombok.NoArgsConstructor;
 public class SurveyStatisticsChar {
 
     private String  charId;
+    private Integer own;
     private Integer phase2;
-    private Integer level;
     private Integer rarity;
-    private Integer skill1;
-    private Integer skill2;
-    private Integer skill3;
-    private Integer modX;
-    private Integer modY;
-    private String potential_ranks;
+    private String skill1;
+    private String skill2;
+    private String skill3;
+    private String modX;
+    private String modY;
+    private String potential;
 }

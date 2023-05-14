@@ -265,7 +265,6 @@ public class OperatorSurveyService {
             //如果有没统计的干员就新增
             if (operatorStatisticsList.size() > 0) operatorDataMapper.insertStatisticsBatch(operatorStatisticsList);
 
-
         }
     }
 

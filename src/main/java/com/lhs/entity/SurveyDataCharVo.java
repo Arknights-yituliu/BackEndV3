@@ -1,15 +1,12 @@
 package com.lhs.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 public class SurveyDataCharVo {
     private String charId;
-    private Integer phase;
     private Integer level;
+    private Integer phase;
     private Integer potential;
     private Integer rarity;
     private Integer skill1;

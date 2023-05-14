@@ -11,8 +11,9 @@ public class SurveyDataChar {
     private String id;
     private Long uid;
     private String charId;
-    private Integer phase;
+    private Boolean own;
     private Integer level;
+    private Integer phase;
     private Integer potential;
     private Integer rarity;
     private Integer skill1;

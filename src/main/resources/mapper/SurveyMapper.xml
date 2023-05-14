@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.SurveyDataMapper">
+<mapper namespace="com.lhs.mapper.SurveyMapper">
 
 
+     <!--新增用户-->
     <insert id="insertSurveyUser">
         INSERT INTO `survey_user`
         (`id`, `user_name`, `create_time`, `update_time`, `ip`, `status`, `char_table`)
@@ -11,15 +12,34 @@
                 #{user.ip}, #{user.status}, #{user.charTable})
     </insert>
 
+    <!-- 查询用户根据用户名-->
     <select id="selectSurveyUserByUserName" resultType="com.lhs.entity.SurveyUser">
         SELECT * FROM `survey_user` WHERE  `user_name` = #{userName}
     </select>
 
+    <!-- 查询用户根据用户名-->
+    <select id="selectLastSurveyUserId" resultType="java.lang.Long">
+        SELECT `id` FROM `survey_user`  ORDER BY `create_time` DESC LIMIT 1
+    </select>
+
+    <!-- 查询用户根据id-->
+    <select id="selectSurveyUserById" resultType="com.lhs.entity.SurveyUser">
+        SELECT * FROM `survey_user` WHERE  `id` = #{id}
+    </select>
+
+    <!-- 更新用户状态-->
     <update id="updateSurveyUser">
         UPDATE `survey_user`
         SET  `update_time` = #{user.updateTime}
         Where  `id` = #{user.id}
     </update>
+
+    <!-- 查询用户表的id-->
+    <select id="selectSurveyUserIds" resultType="java.lang.Long">
+        SELECT `id`
+        FROM survey_user
+        WHERE  `status` = 1
+    </select>
 
     <!-- 干员练度信息表，批量插入-->
     <insert id="insertBatchSurveyDataChar">
@@ -29,8 +49,8 @@
         VALUES
         <foreach collection="surveyDataList" item="surveyData" separator=",">
             (#{surveyData.id}, #{surveyData.uid}, #{surveyData.charId}, #{surveyData.phase},
-            #{surveyData.level}, #{surveyData.potential}, #{surveyData.rarity}, #{surveyData.skill1},
-            #{surveyData.skill2},#{surveyData.skill3},#{surveyData.modX},#{surveyData.modY})
+             #{surveyData.level},#{surveyData.potential}, #{surveyData.rarity}, #{surveyData.skill1}
+             ,#{surveyData.skill2},#{surveyData.skill3},#{surveyData.modX},#{surveyData.modY})
         </foreach>
     </insert>
 
@@ -40,7 +60,6 @@
         FROM ${tableName}
         WHERE id = #{id}
     </select>
-
 
     <!-- 干员练度信息表，根据id更新-->
     <update id="updateSurveyDataCharById">
@@ -56,9 +75,9 @@
         WHERE `id` = #{surveyData.id};
     </update>
 
-    <!-- 干员练度信息表，根据uid查询-->
-    <select id="selectSurveyDataCharByUid" resultType="com.lhs.entity.SurveyDataCharVo">
-        SELECT `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`
+    <!-- 干员练度信息表，根据多个uid查询-->
+    <select id="selectSurveyDataCharByUidList" resultType="com.lhs.entity.SurveyDataCharVo">
+        SELECT `char_id`, `phase`, `level`,  `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`
         FROM ${tableName}
         WHERE `uid` IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
@@ -66,22 +85,25 @@
         </foreach>
     </select>
 
-    <!-- maa用户表-->
-    <select id="selectSurveyUserIds" resultType="java.lang.Long">
-        SELECT `id`
-        FROM survey_user
+    <!-- 干员练度信息表，根据单个uid查询-->
+    <select id="selectSurveyDataCharByUid" resultType="com.lhs.entity.SurveyDataCharVo">
+        SELECT `char_id`, `phase`, `level`,  `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`
+        FROM ${tableName}
+        WHERE `uid` = #{uid}
     </select>
+
+
 
     <!--    干员练度统计表批量插入-->
     <insert id="insertBatchCharStatistics">
         INSERT INTO `survey_statistics_char`
-        (`char_id`,`rarity`,`own`,`phase2`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`,`potential_ranks`)
+        (`char_id`,`rarity`,`own`,`phase2`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`,`potential`)
         VALUES
         <foreach collection="surveyStatisticsList" item="surveyStatistics" separator=",">
             ( #{surveyStatistics.charId},#{surveyStatistics.rarity},#{surveyStatistics.own},
             #{surveyStatistics.phase2},#{surveyStatistics.skill1},#{surveyStatistics.skill2},
-            #{surveyStatistics.skill3},#{surveyStatistics.mod_x},#{surveyStatistics.mod_y},
-            #{surveyStatistics.potentialRanks})
+            #{surveyStatistics.skill3},#{surveyStatistics.modX},#{surveyStatistics.modY},
+            #{surveyStatistics.potential})
         </foreach>
     </insert>
 
@@ -93,8 +115,10 @@
 
     <select id="selectCharStatisticsList" resultType="com.lhs.entity.SurveyStatisticsChar">
         Select *
-        FROM `operator_statistics`
+        FROM `survey_statistics_char`
     </select>
+
+
 
 
     <!--    调查表配置，根据key查询-->

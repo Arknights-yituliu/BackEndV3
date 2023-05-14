@@ -30,6 +30,22 @@ public class AnnotationAOP {
         startTime.set(System.currentTimeMillis());
     }
 
+    //接口方法执行完成之后
+    @After("@annotation(takeCount)")
+    public void takeCountAfter(TakeCount takeCount) {
+        long timeCost =  (System.currentTimeMillis() - startTime.get());
+        if(timeCost<1000) {
+            log.info(takeCount.method() + "接口耗时：" + timeCost + "ms");
+        }else {
+            log.info(takeCount.method() + "接口耗时：" + (timeCost/1000) + "s");
+        }
+
+
+
+        startTime.remove();
+    }
+
+
     //扫描所有添加了@RedisCacheable注解的方法
     @Around("@annotation(redisCacheable)")
     public Object redis(ProceedingJoinPoint pjp, RedisCacheable redisCacheable) throws Throwable {
@@ -62,20 +78,6 @@ public class AnnotationAOP {
         return proceed;
     }
 
-    //接口方法执行完成之后
-    @After("@annotation(takeCount)")
-    public void takeCountAfter(TakeCount takeCount) {
-        long timeCost =  (System.currentTimeMillis() - startTime.get());
-        if(timeCost<1000) {
-            log.info(takeCount.method() + "接口耗时：" + timeCost + "ms");
-        }else {
-            log.info(takeCount.method() + "接口耗时：" + (timeCost/1000) + "s");
-        }
-
-
-
-        startTime.remove();
-    }
 
 
 }
