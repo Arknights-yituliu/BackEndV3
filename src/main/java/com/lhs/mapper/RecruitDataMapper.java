@@ -1,11 +1,10 @@
 package com.lhs.mapper;
 
 
-import com.lhs.entity.RecruitData;
-import com.lhs.entity.RecruitStatistics;
-import com.lhs.entity.RecruitStatisticsConfig;
+import com.lhs.entity.maa.RecruitData;
+import com.lhs.entity.maa.RecruitStatistics;
+import com.lhs.entity.maa.RecruitStatisticsConfig;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;

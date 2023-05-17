@@ -12,18 +12,19 @@
                 #{user.ip}, #{user.status}, #{user.charTable})
     </insert>
 
+
     <!-- 查询用户根据用户名-->
-    <select id="selectSurveyUserByUserName" resultType="com.lhs.entity.SurveyUser">
+    <select id="selectSurveyUserByUserName" resultType="com.lhs.entity.survey.SurveyUser">
         SELECT * FROM `survey_user` WHERE  `user_name` = #{userName}
     </select>
 
-    <!-- 查询用户根据用户名-->
-    <select id="selectLastSurveyUserId" resultType="java.lang.Long">
-        SELECT `id` FROM `survey_user`  ORDER BY `create_time` DESC LIMIT 1
+    <!-- 查询用户根据用户Ip-->
+    <select id="selectLastSurveyUserIp" resultType="java.lang.Long">
+        SELECT * FROM `survey_user` WHERE  `ip` = #{ip}
     </select>
 
     <!-- 查询用户根据id-->
-    <select id="selectSurveyUserById" resultType="com.lhs.entity.SurveyUser">
+    <select id="selectSurveyUserById" resultType="com.lhs.entity.survey.SurveyUser">
         SELECT * FROM `survey_user` WHERE  `id` = #{id}
     </select>
 
@@ -45,17 +46,18 @@
     <insert id="insertBatchSurveyDataChar">
         INSERT INTO ${tableName}
         (`id`, `uid`, `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`,
-        `mod_y`)
+        `mod_y`,`own`)
         VALUES
         <foreach collection="surveyDataList" item="surveyData" separator=",">
             (#{surveyData.id}, #{surveyData.uid}, #{surveyData.charId}, #{surveyData.phase},
-             #{surveyData.level},#{surveyData.potential}, #{surveyData.rarity}, #{surveyData.skill1}
-             ,#{surveyData.skill2},#{surveyData.skill3},#{surveyData.modX},#{surveyData.modY})
+             #{surveyData.level},#{surveyData.potential}, #{surveyData.rarity}, #{surveyData.skill1},
+             #{surveyData.skill2},#{surveyData.skill3},#{surveyData.modX},#{surveyData.modY},
+             #{surveyData.own})
         </foreach>
     </insert>
 
     <!-- 干员练度信息表，根据id查询-->
-    <select id="selectSurveyDataCharById" resultType="com.lhs.entity.SurveyDataChar">
+    <select id="selectSurveyDataCharById" resultType="com.lhs.entity.survey.SurveyDataChar">
         SELECT *
         FROM ${tableName}
         WHERE id = #{id}
@@ -71,13 +73,14 @@
             `skill2`    = #{surveyData.skill2},
             `skill3`    = #{surveyData.skill3},
             `mod_x`     = #{surveyData.modX},
-            `mod_y`     = #{surveyData.modY}
+            `mod_y`     = #{surveyData.modY},
+            `own`       = #{surveyData.own}
         WHERE `id` = #{surveyData.id};
     </update>
 
     <!-- 干员练度信息表，根据多个uid查询-->
-    <select id="selectSurveyDataCharByUidList" resultType="com.lhs.entity.SurveyDataCharVo">
-        SELECT `char_id`, `phase`, `level`,  `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`
+    <select id="selectSurveyDataCharVoByUidList" resultType="com.lhs.entity.survey.SurveyDataCharVo">
+        SELECT `char_id`, `phase`, `level`,  `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
         FROM ${tableName}
         WHERE `uid` IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
@@ -86,10 +89,27 @@
     </select>
 
     <!-- 干员练度信息表，根据单个uid查询-->
-    <select id="selectSurveyDataCharByUid" resultType="com.lhs.entity.SurveyDataCharVo">
-        SELECT `char_id`, `phase`, `level`,  `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`
+    <select id="selectSurveyDataCharVoByUid" resultType="com.lhs.entity.survey.SurveyDataCharVo">
+        SELECT `char_id`, `phase`, `level`,  `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
         FROM ${tableName}
         WHERE `uid` = #{uid}
+    </select>
+
+    <!-- 干员练度信息表，根据单个uid查询-->
+    <select id="selectSurveyDataCharByUid" resultType="com.lhs.entity.survey.SurveyDataChar">
+        SELECT *
+        FROM ${tableName}
+        WHERE `uid` = #{uid}
+    </select>
+
+    <!-- 干员练度信息表，根据单个uid查询-->
+    <select id="deleteSurveyDataCharById" >
+        SELECT *
+        FROM ${tableName}
+        WHERE `id` IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
 
 
@@ -113,7 +133,7 @@
         TRUNCATE TABLE `survey_statistics_char`
     </delete>
 
-    <select id="selectCharStatisticsList" resultType="com.lhs.entity.SurveyStatisticsChar">
+    <select id="selectCharStatisticsList" resultType="com.lhs.entity.survey.SurveyStatisticsChar">
         Select *
         FROM `survey_statistics_char`
     </select>

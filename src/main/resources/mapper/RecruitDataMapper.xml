@@ -10,7 +10,7 @@
                 #{recruitData.source}, #{recruitData.tag}, #{recruitData.uid}, #{recruitData.version})
     </insert>
 
-    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.RecruitData">
+    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.maa.RecruitData">
         SELECT *
         FROM  `recruit_data_1`
         WHERE
@@ -30,17 +30,17 @@
         WHERE `statistical_item`   = #{statistics.statisticalItem}
     </update>
 
-    <select id="selectRecruitStatistics" resultType="com.lhs.entity.RecruitStatistics">
+    <select id="selectRecruitStatistics" resultType="com.lhs.entity.maa.RecruitStatistics">
          SELECT * FROM `recruit_statistics`
     </select>
 
-    <select id="selectRecruitStatisticsByItem" resultType="com.lhs.entity.RecruitStatistics">
+    <select id="selectRecruitStatisticsByItem" resultType="com.lhs.entity.maa.RecruitStatistics">
         SELECT * FROM `recruit_statistics` WHERE  `statistical_item` = #{statisticalItem}
     </select>
 
 
     <!--    公招统计表配置，根据key查询-->
-    <select id="selectConfigByKey" resultType="com.lhs.entity.RecruitStatisticsConfig">
+    <select id="selectConfigByKey" resultType="com.lhs.entity.maa.RecruitStatisticsConfig">
         SELECT `config_value`
         FROM `recruit_statistics_config`
         WHERE `config_key` = #{configKey}

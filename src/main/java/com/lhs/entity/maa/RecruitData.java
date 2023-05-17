@@ -1,4 +1,4 @@
-package com.lhs.entity;
+package com.lhs.entity.maa;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;

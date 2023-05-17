@@ -1,10 +1,17 @@
-package com.lhs.entity;
+package com.lhs.entity.survey;
 
-import lombok.Data;
+import lombok.*;
 
 @Data
-public class SurveyDataCharVo {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+
+public class SurveyDataChar {
+    private String id;
+    private Long uid;
     private String charId;
+    private Boolean own;
     private Integer level;
     private Integer phase;
     private Integer potential;

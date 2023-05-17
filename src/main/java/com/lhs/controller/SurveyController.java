@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
-import com.lhs.entity.SurveyDataChar;
-import com.lhs.entity.SurveyDataCharVo;
+import com.lhs.entity.survey.SurveyDataChar;
+import com.lhs.entity.survey.SurveyDataCharVo;
 import com.lhs.service.SurveyService;
 import com.lhs.service.vo.SurveyUserVo;
 import io.swagger.annotations.Api;
@@ -49,14 +49,19 @@ public class SurveyController {
         return Result.success(hashMap);
     }
 
-    @ApiOperation("上传干员练度表")
+    @ApiOperation("找回干员练度表")
     @GetMapping("/find/character")
     public Result findCharacterForm(@RequestParam String userName) {
         List<SurveyDataCharVo> surveyDataCharList = surveyService.findCharacterForm(userName);
         return Result.success(surveyDataCharList);
     }
 
-
+    @ApiOperation("干员练度表统计结果")
+    @GetMapping("/result")
+    public Result surveyDataCharStatisticsResult() {
+        HashMap<Object, Object> hashMap = surveyService.charStatisticsResult();
+        return Result.success(hashMap);
+    }
 
 
 

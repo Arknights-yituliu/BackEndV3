@@ -2,6 +2,7 @@ package com.lhs.common.exception;
 
 
 import com.lhs.common.util.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
  * 全局异常处理
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 	
@@ -21,8 +23,8 @@ public class GlobalExceptionHandler {
 			result = Result.failure(((ServiceException) e).getResultCode());
 		}
 		else {
-//			result = Result.failure(500, "服务器意外错误："+e.getMessage());
-            result = Result.failure(500, "服务器意外错误："+e.getMessage());
+			log.error(e.getMessage());
+            result = Result.failure(500, "服务器意外错误,如严重影响使用请联系开发人员");
 		}
 		return result;
     }

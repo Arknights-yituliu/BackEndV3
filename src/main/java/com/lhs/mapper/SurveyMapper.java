@@ -1,9 +1,9 @@
 package com.lhs.mapper;
 
-import com.lhs.entity.SurveyDataChar;
-import com.lhs.entity.SurveyDataCharVo;
-import com.lhs.entity.SurveyStatisticsChar;
-import com.lhs.entity.SurveyUser;
+import com.lhs.entity.survey.SurveyDataChar;
+import com.lhs.entity.survey.SurveyDataCharVo;
+import com.lhs.entity.survey.SurveyStatisticsChar;
+import com.lhs.entity.survey.SurveyUser;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +20,9 @@ public interface SurveyMapper {
 
     //查询用户根据id
     SurveyUser selectSurveyUserById(@Param("id") Long id);
+
+    //查询用户根据ip
+    SurveyUser  selectLastSurveyUserIp(@Param("id") String id);
 
     //更新用户
     Integer updateSurveyUser(@Param("user") SurveyUser user);
@@ -39,11 +42,18 @@ public interface SurveyMapper {
                                      @Param("surveyData") SurveyDataChar surveyData);
     //
     // 干员练度信息表，根据uid查询用户所有数据
-    List<SurveyDataCharVo> selectSurveyDataCharByUidList(@Param("tableName") String tableName,
+    List<SurveyDataCharVo> selectSurveyDataCharVoByUidList(@Param("tableName") String tableName,
                                                          @Param("ids") List<Long> ids);
 
-    List<SurveyDataCharVo> selectSurveyDataCharByUid(@Param("tableName") String tableName,
-                                                         @Param("uid") Long uid);
+    List<SurveyDataCharVo> selectSurveyDataCharVoByUid(@Param("tableName") String tableName,
+                                                       @Param("uid") Long uid);
+
+    List<SurveyDataChar> selectSurveyDataCharByUid(@Param("tableName") String tableName,
+                                                     @Param("uid") Long uid);
+
+    Integer deleteSurveyDataCharById(@Param("tableName") String tableName,
+                                     @Param("ids") List<String> ids);
+
     Long selectLastSurveyUserId();
 
     //统计表批量插入

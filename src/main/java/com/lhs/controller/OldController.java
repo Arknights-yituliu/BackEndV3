@@ -6,7 +6,6 @@ import com.lhs.common.util.Result;
 import com.lhs.service.RecruitSurveyService;
 import com.lhs.service.ScheduleService;
 import com.lhs.service.dto.MaaRecruitVo;
-import com.lhs.service.OperatorSurveyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;

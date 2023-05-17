@@ -14,7 +14,7 @@ import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
 
 import com.lhs.mapper.ItemMapper;
-import com.lhs.entity.Item;
+import com.lhs.entity.stage.Item;
 
 import com.lhs.service.dto.CompositeTableVo;
 import com.lhs.service.dto.ItemCost;
@@ -146,7 +146,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
      * @param id  一般情况下有些材料是不需要全部查出来的，大部分情况id在200之前的足够用了，200之后的都是诸如多索雷斯的特殊掉落或者自定义材料
      * @return  材料信息表
      */
-    @RedisCacheable(key = "item/value/#expCoefficient")
+    @RedisCacheable(key = "itemValue")
     public List<Item> queryItemList(Double expCoefficient,Integer id) {
         return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", id).orderByDesc("item_value_ap"));
     }

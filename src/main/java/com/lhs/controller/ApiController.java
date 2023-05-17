@@ -4,12 +4,11 @@ package com.lhs.controller;
 
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.util.Result;
-import com.lhs.entity.Item;
-import com.lhs.entity.Stage;
-import com.lhs.entity.StageResult;
+import com.lhs.entity.stage.Item;
+import com.lhs.entity.stage.Stage;
+import com.lhs.entity.stage.StageResult;
 import com.lhs.service.*;
 
-import com.lhs.service.dto.EmailRequest;
 import com.lhs.service.vo.OrundumPerApResultVo;
 import com.lhs.service.vo.StageResultActVo;
 import com.lhs.service.vo.StageResultVo;

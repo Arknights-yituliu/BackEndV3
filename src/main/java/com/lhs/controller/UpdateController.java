@@ -8,7 +8,7 @@ import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.Result;
 import com.lhs.mapper.ItemMapper;
-import com.lhs.entity.Item;
+import com.lhs.entity.stage.Item;
 import com.lhs.service.*;
 import com.lhs.service.vo.StageResultActVo;
 import com.lhs.service.vo.StageResultVo;

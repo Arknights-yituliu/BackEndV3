@@ -2,7 +2,9 @@ package com.lhs.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.lhs.entity.*;
+import com.lhs.entity.maa.RecruitData;
+import com.lhs.entity.maa.RecruitStatistics;
+import com.lhs.entity.maa.RecruitStatisticsConfig;
 import com.lhs.mapper.RecruitDataMapper;
 import com.lhs.service.dto.MaaRecruitVo;
 import org.springframework.stereotype.Service;

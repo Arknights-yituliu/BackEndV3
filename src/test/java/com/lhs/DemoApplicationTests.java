@@ -5,18 +5,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.FileUtil;
-import com.lhs.entity.*;
-import com.lhs.mapper.OperatorDataMapper;
+import com.lhs.entity.survey.SurveyDataChar;
+import com.lhs.entity.survey.SurveyDataCharVo;
+import com.lhs.entity.survey.SurveyStatisticsChar;
 import com.lhs.mapper.SurveyMapper;
 import com.lhs.service.*;
 import com.lhs.service.dto.MaaOperBoxVo;
 import com.lhs.service.dto.SurveyStatisticsCharVo;
-import com.lhs.service.vo.OperatorStatisticsVo;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,8 +26,7 @@ class DemoApplicationTests {
 
     @Resource
     private StageService stageService;
-    @Resource
-    private OperatorDataMapper operatorDataMapper;
+
     @Resource
     private SurveyService surveyService;
 
@@ -45,49 +43,7 @@ class DemoApplicationTests {
     private final MaaOperBoxVo maaOperBoxVo = JSONObject.parseObject(read, MaaOperBoxVo.class);
 
 
-    @Test
-    void statisticsTest() {
 
-        List<OperatorStatistics> operatorStatisticsList = operatorDataMapper.selectStatisticsList();
-        OperatorStatisticsConfig config1 = operatorDataMapper.selectConfigByKey("user_count");
-        double userCount = Double.parseDouble(config1.getConfigValue());
-
-        List<OperatorStatisticsVo> statisticsVoResultList = new ArrayList<>();
-
-        DecimalFormat df = new DecimalFormat("0.00");
-
-        for (OperatorStatistics statistics : operatorStatisticsList) {
-            int i = new Random().nextInt(5000);
-
-            JSONObject jsonObject = JSONObject.parseObject(statistics.getPotentialRanks());
-            Map<Integer, Long> potentialRanks = new HashMap<>();
-            jsonObject.forEach((p, v) -> potentialRanks.put(Integer.parseInt(p), Long.parseLong(String.valueOf(v))));
-
-            Map<Integer, Double> potentialRanksResult = new HashMap<>();
-            potentialRanks.forEach((k, v) -> {
-                potentialRanksResult.put(k, Double.parseDouble(df.format((v / userCount * 100))));
-            });
-
-            JSONObject result = JSONObject.parseObject(JSON.toJSONString(potentialRanksResult));
-
-            OperatorStatisticsVo operatorStatisticsVo = OperatorStatisticsVo.builder()
-                    .charId(statistics.getCharId())
-                    .charName(statistics.getCharName())
-                    .rarity(statistics.getRarity())
-                    .owningRate(Double.parseDouble(df.format((statistics.getHoldings() - i) / userCount * 100)))
-                    .phases1Rate(Double.parseDouble(df.format(statistics.getPhases1() / userCount * 100)))
-                    .phases2Rate(Double.parseDouble(df.format(statistics.getPhases2() / userCount * 100)))
-                    .potentialRanks(result)
-                    .build();
-            statisticsVoResultList.add(operatorStatisticsVo);
-        }
-
-        statisticsVoResultList = statisticsVoResultList.stream().filter(e -> e.getRarity() > 5).collect(Collectors.toList());
-
-        statisticsVoResultList.sort(Comparator.comparing(OperatorStatisticsVo::getOwningRate).reversed());
-        System.out.println(JSON.toJSONString(statisticsVoResultList));
-
-    }
 
 
     @Test
@@ -99,48 +55,54 @@ class DemoApplicationTests {
     }
 
 
-    @Test
-    void group() {
-        List<Long> userIds = operatorDataMapper.selectIdsByPage();
 
-        List<List<Long>> userIdsGroup = new ArrayList<>();
-
-        int length = userIds.size();
-        // 计算可以分成多少组
-        int num = length / 400 + 1;
-        int start = 0;
-        int end = 400;
-        for (int i = 0; i < num; i++) {
-            end = Math.min(end, userIds.size());
-            System.out.println("start:" + start + "---end:" + end);
-            userIdsGroup.add(userIds.subList(start, end));
-            start += 400;
-            end += 400;
-        }
-
-        for (List<Long> list : userIdsGroup) {
-            System.out.println(list.get(0));
-            System.out.println(list.get(list.size() - 1));
-        }
-
-    }
 
 
     @Test
     void readCharId() {
-        String read1 = FileUtil.read("E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\gamedata\\excel\\character_table.json");
-        JSONObject jsonObject = JSONObject.parseObject(read1);
+        String character_tableStr = FileUtil.read("E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\gamedata\\excel\\character_table.json");
+        String uniequip_tableStr = FileUtil.read("E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\gamedata\\excel\\uniequip_table.json");
+
+        JSONObject character_table = JSONObject.parseObject(character_tableStr);
+        JSONObject uniequip_table = JSONObject.parseObject(uniequip_tableStr);
+        JSONObject equipDict = JSONObject.parseObject(uniequip_table.getString("equipDict"));
+        HashMap<String, HashMap<String, Boolean>> modTable = new HashMap<>();
+
+        equipDict.forEach((k, v) -> {
+
+            JSONObject modJson = JSONObject.parseObject(String.valueOf(v));
+            String typeName1 = modJson.getString("typeName1");
+            if (!typeName1.equals("ORIGINAL")) {
+                String typeName2 = modJson.getString("typeName2");
+
+                String charId = modJson.getString("charId");
+                if (modTable.get(charId) != null) {
+                    HashMap<String, Boolean> hashMap = modTable.get(charId);
+                    hashMap.put("mod" + typeName2, true);
+                    modTable.put(charId,hashMap);
+                } else {
+                    HashMap<String, Boolean> hashMap = new HashMap<>();
+                    hashMap.put("mod" + typeName2, true);
+                    modTable.put(charId,hashMap);
+                }
+            }
+        });
+
         HashMap<Object, Object> hashMap = new HashMap<>();
-        jsonObject.forEach((k, v) -> {
+        character_table.forEach((k, v) -> {
             if (k.startsWith("char")) {
                 HashMap<Object, Object> character = new HashMap<>();
                 JSONObject characterJson = JSONObject.parseObject(String.valueOf(v));
                 character.put("name", characterJson.getString("name"));
-                character.put("rarity", characterJson.getString("rarity"));
+                character.put("rarity", Integer.parseInt(characterJson.getString("rarity")) + 1);
+                character.put("mod",modTable.get(k));
                 hashMap.put(k, character);
             }
         });
+
+
         FileUtil.save(FileConfig.Item, "character_table.json", JSON.toJSONString(hashMap));
+        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table.json", JSON.toJSONString(hashMap));
     }
 
     @Test
@@ -204,7 +166,7 @@ class DemoApplicationTests {
 
         for (int i = 0; i < userIdsGroup.size(); i++) {
             List<SurveyDataCharVo> surveyDataCharList_DB =
-                    surveyMapper.selectSurveyDataCharByUidList("survey_data_char_1", userIdsGroup.get(i));
+                    surveyMapper.selectSurveyDataCharVoByUidList("survey_data_char_1", userIdsGroup.get(i));
 
 //            log.info("本次统计数量：" + surveyDataCharList_DB.size());
             System.out.println("本次统计数量：" + surveyDataCharList_DB.size());
@@ -237,7 +199,7 @@ class DemoApplicationTests {
                 Map<Integer, Long> collectByModY = list.stream()
                         .collect(Collectors.groupingBy(SurveyDataCharVo::getModY, Collectors.counting()));
 
-                if(hashMap.get(charId)!=null){
+                if (hashMap.get(charId) != null) {
                     SurveyStatisticsCharVo lastData = hashMap.get(charId);
 
                     own += lastData.getOwn();
@@ -272,11 +234,11 @@ class DemoApplicationTests {
                         .modY(collectByModY)
                         .build();
 
-                hashMap.put(charId,build);
+                hashMap.put(charId, build);
             });
         }
 
-        hashMap.forEach((k,v)->{
+        hashMap.forEach((k, v) -> {
             SurveyStatisticsChar build = SurveyStatisticsChar.builder()
                     .charId(v.getCharId())
                     .rarity(v.getRarity())
@@ -289,9 +251,9 @@ class DemoApplicationTests {
                     .modY(JSON.toJSONString(v.getModY()))
                     .potential(JSON.toJSONString(v.getPotential()))
                     .build();
-           surveyDataCharList.add(build);
+            surveyDataCharList.add(build);
         });
-            surveyMapper.insertBatchCharStatistics(surveyDataCharList);
+        surveyMapper.insertBatchCharStatistics(surveyDataCharList);
     }
 
 

@@ -11,10 +11,10 @@ import com.lhs.mapper.QuantileMapper;
 import com.lhs.mapper.StageResultMapper;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.config.FileConfig;
-import com.lhs.entity.Item;
-import com.lhs.entity.QuantileTable;
-import com.lhs.entity.Stage;
-import com.lhs.entity.StageResult;
+import com.lhs.entity.stage.Item;
+import com.lhs.entity.stage.QuantileTable;
+import com.lhs.entity.stage.Stage;
+import com.lhs.entity.stage.StageResult;
 import com.lhs.service.vo.PenguinDataVo;
 import lombok.extern.slf4j.Slf4j;
 

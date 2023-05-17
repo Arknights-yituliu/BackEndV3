@@ -1,4 +1,4 @@
-package com.lhs.entity;
+package com.lhs.entity.stage;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.TableId;

@@ -1,4 +1,4 @@
-package com.lhs.entity;
+package com.lhs.entity.survey;
 
 import lombok.Data;
 

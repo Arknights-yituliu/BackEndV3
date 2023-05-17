@@ -11,9 +11,9 @@ import com.lhs.common.config.FileConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.mapper.ItemMapper;
 import com.lhs.mapper.StageMapper;
-import com.lhs.entity.Item;
-import com.lhs.entity.Stage;
-import com.lhs.entity.StageResult;
+import com.lhs.entity.stage.Item;
+import com.lhs.entity.stage.Stage;
+import com.lhs.entity.stage.StageResult;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
