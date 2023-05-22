@@ -38,11 +38,6 @@ class DemoApplicationTests {
     private RedisTemplate<String, Object> redisTemplate;
 
 
-    @Test
-    void readGameData() {
-        stageService.readGameData_stageFile();
-    }
-
     private final String read = FileUtil.read("C:\\Users\\李会山\\Desktop\\maa.json");
     private final MaaOperBoxVo maaOperBoxVo = JSONObject.parseObject(read, MaaOperBoxVo.class);
 

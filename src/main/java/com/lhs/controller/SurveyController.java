@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @RestController
-@Api(tags = "调查接口")
+@Api(tags = "干员调查调查接口")
 @RequestMapping(value = "/survey")
 @CrossOrigin(maxAge = 86400)
 public class SurveyController {

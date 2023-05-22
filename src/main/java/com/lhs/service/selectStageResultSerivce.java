@@ -2,10 +2,7 @@ package com.lhs.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.stage.StageResult;
 
@@ -15,36 +12,18 @@ import com.lhs.service.vo.StageResultActVo;
 import com.lhs.service.vo.StageResultVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class APIService {
+public class selectStageResultSerivce {
 
     @Resource
     private StageResultMapper stageResultMapper;
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
-
-
-    /**
-     * 根据key查找redis中缓存的数据的通用方法
-     *
-     * @param key redis的key
-     * @return redis缓存的数据
-     */
-    public Object queryResultByApiPath(String key) {
-        Object resultVo = redisTemplate.opsForValue().get(key);
-        if (resultVo == null) throw new ServiceException(ResultCode.DATA_NONE);
-        return resultVo;
-    }
 
     /**
      * 查询蓝材料的推荐关卡
@@ -257,11 +236,7 @@ public class APIService {
         return hashMap;
     }
 
-    /**
-     * 保存企鹅物流数据到本地
-     * @param dataType  企鹅有两种数据，一种是仅MAA上传的数据，参数值auto；一种是全局数据，参数值global
-     * @param url  企鹅的数据API链接
-     */
+
 
 
 }

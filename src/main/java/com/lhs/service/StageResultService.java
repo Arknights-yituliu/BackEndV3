@@ -16,6 +16,7 @@ import com.lhs.entity.stage.QuantileTable;
 import com.lhs.entity.stage.Stage;
 import com.lhs.entity.stage.StageResult;
 import com.lhs.service.vo.PenguinDataVo;
+import com.lhs.service.vo.StageResultVo;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.BeanUtils;
@@ -304,4 +305,17 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
     }
 
 
+    public List<StageResultVo> selectStageResultByItemName(String itemName) {
+        List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
+                .eq("item_type", itemName).ge("efficiency", 0.8)
+                .ge("sample_size", 300).orderByDesc("stage_efficiency").last("limit 8"));
+        List<StageResultVo> stageResultVo_item = new ArrayList<>();
+        stageResultsByItemType.forEach(stageResult -> {     //将关卡结果表的数据复制到前端返回对象上再返回
+            StageResultVo stageResultVo = new StageResultVo();
+            BeanUtils.copyProperties(stageResult, stageResultVo);
+
+            stageResultVo_item.add(stageResultVo);
+        });
+        return stageResultVo_item;
+    }
 }

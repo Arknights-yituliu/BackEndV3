@@ -16,6 +16,7 @@ import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.Stage;
 import com.lhs.entity.stage.StageResult;
 
+import com.lhs.service.vo.StageResultVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,11 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     @Autowired
     private StageMapper stageMapper;
 
-
+    /**
+     * 保存企鹅物流数据到本地
+     * @param dataType  企鹅有两种数据，一种是仅MAA上传的数据，参数值auto；一种是全局数据，参数值global
+     * @param url  企鹅的数据API链接
+     */
     public void savePenguinData(String dataType, String url) {
         String response = HttpRequestUtil.doGet(url, new HashMap<>());
         String saveTime = new SimpleDateFormat("yyyy-MM-dd HH mm").format(new Date()); // 设置日期格式
@@ -52,15 +57,12 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     }
 
 
-
-
     @Transactional
     public void importStageData(MultipartFile file) {
         List<Stage> list = new ArrayList<>();
         Map<String, Item> itemMap = itemMapper.selectList(null).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         JSONObject itemType_table = JSONObject.parseObject(FileUtil.read(ConfigUtil.Item + "itemType_table.json"));
 //        JSONObject stageZone_table = JSONObject.parseObject(FileUtil.read(FileConfig.Item + "zone_table.json"));
-
 
         try {
             EasyExcel.read(file.getInputStream(), Stage.class, new AnalysisEventListener<Stage>() {
@@ -85,7 +87,6 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
                         throw new RuntimeException(e);
                     }
 
-
                     if (stage.getZoneId().contains("act")) {
                         stage.setStageState(1);
                         stage.setIsValue(0);
@@ -99,12 +100,8 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
                         stage.setIsShow(1);
                         stage.setStageState(0);
                     }
-
-
                     list.add(stage);
                 }
-
-               
                 public void doAfterAllAnalysed(AnalysisContext analysisContext) {
                 }
             }).sheet().doRead();
@@ -117,9 +114,7 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
 
     }
 
-    public void exportStageData(List<Stage> list) {
-        EasyExcel.write("C:\\Users\\李会山\\Desktop\\stage.xlsx",Stage.class).sheet("Sheet1").doWrite(list);
-    }
+
    
     public void exportStageData(HttpServletResponse response) {
         try {
@@ -156,79 +151,7 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     }
 
 
-    public void readGameData_stageFile(){
-        String stage_tableStr = FileUtil.read(ConfigUtil.Item + "stage_table.json");
-        String itemType_tableStr = FileUtil.read(ConfigUtil.Item + "itemType_table.json");
-        String activity_tableStr = FileUtil.read(ConfigUtil.Item + "activity_table.json");
-
-        if(stage_tableStr!=null);
-        List<Item> items = itemMapper.selectList(null);
 
 
-        Map<String, Item> item_table = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
-        JSONObject stage_table = JSONObject.parseObject(JSONObject.parseObject(stage_tableStr).getString("stages"));
-        JSONObject itemType_table = JSONObject.parseObject(itemType_tableStr);
-        JSONObject basicInfo = JSONObject.parseObject(JSONObject.parseObject(activity_tableStr).getString("basicInfo"));
 
-        List<Stage> stageList = new ArrayList<>();
-        stage_table.forEach((stageId,info)->{
-            if((stageId.startsWith("main")||stageId.startsWith("a")||stageId.startsWith("su")||stageId.startsWith("to"))
-                    &&!(stageId.contains("#")||stageId.contains("ex")||stageId.contains("st")
-                    ||stageId.contains("tr")||stageId.contains("_s")||stageId.contains("_t")
-                    ||stageId.contains("bossrush")||stageId.contains("_mo")||stageId.contains("lock"))){
-                JSONObject stageInfo = JSONObject.parseObject(String.valueOf(info));
-                String stageDropInfo = stageInfo.getString("stageDropInfo");
-                String main = "0";
-                String secondary  = "0";
-                String secondaryId = "0";
-                if(stageDropInfo!=null) {
-                    JSONArray displayRewards = JSONArray.parseArray(JSONObject.parseObject(stageDropInfo).getString("displayRewards"));
-                    for(Object drop:displayRewards){
-                        JSONObject dropInfo = JSONObject.parseObject(String.valueOf(drop));
-                        int dropType = Integer.parseInt( dropInfo.getString("dropType"));
-                        if("MATERIAL".equals(dropInfo.getString("type"))&&item_table.get(dropInfo.getString("id"))!=null) {
-                            if (dropType == 2) main = dropInfo.getString("id");
-                            if (dropType == 3) secondary = dropInfo.getString("id");
-                        }
-                    }
-                }
-
-                secondaryId = item_table.get(secondary).getItemId();
-
-                Stage stage = Stage.builder().stageId(stageInfo.getString("stageId"))
-                        .stageCode(stageInfo.getString("code"))
-                        .zoneId(stageInfo.getString("zoneId").replace("_zone1","").replace("_zone2","").replace("_zone3",""))
-                        .apCost(Double.parseDouble(stageInfo.getString("apCost")))
-                        .main(item_table.get(main).getItemName())
-                        .secondary(item_table.get(secondary).getItemName())
-                        .mainRarity(item_table.get(main).getRarity())
-                        .secondaryId(secondaryId)
-                        .itemType( itemType_table.getString(item_table.get(main).getItemName()))
-                        .type(stageInfo.getString("stageType"))
-                        .build();
-
-                if(stageId.startsWith("a")) {
-                    stage.setIsValue(0);
-                    stage.setIsShow(0);
-                }
-                if(stageId.startsWith("m")||stageId.startsWith("s")||stageId.contains("perm")){
-                    stage.setIsValue(1);
-                    stage.setIsShow(1);
-                }
-                if(basicInfo.getString(stage.getZoneId())!=null){
-//                    System.out.println(stage.getZoneId());
-                    JSONObject basicInfoByStageId = JSONObject.parseObject(basicInfo.getString(stage.getZoneId()));
-//                    System.out.println("基础信息："+basicInfoByStageId);
-                    long startTime = Long.parseLong(basicInfoByStageId.getString("startTime"));
-                    stage.setOpenTime(new Date(startTime));
-                }
-
-                stageList.add(stage);
-
-                if(!"0".equals( stage.getMain())) System.out.println(stage);
-            }
-        });
-
-        exportStageData(stageList);
-    }
 }
