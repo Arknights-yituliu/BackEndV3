@@ -42,11 +42,11 @@ public class SurveyService {
      * @return
      */
     public HashMap<Object, Object> register(String ipAddress, String userName) {
-        Long incrId = (long) new Random().nextInt(100000);  //测试id
-        String charTable = "survey_data_char_1";        //测试表名
+//        Long incrId = (long) new Random().nextInt(100000);  //测试id
+//        String charTable = "survey_data_char_1";        //测试表名
 
-//        Long incrId = redisTemplate.opsForValue().increment("incrUId");   //从redis拿到自增id
-//        String charTable = String.valueOf(redisTemplate.opsForValue().get("charTable"));  //从redis拿到要存的表名
+        Long incrId = redisTemplate.opsForValue().increment("incrUId");   //从redis拿到自增id
+        String charTable = String.valueOf(redisTemplate.opsForValue().get("charTable"));  //从redis拿到要存的表名
         Date date = new Date();  //存入的时间
         String userNameAndEnd = null;
         SurveyUser surveyUser = null;

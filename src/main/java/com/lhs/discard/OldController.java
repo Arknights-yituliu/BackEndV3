@@ -1,4 +1,4 @@
-package com.lhs.controller;
+package com.lhs.discard;
 
 
 import com.alibaba.fastjson.JSONObject;
@@ -9,9 +9,12 @@ import com.lhs.service.dto.MaaRecruitVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
@@ -21,7 +24,6 @@ import java.util.Random;
 @RequestMapping(value = "/tool")
 @CrossOrigin(maxAge = 86400)
 public class OldController {
-
 
     @Resource
     private ScheduleService scheduleService;
@@ -92,7 +94,27 @@ public class OldController {
         return Result.success(hashMap);
     }
 
+    @ApiOperation(value = "保存bot图片")
+    @PostMapping("/bot/image")
+    public Result<Object> upload(MultipartFile file, @RequestParam String fileName, @RequestParam String fileType) throws IOException {
+        System.out.println(file.getSize());
+        System.out.println(fileName);
+        String saveUri = "E:\\BOT_img\\autoImage\\111.png";
 
+        if("char".equals(fileType))   saveUri  = "E:\\BOT_img\\bot-pic\\char\\" + fileName + ".png";        //拼接保存图片的真实地址
+        if("mod".equals(fileType))  saveUri = "E:\\BOT_img\\bot-pic\\mod\\" + fileName + ".png";        //拼接保存图片的真实地址
+        if("skill".equals(fileType))  saveUri = "E:\\BOT_img\\bot-pic\\skill\\" + fileName + ".png";        //拼接保存图片的真实地址
+
+        File saveFile = new File(saveUri);
+        //判断是否存在文件夹，不存在就创建，但其实可以直接手动确定创建好，这样不用每次保存都检测
+//        if (!saveFile.exists()) { saveFile.mkdirs();}
+        try {
+            file.transferTo(saveFile);  //保存文件到真实存储路径下
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Result.success("保存成功" + fileName);
+    }
 
 
 

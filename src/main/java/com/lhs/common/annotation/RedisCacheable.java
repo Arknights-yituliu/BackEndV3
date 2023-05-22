@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface RedisCacheable {
     String key() default "";     //缓存key
-    boolean isCache() default true;
 
     int timeOut() default 1200;
 }

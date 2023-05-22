@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhs.mapper.QuantileMapper;
 import com.lhs.mapper.StageResultMapper;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.QuantileTable;
 import com.lhs.entity.stage.Stage;
@@ -56,7 +56,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
         //将企鹅物流的数据转成集合
 
-        String response = FileUtil.read(FileConfig.Penguin + "matrix auto.json");  //读取企鹅物流数据文件
+        String response = FileUtil.read(ConfigUtil.Penguin + "matrix auto.json");  //读取企鹅物流数据文件
 
         List<PenguinDataVo> penguinDataVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataVo.class);//将企鹅物流文件的内容转为集合
         penguinDataVos = mergePenguinData(penguinDataVos);  //合并企鹅物流的标准和磨难关卡的样本
@@ -186,7 +186,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
         stageResultMapper.deleteTableTemp();   //清空数据库
         boolean b = saveBatch(stageResultList);//保存结果到数据库
-        FileUtil.save(FileConfig.Item,"itemAndBestStageEff.json", JSON.toJSONString(itemNameAndStageEffMap));
+        FileUtil.save(ConfigUtil.Item,"itemAndBestStageEff.json", JSON.toJSONString(itemNameAndStageEffMap));
         return itemNameAndStageEffMap;
 
     }

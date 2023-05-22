@@ -2,7 +2,7 @@ package com.lhs.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.HttpRequestUtil;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class APIService {
 
-    @Autowired
+    @Resource
     private StageResultMapper stageResultMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -218,13 +218,7 @@ public class APIService {
     }
 
 
-    public void savePenguinData(String dataType, String url) {
-        String response = HttpRequestUtil.doGet(url, new HashMap<>());
-        String saveTime = new SimpleDateFormat("yyyy-MM-dd HH mm").format(new Date()); // 设置日期格式
-        FileUtil.save(FileConfig.Penguin, "matrix " + dataType + ".json", response);
-        FileUtil.save(FileConfig.Penguin, "matrix " + saveTime + " " + dataType + ".json", response);
 
-    }
 
     /**
      * 搓玉计算

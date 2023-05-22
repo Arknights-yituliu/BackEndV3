@@ -15,11 +15,8 @@ import java.util.Date;
 @TableName("visits")
 @Slf4j
 public class Visits {
-
-
     @TableId
     private String date;
-
     private Integer visits;
     private Integer visitsBot;
     private Integer visitsIndex;

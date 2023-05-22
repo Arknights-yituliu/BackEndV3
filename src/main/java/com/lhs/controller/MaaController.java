@@ -2,7 +2,7 @@ package com.lhs.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
 import com.lhs.service.RecruitSurveyService;
@@ -36,17 +36,17 @@ public class MaaController {
 
     @ApiOperation("MAA公招记录上传")
     @PostMapping("/upload/recruit")
-    public Result MaaTagResult(@RequestBody MaaRecruitVo maaTagRequestVo) {
+    public Result<Object> MaaTagResult(@RequestBody MaaRecruitVo maaTagRequestVo) {
         String string = recruitSurveyService.saveMaaRecruitDataNew(maaTagRequestVo);
         return Result.success(string);
     }
 
     @ApiOperation("MAA干员信息上传")
     @PostMapping("/upload/operBox")
-    public Result MaaOperatorBoxUpload(HttpServletRequest httpServletRequest, @RequestBody MaaOperBoxVo maaOperBoxVo) {
+    public Result<Object> MaaOperatorBoxUpload(HttpServletRequest httpServletRequest, @RequestBody MaaOperBoxVo maaOperBoxVo) {
 
         String ipAddress = IpUtil.getIpAddress(httpServletRequest);
-        ipAddress = AES.encrypt(ipAddress, FileConfig.Secret);  //加密
+        ipAddress = AES.encrypt(ipAddress, ConfigUtil.Secret);  //加密
         HashMap<Object, Object> result = surveyService.saveMaaCharData(maaOperBoxVo, ipAddress);
 
         return Result.success(result);
@@ -56,7 +56,7 @@ public class MaaController {
 
     @ApiOperation("公招统计")
     @GetMapping("/recruit/statistics")
-    public Result saveMaaRecruitStatistical() {
+    public Result<Object> saveMaaRecruitStatistical() {
         Map<String, Integer> result = recruitSurveyService.recruitStatistics();
         return Result.success(result);
     }
@@ -64,7 +64,7 @@ public class MaaController {
 
     @ApiOperation("公招统计结果")
     @GetMapping("/recruit/result")
-    public Result queryMaaRecruitStatistical() {
+    public Result<Object> queryMaaRecruitStatistical() {
         HashMap<String, Object> result = recruitSurveyService.statisticalResult();
 
         return Result.success(result);
@@ -72,10 +72,8 @@ public class MaaController {
 
     @ApiOperation("生成基建排班协议文件")
     @PostMapping("/schedule/save")
-    public Result saveMaaScheduleJson( @RequestBody String scheduleJson,@RequestParam Long schedule_id) {
-
+    public Result<Object> saveMaaScheduleJson( @RequestBody String scheduleJson,@RequestParam Long schedule_id) {
         schedule_id = new Date().getTime() * 1000 +new Random().nextInt(1000);   //id为时间戳后加0001至999
-
         scheduleService.saveScheduleJson(scheduleJson,schedule_id);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("uid",schedule_id);
@@ -92,7 +90,7 @@ public class MaaController {
 
     @ApiOperation("找回基建排班协议文件")
     @GetMapping("/schedule/retrieve")
-    public Result retrieveMaaScheduleJson(@RequestParam Long schedule_id) {
+    public Result<Object> retrieveMaaScheduleJson(@RequestParam Long schedule_id) {
         String str = scheduleService.retrieveScheduleJson(schedule_id);
         JSONObject jsonObject = JSONObject.parseObject(str);
         HashMap<Object, Object> hashMap = new HashMap<>();

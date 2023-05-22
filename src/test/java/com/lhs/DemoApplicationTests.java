@@ -3,7 +3,7 @@ package com.lhs;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.FileUtil;
 import com.lhs.entity.survey.SurveyDataChar;
 import com.lhs.entity.survey.SurveyDataCharVo;
@@ -14,6 +14,7 @@ import com.lhs.service.dto.MaaOperBoxVo;
 import com.lhs.service.dto.SurveyStatisticsCharVo;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -33,6 +34,9 @@ class DemoApplicationTests {
     @Resource
     private SurveyMapper surveyMapper;
 
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
+
 
     @Test
     void readGameData() {
@@ -48,10 +52,12 @@ class DemoApplicationTests {
 
     @Test
     void secretTest() {
-        String SECRET = FileConfig.Secret;
+        String SECRET = ConfigUtil.Secret;
         String ip = "117.11.47.234";
+        System.out.println(SECRET.length());
         System.out.println(AES.encrypt(ip, SECRET));
-        System.out.println(AES.encrypt(ip, SECRET));
+        System.out.println( AES.decrypt("FiMY9b2S+RPcNLEt6zM+uhnLR0aZ6YRtT5xfQbv6/xxLUHWZc7J5OZ3PthmjR2tq",SECRET));
+
     }
 
 
@@ -101,13 +107,13 @@ class DemoApplicationTests {
         });
 
 
-        FileUtil.save(FileConfig.Item, "character_table.json", JSON.toJSONString(hashMap));
+        FileUtil.save(ConfigUtil.Item, "character_table.json", JSON.toJSONString(hashMap));
         FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table.json", JSON.toJSONString(hashMap));
     }
 
     @Test
     void uploadTest() {
-        String read1 = FileUtil.read(FileConfig.Item + "character_table.json");
+        String read1 = FileUtil.read(ConfigUtil.Item + "character_table.json");
         JSONObject jsonObject = JSONObject.parseObject(read1);
 
         for (int i = 0; i < 1; i++) {
@@ -264,6 +270,13 @@ class DemoApplicationTests {
             String end4 = String.format("%04d", random);
             System.out.println(end4);
         }
+    }
+
+
+    @Test
+    void getToken(){
+        Object o = redisTemplate.opsForValue().get("KZkR3/roGVuCdbbHD3gGLGtH7BmO29IZd7yEc+uEmjY=");
+        System.out.println(o);
     }
 
 }

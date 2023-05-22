@@ -34,14 +34,11 @@ public class AnnotationAOP {
     @After("@annotation(takeCount)")
     public void takeCountAfter(TakeCount takeCount) {
         long timeCost =  (System.currentTimeMillis() - startTime.get());
-        if(timeCost<1000) {
-            log.info(takeCount.method() + "接口耗时：" + timeCost + "ms");
-        }else {
-            log.info(takeCount.method() + "接口耗时：" + (timeCost/1000) + "s");
-        }
-
-
-
+//        if(timeCost<1000) {
+//            log.info(takeCount.method() + "接口耗时：" + timeCost + "ms");
+//        }else {
+//            log.info(takeCount.method() + "接口耗时：" + (timeCost/1000) + "s");
+//        }
         startTime.remove();
     }
 

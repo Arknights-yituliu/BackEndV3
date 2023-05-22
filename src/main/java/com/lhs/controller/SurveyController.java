@@ -2,7 +2,7 @@ package com.lhs.controller;
 
 
 import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
 import com.lhs.entity.survey.SurveyDataChar;
@@ -29,7 +29,7 @@ public class SurveyController {
     @ApiOperation("调查用户注册")
     @PostMapping("/register")
     public Result register(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), FileConfig.Secret);  //加密
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密
         HashMap<Object, Object> register = surveyService.register(ipAddress, surveyUserVo.getUserName());
         return Result.success(register);
     }
@@ -37,7 +37,7 @@ public class SurveyController {
     @ApiOperation("调查用户注册")
     @PostMapping("/login")
     public Result login(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), FileConfig.Secret);  //加密
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密
         HashMap<Object, Object> register = surveyService.login(ipAddress, surveyUserVo.getUserName());
         return Result.success(register);
     }

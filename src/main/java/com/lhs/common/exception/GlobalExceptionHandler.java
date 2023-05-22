@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
 		}
 		else {
 			log.error(e.getMessage());
-            result = Result.failure(500, "服务器意外错误,如严重影响使用请联系开发人员");
+            result = Result.failure(500, "服务器意外错误,请联系开发人员");
 		}
 		return result;
     }

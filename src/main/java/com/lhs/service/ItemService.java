@@ -8,7 +8,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
@@ -22,7 +22,6 @@ import com.lhs.service.dto.ItemCost;
 import com.lhs.service.vo.ItemVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,12 +40,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ItemService extends ServiceImpl<ItemMapper,Item>  {
 
-
     @Resource
     private ItemMapper itemMapper;
-
-    @Resource
-    private RedisTemplate<String,Object> redisTemplate;
 
     /**
      *  //根据蓝材料对应的常驻最高关卡效率En和旧蓝材料价值Vn计算新的蓝材料价值Vn+1  ，  Vn+1= Vn*1/En
@@ -57,8 +52,8 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
     @Transactional
     public List<Item> ItemValueCalculation(List<Item> items, JSONObject itemNameAndStageEff,Double expCoefficient) {
 
-        String workShopProductsValueJson = FileUtil.read(FileConfig.Item + "workShopProductsValue.json");
-        String compositeTableJson = FileUtil.read(FileConfig.Item + "compositeTable.json");
+        String workShopProductsValueJson = FileUtil.read(ConfigUtil.Item + "workShopProductsValue.json");
+        String compositeTableJson = FileUtil.read(ConfigUtil.Item + "compositeTable.json");
 
         if(compositeTableJson==null||workShopProductsValueJson==null||compositeTableJson.length()<10||workShopProductsValueJson.length()<10)
             throw new ServiceException(ResultCode.DATA_NONE);
@@ -115,7 +110,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
         updateBatchById(items);  //更新材料表
 
         String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
-        FileUtil.save(FileConfig.Backup,"itemValue_"+saveDate +"_"+expCoefficient+".json",JSON.toJSONString(items));  //价值表备份
+        FileUtil.save(ConfigUtil.Backup,"itemValue_"+saveDate +"_"+expCoefficient+".json",JSON.toJSONString(items));  //价值表备份
 
         return items;
 
@@ -136,7 +131,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
                     hashMap.put( "rarity_"+rarity, list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight())
                             .sum() / items.size() * knockRating );
                 });
-        FileUtil.save(FileConfig.Item,"workShopProductsValue.json", JSON.toJSONString(hashMap));
+        FileUtil.save(ConfigUtil.Item,"workShopProductsValue.json", JSON.toJSONString(hashMap));
 
     }
 
@@ -147,8 +142,12 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
      * @return  材料信息表
      */
     @RedisCacheable(key = "itemValue")
-    public List<Item> queryItemList(Double expCoefficient,Integer id) {
+    public List<Item> queryItemListById(Double expCoefficient, Integer id) {
         return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", id).orderByDesc("item_value_ap"));
+    }
+
+    public List<Item> queryItemList() {
+        return itemMapper.selectList(null);
     }
 
 
@@ -159,7 +158,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
             String fileName = URLEncoder.encode("itemValue", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
-            List<Item> list = queryItemList(0.625,200);
+            List<Item> list = queryItemListById(0.625,200);
             List<ItemVo> itemVoList = new ArrayList<>();
             for(Item item:list){
                 ItemVo itemVo = new ItemVo();
@@ -174,7 +173,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
     }
 
     public void exportItemJson(HttpServletResponse response) {
-        List<Item> list = queryItemList(0.625,200);
+        List<Item> list = queryItemListById(0.625,200);
         List<ItemVo> itemVoList = new ArrayList<>();
         for(Item item:list){
             ItemVo itemVo = new ItemVo();
@@ -184,7 +183,7 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
         String jsonForMat = JSON.toJSONString(JSONArray.parseArray(JSON.toJSONString(itemVoList)), SerializerFeature.PrettyFormat,
                 SerializerFeature.WriteDateUseDateFormat, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty);
-        FileUtil.save(response,FileConfig.Item,"ItemValue.json",jsonForMat);
+        FileUtil.save(response, ConfigUtil.Item,"ItemValue.json",jsonForMat);
     }
 
 

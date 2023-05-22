@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
@@ -42,7 +42,7 @@ public class ScheduleService {
                 SerializerFeature.WriteNullListAsEmpty);
 //        System.out.println(FileConfig.Schedule);
 
-        FileUtil.save(response, FileConfig.Schedule, scheduleId.toString()+".json", jsonForMat);
+        FileUtil.save(response, ConfigUtil.Schedule, scheduleId.toString()+".json", jsonForMat);
     }
 
 
@@ -50,7 +50,7 @@ public class ScheduleService {
         Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id",scheduleId));
 
         if(schedule==null){
-            String read = FileUtil.read(FileConfig.Schedule + scheduleId + ".json");
+            String read = FileUtil.read(ConfigUtil.Schedule + scheduleId + ".json");
             if (read == null) throw new ServiceException(ResultCode.DATA_NONE);
             return read;
         }

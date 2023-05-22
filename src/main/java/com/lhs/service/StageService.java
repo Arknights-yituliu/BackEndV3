@@ -7,8 +7,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lhs.common.config.FileConfig;
+import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.FileUtil;
+import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.mapper.ItemMapper;
 import com.lhs.mapper.StageMapper;
 import com.lhs.entity.stage.Item;
@@ -23,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,94 +36,29 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     private ItemMapper itemMapper;
     @Autowired
     private StageMapper stageMapper;
+
+
+    public void savePenguinData(String dataType, String url) {
+        String response = HttpRequestUtil.doGet(url, new HashMap<>());
+        String saveTime = new SimpleDateFormat("yyyy-MM-dd HH mm").format(new Date()); // 设置日期格式
+        FileUtil.save(ConfigUtil.Penguin, "matrix " + dataType + ".json", response);
+        FileUtil.save(ConfigUtil.Penguin, "matrix " + saveTime + " " + dataType + ".json", response);
+
+    }
     public List<Stage> findAll(QueryWrapper<Stage> queryWrapper) {
+
         return stageMapper.selectList(queryWrapper);
+
     }
 
-    public void readGameData_stageFile(){
-        String stage_tableStr = FileUtil.read(FileConfig.Item + "stage_table.json");
-        String itemType_tableStr = FileUtil.read(FileConfig.Item + "itemType_table.json");
-        String activity_tableStr = FileUtil.read(FileConfig.Item + "activity_table.json");
 
-
-
-        if(stage_tableStr!=null);
-        List<Item> items = itemMapper.selectList(null);
-
-
-        Map<String, Item> item_table = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
-        JSONObject stage_table = JSONObject.parseObject(JSONObject.parseObject(stage_tableStr).getString("stages"));
-        JSONObject itemType_table = JSONObject.parseObject(itemType_tableStr);
-        JSONObject basicInfo = JSONObject.parseObject(JSONObject.parseObject(activity_tableStr).getString("basicInfo"));
-
-        List<Stage> stageList = new ArrayList<>();
-        stage_table.forEach((stageId,info)->{
-            if((stageId.startsWith("main")||stageId.startsWith("a")||stageId.startsWith("su")||stageId.startsWith("to"))
-                    &&!(stageId.contains("#")||stageId.contains("ex")||stageId.contains("st")
-                    ||stageId.contains("tr")||stageId.contains("_s")||stageId.contains("_t")
-                    ||stageId.contains("bossrush")||stageId.contains("_mo")||stageId.contains("lock"))){
-                JSONObject stageInfo = JSONObject.parseObject(String.valueOf(info));
-                String stageDropInfo = stageInfo.getString("stageDropInfo");
-                String main = "0";
-                String secondary  = "0";
-                String secondaryId = "0";
-                if(stageDropInfo!=null) {
-                    JSONArray displayRewards = JSONArray.parseArray(JSONObject.parseObject(stageDropInfo).getString("displayRewards"));
-                    for(Object drop:displayRewards){
-                        JSONObject dropInfo = JSONObject.parseObject(String.valueOf(drop));
-                        int dropType = Integer.parseInt( dropInfo.getString("dropType"));
-                        if("MATERIAL".equals(dropInfo.getString("type"))&&item_table.get(dropInfo.getString("id"))!=null) {
-                            if (dropType == 2) main = dropInfo.getString("id");
-                            if (dropType == 3) secondary = dropInfo.getString("id");
-                        }
-                    }
-                }
-
-                secondaryId = item_table.get(secondary).getItemId();
-
-                Stage stage = Stage.builder().stageId(stageInfo.getString("stageId"))
-                        .stageCode(stageInfo.getString("code"))
-                        .zoneId(stageInfo.getString("zoneId").replace("_zone1","").replace("_zone2","").replace("_zone3",""))
-                        .apCost(Double.parseDouble(stageInfo.getString("apCost")))
-                        .main(item_table.get(main).getItemName())
-                        .secondary(item_table.get(secondary).getItemName())
-                        .mainRarity(item_table.get(main).getRarity())
-                        .secondaryId(secondaryId)
-                        .itemType( itemType_table.getString(item_table.get(main).getItemName()))
-                        .type(stageInfo.getString("stageType"))
-                        .build();
-
-                if(stageId.startsWith("a")) {
-                    stage.setIsValue(0);
-                    stage.setIsShow(0);
-                }
-                if(stageId.startsWith("m")||stageId.startsWith("s")||stageId.contains("perm")){
-                    stage.setIsValue(1);
-                    stage.setIsShow(1);
-                }
-                if(basicInfo.getString(stage.getZoneId())!=null){
-//                    System.out.println(stage.getZoneId());
-                    JSONObject basicInfoByStageId = JSONObject.parseObject(basicInfo.getString(stage.getZoneId()));
-//                    System.out.println("基础信息："+basicInfoByStageId);
-                    long startTime = Long.parseLong(basicInfoByStageId.getString("startTime"));
-                    stage.setOpenTime(new Date(startTime));
-                }
-
-                stageList.add(stage);
-
-                if(!"0".equals( stage.getMain())) System.out.println(stage);
-            }
-        });
-
-        exportStageData(stageList);
-    }
 
 
     @Transactional
     public void importStageData(MultipartFile file) {
         List<Stage> list = new ArrayList<>();
         Map<String, Item> itemMap = itemMapper.selectList(null).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
-        JSONObject itemType_table = JSONObject.parseObject(FileUtil.read(FileConfig.Item + "itemType_table.json"));
+        JSONObject itemType_table = JSONObject.parseObject(FileUtil.read(ConfigUtil.Item + "itemType_table.json"));
 //        JSONObject stageZone_table = JSONObject.parseObject(FileUtil.read(FileConfig.Item + "zone_table.json"));
 
 
@@ -200,8 +137,11 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     }
 
    
-    public void updateStageInfo(String stageId) {
-
+    public Integer updateStageInfo(Stage stage) {
+        Integer isShow = stage.getIsShow()==1?0:1;
+        stage.setIsShow(isShow);
+        int update = stageMapper.update(stage,new QueryWrapper<Stage>().eq("stage_id",stage.getStageId()));
+        return isShow;
     }
 
     public LinkedHashMap<String, List<Stage>> queryStageTable(){
@@ -216,8 +156,79 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     }
 
 
-    //复制材料表和关卡表的一些信息
-    private static void stageResultVo(StageResult efficiencyResult, Stage stage, Item item) {
+    public void readGameData_stageFile(){
+        String stage_tableStr = FileUtil.read(ConfigUtil.Item + "stage_table.json");
+        String itemType_tableStr = FileUtil.read(ConfigUtil.Item + "itemType_table.json");
+        String activity_tableStr = FileUtil.read(ConfigUtil.Item + "activity_table.json");
 
+        if(stage_tableStr!=null);
+        List<Item> items = itemMapper.selectList(null);
+
+
+        Map<String, Item> item_table = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
+        JSONObject stage_table = JSONObject.parseObject(JSONObject.parseObject(stage_tableStr).getString("stages"));
+        JSONObject itemType_table = JSONObject.parseObject(itemType_tableStr);
+        JSONObject basicInfo = JSONObject.parseObject(JSONObject.parseObject(activity_tableStr).getString("basicInfo"));
+
+        List<Stage> stageList = new ArrayList<>();
+        stage_table.forEach((stageId,info)->{
+            if((stageId.startsWith("main")||stageId.startsWith("a")||stageId.startsWith("su")||stageId.startsWith("to"))
+                    &&!(stageId.contains("#")||stageId.contains("ex")||stageId.contains("st")
+                    ||stageId.contains("tr")||stageId.contains("_s")||stageId.contains("_t")
+                    ||stageId.contains("bossrush")||stageId.contains("_mo")||stageId.contains("lock"))){
+                JSONObject stageInfo = JSONObject.parseObject(String.valueOf(info));
+                String stageDropInfo = stageInfo.getString("stageDropInfo");
+                String main = "0";
+                String secondary  = "0";
+                String secondaryId = "0";
+                if(stageDropInfo!=null) {
+                    JSONArray displayRewards = JSONArray.parseArray(JSONObject.parseObject(stageDropInfo).getString("displayRewards"));
+                    for(Object drop:displayRewards){
+                        JSONObject dropInfo = JSONObject.parseObject(String.valueOf(drop));
+                        int dropType = Integer.parseInt( dropInfo.getString("dropType"));
+                        if("MATERIAL".equals(dropInfo.getString("type"))&&item_table.get(dropInfo.getString("id"))!=null) {
+                            if (dropType == 2) main = dropInfo.getString("id");
+                            if (dropType == 3) secondary = dropInfo.getString("id");
+                        }
+                    }
+                }
+
+                secondaryId = item_table.get(secondary).getItemId();
+
+                Stage stage = Stage.builder().stageId(stageInfo.getString("stageId"))
+                        .stageCode(stageInfo.getString("code"))
+                        .zoneId(stageInfo.getString("zoneId").replace("_zone1","").replace("_zone2","").replace("_zone3",""))
+                        .apCost(Double.parseDouble(stageInfo.getString("apCost")))
+                        .main(item_table.get(main).getItemName())
+                        .secondary(item_table.get(secondary).getItemName())
+                        .mainRarity(item_table.get(main).getRarity())
+                        .secondaryId(secondaryId)
+                        .itemType( itemType_table.getString(item_table.get(main).getItemName()))
+                        .type(stageInfo.getString("stageType"))
+                        .build();
+
+                if(stageId.startsWith("a")) {
+                    stage.setIsValue(0);
+                    stage.setIsShow(0);
+                }
+                if(stageId.startsWith("m")||stageId.startsWith("s")||stageId.contains("perm")){
+                    stage.setIsValue(1);
+                    stage.setIsShow(1);
+                }
+                if(basicInfo.getString(stage.getZoneId())!=null){
+//                    System.out.println(stage.getZoneId());
+                    JSONObject basicInfoByStageId = JSONObject.parseObject(basicInfo.getString(stage.getZoneId()));
+//                    System.out.println("基础信息："+basicInfoByStageId);
+                    long startTime = Long.parseLong(basicInfoByStageId.getString("startTime"));
+                    stage.setOpenTime(new Date(startTime));
+                }
+
+                stageList.add(stage);
+
+                if(!"0".equals( stage.getMain())) System.out.println(stage);
+            }
+        });
+
+        exportStageData(stageList);
     }
 }

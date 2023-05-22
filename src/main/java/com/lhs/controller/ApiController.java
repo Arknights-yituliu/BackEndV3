@@ -7,11 +7,13 @@ import com.lhs.common.util.Result;
 import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.Stage;
 import com.lhs.entity.stage.StageResult;
+import com.lhs.entity.stage.StorePerm;
 import com.lhs.service.*;
 
 import com.lhs.service.vo.OrundumPerApResultVo;
 import com.lhs.service.vo.StageResultActVo;
 import com.lhs.service.vo.StageResultVo;
+import com.lhs.service.vo.StoreActVo;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +23,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Api(tags = "获取数据API")
@@ -33,24 +36,24 @@ public class ApiController {
     @Resource
     private ItemService itemService ;
     @Resource
-    private UserService userService ;
-    @Resource
     private StageService stageService ;
+    @Resource
+    private StoreService storeService;
 
 
     @TakeCount(method = "物品价值表")
     @ApiOperation("获取物品价值表")
     @GetMapping("/item/value")
     @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)})
-    public Result queryItemValue(@RequestParam Double expCoefficient) {
-        List<Item> items = itemService.queryItemList(expCoefficient,1000);
+    public Result<List<Item>> queryItemValue(@RequestParam Double expCoefficient) {
+        List<Item> items = itemService.queryItemListById(expCoefficient,1000);
         return Result.success(items);
     }
 
     @TakeCount(method = "关卡信息表")
     @ApiOperation("获取关卡信息表")
     @GetMapping("/stage")
-    public Result queryStage() {
+    public Result<LinkedHashMap<String, List<Stage>>> queryStage() {
         LinkedHashMap<String, List<Stage>> stringListMap = stageService.queryStageTable();
 
         return Result.success(stringListMap);
@@ -60,7 +63,7 @@ public class ApiController {
     @ApiOperation("获取蓝材料推荐关卡按效率倒序")
     @GetMapping("/stage/t3")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
-    public Result queryStageResult_t3(@RequestParam Double expCoefficient) {
+    public Result<List<List<StageResultVo>>> queryStageResult_t3(@RequestParam Double expCoefficient) {
 
         List<List<StageResultVo>> stageResultVoList = apiService.queryStageResultData_t3(expCoefficient, 100);
 
@@ -71,7 +74,7 @@ public class ApiController {
     @ApiOperation("获取绿材料推荐关卡按期望正序")
     @GetMapping("/stage/t2")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
-    public Result queryStageResult_t2(@RequestParam Double expCoefficient) {
+    public Result<List<List<StageResultVo>>> queryStageResult_t2(@RequestParam Double expCoefficient) {
         List<List<StageResultVo>> stageResultVoList = apiService.queryStageResultData_t2(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
@@ -81,7 +84,7 @@ public class ApiController {
     @ApiOperation("获取历史活动关卡")
     @GetMapping("/stage/closed")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
-    public Result queryStageResult_closedActivities(@RequestParam Double expCoefficient) {
+    public Result<List<List<StageResultActVo>>> queryStageResult_closedActivities(@RequestParam Double expCoefficient) {
         List<List<StageResultActVo>> stageResultVoList = apiService.queryStageResultData_closedActivities(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
@@ -90,8 +93,7 @@ public class ApiController {
     @TakeCount(method = "搓玉推荐关卡")
     @ApiOperation("获取搓玉推荐关卡")
     @GetMapping("/stage/orundum")
-//    @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625", required = false)
-    public Result queryStageResult_Orundum() {
+    public Result<List<OrundumPerApResultVo>> queryStageResult_Orundum() {
         List<OrundumPerApResultVo> OrundumPerApResultVoList = apiService.queryStageResultData_Orundum(0.625, 100);
 
         return Result.success(OrundumPerApResultVoList);
@@ -101,7 +103,7 @@ public class ApiController {
     @ApiOperation("新章关卡置信度情况")
     @GetMapping("/stage/newChapter")
     @ApiImplicitParam(name = "zone", value = "章节名称", dataType = "String", paramType = "query", defaultValue = "11-", required = false)
-    public Result queryStageResult_newChapter(@RequestParam String zone) {
+    public Result<List<StageResultVo>> queryStageResult_newChapter(@RequestParam String zone) {
         List<StageResultVo> stageResultVoList = apiService.queryStageResultDataByZoneName(zone);
 
         return Result.success(stageResultVoList);
@@ -111,7 +113,7 @@ public class ApiController {
     @ApiOperation("查询关卡详细信息")
     @GetMapping("/stage/detail")
     @ApiImplicitParam(name = "stageCode", value = "关卡名称", dataType = "String", paramType = "query", defaultValue = "11-", required = false)
-    public Result queryStageResult_detail(@RequestParam String stageCode) {
+    public Result<List<StageResult>> queryStageResult_detail(@RequestParam String stageCode) {
         List<StageResult> stageResultVoList = apiService.queryStageResultDataDetailByStageCode(stageCode);
         return Result.success(stageResultVoList);
     }
@@ -119,7 +121,7 @@ public class ApiController {
     @TakeCount(method = "查询关卡详细信息")
     @ApiOperation("查询关卡详细信息")
     @GetMapping("/stage/detail/{stageId}")
-    public Result queryStageResult_detailByStageId(@PathVariable String stageId) {
+    public Result<List<StageResult>> queryStageResult_detailByStageId(@PathVariable String stageId) {
         System.out.println(stageId);
         List<StageResult> stageResultVoList = apiService.queryStageResultDataDetailByStageId(stageId);
         return Result.success(stageResultVoList);
@@ -129,35 +131,20 @@ public class ApiController {
     @TakeCount(method = "常驻商店性价比")
     @ApiOperation("获取常驻商店性价比")
     @GetMapping("/store/perm")
-    public Result getStorePermData() {
-        Object resultVo = apiService.queryResultByApiPath("store/perm");
-        return Result.success(resultVo);
+    public Result<Map<String, List<StorePerm>>> getStorePermData() {
+
+        Map<String, List<StorePerm>> storePerm = storeService.getStorePerm();
+        return Result.success(storePerm);
     }
 
     @TakeCount(method = "活动商店性价比")
     @ApiOperation("获取活动商店性价比")
     @GetMapping("/store/act")
-    public Result getStoreActData() {
-        Object resultVo = apiService.queryResultByApiPath("store/act");
-        return Result.success(resultVo);
+    public Result<List<StoreActVo>> getStoreActData() {
+        List<StoreActVo> storeActVoList = storeService.getStoreAct();
+        return Result.success(storeActVoList);
     }
 
-
-//    @ApiOperation("发送邮件")
-//    @PostMapping("/sendEmail")
-//    public Result sendEmail(@RequestBody EmailRequest emailRequest) {
-//        userService.sendMail(emailRequest);
-//        return Result.success();
-//    }
-
-
-//    @TakeCount(method = "礼包商店性价比")
-//    @ApiOperation("获取礼包商店性价比")
-//    @GetMapping("/store/pack")
-//    public Result getStorePackData() {
-//        Object resultVo = apiService.queryResultByApiPath("store/pack");
-//        return Result.success(resultVo);
-//    }
 
     @ApiOperation(value = "材料表导出（Excel格式）")
     @GetMapping("/item/export/excel")
