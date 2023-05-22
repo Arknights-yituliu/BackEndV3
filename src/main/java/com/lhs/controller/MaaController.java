@@ -21,7 +21,7 @@ import java.io.StringReader;
 import java.util.*;
 
 @RestController
-@Api(tags = "MAA接口-新")
+@Api(tags = "MaaAPI—新")
 @RequestMapping(value = "/maa")
 @CrossOrigin(maxAge = 86400)
 public class MaaController {

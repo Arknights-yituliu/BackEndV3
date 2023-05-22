@@ -17,6 +17,7 @@ import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.StorePerm;
 import com.lhs.service.dto.ItemCustomValueVo;
 import com.lhs.service.dto.StoreActJsonVo;
+import com.lhs.service.dto.StoreItem;
 import com.lhs.service.vo.StoreActVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -196,30 +197,30 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
 
-    public void updateActStoreByActName(JSONObject actStoreData)  {
+    public void updateActStoreByActName(StoreActVo storeActVo)  {
         List<Item> items = itemService.queryItemListById(0.625, 200);
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        List<StoreItem> storeItemList = storeActVo.getActStore();
+        String actName = storeActVo.getActName();
+        String actEndDate = storeActVo.getActEndDate();
 
-        List<StoreActJsonVo> actStores = JSONArray.parseArray(actStoreData.getString("actStore"), StoreActJsonVo.class);
-        String actName = actStoreData.getString("actName");
-        String actEndDate = actStoreData.getString("actEndDate");
         Date date = new Date();
         try {
             date = sdf.parse(actEndDate);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        actStores.forEach(a -> {
+
+        storeItemList.forEach(a -> {
             a.setItemPPR(itemMap.get(a.getItemName()).getItemValueAp() * a.getItemQuantity() / a.getItemPrice());
             a.setItemId(itemMap.get(a.getItemName()).getItemId());
         });
 
-        actStores.sort(Comparator.comparing(StoreActJsonVo::getItemPPR).reversed());
+        storeItemList.sort(Comparator.comparing(StoreItem::getItemPPR).reversed());
 
-        actStoreData.put("actStore", actStores);
         StoreAct act_name = storeActMapper.selectOne(new QueryWrapper<StoreAct>().eq("act_name", actName));
-        StoreAct build = StoreAct.builder().actName(actName).endTime(date).result(JSON.toJSONString(actStoreData)).build();
+        StoreAct build = StoreAct.builder().actName(actName).endTime(date).result(JSON.toJSONString(storeActVo)).build();
         if(act_name==null){
             storeActMapper.insert(build);
         }else {
@@ -228,7 +229,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
-        FileUtil.save(ConfigUtil.Backup, "actStore " + saveDate + ".json", JSON.toJSONString(actStoreData));
+        FileUtil.save(ConfigUtil.Backup, "actStore " + saveDate + ".json", JSON.toJSONString(storeActVo));
     }
 
     @RedisCacheable(key = "StoreAct")

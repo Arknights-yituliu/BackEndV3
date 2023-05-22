@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Api(tags = "API——关卡效率、材料价值、商店性价比")
+@Api(tags = "API—关卡效率、材料价值、商店性价比")
 @CrossOrigin()
 @Slf4j
 public class StageController {
