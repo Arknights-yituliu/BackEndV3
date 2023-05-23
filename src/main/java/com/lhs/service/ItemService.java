@@ -107,8 +107,6 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
         saveByProductValue(items);  //保存Vn+1的加工站副产物平均产出价值
         updateBatchById(items);  //更新材料表
 
-        String saveDate = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
-        FileUtil.save(ConfigUtil.Backup,"itemValue_"+saveDate +"_"+expCoefficient+".json",JSON.toJSONString(items));  //价值表备份
 
         return items;
 
