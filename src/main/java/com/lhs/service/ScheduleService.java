@@ -40,7 +40,6 @@ public class ScheduleService {
         String jsonForMat = JSON.toJSONString(JSONObject.parseObject(schedule.getSchedule()), SerializerFeature.PrettyFormat,
                 SerializerFeature.WriteDateUseDateFormat, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty);
-//        System.out.println(FileConfig.Schedule);
 
         FileUtil.save(response, ConfigUtil.Schedule, scheduleId.toString()+".json", jsonForMat);
     }

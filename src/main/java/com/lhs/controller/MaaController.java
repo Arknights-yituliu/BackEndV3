@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.StringReader;
 import java.util.*;
 
 @RestController
@@ -102,7 +101,7 @@ public class MaaController {
     }
 
     @ApiOperation("查询某个材料的最优关卡(会返回理智转化效率在80%以上的至多8个关卡)")
-    @GetMapping()
+    @GetMapping("/stage")
     @ApiImplicitParam(name = "itemName", value = "材料名称", dataType = "String", paramType = "query")
     public Result<List<StageResultVo>> selectStageResultByItemName(@RequestParam String itemName){
         List<StageResultVo> stageResultVoList =  stageResultService.selectStageResultByItemName(itemName);

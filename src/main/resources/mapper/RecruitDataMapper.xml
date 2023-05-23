@@ -12,7 +12,7 @@
 
     <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.maa.RecruitData">
         SELECT *
-        FROM  `recruit_data_1`
+        FROM  ${tableName}
         WHERE
        `create_time` &gt; #{startTime} AND
         `create_time` &lt;= #{endTime}

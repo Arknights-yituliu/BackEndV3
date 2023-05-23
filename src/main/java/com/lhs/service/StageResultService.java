@@ -62,12 +62,11 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         List<PenguinDataVo> penguinDataVos = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataVo.class);//将企鹅物流文件的内容转为集合
         penguinDataVos = mergePenguinData(penguinDataVos);  //合并企鹅物流的标准和磨难关卡的样本
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity())); //将item表的各项信息转为Map  <itemId,Item类 >
-        Map<String, Stage> stageInfoMap = stageService.findAll(new QueryWrapper<Stage>().notLike("stage_id", "tough")).stream().collect(Collectors.toMap(Stage::getStageId, Function.identity()));  //将stage的各项信息转为Map <stageId,stage类 >
+        Map<String, Stage> stageInfoMap = stageService.getStageTable(new QueryWrapper<Stage>().notLike("stage_id", "tough")).stream().collect(Collectors.toMap(Stage::getStageId, Function.identity()));  //将stage的各项信息转为Map <stageId,stage类 >
         List<QuantileTable> quantileTables = quantileMapper.selectList(null);
 //        Double gachaBoxExpectValue = gachaBoxExpectValue(penguinDataResponseVos, itemValueMap);
         double gachaBoxExpectValue = 22.40;
 
-//        penguinDataResponseVos.forEach(e-> System.out.println(e));
         penguinDataVos = penguinDataVos.stream()
                 .filter(penguinData -> penguinData.getTimes() > sampleSize && itemValueMap.get(penguinData.getItemId()) != null  //过滤掉（该条记录的样本低于300 & 该条记录的掉落材料不存在于材料表中 & 该条记录的关卡ID不存在于关卡表中）的数据
                         && stageInfoMap.get(penguinData.getStageId()) != null)
@@ -91,7 +90,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
             Stage stage = stageInfoMap.get(penguinData.getStageId());
             Item item = itemValueMap.get(penguinData.getItemId());
-//            System.out.println(stage.getStageCode());
             double knockRating = ((double) penguinData.getQuantity() / (double) penguinData.getTimes());  //材料掉率
             if (knockRating == 0) continue; //÷0就跳过
             double sampleConfidence = sampleConfidence(penguinData.getTimes(), stage, item.getItemValueAp(), knockRating, quantileTables); //置信度
@@ -118,7 +116,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                 stageResult.setItemType(null); // 只有该关卡的主产物的计算结果才保存材料类型，否则是null
             stageResult.setId(id++);
             stageResultList.add(stageResult);
-//            if("落叶逐火".equals(stageResult.getZoneName())) System.out.println(stageResult);
             //判断是否为活动本（展示状态为1，但不参与定价），复制一条该关卡的结果，但加上商店无限龙门币的价值
             if (stage.getIsShow() == 1 && stage.getIsValue() == 0 && !(stage.getStageId().startsWith("act24side"))) {
                 StageResult efficiencyResultCopy = SerializationUtils.clone(stageResult);
@@ -136,7 +133,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         stageResultList.stream()
                 .collect(Collectors.groupingBy(StageResult::getStageId))   //把计算结果根据stageId分组
                 .forEach((stageId, list) -> {      //list是相同关卡的所有材料的单条计算结果
-//                    System.out.println(stageId);
                     double sum = list.stream().mapToDouble(StageResult::getResult).sum();   //计算关卡的材料产出价值之和V
                     double result_randomMaterial = ApSupplyAndRandomMaterialAndApCostMap.get("result_"+stageId)==null?0.0:ApSupplyAndRandomMaterialAndApCostMap.get("result_"+stageId);
                     double apCostDeductedApSupply = ApSupplyAndRandomMaterialAndApCostMap.get("apCost_"+stageId)==null?0.0:ApSupplyAndRandomMaterialAndApCostMap.get("apCost_"+stageId);
@@ -149,7 +145,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                         double efficiency = sum / apCost + 0.0432;  //计算效率之后保存到该关卡的每一条结果，效率公式为   sum(Vn)/apCost+0.036*1.2
                         if (result.getStageId().startsWith("act24side")) {
                             efficiency = (sum / apCost) / 40 * gachaBoxExpectValue + 0.0432;
-//                            System.out.println(result.getStageCode() +":"+ efficiency);
                         }
 
                         if (result.getStageId().endsWith("LMD")) {
@@ -205,11 +200,8 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         String stageId_effMax = stageResultList.get(0).getStageId();   //拿到效率最高的关卡id
         stageResultList.get(0).setStageColor(3);  //效率最高为3
 
-//        stageResultList.forEach(result-> System.out.println(result.getStageCode()
-//                +"  颜色:"+result.getStageColor()+"  效率:"+result.getStageEfficiency()));
 
         stageResultList = stageResultList.stream()
-//                .filter(stageResult -> stageResult.getIsShow() == 1)  //过滤掉已经关闭的关卡
                 .limit(8)  //限制个数
                 .sorted(Comparator.comparing(StageResult::getApExpect))  //根据期望理智排序
                 .collect(Collectors.toList());  //流转为集合
@@ -222,8 +214,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
             stageResultList.get(0).setStageColor(1); // 不一致为1
         }
 
-//        stageResultList.forEach(result-> System.out.println(result.getStageCode()
-//                +"  颜色:"+result.getStageColor()+"  效率:"+result.getStageEfficiency()));
+
     }
 
     /**
@@ -257,7 +248,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                 case "furni":
                     break;
                 default:
-//                    System.out.println("非法id" + data.getItemId());
             }
         }
 
@@ -275,13 +265,11 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         penguinDataList.stream()
                 .filter(penguinData -> penguinData.getStageId().startsWith("main_10") || penguinData.getStageId().startsWith("main_11")|| penguinData.getStageId().startsWith("main_12"))
                 .forEach(entity -> {
-//                    System.out.println("合并前："+entity);
                     if(collect.get(entity.getStageId().replace("main","tough") + entity.getItemId())!=null) {
                        PenguinDataVo toughData = collect.get(entity.getStageId().replace("main","tough") + entity.getItemId());
                         entity.setTimes(entity.getTimes() + toughData.getTimes());
                         entity.setQuantity(entity.getQuantity() + toughData.getQuantity());
                     }
-//                    System.out.println("合并后："+entity);
                 });
 
         return penguinDataList;

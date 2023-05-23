@@ -54,7 +54,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         List<StorePerm> storePerms = storePermMapper.selectList(null);
         Map<String, Item> collect = itemService.queryItemListById(0.625, 200).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
-        System.out.println(collect);
+
         storePerms.forEach(storePerm -> {
             storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValueAp() * storePerm.getQuantity() / storePerm.getCost());
             if ("grey".equals(storePerm.getStoreType())) storePerm.setCostPer(storePerm.getCostPer() * 100);

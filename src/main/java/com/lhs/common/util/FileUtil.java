@@ -125,7 +125,6 @@ public class FileUtil {
 
             reader.close();
             jsonStr = sb.toString();
-            System.out.println(file.getPath());
             boolean delete = file.delete();
             return jsonStr;
         } catch (IOException e) {

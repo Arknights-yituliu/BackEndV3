@@ -34,7 +34,7 @@ public class SurveyController {
         return Result.success(register);
     }
 
-    @ApiOperation("调查用户注册")
+    @ApiOperation("调查用户登录")
     @PostMapping("/login")
     public Result login(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密

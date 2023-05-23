@@ -9,7 +9,7 @@ spring:
     username: root
     password: root
   redis:
-    host:
+    host: 127.0.0.1
     port: 6379
     database: 0
     connect-timeout: 1800000
@@ -29,21 +29,25 @@ spring:
     properties:
       mail:
         debug: true #启动debug调试
-        smtp:
+        smtp:  "你的qq游戏授权码"
           socketFactory:
             class: javax.net.ssl.SSLSocketFactory #SSL连接配置
 
 
 
 
-filePath:
+resourcesPath:
   penguin: src/main/resources/penguin/
   item: src/main/resources/item/
   frontEnd: src/main/resources/frontEnd/
   backup: src/main/resources/backups/
   schedule: src/main/resources/schedule/
-  operatorBox: src/main/resources/operatorBox/
-  secret:1111111111111111
+  secret: "AES加密"
+  signKey: "jwt签名"
+
+aliyun:
+  AccessKeyID:  "阿里云密匙"
+  AccessKeySecret: "阿里云密匙"
 
 #mybatis-plus:
 #  configuration:

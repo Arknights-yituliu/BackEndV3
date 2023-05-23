@@ -3,7 +3,6 @@ package com.lhs.service;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,14 +13,12 @@ import com.lhs.mapper.ItemMapper;
 import com.lhs.mapper.StageMapper;
 import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.Stage;
-import com.lhs.entity.stage.StageResult;
 
-import com.lhs.service.vo.StageResultVo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -33,10 +30,13 @@ import java.util.stream.Collectors;
 @Service
 public class StageService extends ServiceImpl<StageMapper, Stage>  {
 
-    @Autowired
+    @Resource
     private ItemMapper itemMapper;
-    @Autowired
+    @Resource
     private StageMapper stageMapper;
+
+    @Resource
+    private ToolService toolService;
 
     /**
      * 保存企鹅物流数据到本地
@@ -45,12 +45,16 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
      */
     public void savePenguinData(String dataType, String url) {
         String response = HttpRequestUtil.doGet(url, new HashMap<>());
-        String saveTime = new SimpleDateFormat("yyyy-MM-dd HH mm").format(new Date()); // 设置日期格式
+        String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
+        String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()); // 设置日期格式
+        if (response == null) return;
         FileUtil.save(ConfigUtil.Penguin, "matrix " + dataType + ".json", response);
-        FileUtil.save(ConfigUtil.Penguin, "matrix " + saveTime + " " + dataType + ".json", response);
-
+        toolService.ossUpload(response,"penguin/" + yyyyMMdd + "/matrix " + dataType + " " + yyyyMMddHHmm + ".json");
     }
-    public List<Stage> findAll(QueryWrapper<Stage> queryWrapper) {
+
+
+
+    public List<Stage> getStageTable(QueryWrapper<Stage> queryWrapper) {
 
         return stageMapper.selectList(queryWrapper);
 
@@ -142,7 +146,6 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     public LinkedHashMap<String, List<Stage>> queryStageTable(){
         List<Stage> stageList = stageMapper.selectList(new QueryWrapper<Stage>().notLike("stage_id","tough").orderByDesc("stage_id"));
         List<Stage> zoneList = stageMapper.selectList(new QueryWrapper<Stage>().notLike("stage_id","tough").groupBy("zone_id").orderByDesc("stage_id"));
-//        zoneList.forEach(System.out::println);
         Map<String, List<Stage>> collect = stageList.stream().collect(Collectors.groupingBy(Stage::getZoneName));
         LinkedHashMap<String, List<Stage>> result = new LinkedHashMap<>();
         zoneList.forEach(stage->result.put(stage.getZoneName(),collect.get(stage.getZoneName())));

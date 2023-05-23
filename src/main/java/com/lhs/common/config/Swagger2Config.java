@@ -90,10 +90,10 @@ public class Swagger2Config {
 	//swagger界面中显示的基本信息
 	private ApiInfo apiInfo() {
 		return new ApiInfoBuilder()
-				.title("api测试文档")
-				.description("")
+				.title("一图流API文档")
+				.description("一图流的公开API，包括关卡，材料，商店等API")
 				.termsOfServiceUrl("")
-				.version("1.6")
+				.version("3.2")
 				.build();
 	}
 

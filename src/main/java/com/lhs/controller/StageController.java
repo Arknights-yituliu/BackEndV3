@@ -6,7 +6,7 @@ import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.Stage;
 import com.lhs.entity.stage.StageResult;
 import com.lhs.entity.stage.StorePerm;
-import com.lhs.service.selectStageResultSerivce;
+import com.lhs.service.SelectStageResultService;
 import com.lhs.service.ItemService;
 import com.lhs.service.StageService;
 import com.lhs.service.StoreService;
@@ -33,7 +33,7 @@ import java.util.Map;
 @Slf4j
 public class StageController {
     @Resource
-    private selectStageResultSerivce selectStageResultSerivce;
+    private SelectStageResultService selectStageResultService;
     @Resource
     private ItemService itemService ;
     @Resource
@@ -66,7 +66,7 @@ public class StageController {
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625")
     public Result<List<List<StageResultVo>>> queryStageResult_t3(@RequestParam Double expCoefficient) {
 
-        List<List<StageResultVo>> stageResultVoList = selectStageResultSerivce.queryStageResultData_t3(expCoefficient, 100);
+        List<List<StageResultVo>> stageResultVoList = selectStageResultService.queryStageResultData_t3(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
     }
@@ -76,7 +76,7 @@ public class StageController {
     @GetMapping("/stage/t2")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625")
     public Result<List<List<StageResultVo>>> queryStageResult_t2(@RequestParam Double expCoefficient) {
-        List<List<StageResultVo>> stageResultVoList = selectStageResultSerivce.queryStageResultData_t2(expCoefficient, 100);
+        List<List<StageResultVo>> stageResultVoList = selectStageResultService.queryStageResultData_t2(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
     }
@@ -86,7 +86,7 @@ public class StageController {
     @GetMapping("/stage/closed")
     @ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625")
     public Result<List<List<StageResultActVo>>> queryStageResult_closedActivities(@RequestParam Double expCoefficient) {
-        List<List<StageResultActVo>> stageResultVoList = selectStageResultSerivce.queryStageResultData_closedActivities(expCoefficient, 100);
+        List<List<StageResultActVo>> stageResultVoList = selectStageResultService.queryStageResultData_closedActivities(expCoefficient, 100);
 
         return Result.success(stageResultVoList);
     }
@@ -95,7 +95,7 @@ public class StageController {
     @ApiOperation("获取搓玉推荐关卡")
     @GetMapping("/stage/orundum")
     public Result<List<OrundumPerApResultVo>> queryStageResult_Orundum() {
-        List<OrundumPerApResultVo> OrundumPerApResultVoList = selectStageResultSerivce.queryStageResultData_Orundum(0.625, 100);
+        List<OrundumPerApResultVo> OrundumPerApResultVoList = selectStageResultService.queryStageResultData_Orundum(0.625, 100);
 
         return Result.success(OrundumPerApResultVoList);
     }
@@ -105,7 +105,7 @@ public class StageController {
     @GetMapping("/stage/newChapter")
     @ApiImplicitParam(name = "zone", value = "章节名称", dataType = "String", paramType = "query", defaultValue = "11-")
     public Result<List<StageResultVo>> queryStageResult_newChapter(@RequestParam String zone) {
-        List<StageResultVo> stageResultVoList = selectStageResultSerivce.queryStageResultDataByZoneName(zone);
+        List<StageResultVo> stageResultVoList = selectStageResultService.queryStageResultDataByZoneName(zone);
 
         return Result.success(stageResultVoList);
     }
@@ -115,7 +115,7 @@ public class StageController {
     @GetMapping("/stage/detail")
     @ApiImplicitParam(name = "stageCode", value = "关卡名称", dataType = "String", paramType = "query", defaultValue = "11-")
     public Result<List<StageResult>> queryStageResult_detail(@RequestParam String stageCode) {
-        List<StageResult> stageResultVoList = selectStageResultSerivce.queryStageResultDataDetailByStageCode(stageCode);
+        List<StageResult> stageResultVoList = selectStageResultService.queryStageResultDataDetailByStageCode(stageCode);
         return Result.success(stageResultVoList);
     }
 
@@ -123,8 +123,7 @@ public class StageController {
     @ApiOperation("查询关卡详细信息")
     @GetMapping("/stage/detail/{stageId}")
     public Result<List<StageResult>> queryStageResult_detailByStageId(@PathVariable String stageId) {
-        System.out.println(stageId);
-        List<StageResult> stageResultVoList = selectStageResultSerivce.queryStageResultDataDetailByStageId(stageId);
+        List<StageResult> stageResultVoList = selectStageResultService.queryStageResultDataDetailByStageId(stageId);
         return Result.success(stageResultVoList);
     }
 

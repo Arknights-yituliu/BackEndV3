@@ -82,7 +82,6 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
                                  .append(0.36*rarity)
                                  .append(" ) / ")
                                  .append(itemCost.getCount());
-//                        System.out.println(message);
                     } //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
 
                 }else  {
@@ -99,7 +98,6 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
 
                     message.append(" ) + ").append(0.36 * (rarity-1)).append(" - ")
                            .append(Double.parseDouble(workShopProductsValue.getString("rarity_" + (rarity - 1))));
-//                System.out.println(message);
                 }
 
             itemValueMap.get(table.getId()).setItemValueAp(itemValueNew);  //存入新材料价值

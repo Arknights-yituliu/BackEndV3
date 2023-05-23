@@ -8,19 +8,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigUtil implements InitializingBean {
 
-    @Value("${filePath.penguin}")
+    @Value("${resourcesPath.penguin}")
     private String penguin;  //    企鹅物流数据文件位置
-    @Value("${filePath.frontEnd}")
+    @Value("${resourcesPath.frontEnd}")
     private String frontEnd;  //    前端数据文件位置
-    @Value("${filePath.item}")
+    @Value("${resourcesPath.item}")
     private String item;  //    材料相关数据文件位置
-    @Value("${filePath.backup}")
+    @Value("${resourcesPath.backup}")
     private String backup;  //    备份文件路径
-    @Value("${filePath.schedule}")
+    @Value("${resourcesPath.schedule}")
     private String schedule;
-    @Value("${filePath.secret}")
+    @Value("${resourcesPath.secret}")
     private String secret;
-    @Value("${filePath.signKey}")
+    @Value("${resourcesPath.signKey}")
     private String signKey;
 
     public static String Penguin;

@@ -75,7 +75,6 @@ public class UserService {
         Developer developer = developerMapper.selectOne(queryWrapper);
         if (developer == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         String code = String.valueOf(redisTemplate.opsForValue().get(developer.getEmail() + "CODE"));
-        System.out.println(code);
         if (!loginVo.getCode().equals(code)) {
             throw new ServiceException(ResultCode.USER_LOGIN_CODE_ERROR);
         }

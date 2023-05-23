@@ -49,9 +49,6 @@ class DemoApplicationTests {
     void secretTest() {
         String SECRET = ConfigUtil.Secret;
         String ip = "117.11.47.234";
-        System.out.println(SECRET.length());
-        System.out.println(AES.encrypt(ip, SECRET));
-        System.out.println( AES.decrypt("FiMY9b2S+RPcNLEt6zM+uhnLR0aZ6YRtT5xfQbv6/xxLUHWZc7J5OZ3PthmjR2tq",SECRET));
 
     }
 
@@ -152,7 +149,6 @@ class DemoApplicationTests {
         int toIndex = 500;
         for (int i = 0; i < num; i++) {
             toIndex = Math.min(toIndex, userIds.size());
-//            System.out.println("fromIndex:"+fromIndex+"---toIndex:"+toIndex);
             userIdsGroup.add(userIds.subList(fromIndex, toIndex));
             fromIndex += 500;
             toIndex += 500;
@@ -170,7 +166,6 @@ class DemoApplicationTests {
                     surveyMapper.selectSurveyDataCharVoByUidList("survey_data_char_1", userIdsGroup.get(i));
 
 //            log.info("本次统计数量：" + surveyDataCharList_DB.size());
-            System.out.println("本次统计数量：" + surveyDataCharList_DB.size());
 
             Map<String, List<SurveyDataCharVo>> collectByCharId = surveyDataCharList_DB.stream()
                     .collect(Collectors.groupingBy(SurveyDataCharVo::getCharId));

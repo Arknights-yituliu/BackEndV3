@@ -86,9 +86,7 @@ public class StageTest {
                     stage.setIsShow(1);
                 }
                 if(basicInfo.getString(stage.getZoneId())!=null){
-//                    System.out.println(stage.getZoneId());
                     JSONObject basicInfoByStageId = JSONObject.parseObject(basicInfo.getString(stage.getZoneId()));
-//                    System.out.println("基础信息："+basicInfoByStageId);
                     long startTime = Long.parseLong(basicInfoByStageId.getString("startTime"));
                     stage.setOpenTime(new Date(startTime));
                 }

@@ -200,7 +200,6 @@ public class SurveyService {
         int toIndex = 500;   //id分组结束
         for (int i = 0; i < num; i++) {
             toIndex = Math.min(toIndex, userIds.size());
-//            System.out.println("fromIndex:"+fromIndex+"---toIndex:"+toIndex);
             userIdsGroup.add(userIds.subList(fromIndex, toIndex));
             fromIndex += 500;
             toIndex += 500;
@@ -407,7 +406,6 @@ public class SurveyService {
 
 
         for (SurveyDataChar surveyDataChar : surveyDataCharList) {
-            System.out.println(surveyDataChar);
             String id = uid + "_" + surveyDataChar.getCharId(); //存储id
 //            if(!surveyDataChar.getOwn())  continue;  //未持有不记录
 

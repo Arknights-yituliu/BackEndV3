@@ -37,7 +37,7 @@ public class RecruitSurveyService {
                 .version(maaRecruitVo.getVersion())
                 .createTime(date).build();
 
-        recruitDataMapper.insertRecruitData("recruit_data_1",recruitData);
+        recruitDataMapper.insertRecruitData("recruit_data_2",recruitData);
 
         return null;
     }
@@ -45,15 +45,18 @@ public class RecruitSurveyService {
     public Map<String, Integer> recruitStatistics() {
 
         List<RecruitStatistics> recruitStatistics = recruitDataMapper.selectRecruitStatistics();
-        Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream().collect(Collectors.toMap(RecruitStatistics::getStatisticalItem, RecruitStatistics::getStatisticalResult));
+        Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream()
+                .collect(Collectors.toMap(RecruitStatistics::getStatisticalItem, RecruitStatistics::getStatisticalResult));
 
         RecruitStatisticsConfig config = recruitDataMapper.selectConfigByKey("lastTime");
         long lastTime = Long.parseLong(config.getConfigValue());
         Date date = new Date();
 
 
-        List<RecruitData> recruit_data_1 = recruitDataMapper.selectRecruitDataByCreateTime("recruit_data_1", new Date(lastTime), date);
-        Map<Integer, List<RecruitData>> collect = recruit_data_1.stream().collect(Collectors.groupingBy(RecruitData::getLevel));
+        List<RecruitData> recruit_data_DB = recruitDataMapper.selectRecruitDataByCreateTime("recruit_data_2", new Date(lastTime), date);
+        System.out.println("公招统计数量："+recruit_data_DB.size()+"条");
+        Map<Integer, List<RecruitData>> collect = recruit_data_DB.stream()
+                .collect(Collectors.groupingBy(RecruitData::getLevel));
 
         int topOperator = 0;  //高级资深总数
         int seniorOperator = 0; //资深总数
@@ -183,7 +186,7 @@ public class RecruitSurveyService {
         resultMap.put("robot",robot);
         resultMap.put("robotChoice",robotChoice);
         resultMap.put("vulcan",vulcan);
-        resultMap.put("maaRecruitDataCount",recruit_data_1.size());
+        resultMap.put("maaRecruitDataCount",recruit_data_DB.size());
 
         resultMap.forEach((k,v)->{
             recruitStatisticsMap.merge(k,v,Integer::sum);

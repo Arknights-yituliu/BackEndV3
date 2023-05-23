@@ -1,5 +1,8 @@
 # API
 
+注：文档可能更新不及时，可查看在线文档
+### Swagger API文档  https://backend.yituliu.site/swagger-ui.html
+
 # 基础传输
 
 请求一个 API 时, 包含了: API 终结点, 以及 API 所需参数.
@@ -8,16 +11,16 @@
 
 使用 HTTP GET:
 
-|     名称      |                   说明                    |
-| :-----------: | :---------------------------------------: |
+|    名称     |             说明             |
+|:---------:|:--------------------------:|
 | 请求 URL 格式 | /终结点?参数名=参数值&参数名=参数值...... |
 
 使用 HTTP POST:
 
-|     名称      |       说明        |
-| :-----------: | :---------------: |
-| 请求 URL 格式 |      /终结点      |
-|    请求体     | 请求体一般为 JSON |
+|    名称     |     说明      |
+|:---------:|:-----------:|
+| 请求 URL 格式 |    /终结点     |
+|    请求体    | 请求体一般为 JSON |
 
 HTTP POST JSON 格式:
 
@@ -33,12 +36,12 @@ HTTP POST JSON 格式:
 以下是响应的内容 <br>
 其中 code（返回值），message（说明）字段：
 
-| 返回值 |       说明       |
-| :----: | :--------------: |
-| 50002  |     数据错误     |
-| 50001  |    数据未找到    |
-|  404   |    API 不存在    |
-|  200   | 一般代表调用成功 |
+|  返回值  |    说明    |
+|:-----:|:--------:|
+| 50002 |   数据错误   |
+| 50001 |  数据未找到   |
+|  404  | API 不存在  |
+|  200  | 一般代表调用成功 |
 
 data 字段：
 API 的响应数据，一般是一个 JSON，部分情况为 String
@@ -61,22 +64,22 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 #### 响应数据
 
-|       字段名        |  数据类型  |                                说明                                |
-|:----------------:|:------:|:----------------------------------------------------------------:|
-| stageEfficiency  | Double | 与所有常驻关卡中，无活动加成时综合效率最高者相比，该关卡的效率为 103.6%。该效率是统计了所有产物的综合效率，长期最优的结果 |
-|    stageCode     | String |                             关卡的显示名称                              |
-|     itemType     | String |                           该关卡属于某一材料体系                            |
-|   secondaryId    | String |                        副产物的物品 ID，1 为无副产物                         |
-| sampleConfidence | Double |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
-|   activityName   | String |                             活动或章节名称                              |
-|   knockRating    | Double |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
-|    updateTime    | String |                             数据统计的时间                              |
-|    sampleSize    |  Integer   |                               样本数量                               |
-|    secondary     | String |                         副产物的物品名称，1 为无副产物                         |
-|     apExpect     | Double |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
-|      itemId      | String |                            主产物的物品 ID                             |
-|       spm        | String |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
-|    stageColor    |  Integer   | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
+|       字段名        |  数据类型   |                                说明                                |
+|:----------------:|:-------:|:----------------------------------------------------------------:|
+| stageEfficiency  | Double  | 与所有常驻关卡中，无活动加成时综合效率最高者相比，该关卡的效率为 103.6%。该效率是统计了所有产物的综合效率，长期最优的结果 |
+|    stageCode     | String  |                             关卡的显示名称                              |
+|     itemType     | String  |                           该关卡属于某一材料体系                            |
+|   secondaryId    | String  |                        副产物的物品 ID，1 为无副产物                         |
+| sampleConfidence | Double  |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
+|   activityName   | String  |                             活动或章节名称                              |
+|   knockRating    | Double  |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
+|    updateTime    | String  |                             数据统计的时间                              |
+|    sampleSize    | Integer |                               样本数量                               |
+|    secondary     | String  |                         副产物的物品名称，1 为无副产物                         |
+|     apExpect     | Double  |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
+|      itemId      | String  |                            主产物的物品 ID                             |
+|       spm        | String  |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
+|    stageColor    | Integer | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
 
 ### 获取绿材料最优图(JsonArray)
 
@@ -92,22 +95,22 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 #### 响应数据
 
-|       字段名        |  数据类型  |                                说明                                |
-|:----------------:|:------:|:----------------------------------------------------------------:|
-| stageEfficiency  | Double |        与所有常驻关卡中，无活动加成时综合效率最高者相比。该效率是统计了所有产物的综合效率，长期最优的结果         |
-|    stageCode     | String |                             关卡的显示名称                              |
-|     itemType     | String |                           该关卡属于某一材料体系                            |
-|   secondaryId    | String |                        副产物的物品 ID，1 为无副产物                         |
-| sampleConfidence | Double |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
-|   activityName   | String |                             活动或章节名称                              |
-|   knockRating    | Double |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
-|    updateTime    | String |                             数据统计的时间                              |
-|    sampleSize    |  Integer   |                               样本数量                               |
-|    secondary     | String |                         副产物的物品名称，1 为无副产物                         |
-|     apExpect     | Double |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
-|      itemId      | String |                            主产物的物品 ID                             |
-|       spm        | String |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
-|    stageColor    |  Integer   | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
+|       字段名        |  数据类型   |                                说明                                |
+|:----------------:|:-------:|:----------------------------------------------------------------:|
+| stageEfficiency  | Double  |        与所有常驻关卡中，无活动加成时综合效率最高者相比。该效率是统计了所有产物的综合效率，长期最优的结果         |
+|    stageCode     | String  |                             关卡的显示名称                              |
+|     itemType     | String  |                           该关卡属于某一材料体系                            |
+|   secondaryId    | String  |                        副产物的物品 ID，1 为无副产物                         |
+| sampleConfidence | Double  |               样本量的置信度（误差不超过 3%的概率）为 99.9%，置信度过低的关卡               |
+|   activityName   | String  |                             活动或章节名称                              |
+|   knockRating    | Double  |                     主产物的掉率，短期急需该系材料的话参考意义较大                      |
+|    updateTime    | String  |                             数据统计的时间                              |
+|    sampleSize    | Integer |                               样本数量                               |
+|    secondary     | String  |                         副产物的物品名称，1 为无副产物                         |
+|     apExpect     | Double  |                     主产物的期望，短期急需该系材料的话参考意义较大                      |
+|      itemId      | String  |                            主产物的物品 ID                             |
+|       spm        | String  |                  SanityPerMinute，每分钟理论上可以消耗的理智                   |
+|    stageColor    | Integer | 关卡标注颜色 橙色(双最优):4，紫色(综合效率最优):3，蓝色(普通关卡):2，绿色(主产物期望最优):1，红色(活动):-1 |
 
 ### 获取常驻商店性价比(JsonObject)
 
@@ -158,26 +161,26 @@ API 的响应数据，一般是一个 JSON，部分情况为 String
 
 其中`actStore`字段包含6个字段
 
-|     字段名      |  数据类型  |          说明          |
-|:------------:|:------:|:--------------------:|
-|   itemArea   |  Integer   | 区域索引，用于判断是无限池区还是有限池区 |
-|   itemName   | String |         材料名称         |
-|   itemPPR    | Double |        材料性价比         |
-|  itemPrice   |  Integer   |         商店售价         |
-| itemQuantity |  Integer   |       商店每次售卖个数       |
-|  itemStock   |  Integer   |         商店库存         |
+|     字段名      |  数据类型   |          说明          |
+|:------------:|:-------:|:--------------------:|
+|   itemArea   | Integer | 区域索引，用于判断是无限池区还是有限池区 |
+|   itemName   | String  |         材料名称         |
+|   itemPPR    | Double  |        材料性价比         |
+|  itemPrice   | Integer |         商店售价         |
+| itemQuantity | Integer |       商店每次售卖个数       |
+|  itemStock   | Integer |         商店库存         |
 
 ### 获取所有物品价值(JsonArray)
 
-终结点：`/item/value/`
+终结点：`/item/value`
 <br>
 请求类型：Get
 
 #### 参数
 
-|     字段名     | 数据类型 | 默认值 |                                      说明                                       |
-| :------------: | :------: | :----: | :-----------------------------------------------------------------------------: |
-| expCoefficient |  Double  |   无   | 经验书系数 一般默认经验书价值为龙门币价值的 0.625 倍（也可选择 0.72 和 0.0 倍） |
+|      字段名       |  数据类型  | 默认值 |                        说明                         |
+|:--------------:|:------:|:---:|:-------------------------------------------------:|
+| expCoefficient | Double |  无  | 经验书系数 一般默认经验书价值为龙门币价值的 0.625 倍（也可选择 0.72 和 0.0 倍） |
 
 #### 响应数据
 

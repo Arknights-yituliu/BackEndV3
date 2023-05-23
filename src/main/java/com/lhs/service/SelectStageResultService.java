@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class selectStageResultSerivce {
+public class SelectStageResultService {
 
     @Resource
     private StageResultMapper stageResultMapper;
