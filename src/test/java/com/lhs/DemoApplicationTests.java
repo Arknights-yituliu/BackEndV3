@@ -2,13 +2,12 @@ package com.lhs;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.FileUtil;
-import com.lhs.entity.survey.SurveyDataChar;
-import com.lhs.entity.survey.SurveyDataCharVo;
-import com.lhs.entity.survey.SurveyStatisticsChar;
-import com.lhs.mapper.SurveyMapper;
+import com.lhs.entity.survey.SurveyCharacter;
+import com.lhs.service.vo.SurveyCharacterVo;
+import com.lhs.entity.survey.SurveyStatisticsCharacter;
+import com.lhs.mapper.SurveyCharacterMapper;
 import com.lhs.service.*;
 import com.lhs.service.dto.MaaOperBoxVo;
 import com.lhs.service.dto.SurveyStatisticsCharVo;
@@ -29,10 +28,13 @@ class DemoApplicationTests {
     private StageService stageService;
 
     @Resource
-    private SurveyService surveyService;
+    private SurveyCharacterService surveyCharacterService;
 
     @Resource
-    private SurveyMapper surveyMapper;
+    private SurveyCharacterMapper surveyCharacterMapper;
+
+    @Resource
+    private SurveyUserService surveyUserService;
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -111,14 +113,14 @@ class DemoApplicationTests {
         for (int i = 0; i < 1; i++) {
             String ip = "127.0.0.1" + i;
             String name = "山桜X" + i;
-            HashMap<Object, Object> register = surveyService.register(ip, name);
+            HashMap<Object, Object> register = surveyUserService.register(ip, name);
             Object uid = register.get("id");
-            List<SurveyDataChar> surveyDataCharList = new ArrayList<>();
+            List<SurveyCharacter> surveyCharacterList = new ArrayList<>();
             jsonObject.forEach((k, v) -> {
 
                 JSONObject charInfo = JSONObject.parseObject(String.valueOf(v));
                 int random = new Random().nextInt(11);
-                SurveyDataChar surveyDataChar = SurveyDataChar.builder()
+                SurveyCharacter surveyCharacter = SurveyCharacter.builder()
                         .charId(k)
                         .rarity(Integer.parseInt(charInfo.getString("rarity")))
                         .phase(random < 4 ? 1 : 2)
@@ -130,15 +132,15 @@ class DemoApplicationTests {
                         .modY(0)
                         .uid(Long.parseLong(String.valueOf(uid)))
                         .build();
-                surveyDataCharList.add(surveyDataChar);
+                surveyCharacterList.add(surveyCharacter);
             });
-            surveyService.uploadCharForm(name, surveyDataCharList);
+            surveyCharacterService.uploadCharForm(name, surveyCharacterList);
         }
     }
 
     @Test
     void survey11() {
-        List<Long> userIds = surveyMapper.selectSurveyUserIds();
+        List<Long> userIds = surveyUserService.selectSurveyUserIds();
         List<List<Long>> userIdsGroup = new ArrayList<>();
 
         int length = userIds.size();
@@ -155,27 +157,27 @@ class DemoApplicationTests {
         }
 
 
-        surveyMapper.truncateCharStatisticsTable();
+        surveyCharacterMapper.truncateCharacterStatisticsTable();
 
 
         HashMap<String, SurveyStatisticsCharVo> hashMap = new HashMap<>();
-        List<SurveyStatisticsChar> surveyDataCharList = new ArrayList<>();
+        List<SurveyStatisticsCharacter> surveyDataCharList = new ArrayList<>();
 
         for (int i = 0; i < userIdsGroup.size(); i++) {
-            List<SurveyDataCharVo> surveyDataCharList_DB =
-                    surveyMapper.selectSurveyDataCharVoByUidList("survey_data_char_1", userIdsGroup.get(i));
+            List<SurveyCharacterVo> surveyDataCharList_DB =
+                    surveyCharacterMapper.selectSurveyCharacterVoByUidList("survey_character_1", userIdsGroup.get(i));
 
 //            log.info("本次统计数量：" + surveyDataCharList_DB.size());
 
-            Map<String, List<SurveyDataCharVo>> collectByCharId = surveyDataCharList_DB.stream()
-                    .collect(Collectors.groupingBy(SurveyDataCharVo::getCharId));
+            Map<String, List<SurveyCharacterVo>> collectByCharId = surveyDataCharList_DB.stream()
+                    .collect(Collectors.groupingBy(SurveyCharacterVo::getCharId));
             collectByCharId.forEach((k, list) -> {
                 int own = list.size();
                 String charId = list.get(0).getCharId();
                 int rarity = list.get(0).getRarity();
 
                 Map<Integer, Long> collectByPhases = list.stream()
-                        .collect(Collectors.groupingBy(SurveyDataCharVo::getPhase, Collectors.counting()));
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getPhase, Collectors.counting()));
                 //该干员精英等级一的数量
                 int phases1 = collectByPhases.get(1) == null ? 0 : collectByPhases.get(1).intValue();
                 //该干员精英等级二的数量
@@ -183,17 +185,17 @@ class DemoApplicationTests {
 
                 //根据该干员的潜能等级分组统计  map(潜能等级,该等级的数量)
                 Map<Integer, Long> collectByPotential = list.stream()
-                        .collect(Collectors.groupingBy(SurveyDataCharVo::getPotential, Collectors.counting()));
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getPotential, Collectors.counting()));
                 Map<Integer, Long> collectBySkill1 = list.stream()
-                        .collect(Collectors.groupingBy(SurveyDataCharVo::getSkill1, Collectors.counting()));
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill1, Collectors.counting()));
                 Map<Integer, Long> collectBySkill2 = list.stream()
-                        .collect(Collectors.groupingBy(SurveyDataCharVo::getSkill2, Collectors.counting()));
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill2, Collectors.counting()));
                 Map<Integer, Long> collectBySkill3 = list.stream()
-                        .collect(Collectors.groupingBy(SurveyDataCharVo::getSkill3, Collectors.counting()));
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill3, Collectors.counting()));
                 Map<Integer, Long> collectByModX = list.stream()
-                        .collect(Collectors.groupingBy(SurveyDataCharVo::getModX, Collectors.counting()));
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getModX, Collectors.counting()));
                 Map<Integer, Long> collectByModY = list.stream()
-                        .collect(Collectors.groupingBy(SurveyDataCharVo::getModY, Collectors.counting()));
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getModY, Collectors.counting()));
 
                 if (hashMap.get(charId) != null) {
                     SurveyStatisticsCharVo lastData = hashMap.get(charId);
@@ -235,7 +237,7 @@ class DemoApplicationTests {
         }
 
         hashMap.forEach((k, v) -> {
-            SurveyStatisticsChar build = SurveyStatisticsChar.builder()
+            SurveyStatisticsCharacter build = SurveyStatisticsCharacter.builder()
                     .charId(v.getCharId())
                     .rarity(v.getRarity())
                     .own(v.getOwn())
@@ -249,7 +251,7 @@ class DemoApplicationTests {
                     .build();
             surveyDataCharList.add(build);
         });
-        surveyMapper.insertBatchCharStatistics(surveyDataCharList);
+        surveyCharacterMapper.insertBatchCharacterStatistics(surveyDataCharList);
     }
 
 

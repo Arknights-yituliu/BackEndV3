@@ -5,9 +5,13 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
-import com.lhs.entity.survey.SurveyDataChar;
-import com.lhs.entity.survey.SurveyDataCharVo;
-import com.lhs.service.SurveyService;
+import com.lhs.entity.survey.SurveyCharacter;
+import com.lhs.entity.survey.SurveyEvaluation;
+import com.lhs.service.SurveyEvaluationService;
+import com.lhs.service.SurveyUserService;
+import com.lhs.service.vo.SurveyCharacterVo;
+import com.lhs.service.SurveyCharacterService;
+import com.lhs.service.vo.SurveyStatisticsEvaluationVo;
 import com.lhs.service.vo.SurveyUserVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -24,44 +28,64 @@ import java.util.List;
 public class SurveyController {
 
     @Resource
-    private SurveyService surveyService;
+    private SurveyCharacterService surveyCharacterService;
+    @Resource
+    private SurveyUserService surveyUserService;
+    @Resource
+    private SurveyEvaluationService surveyEvaluationService;
 
     @ApiOperation("调查用户注册")
     @PostMapping("/register")
-    public Result register(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
+    public Result<Object> register(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密
-        HashMap<Object, Object> register = surveyService.register(ipAddress, surveyUserVo.getUserName());
+        HashMap<Object, Object> register = surveyUserService.register(ipAddress, surveyUserVo.getUserName());
         return Result.success(register);
     }
 
     @ApiOperation("调查用户登录")
     @PostMapping("/login")
-    public Result login(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
+    public Result<Object> login(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密
-        HashMap<Object, Object> register = surveyService.login(ipAddress, surveyUserVo.getUserName());
+        HashMap<Object, Object> register = surveyUserService.login(ipAddress, surveyUserVo.getUserName());
         return Result.success(register);
     }
 
     @ApiOperation("上传干员练度表")
     @PostMapping("/character")
-    public Result uploadCharacterForm(@RequestParam String userName, @RequestBody List<SurveyDataChar> surveyDataCharList) {
-        HashMap<Object, Object> hashMap = surveyService.uploadCharForm(userName, surveyDataCharList);
+    public Result<Object> uploadCharacterForm(@RequestParam String userName, @RequestBody List<SurveyCharacter> surveyCharacterList) {
+        HashMap<Object, Object> hashMap = surveyCharacterService.uploadCharForm(userName, surveyCharacterList);
         return Result.success(hashMap);
     }
 
     @ApiOperation("找回干员练度表")
     @GetMapping("/find/character")
-    public Result findCharacterForm(@RequestParam String userName) {
-        List<SurveyDataCharVo> surveyDataCharList = surveyService.findCharacterForm(userName);
+    public Result<Object> findCharacterForm(@RequestParam String userName) {
+        List<SurveyCharacterVo> surveyDataCharList = surveyCharacterService.findCharacterForm(userName);
         return Result.success(surveyDataCharList);
     }
 
     @ApiOperation("干员练度表统计结果")
-    @GetMapping("/result")
-    public Result surveyDataCharStatisticsResult() {
-        HashMap<Object, Object> hashMap = surveyService.charStatisticsResult();
+    @GetMapping("/character/result")
+    public Result<Object> characterStatisticsResult() {
+        HashMap<Object, Object> hashMap = surveyCharacterService.charStatisticsResult();
         return Result.success(hashMap);
     }
+
+    @ApiOperation("上传干员风评表")
+    @PostMapping("/evaluation")
+    public Result<Object> uploadEvaluationForm(@RequestParam String userName, @RequestBody List<SurveyEvaluation> surveyEvaluationList) {
+        HashMap<Object, Object> hashMap = surveyEvaluationService.uploadEvaluationForm(userName, surveyEvaluationList);
+        return Result.success(hashMap);
+    }
+
+
+    @ApiOperation("干员风评表统计结果")
+    @GetMapping("/evaluation/result")
+    public Result<List<SurveyStatisticsEvaluationVo>> evaluationStatisticsResult() {
+        List<SurveyStatisticsEvaluationVo> evaluationStatisticsResult = surveyEvaluationService.getEvaluationStatisticsResult();
+        return Result.success(evaluationStatisticsResult);
+    }
+
 
 
 

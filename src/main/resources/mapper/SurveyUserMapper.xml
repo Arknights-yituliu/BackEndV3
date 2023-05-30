@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.SurveyUserMapper">
+
+    <!--新增用户-->
+    <insert id="insertSurveyUser">
+        INSERT INTO `survey_user`
+        (`id`, `user_name`, `create_time`, `update_time`, `ip`, `status`)
+        VALUES (#{user.id}, #{user.userName}, #{user.createTime}, #{user.updateTime},
+                #{user.ip}, #{user.status})
+    </insert>
+
+    <!-- 查询用户根据用户名-->
+    <select id="selectSurveyUserByUserName" resultType="com.lhs.entity.survey.SurveyUser">
+        SELECT *
+        FROM `survey_user`
+        WHERE `user_name` = #{userName}
+    </select>
+
+    <!-- 查询用户根据用户Ip-->
+    <select id="selectLastSurveyUserIp" resultType="java.lang.Long">
+        SELECT *
+        FROM `survey_user`
+        WHERE `ip` = #{ip}
+    </select>
+
+    <!-- 查询用户根据id-->
+    <select id="selectSurveyUserById" resultType="com.lhs.entity.survey.SurveyUser">
+        SELECT *
+        FROM `survey_user`
+        WHERE `id` = #{id}
+    </select>
+
+    <!-- 更新用户状态-->
+    <update id="updateSurveyUser">
+        UPDATE `survey_user`
+        SET `update_time` = #{user.updateTime}
+        Where `id` = #{user.id}
+    </update>
+
+    <!-- 查询用户表的id-->
+    <select id="selectSurveyUserIds" resultType="java.lang.Long">
+        SELECT `id`
+        FROM survey_user
+        WHERE `status` = 1
+    </select>
+
+    <!-- 查询最后一个注册的-->
+    <select id="selectLastSurveyUserId" resultType="java.lang.Long">
+        SELECT *
+        FROM `survey_user`
+        GROUP BY `update_time` DESC
+        LIMIT 1
+    </select>
+
+
+
+    <!--    调查表配置，根据key查询-->
+    <select id="selectConfigByKey" resultType="java.lang.String">
+        SELECT `config_value`
+        FROM `survey_config`
+        WHERE `config_key` = #{configKey}
+    </select>
+
+    <!--    调查表配置，根据key更新-->
+    <update id="updateConfigByKey">
+        UPDATE `survey_config`
+        SET `config_value` = #{configValue}
+        WHERE `config_key` = #{configKey};
+    </update>
+</mapper>

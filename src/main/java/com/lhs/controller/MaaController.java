@@ -29,7 +29,7 @@ public class MaaController {
     @Resource
     private ScheduleService scheduleService;
     @Resource
-    private SurveyService surveyService;
+    private SurveyCharacterService surveyCharacterService;
     @Resource
     private StageResultService stageResultService;
     @Resource
@@ -48,7 +48,7 @@ public class MaaController {
 
         String ipAddress = IpUtil.getIpAddress(httpServletRequest);
         ipAddress = AES.encrypt(ipAddress, ConfigUtil.Secret);  //加密
-        HashMap<Object, Object> result = surveyService.saveMaaCharData(maaOperBoxVo, ipAddress);
+        HashMap<Object, Object> result = surveyCharacterService.saveMaaCharData(maaOperBoxVo, ipAddress);
 
         return Result.success(result);
     }

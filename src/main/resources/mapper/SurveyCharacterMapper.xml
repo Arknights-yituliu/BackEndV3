@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.SurveyCharacterMapper">
+
+
+
+
+<!--  批量插入干员练度信息表-->
+    <insert id="insertBatchSurveyCharacter">
+        INSERT INTO ${tableName}
+        (`id`, `uid`, `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`,
+        `mod_y`,`own`)
+        VALUES
+        <foreach collection="characterList" item="character" separator=",">
+            (#{character.id}, #{character.uid}, #{character.charId}, #{character.phase},
+            #{character.level},#{character.potential}, #{character.rarity}, #{character.skill1},
+            #{character.skill2},#{character.skill3},#{character.modX},#{character.modY},
+            #{character.own})
+        </foreach>
+    </insert>
+
+
+    <!-- 根据id更新干员练度信息表-->
+    <update id="updateSurveyCharacterById">
+        UPDATE ${tableName}
+        SET `phase`     = #{character.phase},
+            `level`     = #{character.level},
+            `potential` = #{character.potential},
+            `skill1`    = #{character.skill1},
+            `skill2`    = #{character.skill2},
+            `skill3`    = #{character.skill3},
+            `mod_x`     = #{character.modX},
+            `mod_y`     = #{character.modY},
+            `own`       = #{character.own}
+        WHERE `id` = #{character.id};
+    </update>
+
+    <!-- 根据多个uid查询干员练度信息表-->
+    <select id="selectSurveyCharacterVoByUidList" resultType="com.lhs.service.vo.SurveyCharacterVo">
+        SELECT `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
+        FROM ${tableName}
+        WHERE `uid` IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 根据单个uid查询干员练度信息表-->
+    <select id="selectSurveyCharacterByUid" resultType="com.lhs.entity.survey.SurveyCharacter">
+        SELECT *
+        FROM ${tableName}
+        WHERE `uid` = #{uid}
+    </select>
+
+
+    <!--  批量插入统计表-->
+    <insert id="insertBatchCharacterStatistics">
+        INSERT INTO `survey_statistics_character`
+        (`char_id`,`rarity`,`own`,`phase2`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`,`potential`)
+        VALUES
+        <foreach collection="surveyStatisticsList" item="surveyStatistics" separator=",">
+            ( #{surveyStatistics.charId},#{surveyStatistics.rarity},#{surveyStatistics.own},
+            #{surveyStatistics.phase2},#{surveyStatistics.skill1},#{surveyStatistics.skill2},
+            #{surveyStatistics.skill3},#{surveyStatistics.modX},#{surveyStatistics.modY},
+            #{surveyStatistics.potential})
+        </foreach>
+    </insert>
+
+    <!--  清空统计表-->
+    <delete id="truncateCharacterStatisticsTable">
+        TRUNCATE TABLE `survey_statistics_character`
+    </delete>
+
+    <!-- 查询统计表所有结果-->
+    <select id="selectCharacterStatisticsList" resultType="com.lhs.entity.survey.SurveyStatisticsCharacter">
+        Select *
+        FROM `survey_statistics_character`
+    </select>
+
+
+
+
+</mapper>

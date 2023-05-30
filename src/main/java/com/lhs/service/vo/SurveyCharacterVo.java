@@ -1,10 +1,17 @@
-package com.lhs.entity.survey;
+package com.lhs.service.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class SurveyDataCharVo {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class SurveyCharacterVo {
     private String charId;
+    private Boolean own;
     private Integer level;
     private Integer phase;
     private Integer potential;
@@ -14,5 +21,5 @@ public class SurveyDataCharVo {
     private Integer skill3;
     private Integer modX;
     private Integer modY;
-    private Boolean own;
+
 }

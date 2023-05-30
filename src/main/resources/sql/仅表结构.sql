@@ -112,10 +112,10 @@ CREATE TABLE `survey_config`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for survey_data_char_1
+-- Table structure for survey_character_1
 -- ----------------------------
-DROP TABLE IF EXISTS `survey_data_char_1`;
-CREATE TABLE `survey_data_char_1`  (
+DROP TABLE IF EXISTS `survey_character_1`;
+CREATE TABLE `survey_character_1`  (
   `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `uid` bigint(10) NULL DEFAULT NULL,
   `char_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
@@ -134,10 +134,10 @@ CREATE TABLE `survey_data_char_1`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for survey_statistics_char
+-- Table structure for survey_statistics_character
 -- ----------------------------
-DROP TABLE IF EXISTS `survey_statistics_char`;
-CREATE TABLE `survey_statistics_char`  (
+DROP TABLE IF EXISTS `survey_statistics_character`;
+CREATE TABLE `survey_statistics_character`  (
   `char_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `rarity` int(10) NULL DEFAULT NULL,
   `own` int(10) NULL DEFAULT NULL,

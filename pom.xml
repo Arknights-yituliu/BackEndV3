@@ -45,11 +45,6 @@
             <version>3.5.1</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-generator</artifactId>
-            <version>3.5.1</version>
-        </dependency>
 
 
 
@@ -60,11 +55,7 @@
             <version>8.0.28</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.6</version>
-        </dependency>
+
 
 
         <dependency>
@@ -155,6 +146,7 @@
                     <exclude>item/**</exclude>
                     <exclude>penguin/**</exclude>
                     <exclude>schedule/**</exclude>
+                    <exclude>sql/**</exclude>
                 </excludes>
             </resource>
         </resources>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.SurveyEvaluationMapper">
+
+    <!-- 干员练度信息表，批量插入-->
+    <insert id="insertBatchSurveyEvaluation">
+        INSERT INTO ${tableName}
+        (`id`, `uid`, `char_id`,`rarity`, `daily`, `rogue`, `security_service`, `hard`, `universal`, `countermeasures`)
+        VALUES
+        <foreach collection="evaluationList" item="evaluation" separator=",">
+            (#{evaluation.id}, #{evaluation.uid}, #{evaluation.charId},#{evaluation.rarity},
+            #{evaluation.daily},#{evaluation.rogue},#{evaluation.securityService},
+            #{evaluation.hard}, #{evaluation.universal},#{evaluation.countermeasures})
+        </foreach>
+    </insert>
+
+
+    <!-- 干员练度信息表，根据id更新-->
+    <update id="updateSurveyEvaluationById">
+        UPDATE ${tableName}
+        SET `daily`            = #{evaluation.daily},
+            `rogue`            = #{evaluation.rogue},
+            `security_service` = #{evaluation.securityService},
+            `hard`             = #{evaluation.hard},
+            `universal`        = #{evaluation.universal},
+            `countermeasures`  = #{evaluation.countermeasures}
+        WHERE `id` = #{evaluation.id};
+    </update>
+
+    <!-- 干员练度信息表，根据多个uid查询-->
+    <select id="selectSurveyEvaluationVoByUidList" resultType="com.lhs.service.vo.SurveyEvaluationVo">
+        SELECT `char_id`,`rarity`, `daily`, `rogue`,`security_service` , `hard`, `universal`, `countermeasures`
+        FROM ${tableName}
+        WHERE `uid` IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 干员练度信息表，根据单个uid查询-->
+    <select id="selectSurveyEvaluationByUid" resultType="com.lhs.entity.survey.SurveyEvaluation">
+        SELECT *
+        FROM ${tableName}
+        WHERE `uid` = #{uid}
+    </select>
+
+
+    <!--    干员练度统计表批量插入-->
+    <insert id="insertBatchEvaluationStatistics">
+        INSERT INTO `survey_statistics_evaluation`
+        (`charId`, `rarity`, `daily`, `sample_size_daily`, `rogue`, `sample_size_rogue`,
+        `security_service`, `sample_size_security_service`, `hard`, `sample_size_hard`, `universal`,
+        `sample_size_universal`, `countermeasures`, `sample_size_countermeasures`)
+        VALUES
+        <foreach collection="surveyStatisticsList" item="surveyStatistics" separator=",">
+        (
+            #{surveyStatistics.charId},
+            #{surveyStatistics.rarity},
+            #{surveyStatistics.daily},
+            #{surveyStatistics.sampleSizeDaily},
+            #{surveyStatistics.rogue},
+            #{surveyStatistics.sampleSizeRogue},
+            #{surveyStatistics.securityService},
+            #{surveyStatistics.sampleSizeSecurityService},
+            #{surveyStatistics.hard},
+            #{surveyStatistics.sampleSizeHard},
+            #{surveyStatistics.universal},
+            #{surveyStatistics.sampleSizeUniversal},
+            #{surveyStatistics.countermeasures},
+            #{surveyStatistics.sampleSizeCountermeasures}
+        )
+        </foreach>
+    </insert>
+
+    <!--  干员练度统计表，清空表-->
+    <delete id="truncateEvaluationStatisticsTable">
+        TRUNCATE TABLE `survey_statistics_evaluation`
+    </delete>
+
+    <!--   查询所有干员练度统计表结果-->
+    <select id="selectEvaluationStatisticsList" resultType="com.lhs.entity.survey.SurveyStatisticsEvaluation">
+        Select *
+        FROM `survey_statistics_evaluation`
+    </select>
+
+
+</mapper>

@@ -6,8 +6,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class SurveyDataChar {
+public class SurveyCharacter {
     private String id;
     private Long uid;
     private String charId;

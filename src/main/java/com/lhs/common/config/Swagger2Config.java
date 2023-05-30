@@ -102,7 +102,7 @@ public class Swagger2Config {
 	 */
 	private List<ApiKey> security() {
 		return Collections.singletonList(
-				new ApiKey("Authorization", "Authorization", "header")
+				new ApiKey("token", "token", "header")
 		);
 	}
 
@@ -143,7 +143,7 @@ public class Swagger2Config {
 		AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
 		authorizationScopes[0] = authorizationScope;
 		return Collections.singletonList(
-				new SecurityReference("Authorization", authorizationScopes));
+				new SecurityReference("token", authorizationScopes));
 	}
 
 

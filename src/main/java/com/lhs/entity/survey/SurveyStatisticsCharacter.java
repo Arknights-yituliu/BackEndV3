@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyStatisticsChar {
+public class SurveyStatisticsCharacter {
 
     private String  charId;
     private Integer own;
