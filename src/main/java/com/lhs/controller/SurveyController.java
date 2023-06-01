@@ -9,6 +9,7 @@ import com.lhs.entity.survey.SurveyCharacter;
 import com.lhs.entity.survey.SurveyEvaluation;
 import com.lhs.service.SurveyEvaluationService;
 import com.lhs.service.SurveyUserService;
+import com.lhs.service.ToolService;
 import com.lhs.service.vo.SurveyCharacterVo;
 import com.lhs.service.SurveyCharacterService;
 import com.lhs.service.vo.SurveyStatisticsEvaluationVo;
@@ -33,6 +34,9 @@ public class SurveyController {
     private SurveyUserService surveyUserService;
     @Resource
     private SurveyEvaluationService surveyEvaluationService;
+
+    @Resource
+    private ToolService toolService;
 
     @ApiOperation("调查用户注册")
     @PostMapping("/register")
@@ -84,6 +88,13 @@ public class SurveyController {
     public Result<List<SurveyStatisticsEvaluationVo>> evaluationStatisticsResult() {
         List<SurveyStatisticsEvaluationVo> evaluationStatisticsResult = surveyEvaluationService.getEvaluationStatisticsResult();
         return Result.success(evaluationStatisticsResult);
+    }
+
+    @ApiOperation("干员基础信息")
+    @GetMapping("/character/data")
+    public Result<Object> getCharacterData() {
+        HashMap<String, Object> characterData = toolService.getCharacterData();
+        return Result.success(characterData);
     }
 
 

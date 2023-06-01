@@ -53,7 +53,7 @@ public class AnnotationAOP {
             argMap.put(argNames[i], args[i]);
         }
 
-        int timeOut = redisCacheable.timeOut();
+        int timeOut = redisCacheable.timeout();
 
         String[] key = redisCacheable.key().split("#");
 

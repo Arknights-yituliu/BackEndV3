@@ -33,7 +33,7 @@ public class UserService {
     @Resource
     JavaMailSender javaMailSender;
     @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     @Resource
     private DeveloperMapper developerMapper;
     @Resource
@@ -63,7 +63,7 @@ public class UserService {
         emailRequest.setSubject("开发者登录");
         int random = new Random().nextInt(999999);
         String code = String.format("%6s", random).replace(" ", "0");
-        redisTemplate.opsForValue().set(developer.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set("CODE:"+developer.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
         emailRequest.setText("本次登录验证码：" + code);
         userService.sendMail(emailRequest);
     }
@@ -74,7 +74,7 @@ public class UserService {
         queryWrapper.eq("developer", loginVo.getDeveloper());
         Developer developer = developerMapper.selectOne(queryWrapper);
         if (developer == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        String code = String.valueOf(redisTemplate.opsForValue().get(developer.getEmail() + "CODE"));
+        String code = String.valueOf(redisTemplate.opsForValue().get("CODE:"+developer.getEmail() + "CODE"));
         if (!loginVo.getCode().equals(code)) {
             throw new ServiceException(ResultCode.USER_LOGIN_CODE_ERROR);
         }
@@ -91,7 +91,7 @@ public class UserService {
         String sign = AES.encrypt(headerStr + ConfigUtil.SignKey, ConfigUtil.Secret);
         String developerBase64 = Base64.getEncoder().encodeToString(loginVo.getDeveloper().getBytes());
         String token = developerBase64 + "." + sign;
-        redisTemplate.opsForValue().set(developerBase64, token);
+        redisTemplate.opsForValue().set("TOKEN:"+developerBase64, token);
         return token;
     }
 
@@ -106,7 +106,11 @@ public class UserService {
 //            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
 //        }
         String developerBase64 = token.split("\\.")[0];
-        if (redisTemplate.opsForValue().get(developerBase64) == null) {
+        if (redisTemplate.opsForValue().get("TOKEN:"+developerBase64) == null) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        String redisToken = redisTemplate.opsForValue().get("TOKEN:" + developerBase64);
+        if(!token.equals(redisToken)){
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 

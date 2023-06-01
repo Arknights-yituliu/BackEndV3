@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 public @interface RedisCacheable {
     String key() default "";     //缓存key
 
-    int timeOut() default 1200;
+    int timeout() default 3600;
 }

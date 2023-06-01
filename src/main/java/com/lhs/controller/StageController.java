@@ -2,6 +2,7 @@ package com.lhs.controller;
 
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.util.Result;
+import com.lhs.entity.HoneyCake;
 import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.Stage;
 import com.lhs.entity.stage.StageResult;
@@ -144,6 +145,19 @@ public class StageController {
         return Result.success(storeActVoList);
     }
 
+    @ApiOperation(value = "攒抽计算器活动排期")
+    @GetMapping("/store/honeyCake")
+    public Result<Map<String, HoneyCake>> getHoneyCake() {
+        Map<String, HoneyCake> honeyCake = storeService.getHoneyCake();
+        return Result.success(honeyCake);
+    }
+
+    @ApiOperation(value = "攒抽计算器活动排期")
+    @GetMapping("/store/honeyCake/list")
+    public Result<List<HoneyCake>> getHoneyCakeList() {
+        List<HoneyCake> honeyCakeList = storeService.getHoneyCakeList();
+        return Result.success(honeyCakeList);
+    }
 
     @ApiOperation(value = "材料表导出（Excel格式）")
     @GetMapping("/item/export/excel")

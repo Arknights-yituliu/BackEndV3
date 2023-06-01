@@ -68,7 +68,6 @@ public class SurveyUserService {
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("userName", userNameAndEnd);
         hashMap.put("uid", incrId);
-        hashMap.put("status", 1);
         return hashMap;
     }
 
@@ -88,10 +87,10 @@ public class SurveyUserService {
     public HashMap<Object, Object> login(String ipAddress, String userName) {
         SurveyUser surveyUser = surveyUserMapper.selectSurveyUserByUserName(userName);  //查询用户
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        if (surveyUser.getStatus()==0) throw new ServiceException(ResultCode.USER_ACCOUNT_FORBIDDEN);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("userName", userName);
         hashMap.put("uid", surveyUser.getId());
-        hashMap.put("status", surveyUser.getStatus());
         return hashMap;
     }
 

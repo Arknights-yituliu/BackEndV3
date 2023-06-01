@@ -10,20 +10,20 @@ import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.HoneyCake;
 import com.lhs.entity.stage.StoreAct;
+import com.lhs.mapper.HoneyCakeMapper;
 import com.lhs.mapper.StoreActMapper;
 import com.lhs.mapper.StorePermMapper;
 import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.StorePerm;
 import com.lhs.service.dto.ItemCustomValueVo;
-import com.lhs.service.dto.StoreActJsonVo;
 import com.lhs.service.dto.StoreItem;
 import com.lhs.service.vo.StoreActVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -44,6 +44,8 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     private StoreActMapper storeActMapper;
     @Resource
     private ItemService itemService;
+    @Resource
+    private HoneyCakeMapper honeyCakeMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -70,7 +72,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
 
-    @RedisCacheable(key = "StorePerm")
+    @RedisCacheable(key = "StorePerm",timeout=86400)
     public Map<String, List<StorePerm>> getStorePerm(){
         List<StorePerm> storePerms = storePermMapper.selectList(null);
         Map<String, List<StorePerm>> resultMap = storePerms.stream().collect(Collectors.groupingBy(StorePerm::getStoreType));
@@ -113,7 +115,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         toolService.ossUpload(JSON.toJSONString(storeActVo), "store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
     }
 
-    @RedisCacheable(key = "StoreAct")
+    @RedisCacheable(key = "StoreAct",timeout=86400)
     public List<StoreActVo> getStoreAct(){
         List<StoreAct> storeActs = storeActMapper.selectList(null);
         List<StoreActVo> storeActVoList = new ArrayList<>();
@@ -227,4 +229,27 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         }
     }
 
+    public void updateHoneyCake(List<HoneyCake> honeyCakeList) {
+        for(HoneyCake honeyCake:honeyCakeList){
+            HoneyCake honeyCakeOld = honeyCakeMapper.selectOne(new QueryWrapper<HoneyCake>().eq("name", honeyCake.getName()));
+             if(honeyCakeOld==null){
+                 honeyCakeMapper.insert(honeyCake);
+             }else {
+                 honeyCakeMapper.updateById(honeyCake);
+             }
+        }
+    }
+
+    @RedisCacheable(key = "HoneyCake",timeout=86400)
+    public Map<String,HoneyCake>  getHoneyCake() {
+        List<HoneyCake> honeyCakeList = getHoneyCakeList();
+
+        return honeyCakeList.stream().collect(Collectors.toMap(HoneyCake::getName, Function.identity()));
+    }
+
+    public List<HoneyCake> getHoneyCakeList() {
+        QueryWrapper<HoneyCake> honeyCakeQueryWrapper = new QueryWrapper<>();
+        honeyCakeQueryWrapper.orderByDesc("start");
+        return honeyCakeMapper.selectList(honeyCakeQueryWrapper);
+    }
 }
