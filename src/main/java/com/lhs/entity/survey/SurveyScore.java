@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SurveyEvaluation {
+public class SurveyScore {
     private String id;
     @ApiModelProperty(value = "用户id")
     private Long uid;

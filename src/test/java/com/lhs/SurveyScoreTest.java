@@ -1,11 +1,10 @@
 package com.lhs;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.FileUtil;
-import com.lhs.entity.survey.SurveyEvaluation;
-import com.lhs.service.SurveyEvaluationService;
+import com.lhs.entity.survey.SurveyScore;
+import com.lhs.service.SurveyScoreService;
 import com.lhs.service.SurveyUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,10 +17,10 @@ import java.util.Random;
 
 
 @SpringBootTest
-public class SurveyEvaluationTest {
+public class SurveyScoreTest {
 
     @Resource
-    private SurveyEvaluationService surveyEvaluationService;
+    private SurveyScoreService surveyScoreService;
 
     @Resource
     private SurveyUserService surveyUserService;
@@ -35,10 +34,10 @@ public class SurveyEvaluationTest {
             HashMap<Object, Object> register = surveyUserService.register("ipAddress" + i, "山桜" + i);
             String userName = (String) register.get("userName");
             JSONObject jsonObject = JSONObject.parseObject(charTable);
-            List<SurveyEvaluation> surveyEvaluationList = new ArrayList<>();
+            List<SurveyScore> surveyScoreList = new ArrayList<>();
             jsonObject.forEach((k,v)->{
                 int rarity = Integer.parseInt(JSONObject.parseObject(String.valueOf(v)).getString("rarity"));
-                SurveyEvaluation surveyEvaluation = SurveyEvaluation.builder()
+                SurveyScore surveyScore = SurveyScore.builder()
                         .charId(k)
                         .rarity(rarity+1)
                         .daily(getRandom())
@@ -48,15 +47,29 @@ public class SurveyEvaluationTest {
                         .universal(getRandom())
                         .countermeasures(getRandom()).build();
                 if (rarity==5){
-                    surveyEvaluationList.add(surveyEvaluation);
+                    surveyScoreList.add(surveyScore);
                 }
 
             });
 
-            HashMap<Object, Object> hashMap = surveyEvaluationService.uploadEvaluationForm(userName, surveyEvaluationList);
+            HashMap<Object, Object> hashMap = surveyScoreService.uploadScoreForm(userName, surveyScoreList);
         }
 
 
+    }
+
+    @Test
+    void isV(){
+        SurveyScore newData = SurveyScore.builder().daily(0).hard(1).rogue(1).securityService(1).universal(1).countermeasures(1).build();
+
+        Boolean isInvalid = (newData.getDaily() < 1 || newData.getDaily() > 10) ||
+                (newData.getRogue() < 1 || newData.getRogue() > 10) ||
+                (newData.getHard() < 1 || newData.getHard() > 10) ||
+                (newData.getSecurityService() < 1 || newData.getSecurityService() > 10)||
+                (newData.getUniversal() < 1 || newData.getUniversal() > 10)||
+                (newData.getCountermeasures()< 1 || newData.getCountermeasures() > 10);
+        
+        System.out.println(!isInvalid);
     }
 
     private Integer getRandom(){

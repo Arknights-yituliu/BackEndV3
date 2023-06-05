@@ -25,7 +25,7 @@ public class SurveyInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("拦截了");
+
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(request), ConfigUtil.Secret);
         Object cache = redisTemplate.opsForValue().get("IP:"+ipAddress);
         if(cache==null) {

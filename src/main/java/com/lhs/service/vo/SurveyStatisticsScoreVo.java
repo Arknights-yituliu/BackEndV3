@@ -1,4 +1,4 @@
-package com.lhs.entity.survey;
+package com.lhs.service.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SurveyStatisticsEvaluation {
+public class SurveyStatisticsScoreVo {
 
     @ApiModelProperty(value = "干员id")
     private String  charId;
@@ -19,37 +19,37 @@ public class SurveyStatisticsEvaluation {
     private Integer rarity;
 
     @ApiModelProperty(value = "日常")
-    private Integer daily;
+    private Double daily;
 
     @ApiModelProperty(value = "样本量-日常")
     private Integer sampleSizeDaily;
 
     @ApiModelProperty(value = "肉鸽")
-    private Integer rogue;
+    private Double rogue;
 
     @ApiModelProperty(value = "样本量-肉鸽")
     private Integer sampleSizeRogue;
 
     @ApiModelProperty(value = "保全")
-    private Integer securityService;
+    private Double securityService;
 
     @ApiModelProperty(value = "样本量-保全")
     private Integer sampleSizeSecurityService;
 
     @ApiModelProperty(value = "高难度")
-    private Integer hard;
+    private Double hard;
 
     @ApiModelProperty(value = "样本量-高难度")
     private Integer sampleSizeHard;
 
     @ApiModelProperty(value = "泛用")
-    private Integer universal;
+    private Double universal;
 
     @ApiModelProperty(value = "样本量-泛用")
     private Integer sampleSizeUniversal;
 
     @ApiModelProperty(value = "对策")
-    private Integer countermeasures;
+    private Double countermeasures;
 
     @ApiModelProperty(value = "样本量-对策")
     private Integer sampleSizeCountermeasures;

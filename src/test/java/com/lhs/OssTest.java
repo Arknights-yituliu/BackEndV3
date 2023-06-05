@@ -46,4 +46,9 @@ public class OssTest {
         String s = JSON.toJSONString(honeyCakeList);
         System.out.println(s);
     }
+
+    @Test
+    void read(){
+        String read = FileUtil.read("F:\\yituliuDataBak\\recruit\\json\\2023-04-25 12.json");
+    }
 }

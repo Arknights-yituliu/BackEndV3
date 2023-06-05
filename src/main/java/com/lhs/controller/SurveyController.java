@@ -6,13 +6,13 @@ import com.lhs.common.util.ConfigUtil;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
 import com.lhs.entity.survey.SurveyCharacter;
-import com.lhs.entity.survey.SurveyEvaluation;
-import com.lhs.service.SurveyEvaluationService;
+import com.lhs.entity.survey.SurveyScore;
+import com.lhs.service.SurveyScoreService;
 import com.lhs.service.SurveyUserService;
 import com.lhs.service.ToolService;
 import com.lhs.service.vo.SurveyCharacterVo;
 import com.lhs.service.SurveyCharacterService;
-import com.lhs.service.vo.SurveyStatisticsEvaluationVo;
+import com.lhs.service.vo.SurveyStatisticsScoreVo;
 import com.lhs.service.vo.SurveyUserVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,7 +33,7 @@ public class SurveyController {
     @Resource
     private SurveyUserService surveyUserService;
     @Resource
-    private SurveyEvaluationService surveyEvaluationService;
+    private SurveyScoreService surveyScoreService;
 
     @Resource
     private ToolService toolService;
@@ -55,14 +55,14 @@ public class SurveyController {
     }
 
     @ApiOperation("上传干员练度表")
-    @PostMapping("/character")
+    @PostMapping("/character/upload")
     public Result<Object> uploadCharacterForm(@RequestParam String userName, @RequestBody List<SurveyCharacter> surveyCharacterList) {
         HashMap<Object, Object> hashMap = surveyCharacterService.uploadCharForm(userName, surveyCharacterList);
         return Result.success(hashMap);
     }
 
     @ApiOperation("找回干员练度表")
-    @GetMapping("/find/character")
+    @GetMapping("/character/retrieval")
     public Result<Object> findCharacterForm(@RequestParam String userName) {
         List<SurveyCharacterVo> surveyDataCharList = surveyCharacterService.findCharacterForm(userName);
         return Result.success(surveyDataCharList);
@@ -76,18 +76,17 @@ public class SurveyController {
     }
 
     @ApiOperation("上传干员风评表")
-    @PostMapping("/evaluation")
-    public Result<Object> uploadEvaluationForm(@RequestParam String userName, @RequestBody List<SurveyEvaluation> surveyEvaluationList) {
-        HashMap<Object, Object> hashMap = surveyEvaluationService.uploadEvaluationForm(userName, surveyEvaluationList);
+    @PostMapping("/score/upload")
+    public Result<Object> uploadScoreForm(@RequestParam String userName, @RequestBody List<SurveyScore> surveyScoreList) {
+        HashMap<Object, Object> hashMap = surveyScoreService.uploadScoreForm(userName, surveyScoreList);
         return Result.success(hashMap);
     }
 
-
     @ApiOperation("干员风评表统计结果")
-    @GetMapping("/evaluation/result")
-    public Result<List<SurveyStatisticsEvaluationVo>> evaluationStatisticsResult() {
-        List<SurveyStatisticsEvaluationVo> evaluationStatisticsResult = surveyEvaluationService.getEvaluationStatisticsResult();
-        return Result.success(evaluationStatisticsResult);
+    @GetMapping("/score/result")
+    public Result<List<SurveyStatisticsScoreVo>> scoreStatisticsResult() {
+        List<SurveyStatisticsScoreVo> surveyScoreServiceScoreStatisticsResult = surveyScoreService.getScoreStatisticsResult();
+        return Result.success(surveyScoreServiceScoreStatisticsResult);
     }
 
     @ApiOperation("干员基础信息")

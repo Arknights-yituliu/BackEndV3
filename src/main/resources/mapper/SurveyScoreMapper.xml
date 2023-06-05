@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.SurveyEvaluationMapper">
+<mapper namespace="com.lhs.mapper.SurveyScoreMapper">
 
     <!-- 干员练度信息表，批量插入-->
-    <insert id="insertBatchSurveyEvaluation">
+    <insert id="insertBatchSurveyScore">
         INSERT INTO ${tableName}
         (`id`, `uid`, `char_id`,`rarity`, `daily`, `rogue`, `security_service`, `hard`, `universal`, `countermeasures`)
         VALUES
-        <foreach collection="evaluationList" item="evaluation" separator=",">
-            (#{evaluation.id}, #{evaluation.uid}, #{evaluation.charId},#{evaluation.rarity},
-            #{evaluation.daily},#{evaluation.rogue},#{evaluation.securityService},
-            #{evaluation.hard}, #{evaluation.universal},#{evaluation.countermeasures})
+        <foreach collection="scoreList" item="score" separator=",">
+            (#{score.id}, #{score.uid}, #{score.charId},#{score.rarity},
+            #{score.daily},#{score.rogue},#{score.securityService},
+            #{score.hard}, #{score.universal},#{score.countermeasures})
         </foreach>
     </insert>
 
 
     <!-- 干员练度信息表，根据id更新-->
-    <update id="updateSurveyEvaluationById">
+    <update id="updateSurveyScoreById">
         UPDATE ${tableName}
-        SET `daily`            = #{evaluation.daily},
-            `rogue`            = #{evaluation.rogue},
-            `security_service` = #{evaluation.securityService},
-            `hard`             = #{evaluation.hard},
-            `universal`        = #{evaluation.universal},
-            `countermeasures`  = #{evaluation.countermeasures}
-        WHERE `id` = #{evaluation.id};
+        SET `daily`            = #{score.daily},
+            `rogue`            = #{score.rogue},
+            `security_service` = #{score.securityService},
+            `hard`             = #{score.hard},
+            `universal`        = #{score.universal},
+            `countermeasures`  = #{score.countermeasures}
+        WHERE `id` = #{score.id};
     </update>
 
     <!-- 干员练度信息表，根据多个uid查询-->
-    <select id="selectSurveyEvaluationVoByUidList" resultType="com.lhs.service.vo.SurveyEvaluationVo">
+    <select id="selectSurveyScoreVoByUidList" resultType="com.lhs.service.vo.SurveyScoreVo">
         SELECT `char_id`,`rarity`, `daily`, `rogue`,`security_service` , `hard`, `universal`, `countermeasures`
         FROM ${tableName}
         WHERE `uid` IN
@@ -39,7 +39,7 @@
     </select>
 
     <!-- 干员练度信息表，根据单个uid查询-->
-    <select id="selectSurveyEvaluationByUid" resultType="com.lhs.entity.survey.SurveyEvaluation">
+    <select id="selectSurveyScoreByUid" resultType="com.lhs.entity.survey.SurveyScore">
         SELECT *
         FROM ${tableName}
         WHERE `uid` = #{uid}
@@ -47,8 +47,8 @@
 
 
     <!--    干员练度统计表批量插入-->
-    <insert id="insertBatchEvaluationStatistics">
-        INSERT INTO `survey_statistics_evaluation`
+    <insert id="insertBatchScoreStatistics">
+        INSERT INTO `survey_statistics_score`
         (`charId`, `rarity`, `daily`, `sample_size_daily`, `rogue`, `sample_size_rogue`,
         `security_service`, `sample_size_security_service`, `hard`, `sample_size_hard`, `universal`,
         `sample_size_universal`, `countermeasures`, `sample_size_countermeasures`)
@@ -74,14 +74,14 @@
     </insert>
 
     <!--  干员练度统计表，清空表-->
-    <delete id="truncateEvaluationStatisticsTable">
-        TRUNCATE TABLE `survey_statistics_evaluation`
+    <delete id="truncateScoreStatisticsTable">
+        TRUNCATE TABLE `survey_statistics_score`
     </delete>
 
     <!--   查询所有干员练度统计表结果-->
-    <select id="selectEvaluationStatisticsList" resultType="com.lhs.entity.survey.SurveyStatisticsEvaluation">
+    <select id="selectScoreStatisticsList" resultType="com.lhs.entity.survey.SurveyStatisticsScore">
         Select *
-        FROM `survey_statistics_evaluation`
+        FROM `survey_statistics_score`
     </select>
 
 
