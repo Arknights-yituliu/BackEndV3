@@ -55,7 +55,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     @Transactional
     public void updateStorePerm() {
         List<StorePerm> storePerms = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.queryItemListById(0.625, 200).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
+        Map<String, Item> collect = itemService.queryItemListById(0.625).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
 
         storePerms.forEach(storePerm -> {
             storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValueAp() * storePerm.getQuantity() / storePerm.getCost());
@@ -81,7 +81,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
     public void updateActStoreByActName(StoreActVo storeActVo)  {
-        List<Item> items = itemService.queryItemListById(0.625, 200);
+        List<Item> items = itemService.queryItemListById(0.625);
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItem> storeItemList = storeActVo.getActStore();
@@ -149,7 +149,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         List<ItemCustomValueVo> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValueVo.class);
         Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValueVo::getItemName, ItemCustomValueVo::getItemValue));
-        itemService.queryItemListById(0.625, 1000).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
+        itemService.queryItemListById(0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
         JSONArray packList = JSONArray.parseArray(packStr);
 

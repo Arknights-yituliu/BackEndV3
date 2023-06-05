@@ -48,7 +48,7 @@ public class StageController {
     @GetMapping("/item/value")
     @ApiImplicitParams({@ApiImplicitParam(name = "expCoefficient", value = "经验书的价值系数", dataType = "Double", paramType = "query", defaultValue = "0.625")})
     public Result<List<Item>> queryItemValue(@RequestParam Double expCoefficient) {
-        List<Item> items = itemService.queryItemListById(expCoefficient,1000);
+        List<Item> items = itemService.queryItemListById(expCoefficient);
         return Result.success(items);
     }
 

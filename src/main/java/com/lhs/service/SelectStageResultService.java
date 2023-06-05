@@ -32,7 +32,7 @@ public class SelectStageResultService {
      * @param sampleSize     样本大小
      * @return
      */
-    @RedisCacheable(key = "stageT3")
+    @RedisCacheable(key = "stageT3#expCoefficient")
     public List<List<StageResultVo>> queryStageResultData_t3(Double expCoefficient, Integer sampleSize) {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
@@ -63,7 +63,7 @@ public class SelectStageResultService {
      * @param sampleSize     样本大小
      * @return
      */
-    @RedisCacheable(key = "stageT2")
+    @RedisCacheable(key = "stageT2#expCoefficient")
     public List<List<StageResultVo>> queryStageResultData_t2(Double expCoefficient, Integer sampleSize) {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
 
@@ -92,7 +92,7 @@ public class SelectStageResultService {
      * @param sampleSize     样本大小
      * @return
      */
-    @RedisCacheable(key = "stageClosed")
+    @RedisCacheable(key = "stageClosed#expCoefficient")
     public List<List<StageResultActVo>> queryStageResultData_closedActivities(Double expCoefficient, Integer sampleSize) {
         List<StageResult> stageResultListByIsShow = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 0)
                 .isNotNull("item_type").notLike("stage_code", "DH").notLike("stage_id", "perm").eq("exp_coefficient", expCoefficient)
@@ -160,7 +160,7 @@ public class SelectStageResultService {
     }
 
 
-    @RedisCacheable(key = "stageNewChapter")
+    @RedisCacheable(key = "stageNewChapter#expCoefficient")
     public List<StageResultVo> queryStageResultDataByZoneName(String zone) {
         List<StageResult> stageResultsByZone = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
                 .isNotNull("item_type").eq("exp_coefficient", 0.625).like("stage_code", zone)

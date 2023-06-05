@@ -7,6 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StageResultMapper extends BaseMapper<StageResult> {
-    @Update("truncate table stage_result")
-    void deleteTableTemp();
+
 }

@@ -180,9 +180,15 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         });
 
 
-        stageResultMapper.deleteTableTemp();   //清空数据库
-        boolean b = saveBatch(stageResultList);//保存结果到数据库
-        FileUtil.save(ConfigUtil.Item,"itemAndBestStageEff.json", JSON.toJSONString(itemNameAndStageEffMap));
+//        stageResultMapper.deleteTableTemp();   //清空数据库
+        QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("exp_coefficient",expCoefficient);
+        int delete = stageResultMapper.delete(queryWrapper);
+        if(delete>-1){
+            boolean b = saveBatch(stageResultList);//保存结果到数据库
+        }
+
+        FileUtil.save(ConfigUtil.Item,"itemAndBestStageEff"+expCoefficient+".json", JSON.toJSONString(itemNameAndStageEffMap));
         return itemNameAndStageEffMap;
 
     }

@@ -35,77 +35,116 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-
 @Service
 @Slf4j
-public class ItemService extends ServiceImpl<ItemMapper,Item>  {
+public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
     @Resource
     private ItemMapper itemMapper;
 
     /**
-     *  //根据蓝材料对应的常驻最高关卡效率En和旧蓝材料价值Vn计算新的蓝材料价值Vn+1  ，  Vn+1= Vn*1/En
-     * @param items   材料信息表Vn
-     * @param itemNameAndStageEff  map<蓝材料名称，蓝材料对应的常驻最高关卡效率En>
-     * @return  新的材料信息表Vn+1
+     * //根据蓝材料对应的常驻最高关卡效率En和旧蓝材料价值Vn计算新的蓝材料价值Vn+1  ，  Vn+1= Vn*1/En
+     *
+     * @param items               材料信息表Vn
+     * @return 新的材料信息表Vn+1
      */
     @Transactional
-    public List<Item> ItemValueCalculation(List<Item> items, JSONObject itemNameAndStageEff,Double expCoefficient) {
+    public List<Item> ItemValueCalculation(List<Item> items, Double expCoefficient) {
 
-        String workShopProductsValueJson = FileUtil.read(ConfigUtil.Item + "workShopProductsValue.json");
-        String compositeTableJson = FileUtil.read(ConfigUtil.Item + "compositeTable.json");
+        String itemNameAndBestStageEffSrt = FileUtil.read(ConfigUtil.Item + "itemAndBestStageEff" + expCoefficient + ".json");
+        if(itemNameAndBestStageEffSrt ==null){
+            itemNameAndBestStageEffSrt = FileUtil.read(ConfigUtil.Item + "itemAndBestStageEff0.625.json");
+        }
+        JSONObject itemNameAndBestStageEff = JSONObject.parseObject(itemNameAndBestStageEffSrt); //读取上次关卡效率计算的结果中蓝材料对应的常驻最高关卡效率En
 
-        if(compositeTableJson==null||workShopProductsValueJson==null||compositeTableJson.length()<10||workShopProductsValueJson.length()<10)
-            throw new ServiceException(ResultCode.DATA_NONE);
-
+        String workShopProductsValueJson = FileUtil.read(ConfigUtil.Item + "workShopProductsValue"+expCoefficient+".json");
+        if(workShopProductsValueJson ==null){
+            workShopProductsValueJson = FileUtil.read(ConfigUtil.Item + "workShopProductsValue0.625.json");
+        }
         JSONObject workShopProductsValue = JSONObject.parseObject(workShopProductsValueJson);  //读取根据Vn计算出的副产物价值
+
+        String compositeTableJson = FileUtil.read(ConfigUtil.Item + "compositeTable.json");
         List<CompositeTableVo> compositeTableVo = JSONArray.parseArray(compositeTableJson, CompositeTableVo.class);  //读取加工站合成表
+
+        Long tableId = getTableId(expCoefficient);
+
+        for (Item item :items) {
+            item.setExpCoefficient(expCoefficient);//经验书系数
+            item.setId(tableId++);
+            if (item.getItemId().equals("2004")) {
+                item.setItemValueAp(7.2 * expCoefficient);
+            }
+            if (item.getItemId().equals("2003")) {
+                item.setItemValueAp(3.6 * expCoefficient);
+            }
+            if (item.getItemId().equals("2002")) {
+                item.setItemValueAp(1.44 * expCoefficient);
+            }
+            if (item.getItemId().equals("2001")) {
+                item.setItemValueAp(0.72 * expCoefficient);
+            }
+        }
+
+
         Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));  //将旧的材料Vn集合转成map方便调用
 
-        items.forEach(item -> item.setExpCoefficient(expCoefficient));//经验书系数
-        itemNameAndStageEff.forEach((id,En)-> itemValueMap.get(id).setItemValueAp(itemValueMap.get(id).getItemValueAp()*1/Double.parseDouble(String.valueOf(En)))); //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1/En
 
-        compositeTableVo.forEach(table->{     //循环加工站合成表计算新价值
+        //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1/En
+        itemNameAndBestStageEff.forEach((id, En) -> {
+            double itemValueNew = itemValueMap.get(id).getItemValueAp() * 1 / Double.parseDouble(String.valueOf(En));
+            itemValueMap.get(id).setItemValueAp(itemValueNew);
+        });
+
+
+        compositeTableVo.forEach(table -> {     //循环加工站合成表计算新价值
             Integer rarity = itemValueMap.get(table.getId()).getRarity();
             double itemValueNew = 0.0;
-             StringBuilder message = new StringBuilder(itemValueMap.get(table.getId()).getItemName()).append(" = ( ");
-            if(rarity<3){
-                    for(ItemCost itemCost : table.getItemCost()){
-                        itemValueNew = (itemValueMap.get(itemCost.getId()).getItemValueAp() +
-                            Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))) -0.36*rarity)
-                                / itemCost.getCount();
+            StringBuilder message = new StringBuilder(itemValueMap.get(table.getId()).getItemName()).append(" = ( ");
+            if (rarity < 3) {
+                for (ItemCost itemCost : table.getItemCost()) {
+                    itemValueNew = (itemValueMap.get(itemCost.getId()).getItemValueAp() +
+                            Double.parseDouble(workShopProductsValue.getString("rarity_" + (rarity))) - 0.36 * rarity)
+                            / itemCost.getCount();
 
-                        message.append(itemValueMap.get(itemCost.getId()).getItemValueAp())
-                                 .append(" + ")
-                                 .append(Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))))
-                                 .append(" - ")
-                                 .append(0.36*rarity)
-                                 .append(" ) / ")
-                                 .append(itemCost.getCount());
-                    } //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
+//                        message.append(itemValueMap.get(itemCost.getId()).getItemValueAp())
+//                                 .append(" + ")
+//                                 .append(Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity))))
+//                                 .append(" - ")
+//                                 .append(0.36*rarity)
+//                                 .append(" ) / ")
+//                                 .append(itemCost.getCount());
+                } //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
 
-                }else  {
-                    for(ItemCost itemCost :table.getItemCost()){
+            } else {
+                for (ItemCost itemCost : table.getItemCost()) {
+                    itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp() * itemCost.getCount();
 
-                        message.append(itemValueMap.get(itemCost.getId()).getItemValueAp())
-                                .append(" * ")
-                                .append(itemCost.getCount())
-                                .append(" + ");
-                        itemValueNew += itemValueMap.get(itemCost.getId()).getItemValueAp() * itemCost.getCount();
+//                        message.append(itemValueMap.get(itemCost.getId()).getItemValueAp())
+//                                .append(" * ")
+//                                .append(itemCost.getCount())
+//                                .append(" + ");
 
-                    }//紫，金色品质是向上合成    蓝材料  + 龙门币 - 副产物 = 紫，金色材料
-                    itemValueNew = itemValueNew + 0.36* (rarity-1) - Double.parseDouble(workShopProductsValue.getString("rarity_"+(rarity-1))) ;
+                }//紫，金色品质是向上合成    蓝材料  + 龙门币 - 副产物 = 紫，金色材料
+                itemValueNew = itemValueNew + 0.36 * (rarity - 1) - Double.parseDouble(workShopProductsValue.getString("rarity_" + (rarity - 1)));
 
-                    message.append(" ) + ").append(0.36 * (rarity-1)).append(" - ")
-                           .append(Double.parseDouble(workShopProductsValue.getString("rarity_" + (rarity - 1))));
-                }
+                message.append(" ) + ").append(0.36 * (rarity - 1)).append(" - ")
+                        .append(Double.parseDouble(workShopProductsValue.getString("rarity_" + (rarity - 1))));
+            }
 
             itemValueMap.get(table.getId()).setItemValueAp(itemValueNew);  //存入新材料价值
         });
 
-        itemValueMap.forEach((k,item)->item.setItemValue(item.getItemValueAp()*1.25));
-        saveByProductValue(items);  //保存Vn+1的加工站副产物平均产出价值
-        updateBatchById(items);  //更新材料表
+        QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
+        itemQueryWrapper.eq("exp_coefficient", expCoefficient);
+        int delete = itemMapper.delete(itemQueryWrapper);
+        if (delete > -1) {
+            itemValueMap.forEach((k, item) ->{
+                System.out.println(item);
+                item.setItemValue(item.getItemValueAp() * 1.25);
+            });
+            saveByProductValue(items,expCoefficient);  //保存Vn+1的加工站副产物平均产出价值
+            saveBatch(items);  //更新材料表
+        }
 
 
         return items;
@@ -115,35 +154,39 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
 
     /**
      * 保存加工站副产品期望价值
-     * @param items  新材料信息表Vn+1
+     *
+     * @param items 新材料信息表Vn+1
      */
-    public void saveByProductValue(List<Item> items) {
+    public void saveByProductValue(List<Item> items,Double expCoefficient) {
         double knockRating = 0.2;
         HashMap<Object, Object> hashMap = new HashMap<>();
         items.stream()
                 .filter(item -> item.getWeight() > 0)
                 .collect(Collectors.groupingBy(Item::getRarity))
-                .forEach((rarity,list)->{
-                    hashMap.put( "rarity_"+rarity, list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight())
-                            .sum() / items.size() * knockRating );
+                .forEach((rarity, list) -> {
+                    hashMap.put("rarity_" + rarity, list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight())
+                            .sum() / items.size() * knockRating);
                 });
-        FileUtil.save(ConfigUtil.Item,"workShopProductsValue.json", JSON.toJSONString(hashMap));
+        FileUtil.save(ConfigUtil.Item, "workShopProductsValue"+expCoefficient+".json", JSON.toJSONString(hashMap));
 
     }
 
     /**
      * 获取材料信息表
-     * @param expCoefficient  经验书系数，一般为0.625（还有1.0和0.0）
-     * @param id  一般情况下有些材料是不需要全部查出来的，大部分情况id在200之前的足够用了，200之后的都是诸如多索雷斯的特殊掉落或者自定义材料
-     * @return  材料信息表
+     * @param expCoefficient 经验书系数，一般为0.625（还有1.0、0.73和0.0）
+     * @return 材料信息表
      */
-    @RedisCacheable(key = "itemValue")
-    public List<Item> queryItemListById(Double expCoefficient, Integer id) {
-        return itemMapper.selectList(new QueryWrapper<Item>().eq("exp_coefficient",expCoefficient).le("id", id).orderByDesc("item_value_ap"));
+    @RedisCacheable(key = "itemValue#expCoefficient")
+    public List<Item> queryItemListById(Double expCoefficient) {
+        QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
+        itemQueryWrapper.eq("exp_coefficient", expCoefficient).orderByDesc("item_value_ap");
+        return itemMapper.selectList(itemQueryWrapper);
     }
 
-    public List<Item> queryItemList() {
-        return itemMapper.selectList(null);
+    public List<Item> queryItemList(Double expCoefficient) {
+        QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
+        itemQueryWrapper.eq("exp_coefficient", expCoefficient);
+        return itemMapper.selectList(itemQueryWrapper);
     }
 
 
@@ -154,11 +197,11 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
             String fileName = URLEncoder.encode("itemValue", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
-            List<Item> list = queryItemListById(0.625,200);
+            List<Item> list = queryItemListById(0.625);
             List<ItemVo> itemVoList = new ArrayList<>();
-            for(Item item:list){
+            for (Item item : list) {
                 ItemVo itemVo = new ItemVo();
-                BeanUtils.copyProperties(item,itemVo);
+                BeanUtils.copyProperties(item, itemVo);
                 itemVoList.add(itemVo);
             }
 
@@ -169,19 +212,22 @@ public class ItemService extends ServiceImpl<ItemMapper,Item>  {
     }
 
     public void exportItemJson(HttpServletResponse response) {
-        List<Item> list = queryItemListById(0.625,200);
+        List<Item> list = queryItemListById(0.625);
         List<ItemVo> itemVoList = new ArrayList<>();
-        for(Item item:list){
+        for (Item item : list) {
             ItemVo itemVo = new ItemVo();
-            BeanUtils.copyProperties(item,itemVo);
+            BeanUtils.copyProperties(item, itemVo);
             itemVoList.add(itemVo);
         }
         String jsonForMat = JSON.toJSONString(JSONArray.parseArray(JSON.toJSONString(itemVoList)), SerializerFeature.PrettyFormat,
                 SerializerFeature.WriteDateUseDateFormat, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty);
-        FileUtil.save(response, ConfigUtil.Item,"ItemValue.json",jsonForMat);
+        FileUtil.save(response, ConfigUtil.Item, "ItemValue.json", jsonForMat);
     }
 
-
+    public Long getTableId(Double expCoefficient) {
+        long round = Math.round((1 - expCoefficient) * 100);
+        return round * 100000;
+    }
 
 }
