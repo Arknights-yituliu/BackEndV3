@@ -38,3 +38,4 @@ build/
 /src/main/resources/backups/
 /src/main/java/com/lhs/dev/
 /src/main/java/com/lhs/mapper/DeveloperMapper.java
+/src/test/java/com/lhs/
