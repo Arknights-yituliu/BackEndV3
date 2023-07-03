@@ -122,38 +122,55 @@ public class ToolService {
         });
 
         HashMap<Object, Object> hashMap = new HashMap<>();
-        character_table.forEach((k, v) -> {
-            if (k.startsWith("char")) {
+
+        for(String charId : character_table.keySet()) {
+
+            if (charId.startsWith("char")) {
                 HashMap<Object, Object> character = new HashMap<>();
-                JSONObject characterJson = JSONObject.parseObject(String.valueOf(v));
+                String charInfo = character_table.getString(charId);
+                JSONObject characterJson = JSONObject.parseObject(charInfo);
+                if (characterJson.get("itemObtainApproach") == null) continue;
 
                 JSONArray skills = JSONArray.parseArray(characterJson.getString("skills"));
-                List<HashMap<Object, Object> > skillList = new ArrayList<>();
+                List<HashMap<Object, Object>> skillList = new ArrayList<>();
                 for (int i = 0; i < skills.size(); i++) {
                     JSONObject jsonObject = JSONObject.parseObject(String.valueOf(skills.get(i)));
                     String skillId = jsonObject.getString("skillId");
-                    skillId =skillId.replace("[","_");
-                    skillId =skillId.replace("]","_");
+                    skillId = skillId.replace("[", "_");
+                    skillId = skillId.replace("]", "_");
                     HashMap<Object, Object> skill = new HashMap<>();
-                    skill.put("iconId",skillId);
-                    skill.put("name",skillTable.get(skillId));
+                    skill.put("iconId", skillId);
+                    skill.put("name", skillTable.get(skillId));
                     skillList.add(skill);
                 }
+
                 String name = characterJson.getString("name");
                 String profession = characterJson.getString("profession");
-                character.put("name",name );
+                String itemUsage = characterJson.getString("itemUsage");
+                String itemDesc = characterJson.getString("itemDesc");
+
+                int itemObtainApproach = 1;
+                String itemObtainApproachStr = characterJson.getString("itemObtainApproach");
+                if("活动获得".equals(itemObtainApproachStr)){
+                    itemObtainApproach = 0;
+                }
+
+                character.put("name", name);
+                character.put("itemUsage", itemUsage);
+                character.put("itemDesc", itemDesc);
                 character.put("rarity", Integer.parseInt(characterJson.getString("rarity")) + 1);
-                character.put("mod", modTable.get(k));
-                character.put("skill",skillList);
-                character.put("date",insertedTimeMap.get(name));
-                character.put("profession",profession);
-                hashMap.put(k, character);
+                character.put("itemObtainApproach",itemObtainApproach);
+                character.put("mod", modTable.get(charId));
+                character.put("skill", skillList);
+                character.put("date", insertedTimeMap.get(name));
+                character.put("profession", profession);
+                hashMap.put(charId, character);
             }
-        });
+        }
 
 
-        FileUtil.save(ConfigUtil.Item, "characterBasicInfo.json", JSON.toJSONString(hashMap));
-        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "characterBasicInfo.json", JSON.toJSONString(hashMap));
+        FileUtil.save(ConfigUtil.Item, "character_table_simple.json", JSON.toJSONString(hashMap));
+        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JSON.toJSONString(hashMap));
 
 
         return null;

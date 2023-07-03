@@ -4,16 +4,14 @@
 <mapper namespace="com.lhs.mapper.SurveyCharacterMapper">
 
 
-
-
-<!--  批量插入干员练度信息表-->
+    <!--  批量插入干员练度信息表-->
     <insert id="insertBatchSurveyCharacter">
         INSERT INTO ${tableName}
-        (`id`, `uid`, `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`,
+        (`id`, `uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`,
         `mod_y`,`own`)
         VALUES
         <foreach collection="characterList" item="character" separator=",">
-            (#{character.id}, #{character.uid}, #{character.charId}, #{character.phase},
+            (#{character.id}, #{character.uid}, #{character.charId}, #{character.elite},
             #{character.level},#{character.potential}, #{character.rarity}, #{character.skill1},
             #{character.skill2},#{character.skill3},#{character.modX},#{character.modY},
             #{character.own})
@@ -24,7 +22,7 @@
     <!-- 根据id更新干员练度信息表-->
     <update id="updateSurveyCharacterById">
         UPDATE ${tableName}
-        SET `phase`     = #{character.phase},
+        SET `elite`     = #{character.elite},
             `level`     = #{character.level},
             `potential` = #{character.potential},
             `skill1`    = #{character.skill1},
@@ -38,7 +36,7 @@
 
     <!-- 根据多个uid查询干员练度信息表-->
     <select id="selectSurveyCharacterVoByUidList" resultType="com.lhs.service.vo.SurveyCharacterVo">
-        SELECT `char_id`, `phase`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
+        SELECT `char_id`, `elite`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
         FROM ${tableName}
         WHERE `uid` IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
@@ -57,13 +55,30 @@
     <!--  批量插入统计表-->
     <insert id="insertBatchCharacterStatistics">
         INSERT INTO `survey_statistics_character`
-        (`char_id`,`rarity`,`own`,`phase2`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`,`potential`)
+        (`char_id`,`rarity`,`own`,`elite`,`sample_size_elite`,`skill1`,`sample_size_skill1`,`skill2`,
+         `sample_size_skill2`,`skill3`,`sample_size_skill3`, `mod_x`,`sample_size_mod_x`, `mod_y`,
+         `sample_size_mod_y`,`potential`,`sample_size_potential`)
         VALUES
         <foreach collection="surveyStatisticsList" item="surveyStatistics" separator=",">
-            ( #{surveyStatistics.charId},#{surveyStatistics.rarity},#{surveyStatistics.own},
-            #{surveyStatistics.phase2},#{surveyStatistics.skill1},#{surveyStatistics.skill2},
-            #{surveyStatistics.skill3},#{surveyStatistics.modX},#{surveyStatistics.modY},
-            #{surveyStatistics.potential})
+            (
+            #{surveyStatistics.charId},
+            #{surveyStatistics.rarity},
+            #{surveyStatistics.own},
+            #{surveyStatistics.elite},
+            #{surveyStatistics.sampleSizeElite},
+            #{surveyStatistics.skill1},
+            #{surveyStatistics.sampleSizeSkill1},
+            #{surveyStatistics.skill2},
+            #{surveyStatistics.sampleSizeSkill2},
+            #{surveyStatistics.skill3},
+            #{surveyStatistics.sampleSizeSkill3},
+            #{surveyStatistics.modX},
+            #{surveyStatistics.sampleSizeModX},
+            #{surveyStatistics.modY},
+            #{surveyStatistics.sampleSizeModY},
+            #{surveyStatistics.potential},
+            #{surveyStatistics.sampleSizePotential}
+            )
         </foreach>
     </insert>
 
@@ -77,8 +92,6 @@
         Select *
         FROM `survey_statistics_character`
     </select>
-
-
 
 
 </mapper>

@@ -15,7 +15,11 @@ public enum ResultCode {
 	PARAM_TYPE_BIND_ERROR(10003, "参数类型错误"),
 	PARAM_NOT_COMPLETE(10004, "参数缺失"),
 	PARAM_INVALID(10005, "含有非法参数，请检查上传内容"),
-	MAA_LOW_VERSION(10006, "数据不完整，请将MAA版本升级到V4.16.2版本之后"),
+	FILE_TYPE_INVALID(10006, "文件格式不正确"),
+	FILE_SIZE_LARGE(10007, "文件过大"),
+
+	FILE_NOT_IN_EXCEL_FORMAT(10006, "文件格式必须为.xlsx"),
+	MAA_LOW_VERSION(10008, "数据不完整，请将MAA版本升级到V4.16.2版本之后"),
 
 	
 	/* 用户错误：20001-29999*/

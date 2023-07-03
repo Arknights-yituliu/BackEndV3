@@ -223,43 +223,7 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
 
     }
 
-    /**
-     * 炼金池每抽期望价值计算
-     * @param penguinDataVoList  企鹅物流源石数据
-     * @param itemValueMap  材料价值表的map
-     * @return    炼金池每抽期望价值
-     */
-    private Double gachaBoxExpectValue(List<PenguinDataVo> penguinDataVoList, Map<String, Item> itemValueMap) {
-        double gachaBoxItemExpect = 0.0;
-        List<PenguinDataVo> collect = penguinDataVoList.stream().filter(penguinData -> "act24side_gacha".equals(penguinData.getStageId())).collect(Collectors.toList());
 
-        for (PenguinDataVo data : collect) {
-            switch (data.getItemId()) {
-                case "4001_2000":
-                    gachaBoxItemExpect += 0.0045 * 2000 * data.getQuantity() / data.getTimes();
-//                    log.info("龙门币概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + 0.0045 * 2000 * data.getQuantity() / data.getTimes());
-                    break;
-                case "31063":
-                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValueAp() * data.getQuantity() / data.getTimes();
-//                    log.info("转质盐组概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes());
-                    break;
-                case "30063":
-                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValueAp() * data.getQuantity() / data.getTimes();
-//                    log.info("全新装置概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes());
-                    break;
-                case "30033":
-                    gachaBoxItemExpect += itemValueMap.get(data.getItemId()).getItemValueAp() * data.getQuantity() / data.getTimes();
-//                    log.info("聚酸酯组概率：" + (double) data.getQuantity() / data.getTimes() * 100 + "%，期望价值：" + itemValueMap.get(data.getItemId()).getItemValue() * data.getQuantity() / data.getTimes());
-                    break;
-                case "furni":
-                    break;
-                default:
-            }
-        }
-
-        log.info("炼金池期望:" + gachaBoxItemExpect);
-        return gachaBoxItemExpect;
-    }
 
     /**
      * 企鹅物流数据中的磨难与标准关卡合并掉落次数和样本量
@@ -312,4 +276,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
         });
         return stageResultVo_item;
     }
+
+
 }

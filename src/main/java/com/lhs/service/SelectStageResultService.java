@@ -8,7 +8,7 @@ import com.lhs.entity.stage.StageResult;
 
 import com.lhs.mapper.StageResultMapper;
 import com.lhs.service.vo.OrundumPerApResultVo;
-import com.lhs.service.vo.StageResultActVo;
+import com.lhs.service.vo.StageResultClosedVo;
 import com.lhs.service.vo.StageResultVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -37,9 +37,16 @@ public class SelectStageResultService {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
                 "聚酸酯组", "晶体元件", "固源岩组", "半自然溶剂", "化合切削液", "转质盐组").forEach(type -> {
-            List<StageResult> stageResultsByItemType = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1)
-                    .eq("item_type", type).eq("exp_coefficient", expCoefficient).ge("efficiency", 0.6)
-                    .ge("sample_size", sampleSize).orderByDesc("stage_efficiency").last("limit 8"));      //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
+            //条件：可展示，符合材料类型，符合经验书系数，效率>1.0，样本大于传入参数，效率降序，限制8个结果
+            QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("is_show", 1)
+                    .eq("item_type", type)
+                    .eq("exp_coefficient", expCoefficient)
+                    .ge("efficiency", 0.6)
+                    .ge("sample_size", sampleSize)
+                    .orderByDesc("stage_efficiency")
+                    .last("limit 8");
+            List<StageResult> stageResultsByItemType = stageResultMapper.selectList(queryWrapper);
 
             if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
             List<StageResultVo> stageResultVo_item = new ArrayList<>();
@@ -68,9 +75,15 @@ public class SelectStageResultService {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
 
         Arrays.asList("固源岩", "酮凝集", "聚酸酯", "糖", "异铁", "装置").forEach(item -> {
-            List<StageResult> stageResultListByItemName = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1).eq("item_name", item)
-                    .eq("exp_coefficient", expCoefficient).ge("sample_size", sampleSize).le("ap_expect", 50)
-                    .orderByAsc("ap_expect").last("limit 6"));//条件：可展示，符合材料名称，符合经验书系数，期望理智<50，期望理智升序，限制6个结果
+            QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
+            //条件：可展示，符合材料名称，符合经验书系数，期望理智<50，期望理智升序，限制6个结果
+            queryWrapper.eq("is_show", 1).eq("item_name", item)
+                    .eq("exp_coefficient", expCoefficient)
+                    .ge("sample_size", sampleSize)
+                    .le("ap_expect", 50)
+                    .orderByAsc("ap_expect")
+                    .last("limit 6");
+            List<StageResult> stageResultListByItemName = stageResultMapper.selectList(queryWrapper);
             if (stageResultListByItemName.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
             List<StageResultVo> stageResultVo_item = new ArrayList<>();
             stageResultListByItemName.forEach(stageResult -> {
@@ -93,14 +106,25 @@ public class SelectStageResultService {
      * @return
      */
     @RedisCacheable(key = "stageClosed#expCoefficient")
-    public List<List<StageResultActVo>> queryStageResultData_closedActivities(Double expCoefficient, Integer sampleSize) {
-        List<StageResult> stageResultListByIsShow = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 0)
-                .isNotNull("item_type").notLike("stage_code", "DH").notLike("stage_id", "perm").eq("exp_coefficient", expCoefficient)
-                .ge("sample_size", sampleSize).ge("item_rarity", 3).ne("item_type", "0").orderByDesc("stage_id")
-                .orderByDesc("open_time")); //条件：不可展示，符合材料名称，符合经验书系数，效率>1.0，材料类型不为空，样本大于传入参数，材料类型不为0，按stageId降序
-        List<StageResultActVo> stageResultListCopy = new ArrayList<>();
+    public List<List<StageResultClosedVo>> queryStageResultData_closedActivities(Double expCoefficient, Integer sampleSize) {
+        //条件：不可展示，符合材料名称，符合经验书系数，效率>1.0，材料类型不为空，样本大于传入参数，材料类型不为0，按stageId降序
+        QueryWrapper<StageResult> queryWrapper = new QueryWrapper<StageResult>();
+        queryWrapper.eq("is_show", 0)
+                .isNotNull("item_type")
+                .notLike("stage_code", "DH")
+                .notLike("stage_code", "CF")
+                .notLike("stage_code", "OD")
+                .notLike("stage_id", "perm")
+                .eq("exp_coefficient", expCoefficient)
+                .ge("sample_size", sampleSize)
+                .ge("item_rarity", 3)
+                .ne("item_type", "0")
+                .orderByDesc("stage_id")
+                .orderByDesc("open_time");
+        List<StageResult> stageResultListByIsShow = stageResultMapper.selectList(queryWrapper);
+        List<StageResultClosedVo> stageResultListCopy = new ArrayList<>();
         stageResultListByIsShow.forEach(stageResult -> {
-            StageResultActVo stageResultVo = new StageResultActVo();
+            StageResultClosedVo stageResultVo = new StageResultClosedVo();
             BeanUtils.copyProperties(stageResult, stageResultVo);      //将关卡结果表的数据复制到前端返回对象上再返回
             if (!stageResultVo.getStageCode().startsWith("CF"))
                 stageResultVo.setStageEfficiency(stageResultVo.getStageEfficiency() + 7.2);  //给结果加上商店的无限龙门币的效率
@@ -109,9 +133,9 @@ public class SelectStageResultService {
         });
 
 
-        List<List<StageResultActVo>> stageResultVoList = new ArrayList<>();  //返回的结果集合
+        List<List<StageResultClosedVo>> stageResultVoList = new ArrayList<>();  //返回的结果集合
         stageResultListCopy.stream()
-                .collect(Collectors.groupingBy(StageResultActVo::getZoneName))  //根据zoneName分类结果
+                .collect(Collectors.groupingBy(StageResultClosedVo::getZoneName))  //根据zoneName分类结果
                 .entrySet().stream()
                 .sorted((p2, p1) -> p1.getValue().get(0).getOpenTime().compareTo(p2.getValue().get(0).getOpenTime())) //比较活动开启时间，倒序排列
                 .forEach(entry -> stageResultVoList.add(new ArrayList<>(entry.getValue())));  //存入结果集合中
@@ -130,8 +154,13 @@ public class SelectStageResultService {
 //    @RedisCacheable(key = "stage/orundum")
     public List<OrundumPerApResultVo> queryStageResultData_Orundum(Double expCoefficient, Integer sampleSize) {
         List<OrundumPerApResultVo> orundumPerApResultVoList = new ArrayList<>();
-        List<StageResult> stageResultByItemName = stageResultMapper.selectList(new QueryWrapper<StageResult>().eq("is_show", 1).eq("exp_coefficient", expCoefficient)
-                .in("item_name", "固源岩", "源岩", "装置", "破损装置").ge("sample_size", sampleSize).orderByDesc("stage_efficiency"));
+        List<StageResult> stageResultByItemName = stageResultMapper.selectList(new QueryWrapper<StageResult>()
+                .eq("is_show", 1)
+                .eq("exp_coefficient", expCoefficient)
+                .in("item_name", "固源岩", "源岩", "装置", "破损装置")
+                .ge("sample_size", sampleSize)
+                .orderByDesc("stage_efficiency"));
+
         if (stageResultByItemName.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);
         stageResultByItemName.stream().collect(Collectors.groupingBy(StageResult::getStageId)).forEach((k, list) -> {
             if (!(list.get(0).getIsValue() == 0 && !(list.get(0).getStageId().endsWith("LMD")))) {
@@ -187,16 +216,16 @@ public class SelectStageResultService {
     }
 
     public List<StageResult> queryStageResultDataDetailByStageId(String stageId) {
-        List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(new QueryWrapper<StageResult>()
-                .eq("exp_coefficient", 0.625).eq("stage_id", stageId)
-                .orderByAsc("result"));
+        QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("exp_coefficient", 0.625)
+                .eq("stage_id", stageId)
+                .orderByAsc("result");
+        List<StageResult> stageResultsByStageCode = stageResultMapper.selectList(queryWrapper);
         if (stageResultsByStageCode == null || stageResultsByStageCode.size() < 1)
             throw new ServiceException(ResultCode.DATA_NONE);
 
         return stageResultsByStageCode;
     }
-
-
 
 
     /**
@@ -235,8 +264,6 @@ public class SelectStageResultService {
         hashMap.put("LMDCost", LMDCost);
         return hashMap;
     }
-
-
 
 
 }

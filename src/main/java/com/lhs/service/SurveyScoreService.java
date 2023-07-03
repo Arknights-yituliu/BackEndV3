@@ -1,5 +1,6 @@
 package com.lhs.service;
 
+import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.survey.SurveyScore;
@@ -26,7 +27,7 @@ public class SurveyScoreService {
     private SurveyScoreMapper surveyScoreMapper;
 
     @Resource
-    private SurveyUserService surveyUserService;
+    private SurveyService surveyService;
 
     @Resource
     private SurveyUserMapper surveyUserMapper;
@@ -35,18 +36,16 @@ public class SurveyScoreService {
     /**
      * 上传干员风评表
      *
-     * @param userName        用户id
+     * @param token token
      * @param surveyScoreList 干员风评表
      * @return 成功消息
      */
-    public HashMap<Object, Object> uploadScoreForm(String userName, List<SurveyScore> surveyScoreList) {
+    @TakeCount(name = "上传评分")
+    public HashMap<Object, Object> uploadScoreForm(String token, List<SurveyScore> surveyScoreList) {
+        Long uid = surveyService.getUid(token);
+        SurveyUser surveyUser = surveyService.getSurveyUserById(uid);
+        String tableName = "survey_score_" + surveyService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
 
-        SurveyUser surveyUser = surveyUserService.selectSurveyUser(userName);
-
-        String tableName = "survey_score_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
-
-//        surveyScoreList.forEach(System.out::println);
-        Long uid = surveyUser.getId();  //用户的uid
         int insertRows = 0;
         int updateRows = 0;
 
@@ -60,6 +59,7 @@ public class SurveyScoreService {
 
         List<SurveyScore> insertList = new ArrayList<>();//新增数据批量插入集合
 
+
         for (SurveyScore surveyScore : surveyScoreList) {
             String charId = surveyScore.getCharId().substring(surveyScore.getCharId().indexOf("_") + 1);
             String id = uid + "_" + charId; //id
@@ -69,21 +69,24 @@ public class SurveyScoreService {
             //为空则新增
             surveyScore.setId(id);
             surveyScore.setUid(uid);
+
             if (surveyDataCharByCharId == null) {
                 insertList.add(surveyScore);  //加入批量插入集合
                 insertRows++;  //新增数据条数
             } else {
                 //如果数据存在，同时有某个信息不一致则进行更新 （考虑到可能更新量不大，没用when case批量更新
-                if (surveyScoreEquals(surveyScore, surveyDataCharByCharId)) {
+                if (comparativeData(surveyScore, surveyDataCharByCharId)) {
                     updateRows++;  //更新数据条数
                     surveyScoreMapper.updateSurveyScoreById(tableName, surveyScore); //更新数据
-                    System.out.println(surveyScore);
                 }
             }
         }
 
+
         if (insertList.size() > 0) surveyScoreMapper.insertBatchSurveyScore(tableName, insertList);  //批量插入
         surveyUserMapper.updateSurveyUser(surveyUser);   //更新用户表
+
+
 
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("updateRows", updateRows);
@@ -99,14 +102,14 @@ public class SurveyScoreService {
      * @param oldData 旧数据
      * @return 成功消息
      */
-    private boolean surveyScoreEquals(SurveyScore newData, SurveyScore oldData) {
+    private boolean comparativeData(SurveyScore newData, SurveyScore oldData) {
          //校验参数
-        boolean isInvalid = (newData.getDaily() < 1 || newData.getDaily() > 10) ||
-                (newData.getRogue() < 1 || newData.getRogue() > 10) ||
-                (newData.getHard() < 1 || newData.getHard() > 10) ||
-                (newData.getSecurityService() < 1 || newData.getSecurityService() > 10)||
-                (newData.getUniversal() < 1 || newData.getUniversal() > 10)||
-                (newData.getCountermeasures()< 1 || newData.getCountermeasures() > 10);
+        boolean isInvalid = (newData.getDaily() < 1 || newData.getDaily() > 5) ||
+                (newData.getRogue() < 1 || newData.getRogue() > 5) ||
+                (newData.getHard() < 1 || newData.getHard() > 5) ||
+                (newData.getSecurityService() < 1 || newData.getSecurityService() > 5)||
+                (newData.getUniversal() < 1 || newData.getUniversal() > 5)||
+                (newData.getCountermeasures()< 1 || newData.getCountermeasures() > 5);
 
         if(isInvalid) throw new ServiceException(ResultCode.PARAM_INVALID);
 
@@ -120,23 +123,23 @@ public class SurveyScoreService {
 
 
     public void scoreStatistics() {
-        List<Long> userIds = surveyUserService.selectSurveyUserIds();
+        List<Long> userIds = surveyService.selectSurveyUserIds();
 
         List<List<Long>> userIdsGroup = new ArrayList<>();
         String update_time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_score");
-        surveyUserService.updateConfigByKey(update_time, "update_time_score");
+        surveyService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_score");
+        surveyService.updateConfigByKey(update_time, "update_time_score");
 
         int length = userIds.size();
-        // 计算用户id按500个用户一组可以分成多少组
-        int num = length / 500 + 1;
+        // 计算用户id按300个用户一组可以分成多少组
+        int num = length / 300 + 1;
         int fromIndex = 0;   // id分组开始
-        int toIndex = 500;   //id分组结束
+        int toIndex = 300;   //id分组结束
         for (int i = 0; i < num; i++) {
             toIndex = Math.min(toIndex, userIds.size());
             userIdsGroup.add(userIds.subList(fromIndex, toIndex));
-            fromIndex += 500;
-            toIndex += 500;
+            fromIndex += 300;
+            toIndex += 300;
         }
         surveyScoreMapper.truncateScoreStatisticsTable();  //清空统计表
 
@@ -147,6 +150,9 @@ public class SurveyScoreService {
         for (List<Long> longs : userIdsGroup) {
             List<SurveyScoreVo> surveyScoreVoList_DB =
                     surveyScoreMapper.selectSurveyScoreVoByUidList("survey_score_1", longs);
+
+            log.info("本次统计数量：" + surveyScoreVoList_DB.size());
+
             Map<String, List<SurveyScoreVo>> collectByCharId = surveyScoreVoList_DB.stream()
                     .collect(Collectors.groupingBy(SurveyScoreVo::getCharId));
             collectByCharId.forEach((charId, arr) -> {
@@ -154,22 +160,22 @@ public class SurveyScoreService {
                 int rarity = arr.get(0).getRarity();
 
                 List<Integer> collectByDaily = arr.stream()
-                        .map(SurveyScoreVo::getDaily).filter(e -> e > -1).collect(Collectors.toList());
+                        .map(SurveyScoreVo::getDaily).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByRogue = arr.stream()
-                        .map(SurveyScoreVo::getRogue).filter(e -> e > -1).collect(Collectors.toList());
+                        .map(SurveyScoreVo::getRogue).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByHard = arr.stream()
-                        .map(SurveyScoreVo::getHard).filter(e -> e > -1).collect(Collectors.toList());
+                        .map(SurveyScoreVo::getHard).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectBySecurityService = arr.stream()
-                        .map(SurveyScoreVo::getSecurityService).filter(e -> e > -1).collect(Collectors.toList());
+                        .map(SurveyScoreVo::getSecurityService).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByUniversal = arr.stream()
-                        .map(SurveyScoreVo::getUniversal).filter(e -> e > -1).collect(Collectors.toList());
+                        .map(SurveyScoreVo::getUniversal).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByCountermeasures = arr.stream()
-                        .map(SurveyScoreVo::getCountermeasures).filter(e -> e > -1).collect(Collectors.toList());
+                        .map(SurveyScoreVo::getCountermeasures).filter(e -> e > 0).collect(Collectors.toList());
 
                 int sampleSizeDaily = collectByDaily.size();
                 int sampleSizeRogue = collectByRogue.size();

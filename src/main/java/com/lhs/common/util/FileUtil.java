@@ -1,11 +1,14 @@
 package com.lhs.common.util;
 
+import com.lhs.common.exception.ServiceException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ServerErrorException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 public class FileUtil {
@@ -148,4 +151,106 @@ public class FileUtil {
             e.printStackTrace();
         }
     }
+
+
+    /**
+     * 获取文件头
+     *
+     * @param filePath 文件路径
+     * @return 16 进制的文件投信息
+     *
+     * @throws IOException
+     */
+    private static String getFileHeader(String filePath) throws IOException {
+        byte[] b = new byte[28];
+        InputStream inputStream = Files.newInputStream(Paths.get(filePath));
+        inputStream.read(b, 0, 28);
+        inputStream.close();
+        return bytes2hex(b);
+    }
+
+    /**
+     * 获取文件头
+     *
+     * @param multipartFile 文件
+     * @return 16 进制的文件投信息
+     *
+     * @throws IOException
+     */
+    private static String getFileHeader(MultipartFile multipartFile) throws IOException {
+        byte[] b = new byte[10];
+
+        InputStream inputStream = multipartFile.getInputStream();
+        inputStream.read(b, 0, b.length);
+        inputStream.close();
+        return bytes2hex(b);
+    }
+
+    /**
+     * 将字节数组转换成16进制字符串
+     */
+    private static String bytes2hex(byte[] src) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (byte b : src) {
+            int v = b & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString().toUpperCase();
+    }
+
+    /**
+     * 校验是否为excel
+     *
+     * @param filePath 文件路径
+     * @return 文件类型
+     *
+     * @throws IOException
+     */
+    public static boolean checkFileType(String filePath,String fileType) {
+        String fileHead = null;
+        try {
+            fileHead = getFileHeader(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (null == fileHead || fileHead.length() == 0) {
+            return false;
+        }
+        //校验是否为xls或者xlsx文件
+        return Objects.equals(fileHead, fileType);
+    }
+
+    /**
+     * 校验是否为excel
+     *
+     * @param multipartFile 文件
+     * @return 文件类型
+     *
+     */
+    public static boolean checkFileType(MultipartFile multipartFile,String fileType) {
+
+        String fileHead = null;
+        try {
+            fileHead = getFileHeader(multipartFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (null == fileHead || fileHead.length() == 0) {
+            return false;
+        }
+
+        //校验文件格式
+        return fileHead.startsWith(fileType);
+    }
+
+
+
+
 }

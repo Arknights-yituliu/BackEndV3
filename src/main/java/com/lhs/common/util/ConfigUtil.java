@@ -18,18 +18,32 @@ public class ConfigUtil implements InitializingBean {
     private String backup;  //    备份文件路径
     @Value("${resourcesPath.schedule}")
     private String schedule;
-    @Value("${resourcesPath.secret}")
+    @Value("${encryption.secret}")
     private String secret;
-    @Value("${resourcesPath.signKey}")
+    @Value("${encryption.signKey}")
     private String signKey;
+    @Value("${encryption.machineId}")
+    private String machineId;
+    @Value("${penguin.auto}")
+    private String penguinAuto;
+    @Value("${penguin.global}")
+    private String penguinGlobal;
+
 
     public static String Penguin;
     public static String Item;
     public static String FrontEnd;
     public static String Backup;
     public static String Schedule;
+
+
     public static String Secret;
     public static String SignKey;
+    public static String MachineId;
+
+
+    public static String PenguinAuto;
+    public static String PenguinGlobal;
 
 
     @Override
@@ -41,5 +55,8 @@ public class ConfigUtil implements InitializingBean {
         Schedule = schedule;
         Secret = secret;
         SignKey = signKey;
+        MachineId = machineId;
+        PenguinAuto = penguinAuto;
+        PenguinGlobal = penguinGlobal;
     }
 }

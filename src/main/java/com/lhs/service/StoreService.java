@@ -55,7 +55,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     @Transactional
     public void updateStorePerm() {
         List<StorePerm> storePerms = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.queryItemListById(0.625).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
+        Map<String, Item> collect = itemService.queryItemListCache(0.625).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
 
         storePerms.forEach(storePerm -> {
             storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValueAp() * storePerm.getQuantity() / storePerm.getCost());
@@ -80,8 +80,8 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         return  resultMap;
     }
 
-    public void updateActStoreByActName(StoreActVo storeActVo)  {
-        List<Item> items = itemService.queryItemListById(0.625);
+    public String updateActStoreByActName(StoreActVo storeActVo,Boolean level)  {
+        List<Item> items = itemService.queryItemListCache(0.625);
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItem> storeItemList = storeActVo.getActStore();
@@ -110,9 +110,19 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
             storeActMapper.updateById(build);
         }
 
+        String message = "活动商店已更新";
+
+        if(level) {
+            redisTemplate.delete("StoreAct");
+            log.info("清空活动商店缓存");
+            message = "活动商店已更新，并清空缓存";
+
+        }
+
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()); // 设置日期格式
         toolService.ossUpload(JSON.toJSONString(storeActVo), "store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
+        return message;
     }
 
     @RedisCacheable(key = "StoreAct",timeout=86400)
@@ -149,7 +159,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         List<ItemCustomValueVo> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValueVo.class);
         Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValueVo::getItemName, ItemCustomValueVo::getItemValue));
-        itemService.queryItemListById(0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
+        itemService.queryItemListCache(0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
         JSONArray packList = JSONArray.parseArray(packStr);
 
@@ -230,8 +240,12 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
     public void updateHoneyCake(List<HoneyCake> honeyCakeList) {
+
         for(HoneyCake honeyCake:honeyCakeList){
-            HoneyCake honeyCakeOld = honeyCakeMapper.selectOne(new QueryWrapper<HoneyCake>().eq("name", honeyCake.getName()));
+            System.out.println(honeyCake);
+            QueryWrapper<HoneyCake> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("name", honeyCake.getName());
+            HoneyCake honeyCakeOld = honeyCakeMapper.selectOne(queryWrapper);
              if(honeyCakeOld==null){
                  honeyCakeMapper.insert(honeyCake);
              }else {
@@ -240,10 +254,11 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         }
     }
 
-    @RedisCacheable(key = "HoneyCake",timeout=86400)
+
+
+//    @RedisCacheable(key = "HoneyCake",timeout=86400)
     public Map<String,HoneyCake>  getHoneyCake() {
         List<HoneyCake> honeyCakeList = getHoneyCakeList();
-
         return honeyCakeList.stream().collect(Collectors.toMap(HoneyCake::getName, Function.identity()));
     }
 

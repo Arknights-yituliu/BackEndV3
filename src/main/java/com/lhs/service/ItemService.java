@@ -9,14 +9,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.ConfigUtil;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.ResultCode;
 
 import com.lhs.mapper.ItemMapper;
 import com.lhs.entity.stage.Item;
 
-import com.lhs.service.dto.CompositeTableVo;
+import com.lhs.service.dto.CompositeTableDto;
 import com.lhs.service.dto.ItemCost;
 
 import com.lhs.service.vo.ItemVo;
@@ -29,7 +27,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -64,9 +61,9 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         JSONObject workShopProductsValue = JSONObject.parseObject(workShopProductsValueJson);  //读取根据Vn计算出的副产物价值
 
         String compositeTableJson = FileUtil.read(ConfigUtil.Item + "compositeTable.json");
-        List<CompositeTableVo> compositeTableVo = JSONArray.parseArray(compositeTableJson, CompositeTableVo.class);  //读取加工站合成表
+        List<CompositeTableDto> compositeTableDto = JSONArray.parseArray(compositeTableJson, CompositeTableDto.class);  //读取加工站合成表
 
-        Long tableId = getTableId(expCoefficient);
+        long tableId = new Date().getTime();
 
         for (Item item :items) {
             item.setExpCoefficient(expCoefficient);//经验书系数
@@ -90,13 +87,13 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
 
         //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1/En
-        itemNameAndBestStageEff.forEach((id, En) -> {
-            double itemValueNew = itemValueMap.get(id).getItemValueAp() * 1 / Double.parseDouble(String.valueOf(En));
-            itemValueMap.get(id).setItemValueAp(itemValueNew);
+        itemNameAndBestStageEff.forEach((itemName, En) -> {
+            double itemValueNew = itemValueMap.get(itemName).getItemValueAp() * 1 / Double.parseDouble(String.valueOf(En));
+            itemValueMap.get(itemName).setItemValueAp(itemValueNew);
         });
 
 
-        compositeTableVo.forEach(table -> {     //循环加工站合成表计算新价值
+        compositeTableDto.forEach(table -> {     //循环加工站合成表计算新价值
             Integer rarity = itemValueMap.get(table.getId()).getRarity();
             double itemValueNew = 0.0;
             StringBuilder message = new StringBuilder(itemValueMap.get(table.getId()).getItemName()).append(" = ( ");
@@ -137,9 +134,10 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("exp_coefficient", expCoefficient);
         int delete = itemMapper.delete(itemQueryWrapper);
+
         if (delete > -1) {
             itemValueMap.forEach((k, item) ->{
-                System.out.println(item);
+//                System.out.println(item);
                 item.setItemValue(item.getItemValueAp() * 1.25);
             });
             saveByProductValue(items,expCoefficient);  //保存Vn+1的加工站副产物平均产出价值
@@ -177,7 +175,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
      * @return 材料信息表
      */
     @RedisCacheable(key = "itemValue#expCoefficient")
-    public List<Item> queryItemListById(Double expCoefficient) {
+    public List<Item> queryItemListCache(Double expCoefficient) {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("exp_coefficient", expCoefficient).orderByDesc("item_value_ap");
         return itemMapper.selectList(itemQueryWrapper);
@@ -197,7 +195,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             String fileName = URLEncoder.encode("itemValue", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
-            List<Item> list = queryItemListById(0.625);
+            List<Item> list = queryItemListCache(0.625);
             List<ItemVo> itemVoList = new ArrayList<>();
             for (Item item : list) {
                 ItemVo itemVo = new ItemVo();
@@ -212,7 +210,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
     }
 
     public void exportItemJson(HttpServletResponse response) {
-        List<Item> list = queryItemListById(0.625);
+        List<Item> list = queryItemListCache(0.625);
         List<ItemVo> itemVoList = new ArrayList<>();
         for (Item item : list) {
             ItemVo itemVo = new ItemVo();
@@ -225,9 +223,6 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         FileUtil.save(response, ConfigUtil.Item, "ItemValue.json", jsonForMat);
     }
 
-    public Long getTableId(Double expCoefficient) {
-        long round = Math.round((1 - expCoefficient) * 100);
-        return round * 100000;
-    }
+
 
 }

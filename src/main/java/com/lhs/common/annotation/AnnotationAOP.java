@@ -33,12 +33,13 @@ public class AnnotationAOP {
     //接口方法执行完成之后
     @After("@annotation(takeCount)")
     public void takeCountAfter(TakeCount takeCount) {
-        long timeCost =  (System.currentTimeMillis() - startTime.get());
-//        if(timeCost<1000) {
-//            log.info(takeCount.method() + "接口耗时：" + timeCost + "ms");
-//        }else {
-//            log.info(takeCount.method() + "接口耗时：" + (timeCost/1000) + "s");
-//        }
+            long timeCost = (System.currentTimeMillis() - startTime.get());
+            if (timeCost < 1000) {
+                log.info(takeCount.name() + "接口耗时：" + timeCost + "ms");
+            } else {
+                log.info(takeCount.name() + "接口耗时：" + (timeCost / 1000) + "s");
+            }
+
         startTime.remove();
     }
 
@@ -70,13 +71,15 @@ public class AnnotationAOP {
         if (redisValue != null) return redisValue;
 //        log.info("读取数据库内容");
         Object proceed = pjp.proceed();
-        redisTemplate.opsForValue().set(String.valueOf(redisKey), proceed, timeOut, TimeUnit.SECONDS);
+        if(timeOut<0){
+            redisTemplate.opsForValue().set(String.valueOf(redisKey), proceed);
+        }else {
+            redisTemplate.opsForValue().set(String.valueOf(redisKey), proceed, timeOut, TimeUnit.SECONDS);
+        }
+
         log.info("存入redis");
         return proceed;
     }
-
-
-
 
 
 }

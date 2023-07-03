@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +52,16 @@ public class UserService {
         javaMailSender.send(smm);//发送邮件
     }
 
+    public Boolean developerLevel(HttpServletRequest request){
+        String token = request.getHeader("token");
+        String developerBase64 = token.split("\\.")[0];
+        String decode = new String(Base64.getDecoder().decode(developerBase64), StandardCharsets.UTF_8);
+        QueryWrapper<Developer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("developer", decode);
+        Developer developer = developerMapper.selectOne(queryWrapper);
+        return developer.getLevel()==0;
+    }
+
     public void emailSendCode(LoginVo loginVo) {
         QueryWrapper<Developer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("developer", loginVo.getDeveloper());
@@ -75,29 +86,32 @@ public class UserService {
         Developer developer = developerMapper.selectOne(queryWrapper);
         if (developer == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         String code = String.valueOf(redisTemplate.opsForValue().get("CODE:"+developer.getEmail() + "CODE"));
+        //检查邮件验证码
         if (!loginVo.getCode().equals(code)) {
             throw new ServiceException(ResultCode.USER_LOGIN_CODE_ERROR);
         }
 
+        //登录时间
         String format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date());
         JSONObject header = new JSONObject();
         header.put("developer", loginVo.getDeveloper());
         header.put("loginDate", format);
-        String headerStr = JSON.toJSONString(header);
+        String headerStr = JSON.toJSONString(header);  //token头是登录名+登录时间
 //        类似jwt
 //        String HeaderBase64 =  Base64.getEncoder().encodeToString((headerStr).getBytes());
 //        String sign = AES.encrypt(headerStr+ConfigUtil.SignKey, ConfigUtil.Secret);
 //        String token =  HeaderBase64+"."+sign;
-        String sign = AES.encrypt(headerStr + ConfigUtil.SignKey, ConfigUtil.Secret);
-        String developerBase64 = Base64.getEncoder().encodeToString(loginVo.getDeveloper().getBytes());
-        String token = developerBase64 + "." + sign;
-        redisTemplate.opsForValue().set("TOKEN:"+developerBase64, token);
+        String sign = AES.encrypt(headerStr + ConfigUtil.SignKey, ConfigUtil.Secret);  //组成token尾：token头+签名
+        String developerBase64 = Base64.getEncoder().encodeToString(loginVo.getDeveloper().getBytes());  //进行base64转换
+
+        String token = developerBase64 + "." + sign;  //完整token：token头.token尾
+        redisTemplate.opsForValue().set("TOKEN:"+developerBase64, token,45, TimeUnit.DAYS);
         return token;
     }
 
     public Boolean loginAndCheckToken(HttpServletRequest request) {
         String token = request.getHeader("token");
-        log.info("开发者token{}" + token);
+//        log.info("开发者token：" + token);
         //        类似jwt
 //        String headerStr =  new String(Base64.getDecoder().decode(token.split("\\.")[0].getBytes()), StandardCharsets.UTF_8);
 //        String sign = token.split("\\.")[1];
@@ -106,13 +120,21 @@ public class UserService {
 //            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
 //        }
         String developerBase64 = token.split("\\.")[0];
+
         if (redisTemplate.opsForValue().get("TOKEN:"+developerBase64) == null) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
+
+        String decode = new String(Base64.getDecoder().decode(developerBase64), StandardCharsets.UTF_8);
+
+
+
         String redisToken = redisTemplate.opsForValue().get("TOKEN:" + developerBase64);
         if(!token.equals(redisToken)){
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
+
+        redisTemplate.opsForValue().set("TOKEN:"+developerBase64, redisToken,45, TimeUnit.DAYS);
 
         return true;
     }
@@ -155,4 +177,8 @@ public class UserService {
         }
         return hashMap;
     }
+
+
+
+
 }

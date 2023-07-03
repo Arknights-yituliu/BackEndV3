@@ -13,7 +13,7 @@ public class SurveyCharacterVo {
     private String charId;
     private Boolean own;
     private Integer level;
-    private Integer phase;
+    private Integer elite;
     private Integer potential;
     private Integer rarity;
     private Integer skill1;

@@ -34,22 +34,28 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     private ItemMapper itemMapper;
     @Resource
     private StageMapper stageMapper;
-
+    @Resource
+    private ItemService itemService;
     @Resource
     private ToolService toolService;
 
     /**
      * 保存企鹅物流数据到本地
-     * @param dataType  企鹅有两种数据，一种是仅MAA上传的数据，参数值auto；一种是全局数据，参数值global
-     * @param url  企鹅的数据API链接
      */
-    public void savePenguinData(String dataType, String url) {
-        String response = HttpRequestUtil.doGet(url, new HashMap<>());
+    public void savePenguinData() {
+        String penguinGlobal = ConfigUtil.PenguinGlobal;
+        String penguinAuto = ConfigUtil.PenguinAuto;
+        String responseAuto = HttpRequestUtil.doGet(penguinAuto, new HashMap<>());
+        String responseGlobal = HttpRequestUtil.doGet(penguinGlobal, new HashMap<>());
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()); // 设置日期格式
-        if (response == null) return;
-        FileUtil.save(ConfigUtil.Penguin, "matrix " + dataType + ".json", response);
-        toolService.ossUpload(response,"penguin/" + yyyyMMdd + "/matrix " + dataType + " " + yyyyMMddHHmm + ".json");
+        if (responseAuto == null||responseGlobal==null) return;
+
+        FileUtil.save(ConfigUtil.Penguin, "matrix auto.json", responseAuto);
+        toolService.ossUpload(responseAuto,"penguin/" + yyyyMMdd + "/matrix auto " + yyyyMMddHHmm + ".json");
+
+        FileUtil.save(ConfigUtil.Penguin, "matrix global.json", responseGlobal);
+        toolService.ossUpload(responseGlobal,"penguin/" + yyyyMMdd + "/matrix global " + yyyyMMddHHmm + ".json");
     }
 
 
@@ -64,13 +70,14 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     @Transactional
     public void importStageData(MultipartFile file) {
         List<Stage> list = new ArrayList<>();
-        Map<String, Item> itemMap = itemMapper.selectList(null).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
+
+        Map<String, Item> itemMap = itemService.queryItemList(0.625).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         JSONObject itemType_table = JSONObject.parseObject(FileUtil.read(ConfigUtil.Item + "itemType_table.json"));
 //        JSONObject stageZone_table = JSONObject.parseObject(FileUtil.read(FileConfig.Item + "zone_table.json"));
 
         try {
             EasyExcel.read(file.getInputStream(), Stage.class, new AnalysisEventListener<Stage>() {
-               
+
                 public void invoke(Stage stage, AnalysisContext analysisContext) {
                     try {
                         if (!"0".equals(stage.getMain())) stage.setMainRarity(itemMap.get(stage.getMain()).getRarity());

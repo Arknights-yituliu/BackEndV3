@@ -10,6 +10,8 @@ public class Developer {
     private String developer;
     @TableId
     private String email;
+    private Integer level;
+
 
 
 }

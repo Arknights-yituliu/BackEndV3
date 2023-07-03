@@ -8,8 +8,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TakeCount {
-
-    int time() default 60;
-
-    String method() default "未知";
+    String name() default "未知";
 }

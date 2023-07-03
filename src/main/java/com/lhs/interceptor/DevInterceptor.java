@@ -47,8 +47,9 @@ public class DevInterceptor implements HandlerInterceptor {
         if (HttpMethod.OPTIONS.toString().equals(request.getMethod())) {
             return true;
         }
+
         String requestURI = request.getRequestURI();
-        log.info("拦截路径{}"+requestURI);
+        log.info("拦截路径："+requestURI);
         //  检查开发者Token
         return userService.loginAndCheckToken(request);
     }
