@@ -2,7 +2,7 @@ package com.lhs.mapper;
 
 import com.lhs.entity.survey.SurveyScore;
 import com.lhs.entity.survey.SurveyStatisticsScore;
-import com.lhs.service.vo.SurveyScoreVo;
+import com.lhs.vo.survey.SurveyScoreVo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 

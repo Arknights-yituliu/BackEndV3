@@ -35,7 +35,7 @@
     </update>
 
     <!-- 根据多个uid查询干员练度信息表-->
-    <select id="selectSurveyCharacterVoByUidList" resultType="com.lhs.service.vo.SurveyCharacterVo">
+    <select id="selectSurveyCharacterVoByUidList" resultType="com.lhs.vo.survey.SurveyCharacterVo">
         SELECT `char_id`, `elite`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
         FROM ${tableName}
         WHERE `uid` IN

@@ -71,7 +71,7 @@ public class StageResult implements Serializable {
     @ApiModelProperty("材料类型")
     private String itemType;  
 
-    @ApiModelProperty("材料类型")
+    @ApiModelProperty("材料等级")
     private Integer itemRarity;  
 
     @ApiModelProperty("样本次数")

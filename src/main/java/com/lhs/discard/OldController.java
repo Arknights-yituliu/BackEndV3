@@ -3,18 +3,15 @@ package com.lhs.discard;
 
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.Result;
-import com.lhs.service.RecruitSurveyService;
-import com.lhs.service.ScheduleService;
-import com.lhs.service.dto.MaaRecruitVo;
+import com.lhs.service.maa.RecruitSurveyService;
+import com.lhs.service.maa.ScheduleService;
+import com.lhs.vo.maa.MaaRecruitVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
