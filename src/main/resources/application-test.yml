@@ -29,25 +29,28 @@ spring:
     properties:
       mail:
         debug: true #启动debug调试
-        smtp:  "你的qq游戏授权码"
+        smtp:  "你的qq邮箱授权码"
           socketFactory:
             class: javax.net.ssl.SSLSocketFactory #SSL连接配置
-
-
-
 
 resourcesPath:
   penguin: src/main/resources/penguin/
   item: src/main/resources/item/
-  frontEnd: src/main/resources/frontEnd/
   backup: src/main/resources/backups/
   schedule: src/main/resources/schedule/
-  secret: "AES加密"
-  signKey: "jwt签名"
+
+encryption:
+  secret: "密匙"
+  signKey: "密匙"
+  machineId: "密匙"
+
+penguin:
+  auto: "企鹅物流API"
+  global: https://penguin-stats.io/PenguinStats/api/v2/result/matrix?show_closed_zones=true
 
 aliyun:
-  AccessKeyID:  "阿里云密匙"
-  AccessKeySecret: "阿里云密匙"
+  accessKeyID:  "阿里云密匙"
+  accessKeySecret: "阿里云密匙"
 
 #mybatis-plus:
 #  configuration:
@@ -55,6 +58,6 @@ aliyun:
 
 swagger2:
    enable: true
-
+   type: test
 
 
