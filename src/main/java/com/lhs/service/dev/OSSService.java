@@ -1,4 +1,4 @@
-package com.lhs.common.util;
+package com.lhs.service.dev;
 
 import com.aliyun.oss.ClientException;
 import com.aliyun.oss.OSS;
@@ -6,21 +6,32 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.OSSException;
 import com.lhs.common.config.ApplicationConfig;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 
-public class OssUtil {
+@Service
+public class OSSService {
+
+    @Value("${aliyun.accessKeyID}")
+    private  String AccessKeyId;
+    @Value("${aliyun.accessKeySecret}")
+    private  String AccessKeySecret;
+    @Value("${aliyun.bakBucketName}")
+    private  String  BakBucketName;
 
 
-
-    public static void upload(String content, String objectName) {
+    public  void upload(String content, String objectName) {
         // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
         String endpoint = "https://oss-cn-beijing.aliyuncs.com";
         // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
-        String accessKeyId = ApplicationConfig.OSSAccessKeyId;
-        String accessKeySecret = ApplicationConfig.OSSAccessKeySecret;
+        System.out.println(AccessKeyId);
+        System.out.println(AccessKeySecret);
+        System.out.println(BakBucketName);
+        String accessKeyId = AccessKeyId;
+        String accessKeySecret = AccessKeySecret;
         // 填写Bucket名称，例如examplebucket。
-        String bucketName = ApplicationConfig.BakBucketName;
+        String bucketName = BakBucketName;
         // 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
 
         // 创建OSSClient实例。

@@ -9,11 +9,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.HttpRequestUtil;
-import com.lhs.common.util.OssUtil;
 import com.lhs.mapper.StageMapper;
 import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.Stage;
 
+import com.lhs.service.dev.OSSService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,25 +34,32 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
     private StageMapper stageMapper;
     @Resource
     private ItemService itemService;
-
+    @Resource
+    private OSSService ossService;
 
     /**
      * 保存企鹅物流数据到本地
      */
-    public void savePenguinData() {
-        String penguinGlobal = ApplicationConfig.PenguinGlobal;
-        String penguinAuto = ApplicationConfig.PenguinAuto;
-        String responseAuto = HttpRequestUtil.doGet(penguinAuto, new HashMap<>());
-        String responseGlobal = HttpRequestUtil.doGet(penguinGlobal, new HashMap<>());
+    public void savePenguinData(String type) {
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()); // 设置日期格式
-        if (responseAuto == null||responseGlobal==null) return;
 
-        FileUtil.save(ApplicationConfig.Penguin, "matrix auto.json", responseAuto);
-        OssUtil.upload(responseAuto,"penguin/" + yyyyMMdd + "/matrix auto " + yyyyMMddHHmm + ".json");
 
-        FileUtil.save(ApplicationConfig.Penguin, "matrix global.json", responseGlobal);
-        OssUtil.upload(responseGlobal,"penguin/" + yyyyMMdd + "/matrix global " + yyyyMMddHHmm + ".json");
+            String penguinGlobal = ApplicationConfig.PenguinGlobal;
+            String responseGlobal = HttpRequestUtil.doGet(penguinGlobal, new HashMap<>());
+            if (responseGlobal==null) return;
+            FileUtil.save(ApplicationConfig.Penguin, "matrix global.json", responseGlobal);
+            ossService.upload(responseGlobal,"penguin/"+yyyyMMdd+"/matrix global "+yyyyMMddHHmm+".json");
+
+
+
+            String penguinAuto = ApplicationConfig.PenguinAuto;
+            String responseAuto = HttpRequestUtil.doGet(penguinAuto, new HashMap<>());
+            if (responseAuto == null) return;
+            FileUtil.save(ApplicationConfig.Penguin, "matrix auto.json", responseAuto);
+            ossService.upload(responseAuto,"penguin/"+yyyyMMdd+"/matrix auto "+yyyyMMddHHmm+".json");
+
+
     }
 
 

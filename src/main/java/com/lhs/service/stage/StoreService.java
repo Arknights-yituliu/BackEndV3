@@ -9,7 +9,6 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.OssUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.other.HoneyCake;
 import com.lhs.entity.stage.StoreAct;
@@ -18,6 +17,7 @@ import com.lhs.mapper.StoreActMapper;
 import com.lhs.mapper.StorePermMapper;
 import com.lhs.entity.stage.Item;
 import com.lhs.entity.stage.StorePerm;
+import com.lhs.service.dev.OSSService;
 import com.lhs.vo.stage.ItemCustomValue;
 import com.lhs.vo.stage.StoreItem;
 import com.lhs.vo.stage.StoreActVo;
@@ -47,7 +47,8 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     private HoneyCakeMapper honeyCakeMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
-
+    @Resource
+    private OSSService ossService;
     /**
      * 更新常驻商店性价比
      */
@@ -66,7 +67,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()); // 设置日期格式
-        OssUtil.upload(JSON.toJSONString(storePerms), "store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
+        ossService.upload(JSON.toJSONString(storePerms), "store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
 
     }
 
@@ -120,7 +121,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()); // 设置日期格式
-        OssUtil.upload(JSON.toJSONString(storeActVo), "store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
+        ossService.upload(JSON.toJSONString(storeActVo), "store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
         return message;
     }
 

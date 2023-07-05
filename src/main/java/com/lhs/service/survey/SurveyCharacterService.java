@@ -138,6 +138,7 @@ public class SurveyCharacterService {
         }
 
         if (insertList.size() > 0) surveyCharacterMapper.insertBatchSurveyCharacter(tableName, insertList);  //批量插入
+        surveyUser.setUpdateTime(new Date());   //更新用户最后一次上传时间
         surveyService.updateSurveyUser(surveyUser);
 
         HashMap<Object, Object> hashMap = new HashMap<>();

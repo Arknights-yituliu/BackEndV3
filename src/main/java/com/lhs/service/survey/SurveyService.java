@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -116,14 +117,12 @@ public class SurveyService {
     public SurveyUser getSurveyUserByUserName(String userName){
         SurveyUser surveyUser = surveyUserMapper.selectSurveyUserByUserName(userName); //查询用户
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        surveyUser.setUpdateTime(new Date());   //更新用户最后一次上传时间
         return surveyUser;
     }
 
     public SurveyUser getSurveyUserById(Long id){
         SurveyUser surveyUser = surveyUserMapper.selectSurveyUserById(id); //查询用户
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        surveyUser.setUpdateTime(new Date());   //更新用户最后一次上传时间
         return surveyUser;
     }
 
@@ -188,13 +187,13 @@ public class SurveyService {
        return Long.valueOf(idStr);
    }
 
-
+    private String githubBotResource = "E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\";
 
     public HashMap<String, Object> getCharacterData() {
 
-        String character_tableStr = FileUtil.read("E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\gamedata\\excel\\character_table.json");
-        String uniequip_tableStr = FileUtil.read("E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\gamedata\\excel\\uniequip_table.json");
-        String skill_tableStr = FileUtil.read("E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\gamedata\\excel\\skill_table.json");
+        String character_tableStr = FileUtil.read(githubBotResource+"gamedata\\excel\\character_table.json");
+        String uniequip_tableStr = FileUtil.read(githubBotResource+"gamedata\\excel\\uniequip_table.json");
+        String skill_tableStr = FileUtil.read(githubBotResource+"gamedata\\excel\\skill_table.json");
         String insertedTimeStr = FileUtil.read(ApplicationConfig.Backup+"insertedTime.json");
         JSONObject character_table = JSONObject.parseObject(character_tableStr);
         JSONObject uniequip_table = JSONObject.parseObject(uniequip_tableStr);
@@ -299,6 +298,43 @@ public class SurveyService {
 
 
         return null;
+    }
+
+
+    public  void getAvatar(){
+        try {
+            // 创建流对象
+
+            String character_tableStr = FileUtil.read(githubBotResource+"gamedata\\excel\\character_table.json");
+
+            JSONObject character_table = JSONObject.parseObject(character_tableStr);
+            List<String> list  = new ArrayList<>();
+
+            String startPath = "E:\\VCProject\\frontend-v2-plus\\public\\image\\avatar\\";
+            String avatar6 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\avatar-ori-6\\";
+            String avatar5 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\avatar-ori-5\\";
+            String avatar4 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\avatar-ori-4\\";
+            String endPath = avatar4;
+            for (String key : character_table.keySet()) {
+                if(!key.startsWith("char")) continue;
+                JSONObject charData = JSONObject.parseObject(character_table.getString(key));
+                int rarity = Integer.parseInt(charData.getString("rarity"));
+                System.out.println(key+"：星级："+rarity);
+                File startFile = new File(startPath+key+".png");
+                if(rarity==5) endPath=avatar6;
+                if(rarity==4) endPath=avatar5;
+                if(rarity<4) endPath=avatar4;
+
+                if (startFile.renameTo(new File(endPath + key+".png"))) {
+                    System.out.println("文件移动成功！文件名：《{"+key+"}》 目标路径：{"+endPath+"}");
+                } else {
+                    System.out.println("文件移动失败！文件名：《{"+key+"}》 目标路径：{"+endPath+"}");
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }
