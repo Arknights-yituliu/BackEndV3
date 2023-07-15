@@ -91,7 +91,7 @@ public class UserService {
         }
 
         //登录时间
-        String format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date());
+        String format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         JSONObject header = new JSONObject();
         header.put("developer", loginVo.getDeveloper());
         header.put("loginDate", format);

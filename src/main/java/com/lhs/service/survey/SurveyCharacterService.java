@@ -6,13 +6,12 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.ExcelUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.survey.*;
+import com.lhs.mapper.CharacterTableMapper;
 import com.lhs.mapper.SurveyCharacterMapper;
 import com.lhs.vo.maa.MaaOperBoxVo;
 import com.lhs.vo.maa.OperBox;
@@ -20,6 +19,7 @@ import com.lhs.vo.survey.SurveyStatisticsChar;
 import com.lhs.vo.survey.CharacterStatisticsResult;
 import com.lhs.vo.survey.SurveyCharacterExcelVo;
 import com.lhs.vo.survey.SurveyCharacterVo;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -39,9 +39,10 @@ public class SurveyCharacterService {
 
     @Resource
     private SurveyCharacterMapper surveyCharacterMapper;
-
     @Resource
     private SurveyService surveyService;
+    @Resource
+    private CharacterTableMapper characterTableMapper;
 
     /**
      * 上传干员练度调查表
@@ -51,8 +52,8 @@ public class SurveyCharacterService {
      */
     @TakeCount(name = "上传评分")
     public HashMap<Object, Object> uploadCharForm(String token, List<SurveyCharacter> surveyCharacterList) {
-        Long uid = surveyService.getUid(token);
-        return updateSurveyData(uid, surveyCharacterList);
+        SurveyUser surveyUser = surveyService.getSurveyUserById(token);
+        return updateSurveyData(surveyUser, surveyCharacterList);
     }
 
     /**
@@ -62,7 +63,7 @@ public class SurveyCharacterService {
      * @return 成功消息
      */
     public HashMap<Object, Object> importSurveyCharacterForm(MultipartFile file,String token){
-        Long uid = surveyService.getUid(token);
+        Long uid = surveyService.decryptToken(token);
         List<SurveyCharacter> list = new ArrayList<>();
         try {
             EasyExcel.read(file.getInputStream(), SurveyCharacterExcelVo.class, new AnalysisEventListener<SurveyCharacterExcelVo>() {
@@ -79,18 +80,20 @@ public class SurveyCharacterService {
             e.printStackTrace();
         }
 
-        return updateSurveyData(uid, list);
+        SurveyUser surveyUser = surveyService.getSurveyUserById(token);
+        return updateSurveyData(surveyUser, list);
     }
 
 
     /**
-     * 通用的导入抽象方法
-     * @param uid 用户名
+     * 通用的上传抽象方法
+     * @param surveyUser 用户信息
      * @param surveyCharacterList  干员练度调查表
      * @return
      */
-    private HashMap<Object, Object> updateSurveyData(Long uid, List<SurveyCharacter> surveyCharacterList){
-        SurveyUser surveyUser = surveyService.getSurveyUserById(uid);
+    private HashMap<Object, Object> updateSurveyData(SurveyUser surveyUser, List<SurveyCharacter> surveyCharacterList){
+
+        long uid = surveyUser.getId();
 
         String tableName = "survey_character_"+ surveyService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
 
@@ -102,14 +105,24 @@ public class SurveyCharacterService {
                 = surveyCharacterMapper.selectSurveyCharacterByUid(tableName, surveyUser.getId());
 
         //用户之前上传的数据转为map方便对比
-        Map<String, SurveyCharacter> oldDataCollectById = surveyCharacterVos.stream()
+        Map<Long, SurveyCharacter> oldDataCollectById = surveyCharacterVos.stream()
                 .collect(Collectors.toMap(SurveyCharacter::getId, Function.identity()));
 
-        List<SurveyCharacter> insertList = new ArrayList<>();//新增数据批量插入集合
+        //新增数据
+        List<SurveyCharacter> insertList = new ArrayList<>();
+
+        //干员的自定义id
+        List<CharacterTable> characterTables = characterTableMapper.selectList(null);
+        //干员的自定义id
+        Map<String, String> charIdAndId = characterTables.stream()
+                .collect(Collectors.toMap(CharacterTable::getCharId, CharacterTable::getId));
+
 
         for (SurveyCharacter surveyCharacter : surveyCharacterList) {
-            String charId = surveyCharacter.getCharId().substring(surveyCharacter.getCharId().indexOf("_"));
-            String id = uid + "_" + charId; //存储id
+            //没有自定义id的跳出
+            if(charIdAndId.get(surveyCharacter.getCharId())==null) continue;
+            //唯一id为uid+自定义id
+            Long id = Long.parseLong(uid + charIdAndId.get(surveyCharacter.getCharId()));
 
             //精英化阶段小于2 不能专精和开模组
             if (surveyCharacter.getElite() < 2 &&surveyCharacter.getOwn()) {
@@ -138,20 +151,22 @@ public class SurveyCharacterService {
         }
 
         if (insertList.size() > 0) surveyCharacterMapper.insertBatchSurveyCharacter(tableName, insertList);  //批量插入
-        surveyUser.setUpdateTime(new Date());   //更新用户最后一次上传时间
+        Date date = new Date();
+        surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
         surveyService.updateSurveyUser(surveyUser);
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss");
 
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("updateRows", updateRows);
         hashMap.put("insertRows", insertRows);
+        hashMap.put("updateTime",simpleDateFormat.format(date));
         return hashMap;
     }
 
     public void exportSurveyCharacterForm(HttpServletResponse response,String token){
-        String decrypt = AES.decrypt(token, ApplicationConfig.Secret);
-        String userName = decrypt.split("\\.")[0];
-        System.out.println(userName);
-        SurveyUser surveyUser = surveyService.getSurveyUserByUserName(userName);
+
+        SurveyUser surveyUser = surveyService.getSurveyUserById(token);
         String tableName = "survey_character_"+ surveyService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
         //用户之前上传的数据
         List<SurveyCharacter> list
@@ -163,7 +178,12 @@ public class SurveyCharacterService {
             BeanUtils.copyProperties(surveyCharacter,surveyCharacterExcelVo);
             String charInfoStr = characterTable.getString(surveyCharacter.getCharId());
             JSONObject charInfo = JSONObject.parseObject(charInfoStr);
-            surveyCharacterExcelVo.setName(charInfo.getString("name"));
+            if(charInfo.get("name")==null){
+                surveyCharacterExcelVo.setName("未知干员，待更新");
+            }else {
+                surveyCharacterExcelVo.setName(charInfo.getString("name"));
+            }
+
             listVo.add(surveyCharacterExcelVo);
         }
         ExcelUtil.exportExcel(response,listVo,SurveyCharacterExcelVo.class,"characterForm");
@@ -200,14 +220,14 @@ public class SurveyCharacterService {
 
         int length = userIds.size();
         // 计算用户id按500个用户一组可以分成多少组
-        int num = length / 500 + 1;
+        int num = length / 300 + 1;
         int fromIndex = 0;   // id分组开始
-        int toIndex = 500;   //id分组结束
+        int toIndex = 300;   //id分组结束
         for (int i = 0; i < num; i++) {
             toIndex = Math.min(toIndex, userIds.size());
             userIdsGroup.add(userIds.subList(fromIndex, toIndex));
-            fromIndex += 500;
-            toIndex += 500;
+            fromIndex += 300;
+            toIndex += 300;
         }
 
         surveyCharacterMapper.truncateCharacterStatisticsTable();  //清空统计表
@@ -286,7 +306,6 @@ public class SurveyCharacterService {
 
         //将dto对象转为数据库对象
         hashMap.forEach((k, v) -> {
-
             int sampleSizeElite = getSampleSize(v.getElite());
             int sampleSizeSkill1 = getSampleSize(v.getSkill1());
             int sampleSizeSkill2 = getSampleSize(v.getSkill2());
@@ -342,8 +361,8 @@ public class SurveyCharacterService {
      * @return 成功消息
      */
     public List<SurveyCharacterVo> findCharacterForm(String token) {
-        Long uid = surveyService.getUid(token);
-        SurveyUser surveyUser = surveyService.getSurveyUserById(uid);
+
+        SurveyUser surveyUser = surveyService.getSurveyUserById(token);
         List<SurveyCharacterVo> surveyCharacterVos = new ArrayList<>();
         if (surveyUser.getCreateTime().getTime() == surveyUser.getUpdateTime().getTime())
             return surveyCharacterVos;  //更新时间和注册时间一致直接返回空
@@ -427,85 +446,85 @@ public class SurveyCharacterService {
      * @param ipAddress   ip
      * @return  成功消息
      */
-    public HashMap<Object, Object> saveMaaCharData(MaaOperBoxVo maaOperBoxVo, String ipAddress) {
-        JSONArray operBoxs = maaOperBoxVo.getOperBox();
-        List<SurveyCharacter> surveyCharacterList = new ArrayList<>();
-
-        operBoxs.forEach(item -> {
-            OperBox operBox = JSONObject.parseObject(String.valueOf(item), OperBox.class);
-            SurveyCharacter build = SurveyCharacter.builder()
-                    .charId(operBox.getId())
-                    .level(operBox.getLevel())
-                    .elite(operBox.getElite())
-                    .potential(operBox.getPotential())
-                    .rarity(operBox.getRarity())
-                    .own(operBox.getOwn())
-                    .skill1(-1)
-                    .skill2(-1)
-                    .skill3(-1)
-                    .modX(-1)
-                    .modY(-1)
-                    .build();
-            surveyCharacterList.add(build);
-        });
-
-        SurveyUser surveyUser = surveyService.registerByMaa(ipAddress);
-        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        surveyUser.setUpdateTime(new Date());
-        surveyService.updateSurveyUser(surveyUser);
-
-        String tableName = "survey_character_"+ surveyService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
-
-        Long uid = surveyUser.getId();
-        int insertRows = 0;
-        int updateRows = 0;
-
-
-        List<SurveyCharacter> surveyCharacterVos
-                = surveyCharacterMapper.selectSurveyCharacterByUid(tableName, surveyUser.getId());
-
-        Map<String, SurveyCharacter> surveyDataCharCollectById = surveyCharacterVos.stream()
-                .collect(Collectors.toMap(SurveyCharacter::getId, Function.identity()));
-
-        List<SurveyCharacter> insertList = new ArrayList<>();
-
-        for (SurveyCharacter surveyCharacter : surveyCharacterList) {
-            String id = uid + "_" + surveyCharacter.getCharId(); //存储id
-//            if(!surveyDataChar.getOwn())  continue;  //未持有不记录
-
-            //精英化阶段小于2 不能专精和开模组
-            if (surveyCharacter.getElite() < 2 || !surveyCharacter.getOwn()) {
-                surveyCharacter.setSkill1(0);
-                surveyCharacter.setSkill2(0);
-                surveyCharacter.setSkill3(0);
-                surveyCharacter.setModX(0);
-                surveyCharacter.setModY(0);
-            }
-
-//            SurveyDataChar surveyDataCharById = surveyMapper.selectSurveyDataCharById(charTable, id);
-            SurveyCharacter surveyCharacterById = surveyDataCharCollectById.get(id);
-            surveyCharacter.setId(id);
-            surveyCharacter.setUid(uid);
-
-            if (surveyCharacterById == null) {
-                insertList.add(surveyCharacter);
-                insertRows++;
-            } else {
-                if (surveyDataCharEquals(surveyCharacter, surveyCharacterById)) {
-                    updateRows++;
-                    surveyCharacterMapper.updateSurveyCharacterById(tableName, surveyCharacter);
-                }
-            }
-        }
-
-        if (insertList.size() > 0) surveyCharacterMapper.insertBatchSurveyCharacter(tableName, insertList);
-
-        HashMap<Object, Object> hashMap = new HashMap<>();
-        hashMap.put("updateRows", updateRows);
-        hashMap.put("insertRows", insertRows);
-        hashMap.put("uid", uid);
-        return hashMap;
-    }
+//    public HashMap<Object, Object> saveMaaCharData(MaaOperBoxVo maaOperBoxVo, String ipAddress) {
+//        JSONArray operBoxs = maaOperBoxVo.getOperBox();
+//        List<SurveyCharacter> surveyCharacterList = new ArrayList<>();
+//
+//        operBoxs.forEach(item -> {
+//            OperBox operBox = JSONObject.parseObject(String.valueOf(item), OperBox.class);
+//            SurveyCharacter build = SurveyCharacter.builder()
+//                    .charId(operBox.getId())
+//                    .level(operBox.getLevel())
+//                    .elite(operBox.getElite())
+//                    .potential(operBox.getPotential())
+//                    .rarity(operBox.getRarity())
+//                    .own(operBox.getOwn())
+//                    .skill1(-1)
+//                    .skill2(-1)
+//                    .skill3(-1)
+//                    .modX(-1)
+//                    .modY(-1)
+//                    .build();
+//            surveyCharacterList.add(build);
+//        });
+//
+//        SurveyUser surveyUser = surveyService.registerByMaa(ipAddress);
+//        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+//        surveyUser.setUpdateTime(new Date());
+//        surveyService.updateSurveyUser(surveyUser);
+//
+//        String tableName = "survey_character_"+ surveyService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
+//
+//        Long uid = surveyUser.getId();
+//        int insertRows = 0;
+//        int updateRows = 0;
+//
+//
+//        List<SurveyCharacter> surveyCharacterVos
+//                = surveyCharacterMapper.selectSurveyCharacterByUid(tableName, surveyUser.getId());
+//
+//        Map<String, SurveyCharacter> surveyDataCharCollectById = surveyCharacterVos.stream()
+//                .collect(Collectors.toMap(SurveyCharacter::getId, Function.identity()));
+//
+//        List<SurveyCharacter> insertList = new ArrayList<>();
+//
+//        for (SurveyCharacter surveyCharacter : surveyCharacterList) {
+//            String id = uid + "_" + surveyCharacter.getCharId(); //存储id
+////            if(!surveyDataChar.getOwn())  continue;  //未持有不记录
+//
+//            //精英化阶段小于2 不能专精和开模组
+//            if (surveyCharacter.getElite() < 2 || !surveyCharacter.getOwn()) {
+//                surveyCharacter.setSkill1(0);
+//                surveyCharacter.setSkill2(0);
+//                surveyCharacter.setSkill3(0);
+//                surveyCharacter.setModX(0);
+//                surveyCharacter.setModY(0);
+//            }
+//
+////            SurveyDataChar surveyDataCharById = surveyMapper.selectSurveyDataCharById(charTable, id);
+//            SurveyCharacter surveyCharacterById = surveyDataCharCollectById.get(id);
+//            surveyCharacter.setId(id);
+//            surveyCharacter.setUid(uid);
+//
+//            if (surveyCharacterById == null) {
+//                insertList.add(surveyCharacter);
+//                insertRows++;
+//            } else {
+//                if (surveyDataCharEquals(surveyCharacter, surveyCharacterById)) {
+//                    updateRows++;
+//                    surveyCharacterMapper.updateSurveyCharacterById(tableName, surveyCharacter);
+//                }
+//            }
+//        }
+//
+//        if (insertList.size() > 0) surveyCharacterMapper.insertBatchSurveyCharacter(tableName, insertList);
+//
+//        HashMap<Object, Object> hashMap = new HashMap<>();
+//        hashMap.put("updateRows", updateRows);
+//        hashMap.put("insertRows", insertRows);
+//        hashMap.put("uid", uid);
+//        return hashMap;
+//    }
 
 
 

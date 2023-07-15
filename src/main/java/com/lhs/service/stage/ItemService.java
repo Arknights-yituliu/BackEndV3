@@ -108,8 +108,8 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
         //在itemValueMap 设置新的材料价值Vn+1 ， Vn+1= Vn*1/En
         for(ItemIterationValue itemIterationValue:itemIterationValueList){
-            double itemValueNew = itemValueMap.get(itemIterationValue.getItemName()).getItemValueAp()
-                    /itemIterationValue.getIterationValue();
+            double itemValueNew = itemValueMap.get(itemIterationValue.getItemName()).getItemValueAp() / itemIterationValue.getIterationValue();
+            itemValueMap.get(itemIterationValue.getItemName()).setItemValueAp(itemValueNew);
         }
 
 

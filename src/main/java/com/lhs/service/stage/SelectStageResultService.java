@@ -32,7 +32,7 @@ public class SelectStageResultService {
      * @param sampleSize     样本大小
      * @return
      */
-    @RedisCacheable(key = "stageT3#expCoefficient")
+    @RedisCacheable(key = "stageT3#expCoefficient",timeout = 1200)
     public List<List<StageResultVo>> queryStageResultData_t3(Double expCoefficient, Integer sampleSize) {
         List<List<StageResultVo>> stageResultVoList = new ArrayList<>();
         Arrays.asList("全新装置", "异铁组", "轻锰矿", "凝胶", "扭转醇", "酮凝集组", "RMA70-12", "炽合金", "研磨石", "糖组",
@@ -46,6 +46,7 @@ public class SelectStageResultService {
                     .ge("sample_size", sampleSize)
                     .orderByDesc("stage_efficiency")
                     .last("limit 8");
+            if(!"固源岩组".equals(type)) queryWrapper.eq("item_rarity",3);
             List<StageResult> stageResultsByItemType = stageResultMapper.selectList(queryWrapper);
 
             if (stageResultsByItemType.size() == 0) throw new ServiceException(ResultCode.DATA_NONE);

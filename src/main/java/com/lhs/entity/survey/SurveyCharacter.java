@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 public class SurveyCharacter {
     @ExcelProperty("id")
-    private String id;
+    private Long id;
     @ExcelProperty("uid")
     private Long uid;
     @ExcelProperty("角色id")

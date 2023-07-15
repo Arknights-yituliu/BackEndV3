@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SurveyScore {
-    private String id;
+    private Long id;
     @ApiModelProperty(value = "用户id")
     private Long uid;
 

@@ -127,7 +127,6 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
                 efficiencyResultCopy.setStageColor(-1);
                 stageResultList.add(efficiencyResultCopy);
             }
-
         }
 
         stageResultList.stream()
@@ -172,17 +171,15 @@ public class StageResultService extends ServiceImpl<StageResultMapper, StageResu
             list =  list.stream().filter(result->result.getIsValue() == 1).collect(Collectors.toList());
             if(list.size()>0){
                if(!"兽之泪".equals(itemName)) {
-
                    ItemIterationValue itemIterationValue = new ItemIterationValue();
                    itemIterationValue.setItemName(itemName);
                    itemIterationValue.setIterationValue(list.get(0).getEfficiency());
                    itemIterationValue.setExpCoefficient(expCoefficient);
-
                    iterationValueList.add(itemIterationValue);
                }
-                   itemNameAndStageEffMap.put(itemName, list.get(0).getEfficiency());  //拿到该种材料的最优关卡
+                itemNameAndStageEffMap.put(itemName, list.get(0).getEfficiency());  //拿到当前材料的效率最高关卡
                 log.info(itemName + "的最优本是" + list.get(0).getStageCode());
-                log.info(itemName + "的回归系数是" + 1 / list.get(0).getEfficiency());
+                log.info(itemName + "的迭代系数是" + 1 / list.get(0).getEfficiency());
             }
 
         });

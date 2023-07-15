@@ -3,9 +3,11 @@ package com.lhs.service.survey;
 import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.survey.CharacterTable;
 import com.lhs.entity.survey.SurveyScore;
 import com.lhs.entity.survey.SurveyStatisticsScore;
 import com.lhs.entity.survey.SurveyUser;
+import com.lhs.mapper.CharacterTableMapper;
 import com.lhs.mapper.SurveyScoreMapper;
 import com.lhs.mapper.SurveyUserMapper;
 import com.lhs.vo.survey.SurveyScoreVo;
@@ -25,13 +27,12 @@ public class SurveyScoreService {
 
     @Resource
     private SurveyScoreMapper surveyScoreMapper;
-
     @Resource
     private SurveyService surveyService;
-
     @Resource
     private SurveyUserMapper surveyUserMapper;
-
+    @Resource
+    private CharacterTableMapper characterTableMapper;
 
     /**
      * 上传干员风评表
@@ -42,8 +43,9 @@ public class SurveyScoreService {
      */
     @TakeCount(name = "上传评分")
     public HashMap<Object, Object> uploadScoreForm(String token, List<SurveyScore> surveyScoreList) {
-        Long uid = surveyService.getUid(token);
-        SurveyUser surveyUser = surveyService.getSurveyUserById(uid);
+
+        SurveyUser surveyUser = surveyService.getSurveyUserById(token);
+        long uid = surveyUser.getId();
         String tableName = "survey_score_" + surveyService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
 
         int insertRows = 0;
@@ -57,12 +59,20 @@ public class SurveyScoreService {
         Map<String, SurveyScore> oldDataCollectById = surveyScores.stream()
                 .collect(Collectors.toMap(SurveyScore::getCharId, Function.identity()));
 
-        List<SurveyScore> insertList = new ArrayList<>();//新增数据批量插入集合
+        //新增数据
+        List<SurveyScore> insertList = new ArrayList<>();
 
+        //干员的自定义id
+        List<CharacterTable> characterTables = characterTableMapper.selectList(null);
+        //干员的自定义id
+        Map<String, String> charIdAndId = characterTables.stream()
+                .collect(Collectors.toMap(CharacterTable::getCharId, CharacterTable::getId));
 
         for (SurveyScore surveyScore : surveyScoreList) {
-            String charId = surveyScore.getCharId().substring(surveyScore.getCharId().indexOf("_") + 1);
-            String id = uid + "_" + charId; //id
+            //没有自定义id的跳出
+            if(charIdAndId.get(surveyScore.getCharId())==null) continue;
+            //唯一id为uid+自定义id
+            Long id = Long.parseLong(uid + charIdAndId.get(surveyScore.getCharId()));
 
             //和老数据进行对比
             SurveyScore surveyDataCharByCharId = oldDataCollectById.get(surveyScore.getCharId());

@@ -42,7 +42,7 @@ public class StageService extends ServiceImpl<StageMapper, Stage>  {
      */
     public void savePenguinData(String type) {
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
-        String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd hh:mm").format(new Date()); // 设置日期格式
+        String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
 
 
             String penguinGlobal = ApplicationConfig.PenguinGlobal;
