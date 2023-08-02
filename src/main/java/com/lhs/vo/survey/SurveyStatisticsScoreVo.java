@@ -49,10 +49,22 @@ public class SurveyStatisticsScoreVo {
     private Integer sampleSizeUniversal;
 
     @ApiModelProperty(value = "对策")
-    private Double countermeasures;
+    private Double counter;
 
     @ApiModelProperty(value = "样本量-对策")
-    private Integer sampleSizeCountermeasures;
+    private Integer sampleSizeCounter;
+
+    @ApiModelProperty(value = "基建")
+    private Double building;
+
+    @ApiModelProperty(value = "样本量-基建")
+    private Integer sampleSizeBuilding;
+
+    @ApiModelProperty(value = "综合")
+    private Double comprehensive;
+
+    @ApiModelProperty(value = "样本量-综合")
+    private Integer sampleSizeComprehensive;
 
 
 }

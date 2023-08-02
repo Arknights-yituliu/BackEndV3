@@ -37,7 +37,11 @@ public class SurveyScore {
     private Integer universal;
 
     @ApiModelProperty(value = "对策")
-    private Integer countermeasures;
+    private Integer counter;
 
+    @ApiModelProperty(value = "基建")
+    private Integer building;
 
+    @ApiModelProperty(value = "测试")
+    private Integer comprehensive;
 }

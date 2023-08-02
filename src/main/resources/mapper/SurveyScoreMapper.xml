@@ -6,12 +6,16 @@
     <!-- 干员练度信息表，批量插入-->
     <insert id="insertBatchSurveyScore">
         INSERT INTO ${tableName}
-        (`id`, `uid`, `char_id`,`rarity`, `daily`, `rogue`, `security_service`, `hard`, `universal`, `countermeasures`)
+        (`id`, `uid`, `char_id`,`rarity`,
+         `daily`, `rogue`, `security_service`,
+         `hard`, `universal`, `counter`,
+        `building`, `comprehensive`)
         VALUES
         <foreach collection="scoreList" item="score" separator=",">
             (#{score.id}, #{score.uid}, #{score.charId},#{score.rarity},
             #{score.daily},#{score.rogue},#{score.securityService},
-            #{score.hard}, #{score.universal},#{score.countermeasures})
+            #{score.hard}, #{score.universal},#{score.counter},
+             #{score.building},#{score.comprehensive})
         </foreach>
     </insert>
 
@@ -24,13 +28,16 @@
             `security_service` = #{score.securityService},
             `hard`             = #{score.hard},
             `universal`        = #{score.universal},
-            `countermeasures`  = #{score.countermeasures}
+            `counter`  = #{score.counter},
+            `building`        = #{score.building},
+            `comprehensive`  = #{score.comprehensive}
         WHERE `id` = #{score.id};
     </update>
 
     <!-- 干员练度信息表，根据多个uid查询-->
     <select id="selectSurveyScoreVoByUidList" resultType="com.lhs.vo.survey.SurveyScoreVo">
-        SELECT `char_id`,`rarity`, `daily`, `rogue`,`security_service` , `hard`, `universal`, `countermeasures`
+        SELECT `char_id`,`rarity`, `daily`, `rogue`,`security_service` , `hard`,
+               `universal`, `counter`,`building`, `comprehensive`
         FROM ${tableName}
         WHERE `uid` IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
@@ -50,8 +57,9 @@
     <insert id="insertBatchScoreStatistics">
         INSERT INTO `survey_statistics_score`
         (`charId`, `rarity`, `daily`, `sample_size_daily`, `rogue`, `sample_size_rogue`,
-        `security_service`, `sample_size_security_service`, `hard`, `sample_size_hard`, `universal`,
-        `sample_size_universal`, `countermeasures`, `sample_size_countermeasures`)
+        `security_service`, `sample_size_security_service`, `hard`, `sample_size_hard`,
+         `universal`,`sample_size_universal`, `counter`, `sample_size_counter`,
+        `building`,`sample_size_building`, `comprehensive`, `sample_size_comprehensive`)
         VALUES
         <foreach collection="surveyStatisticsList" item="surveyStatistics" separator=",">
         (
@@ -67,8 +75,12 @@
             #{surveyStatistics.sampleSizeHard},
             #{surveyStatistics.universal},
             #{surveyStatistics.sampleSizeUniversal},
-            #{surveyStatistics.countermeasures},
-            #{surveyStatistics.sampleSizeCountermeasures}
+            #{surveyStatistics.counter},
+            #{surveyStatistics.sampleSizeCounter},
+            #{surveyStatistics.building},
+            #{surveyStatistics.sampleSizeBuilding},
+            #{surveyStatistics.comprehensive},
+            #{surveyStatistics.sampleSizeComprehensive}
         )
         </foreach>
     </insert>

@@ -1,7 +1,5 @@
 package com.lhs.service.survey;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.annotation.RedisCacheable;
@@ -16,14 +14,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.File;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Slf4j
 @Service
-public class SurveyService {
+public class SurveyUserService {
 
     @Resource
     private SurveyUserMapper surveyUserMapper;
@@ -39,7 +34,6 @@ public class SurveyService {
      * @return 成功消息
      */
     public HashMap<Object, Object> register(String ipAddress, String userName) {
-//        Long incrId = redisTemplate.opsForValue().increment("SurveyID");   //从redis拿到自增id
         Date date = new Date();  //存入的时间
         String userNameAndEnd = null;
         SurveyUser surveyUser = null;
@@ -84,6 +78,28 @@ public class SurveyService {
         return hashMap;
     }
 
+
+    private void checkUserName(String userName){
+        if(userName.length()>30){
+            throw new ServiceException(ResultCode.USER_NAME_LENGTH_TOO_LONG);
+        }
+
+        for (int i = 0; i < userName.length(); i++) {
+            String substring = userName.substring(i, i + 1);
+            if (substring.matches("[\u4e00-\u9fa5 ]+")){
+                System.out.println("中文: "+substring);
+            } else if (substring.matches("[a-zA-Z ]+")) {
+                System.out.println("英文 ：" + substring);
+            } else {
+                System.out.println("其他字符："+substring);
+                throw new ServiceException(ResultCode.USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH);
+            }
+        }
+
+
+
+    }
+
     private String randomEnd4(Integer digit) {
         int random = new Random().nextInt(9999);
         String end4 = String.format("%0" + digit + "d", random);
@@ -115,6 +131,7 @@ public class SurveyService {
     }
 
     public  Long decryptToken(String token){
+
         String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ApplicationConfig.Secret);
         String idStr = decrypt.split("\\.")[1];
         return Long.valueOf(idStr);
@@ -152,8 +169,6 @@ public class SurveyService {
     }
 
     public Integer getTableIndex(Long id){
-         if(id<30000) return 1;
-         if(id<60000) return 2;
         return 1;
     }
 
@@ -181,6 +196,8 @@ public class SurveyService {
 
         return surveyUser;
     }
+
+
 
     @RedisCacheable(key = "CharacterTableSimple",timeout = -1)
     public JSONObject getCharacterTable(){

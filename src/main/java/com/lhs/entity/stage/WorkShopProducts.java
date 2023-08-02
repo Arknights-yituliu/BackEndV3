@@ -15,5 +15,5 @@ public class WorkShopProducts {
     private Long id;
     private String rank;
     private Double expectValue;
-    private Double expCoefficient;
+    private String version;
 }

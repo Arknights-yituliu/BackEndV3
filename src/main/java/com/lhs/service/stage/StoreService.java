@@ -23,6 +23,7 @@ import com.lhs.vo.stage.StoreItem;
 import com.lhs.vo.stage.StoreActVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,13 +50,18 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private OSSService ossService;
+
+    
     /**
      * 更新常驻商店性价比
      */
+    @Scheduled(cron = "0 0 0/1 * * ?")
     @Transactional
     public void updateStorePerm() {
         List<StorePerm> storePerms = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.queryItemListCache(0.625).stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
+        Map<String, Item> collect = itemService.getItemListCache("public-"+0.625)
+                .stream()
+                .collect(Collectors.toMap(Item::getItemName, Function.identity()));
 
         storePerms.forEach(storePerm -> {
             storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValueAp() * storePerm.getQuantity() / storePerm.getCost());
@@ -81,7 +87,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
     public String updateActStoreByActName(StoreActVo storeActVo,Boolean level)  {
-        List<Item> items = itemService.queryItemListCache(0.625);
+        List<Item> items = itemService.getItemListCache("public-"+0.625);
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItem> storeItemList = storeActVo.getActStore();
@@ -159,7 +165,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         List<ItemCustomValue> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValue.class);
         Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValue::getItemName, ItemCustomValue::getItemValue));
-        itemService.queryItemListCache(0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
+        itemService.getItemListCache("public-"+0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
         JSONArray packList = JSONArray.parseArray(packStr);
 

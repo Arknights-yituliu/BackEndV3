@@ -1,5 +1,6 @@
 package com.lhs.common.annotation;
 
+import com.lhs.common.util.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -35,9 +36,9 @@ public class AnnotationAOP {
     public void takeCountAfter(TakeCount takeCount) {
             long timeCost = (System.currentTimeMillis() - startTime.get());
             if (timeCost < 1000) {
-                log.info(takeCount.name() + "接口耗时：" + timeCost + "ms");
+                Log.info("执行方法："+takeCount.name() + "  耗时：" + timeCost + "ms");
             } else {
-                log.info(takeCount.name() + "接口耗时：" + (timeCost / 1000) + "s");
+                Log.info("执行方法："+takeCount.name() + "  耗时：" + (timeCost / 1000) + "s");
             }
 
         startTime.remove();

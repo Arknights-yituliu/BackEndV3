@@ -22,8 +22,6 @@ public class ApplicationConfig implements InitializingBean {
     private String secret;
     @Value("${encryption.signKey}")
     private String signKey;
-    @Value("${encryption.machineId}")
-    private String machineId;
     @Value("${penguin.auto}")
     private String penguinAuto;
     @Value("${penguin.global}")
@@ -37,7 +35,7 @@ public class ApplicationConfig implements InitializingBean {
 
     public static String Secret;
     public static String SignKey;
-    public static String MachineId;
+
 
 
     public static String PenguinAuto;
@@ -55,7 +53,7 @@ public class ApplicationConfig implements InitializingBean {
         Schedule = schedule;
         Secret = secret;
         SignKey = signKey;
-        MachineId = machineId;
+
         PenguinAuto = penguinAuto;
         PenguinGlobal = penguinGlobal;
 

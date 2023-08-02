@@ -10,7 +10,7 @@
         (`id`, `uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`,
         `mod_y`,`own`)
         VALUES
-        <foreach collection="characterList" item="character" separator=",">
+        <foreach collection="characterList" item="character" separator="," >
             (#{character.id}, #{character.uid}, #{character.charId}, #{character.elite},
             #{character.level},#{character.potential}, #{character.rarity}, #{character.skill1},
             #{character.skill2},#{character.skill3},#{character.modX},#{character.modY},
@@ -22,7 +22,8 @@
     <!-- 根据id更新干员练度信息表-->
     <update id="updateSurveyCharacterById">
         UPDATE ${tableName}
-        SET `elite`     = #{character.elite},
+        SET
+            `elite`     = #{character.elite},
             `level`     = #{character.level},
             `potential` = #{character.potential},
             `skill1`    = #{character.skill1},
@@ -31,7 +32,8 @@
             `mod_x`     = #{character.modX},
             `mod_y`     = #{character.modY},
             `own`       = #{character.own}
-        WHERE `id` = #{character.id};
+        WHERE
+            `id` = #{character.id};
     </update>
 
     <!-- 根据多个uid查询干员练度信息表-->

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.util.Date;
 
 @Service
@@ -46,12 +47,17 @@ public class ScheduleService {
 
 
     public String retrieveScheduleJson(Long scheduleId) {
-        Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id",scheduleId));
+        Schedule schedule = scheduleMapper
+                .selectOne(new QueryWrapper<Schedule>().eq("schedule_id",scheduleId));
+
 
         if(schedule==null){
-            String read = FileUtil.read(ApplicationConfig.Schedule + scheduleId + ".json");
-            if (read == null) throw new ServiceException(ResultCode.DATA_NONE);
-            return read;
+            File file = new File(ApplicationConfig.Schedule + scheduleId + ".json");
+            if(file.exists()){
+                return FileUtil.read(ApplicationConfig.Schedule + scheduleId + ".json");
+            }
+             throw new ServiceException(ResultCode.DATA_NONE);
+
         }
 
         return schedule.getSchedule();

@@ -49,10 +49,22 @@ public class SurveyStatisticsScore {
     private Integer sampleSizeUniversal;
 
     @ApiModelProperty(value = "对策")
-    private Integer countermeasures;
+    private Integer counter;
 
     @ApiModelProperty(value = "样本量-对策")
-    private Integer sampleSizeCountermeasures;
+    private Integer sampleSizeCounter;
+
+    @ApiModelProperty(value = "基建")
+    private Integer building;
+
+    @ApiModelProperty(value = "样本量-基建")
+    private Integer sampleSizeBuilding;
+
+    @ApiModelProperty(value = "综合")
+    private Integer comprehensive;
+
+    @ApiModelProperty(value = "样本量-综合")
+    private Integer sampleSizeComprehensive;
 
 
 }

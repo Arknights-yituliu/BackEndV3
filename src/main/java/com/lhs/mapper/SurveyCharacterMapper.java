@@ -11,8 +11,6 @@ import java.util.List;
 @Repository
 public interface SurveyCharacterMapper {
 
-
-
     //批量插入干员练度信息表
     Integer insertBatchSurveyCharacter(@Param("tableName") String tableName,
                                        @Param("characterList") List<SurveyCharacter> characterList);

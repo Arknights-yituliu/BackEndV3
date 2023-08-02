@@ -1,5 +1,8 @@
 package com.lhs.interceptor;
 
+import com.lhs.common.exception.ServiceException;
+import com.lhs.common.util.Log;
+import com.lhs.common.util.ResultCode;
 import com.lhs.service.dev.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,9 +45,11 @@ public class DevInterceptor implements HandlerInterceptor {
         }
 
         String requestURI = request.getRequestURI();
-        log.info("拦截路径："+requestURI);
+        Log.info("拦截路径："+requestURI);
+        String token = request.getHeader("token");
+        if(token ==null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         //  检查开发者Token
-        return userService.loginAndCheckToken(request);
+        return userService.loginAndCheckToken(token);
     }
 
     /**

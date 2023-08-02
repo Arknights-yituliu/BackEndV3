@@ -127,7 +127,7 @@
     </dependencies>
 
     <build>
-        <finalName>backEnd_v3.2.0</finalName>
+        <finalName>backEnd_v3.3.0</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

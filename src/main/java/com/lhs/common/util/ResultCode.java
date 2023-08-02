@@ -17,9 +17,11 @@ public enum ResultCode {
 	PARAM_INVALID(10005, "含有非法参数，请检查上传内容"),
 	FILE_TYPE_INVALID(10006, "文件格式不正确"),
 	FILE_SIZE_LARGE(10007, "文件过大"),
+	FILE_NOT_IN_EXCEL_FORMAT(10008, "文件格式必须为.xlsx"),
+	USER_NAME_LENGTH_TOO_LONG(10009, "用户名长度超过30"),
 
-	FILE_NOT_IN_EXCEL_FORMAT(10006, "文件格式必须为.xlsx"),
-	MAA_LOW_VERSION(10008, "数据不完整，请将MAA版本升级到V4.16.2版本之后"),
+	USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH(100010, "用户名只能使用中文或英文"),
+
 
 	
 	/* 用户错误：20001-29999*/
@@ -29,9 +31,11 @@ public enum ResultCode {
 	USER_NOT_EXIST(20004, "用户不存在"),
 	USER_HAS_EXISTED(20005, "用户已存在"),
 	USER_INSUFFICIENT_PERMISSIONS  (20006, "权限不足"),
+
 	USER_ID_ERROR(20007, "同ID注册次数过多"),
 	USER_IP_TOO_MANY_TIMES(20008, "同IP注册次数过多,60分钟5次"),
 	USER_REGISTER_ERROR(20008, "同IP注册次数过多,60分钟5次"),
+
 	
 	/* 业务错误：30001-39999 */
 	SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001, "业务逻辑出现问题"),

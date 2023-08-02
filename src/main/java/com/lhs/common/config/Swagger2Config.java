@@ -55,7 +55,6 @@ public class Swagger2Config {
 				.build();
 	}
 
-	@ConditionalOnProperty(prefix = "swagger2",value = {"type"},havingValue = "dev")
 	@Bean
 	public Docket PrivateConfig() {
 		return new Docket(DocumentationType.SWAGGER_2)

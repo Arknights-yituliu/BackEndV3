@@ -16,5 +16,5 @@ public class ItemIterationValue {
     private String itemName;
     private String itemId;
     private Double iterationValue;
-    private Double expCoefficient;
+    private String version;
 }

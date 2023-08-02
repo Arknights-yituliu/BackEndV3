@@ -35,55 +35,34 @@ public class Stage {
     @ApiModelProperty("区域Id")
     private String zoneId;
 
+    @ExcelProperty("章节名称")
+    @ApiModelProperty("章节名称")
+    private String zoneName;
+
     @ExcelProperty("消耗理智")
     @ApiModelProperty("理智消耗")
-    private Double apCost;
+    private Integer apCost;
 
-    @ExcelProperty("主产物")
-    @ApiModelProperty("主产物")
-    private String main;
-
-    @ExcelProperty("副产物")
-    @ApiModelProperty("副产物")
-    private String secondary;
-
-    @ExcelProperty("理论通关时间")
-    @ApiModelProperty("理论通关时间")
-    private Integer minClearTime;
+    @ApiModelProperty("关卡类型")
+    private Integer stageType;
 
     @ExcelProperty("活动开启时间")
     @ApiModelProperty("活动开启时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date openTime;
+    private Date startTime;
 
-    @ExcelProperty("章节名称")
-    @ApiModelProperty("章节名称")
-    private String zoneName;
-
-    @ApiModelProperty("主产等级")
-    private Integer mainRarity;
-
-    @ApiModelProperty("副产物ID")
-    private String secondaryId;
+    @ExcelProperty("活动关闭时间")
+    @ApiModelProperty("活动关闭时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date endTime;
 
     @ApiModelProperty("每分钟消耗理智")
     private Double spm;
 
-    @ApiModelProperty("物品系列，比如固源岩属于固源岩组系列")
-    private String itemType;
+    private Integer minClearTime;
 
-    @ApiModelProperty("关卡状态")
-    private Integer stageState;
-
-    @ApiModelProperty("是否用于定价")
-    private Integer isValue;
-
-    @ApiModelProperty("是否在前端显示")
-    private Integer isShow;
-
-    @ApiModelProperty("关卡类型")
-    private String type;
 
 
 }

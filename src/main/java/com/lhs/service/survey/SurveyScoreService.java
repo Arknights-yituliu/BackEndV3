@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -28,7 +29,7 @@ public class SurveyScoreService {
     @Resource
     private SurveyScoreMapper surveyScoreMapper;
     @Resource
-    private SurveyService surveyService;
+    private SurveyUserService surveyUserService;
     @Resource
     private SurveyUserMapper surveyUserMapper;
     @Resource
@@ -37,19 +38,18 @@ public class SurveyScoreService {
     /**
      * 上传干员风评表
      *
-     * @param token token
+     * @param token           token
      * @param surveyScoreList 干员风评表
      * @return 成功消息
      */
-    @TakeCount(name = "上传评分")
+//    @TakeCount(name = "上传评分")
     public HashMap<Object, Object> uploadScoreForm(String token, List<SurveyScore> surveyScoreList) {
 
-        SurveyUser surveyUser = surveyService.getSurveyUserById(token);
+        SurveyUser surveyUser = surveyUserService.getSurveyUserById(token);
         long uid = surveyUser.getId();
-        String tableName = "survey_score_" + surveyService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
+        String tableName = "survey_score_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
 
-        int insertRows = 0;
-        int updateRows = 0;
+        int affectedRows = 0;
 
         //用户之前上传的数据
         List<SurveyScore> surveyScores
@@ -70,7 +70,7 @@ public class SurveyScoreService {
 
         for (SurveyScore surveyScore : surveyScoreList) {
             //没有自定义id的跳出
-            if(charIdAndId.get(surveyScore.getCharId())==null) continue;
+            if (charIdAndId.get(surveyScore.getCharId()) == null) continue;
             //唯一id为uid+自定义id
             Long id = Long.parseLong(uid + charIdAndId.get(surveyScore.getCharId()));
 
@@ -82,25 +82,26 @@ public class SurveyScoreService {
 
             if (surveyDataCharByCharId == null) {
                 insertList.add(surveyScore);  //加入批量插入集合
-                insertRows++;  //新增数据条数
+                affectedRows++;  //新增数据条数
             } else {
                 //如果数据存在，同时有某个信息不一致则进行更新 （考虑到可能更新量不大，没用when case批量更新
                 if (comparativeData(surveyScore, surveyDataCharByCharId)) {
-                    updateRows++;  //更新数据条数
+                    affectedRows++;  //更新数据条数
                     surveyScoreMapper.updateSurveyScoreById(tableName, surveyScore); //更新数据
                 }
             }
         }
 
-
         if (insertList.size() > 0) surveyScoreMapper.insertBatchSurveyScore(tableName, insertList);  //批量插入
-        surveyUserMapper.updateSurveyUser(surveyUser);   //更新用户表
+        Date date = new Date();
+        surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
+        surveyUserService.updateSurveyUser(surveyUser);
 
-
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
         HashMap<Object, Object> hashMap = new HashMap<>();
-        hashMap.put("updateRows", updateRows);
-        hashMap.put("insertRows", insertRows);
+        hashMap.put("affectedRows", affectedRows);
+        hashMap.put("updateTime", simpleDateFormat.format(date));
         return hashMap;
 
     }
@@ -113,32 +114,31 @@ public class SurveyScoreService {
      * @return 成功消息
      */
     private boolean comparativeData(SurveyScore newData, SurveyScore oldData) {
-         //校验参数
+        //校验参数
         boolean isInvalid = (newData.getDaily() < 1 || newData.getDaily() > 5) ||
                 (newData.getRogue() < 1 || newData.getRogue() > 5) ||
                 (newData.getHard() < 1 || newData.getHard() > 5) ||
-                (newData.getSecurityService() < 1 || newData.getSecurityService() > 5)||
-                (newData.getUniversal() < 1 || newData.getUniversal() > 5)||
-                (newData.getCountermeasures()< 1 || newData.getCountermeasures() > 5);
+                (newData.getSecurityService() < 1 || newData.getSecurityService() > 5) ||
+                (newData.getUniversal() < 1 || newData.getUniversal() > 5) ||
+                (newData.getCounter() < 1 || newData.getCounter() > 5);
 
-        if(isInvalid) throw new ServiceException(ResultCode.PARAM_INVALID);
+        if (isInvalid) throw new ServiceException(ResultCode.PARAM_INVALID);
 
         return !Objects.equals(newData.getDaily(), oldData.getDaily()) ||
                 !Objects.equals(newData.getRogue(), oldData.getRogue()) ||
                 !Objects.equals(newData.getHard(), oldData.getHard()) ||
                 !Objects.equals(newData.getUniversal(), oldData.getUniversal()) ||
-                !Objects.equals(newData.getCountermeasures(), oldData.getCountermeasures());
+                !Objects.equals(newData.getCounter(), oldData.getCounter());
     }
 
 
-
     public void scoreStatistics() {
-        List<Long> userIds = surveyService.selectSurveyUserIds();
+        List<Long> userIds = surveyUserService.selectSurveyUserIds();
 
         List<List<Long>> userIdsGroup = new ArrayList<>();
         String update_time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        surveyService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_score");
-        surveyService.updateConfigByKey(update_time, "update_time_score");
+        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_score");
+        surveyUserService.updateConfigByKey(update_time, "update_time_score");
 
         int length = userIds.size();
         // 计算用户id按300个用户一组可以分成多少组
@@ -185,7 +185,8 @@ public class SurveyScoreService {
                         .map(SurveyScoreVo::getUniversal).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByCountermeasures = arr.stream()
-                        .map(SurveyScoreVo::getCountermeasures).filter(e -> e > 0).collect(Collectors.toList());
+                        .map(SurveyScoreVo::getCounter).filter(e -> e > 0).collect(Collectors.toList());
+
 
                 int sampleSizeDaily = collectByDaily.size();
                 int sampleSizeRogue = collectByRogue.size();
@@ -215,8 +216,8 @@ public class SurveyScoreService {
                     sampleSizeSecurityService += surveyStatisticsScore.getSampleSizeSecurityService();
                     universal += surveyStatisticsScore.getUniversal();
                     sampleSizeUniversal += surveyStatisticsScore.getSampleSizeUniversal();
-                    countermeasures += surveyStatisticsScore.getCountermeasures();
-                    sampleSizeCountermeasures += surveyStatisticsScore.getSampleSizeCountermeasures();
+                    countermeasures += surveyStatisticsScore.getCounter();
+                    sampleSizeCountermeasures += surveyStatisticsScore.getCounter();
                 }
 
                 //存入dto对象进行暂存
@@ -233,8 +234,8 @@ public class SurveyScoreService {
                         .sampleSizeSecurityService(sampleSizeSecurityService)
                         .universal(universal)
                         .sampleSizeUniversal(sampleSizeUniversal)
-                        .countermeasures(countermeasures)
-                        .sampleSizeCountermeasures(sampleSizeCountermeasures)
+                        .counter(countermeasures)
+                        .sampleSizeCounter(sampleSizeCountermeasures)
                         .build();
 
                 scratchResult.put(charId, build);
@@ -249,6 +250,160 @@ public class SurveyScoreService {
         surveyScoreMapper.insertBatchScoreStatistics(statisticsResultList);
     }
 
+
+    public void scoreStatisticsNew() {
+        List<Long> userIds = surveyUserService.selectSurveyUserIds();
+
+        List<List<Long>> userIdsGroup = new ArrayList<>();
+        String update_time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_score");
+        surveyUserService.updateConfigByKey(update_time, "update_time_score");
+
+        int length = userIds.size();
+        // 计算用户id按300个用户一组可以分成多少组
+        int num = length / 300 + 1;
+        int fromIndex = 0;   // id分组开始
+        int toIndex = 300;   //id分组结束
+        for (int i = 0; i < num; i++) {
+            toIndex = Math.min(toIndex, userIds.size());
+            userIdsGroup.add(userIds.subList(fromIndex, toIndex));
+            fromIndex += 300;
+            toIndex += 300;
+        }
+        surveyScoreMapper.truncateScoreStatisticsTable();  //清空统计表
+
+        HashMap<String, SurveyStatisticsScore> scratchResult = new HashMap<>();
+        List<SurveyStatisticsScore> statisticsResultList = new ArrayList<>();
+
+
+        for (List<Long> longs : userIdsGroup) {
+            List<SurveyScoreVo> surveyScoreVoList_DB =
+                    surveyScoreMapper.selectSurveyScoreVoByUidList("survey_score_1", longs);
+
+            log.info("本次统计数量：" + surveyScoreVoList_DB.size());
+
+            Map<String, List<SurveyScoreVo>> collectByCharId = surveyScoreVoList_DB.stream()
+                    .collect(Collectors.groupingBy(SurveyScoreVo::getCharId));
+
+            collectByCharId.forEach((charId, arr) -> {
+                int sampleSizeDaily = 0;
+                int sampleSizeRogue = 0;
+                int sampleSizeSecurityService = 0;
+                int sampleSizeHard = 0;
+                int sampleSizeUniversal = 0;
+                int sampleSizeCounter = 0;
+                int sampleSizeBuilding = 0;
+                int sampleSizeComprehensive = 0;
+
+                int daily = 0;
+                int rogue = 0;
+                int hard = 0;
+                int securityService = 0;
+                int universal = 0;
+                int counter = 0;
+                int building = 0;
+                int comprehensive = 0;
+
+                int rarity = arr.get(0).getRarity();
+
+                for (SurveyScoreVo surveyScoreVo : arr) {
+                    if (surveyScoreVo.getDaily() > 0) {
+                        sampleSizeDaily++;
+                        daily+=surveyScoreVo.getDaily();
+                    }
+                    if (surveyScoreVo.getRogue() > 0) {
+                        sampleSizeRogue++;
+                        rogue+=surveyScoreVo.getRogue();
+                    }
+                    if (surveyScoreVo.getSecurityService() > 0) {
+                        sampleSizeSecurityService++;
+                        securityService+=surveyScoreVo.getSecurityService();
+                    }
+                    if (surveyScoreVo.getHard() > 0) {
+                        sampleSizeHard++;
+                        hard+=surveyScoreVo.getHard();
+                    }
+                    if (surveyScoreVo.getUniversal() > 0) {
+                        sampleSizeUniversal++;
+                        universal+=surveyScoreVo.getUniversal();
+                    }
+                    if (surveyScoreVo.getCounter() > 0) {
+                        sampleSizeCounter++;
+                        counter+=surveyScoreVo.getCounter();
+                    }
+                    if (surveyScoreVo.getBuilding() > 0) {
+                        sampleSizeBuilding++;
+                        building+=surveyScoreVo.getBuilding();
+                    }
+                    if (surveyScoreVo.getComprehensive() > 0) {
+                        sampleSizeComprehensive++;
+                        comprehensive+=surveyScoreVo.getComprehensive();
+                    }
+
+                }
+
+
+                //和上次计算结果合并
+                if (scratchResult.get(charId) != null) {
+                    SurveyStatisticsScore surveyStatisticsScore = scratchResult.get(charId);
+                    daily += surveyStatisticsScore.getDaily();
+                    sampleSizeDaily += surveyStatisticsScore.getSampleSizeDaily();
+
+                    rogue += surveyStatisticsScore.getRogue();
+                    sampleSizeRogue += surveyStatisticsScore.getSampleSizeRogue();
+
+                    hard += surveyStatisticsScore.getHard();
+                    sampleSizeHard += surveyStatisticsScore.getSampleSizeHard();
+
+                    securityService += surveyStatisticsScore.getSecurityService();
+                    sampleSizeSecurityService += surveyStatisticsScore.getSampleSizeSecurityService();
+
+                    universal += surveyStatisticsScore.getUniversal();
+                    sampleSizeUniversal += surveyStatisticsScore.getSampleSizeUniversal();
+
+                    counter += surveyStatisticsScore.getCounter();
+                    sampleSizeCounter += surveyStatisticsScore.getSampleSizeCounter();
+
+                    building += surveyStatisticsScore.getBuilding();
+                    sampleSizeBuilding += surveyStatisticsScore.getSampleSizeBuilding();
+
+                    comprehensive += surveyStatisticsScore.getComprehensive();
+                    sampleSizeComprehensive += surveyStatisticsScore.getSampleSizeComprehensive();
+                }
+
+                //存入dto对象进行暂存
+                SurveyStatisticsScore build = SurveyStatisticsScore.builder()
+                        .charId(charId)
+                        .rarity(rarity)
+                        .daily(daily)
+                        .sampleSizeDaily(sampleSizeDaily)
+                        .rogue(rogue)
+                        .sampleSizeRogue(sampleSizeRogue)
+                        .hard(hard)
+                        .sampleSizeHard(sampleSizeHard)
+                        .securityService(securityService)
+                        .sampleSizeSecurityService(sampleSizeSecurityService)
+                        .universal(universal)
+                        .sampleSizeUniversal(sampleSizeUniversal)
+                        .counter(counter)
+                        .sampleSizeCounter(sampleSizeCounter)
+                        .building(building)
+                        .sampleSizeBuilding(sampleSizeBuilding)
+                        .comprehensive(comprehensive)
+                        .sampleSizeComprehensive(sampleSizeComprehensive)
+                        .build();
+
+                scratchResult.put(charId, build);
+
+            });
+        }
+
+        scratchResult.forEach((charId, v) -> {
+            statisticsResultList.add(v);
+        });
+
+        surveyScoreMapper.insertBatchScoreStatistics(statisticsResultList);
+    }
 
     public List<SurveyStatisticsScoreVo> getScoreStatisticsResult() {
         List<SurveyStatisticsScore> surveyStatisticsScores = surveyScoreMapper.selectScoreStatisticsList();
@@ -269,8 +424,12 @@ public class SurveyScoreService {
                     .sampleSizeHard(e.getSampleSizeHard())
                     .universal(limitDecimalPoint(e.getUniversal(), e.getSampleSizeUniversal()))
                     .sampleSizeUniversal(e.getSampleSizeUniversal())
-                    .countermeasures(limitDecimalPoint(e.getCountermeasures(), e.getSampleSizeCountermeasures()))
-                    .sampleSizeCountermeasures(e.getSampleSizeCountermeasures())
+                    .counter(limitDecimalPoint(e.getCounter(), e.getSampleSizeCounter()))
+                    .sampleSizeCounter(e.getSampleSizeCounter())
+                    .building(limitDecimalPoint(e.getBuilding(), e.getSampleSizeBuilding()))
+                    .sampleSizeBuilding(e.getSampleSizeBuilding())
+                    .comprehensive(limitDecimalPoint(e.getComprehensive(), e.getSampleSizeComprehensive()))
+                    .sampleSizeComprehensive(e.getSampleSizeComprehensive())
                     .build();
             statisticsResult.add(build);
         });
@@ -280,7 +439,7 @@ public class SurveyScoreService {
 
 
     private Double limitDecimalPoint(Integer a, Integer b) {
-        java.text.DecimalFormat df = new java.text.DecimalFormat("#.000");
+        DecimalFormat df = new DecimalFormat("#.00");
         String format = df.format((double) a / (double) b);
         return Double.valueOf(format);
     }

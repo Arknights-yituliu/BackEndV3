@@ -47,8 +47,8 @@ public class Item {
     @ApiModelProperty("前端排序的用索引")
     private Integer cardNum;  //前端排序的用索引
 
-    @ApiModelProperty("经验书系数")
-    private Double expCoefficient;  //经验书系数
+    @ApiModelProperty("版本")
+    private String version;  //经验书系数
 
     @ApiModelProperty("加工站爆率")
     private Double weight;   //加工站爆率
