@@ -5,10 +5,8 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.util.ExcelUtil;
 import com.lhs.entity.survey.*;
-import com.lhs.mapper.CharacterTableMapper;
 import com.lhs.mapper.SurveyCharacterMapper;
 import com.lhs.vo.survey.SurveyStatisticsChar;
 import com.lhs.vo.survey.CharacterStatisticsResult;
@@ -16,10 +14,10 @@ import com.lhs.vo.survey.SurveyCharacterExcelVo;
 import com.lhs.vo.survey.SurveyCharacterVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -31,13 +29,18 @@ import java.util.stream.Collectors;
 @Service
 public class SurveyCharacterService {
 
-    @Resource
-    private SurveyCharacterMapper surveyCharacterMapper;
-    @Resource
-    private SurveyUserService surveyUserService;
-    @Resource
-    private CharacterTableMapper characterTableMapper;
 
+    private final SurveyCharacterMapper surveyCharacterMapper;
+
+    private final SurveyUserService surveyUserService;
+
+    private final RedisTemplate<String,Object> redisTemplate;
+
+    public SurveyCharacterService(SurveyCharacterMapper surveyCharacterMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate) {
+        this.surveyCharacterMapper = surveyCharacterMapper;
+        this.surveyUserService = surveyUserService;
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 上传干员练度调查表
@@ -58,7 +61,6 @@ public class SurveyCharacterService {
      * @return 成功消息
      */
     public HashMap<Object, Object> importSurveyCharacterForm(MultipartFile file,String token){
-        Long uid = surveyUserService.decryptToken(token);
         List<SurveyCharacter> list = new ArrayList<>();
         try {
             EasyExcel.read(file.getInputStream(), SurveyCharacterExcelVo.class, new AnalysisEventListener<SurveyCharacterExcelVo>() {
@@ -89,38 +91,28 @@ public class SurveyCharacterService {
     private HashMap<Object, Object> updateSurveyData(SurveyUser surveyUser, List<SurveyCharacter> surveyCharacterList){
 
         long uid = surveyUser.getId();
-
+        Date date = new Date();
         String tableName = "survey_character_"+ surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
-
         int affectedRows = 0;
-
 
         //用户之前上传的数据
         List<SurveyCharacter> surveyCharacterVos
                 = surveyCharacterMapper.selectSurveyCharacterByUid(tableName, surveyUser.getId());
 
         //用户之前上传的数据转为map方便对比
-        Map<Long, SurveyCharacter> oldDataCollectById = surveyCharacterVos.stream()
-                .collect(Collectors.toMap(SurveyCharacter::getId, Function.identity()));
+        Map<String, SurveyCharacter> savedDataMap = surveyCharacterVos.stream()
+                .collect(Collectors.toMap(SurveyCharacter::getCharId, Function.identity()));
 
         //新增数据
         List<SurveyCharacter> insertList = new ArrayList<>();
 
-        //干员的自定义id
-        List<CharacterTable> characterTables = characterTableMapper.selectList(null);
-        //干员的自定义id
-        Map<String, String> charIdAndId = characterTables.stream()
-                .collect(Collectors.toMap(CharacterTable::getCharId, CharacterTable::getId));
-
 
         for (SurveyCharacter surveyCharacter : surveyCharacterList) {
-            //没有自定义id的跳出
-            if(charIdAndId.get(surveyCharacter.getCharId())==null) continue;
-            //唯一id为uid+自定义id
-            Long id = Long.parseLong(uid + charIdAndId.get(surveyCharacter.getCharId()));
 
+
+            if(!surveyCharacter.getOwn()) continue;
             //精英化阶段小于2 不能专精和开模组
-            if (surveyCharacter.getElite() < 2 &&surveyCharacter.getOwn()) {
+            if (surveyCharacter.getElite() < 2) {
                 surveyCharacter.setSkill1(-1);
                 surveyCharacter.setSkill2(-1);
                 surveyCharacter.setSkill3(-1);
@@ -128,24 +120,36 @@ public class SurveyCharacterService {
                 surveyCharacter.setModY(-1);
             }
 
+            if(surveyCharacter.getRarity()<6){
+                surveyCharacter.setSkill3(-1);
+            }
+
+
+            System.out.println(surveyCharacter);
+
+
             //和老数据进行对比
-            SurveyCharacter surveyCharacterById = oldDataCollectById.get(id);
+            SurveyCharacter savedData = savedDataMap.get(surveyCharacter.getCharId());
             //为空则新增
-            surveyCharacter.setId(id);
-            surveyCharacter.setUid(uid);
-            if (surveyCharacterById == null) {
+
+            if (savedData == null) {
+                Long characterId = redisTemplate.opsForValue().increment("CharacterId");
+                surveyCharacter.setId(characterId);
+                surveyCharacter.setUid(uid);
                 insertList.add(surveyCharacter);  //加入批量插入集合
                 affectedRows++;  //新增数据条数
             } else {
                 //如果数据存在，进行更新
                     affectedRows++;  //更新数据条数
-                    surveyCharacterMapper.updateSurveyCharacterById(tableName, surveyCharacter); //更新数据
-
+                    surveyCharacter.setId(savedData.getId());
+                    surveyCharacter.setUid(uid);
+                    surveyCharacterMapper.updateSurveyCharacterById(tableName,surveyCharacter); //更新数据
             }
         }
 
         if (insertList.size() > 0) surveyCharacterMapper.insertBatchSurveyCharacter(tableName, insertList);  //批量插入
-        Date date = new Date();
+
+
         surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
         surveyUserService.updateSurveyUser(surveyUser);
 

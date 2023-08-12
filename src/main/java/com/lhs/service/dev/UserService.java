@@ -17,6 +17,8 @@ import com.lhs.mapper.VisitsMapper;
 import com.lhs.vo.user.LoginVo;
 import com.lhs.mapper.DeveloperMapper;
 import com.lhs.vo.user.EmailRequest;
+import com.lhs.vo.user.PageVisitsVo;
+import com.lhs.vo.user.VisitsTimeVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
@@ -30,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -148,55 +151,47 @@ public class UserService {
     }
 
     public void updatePageVisits(String path) {
+        if(path==null||path.length()>40) return;
         String format = new SimpleDateFormat("yyyy/MM/dd HH").format(new Date());
-        String redisKey = "visits:" + format + "." + path;
-        redisTemplate.opsForValue().increment(redisKey);
+        path = path.replace("/src", "");
+        path = path.replace("/pages", "");
+
+        String redisKey = format + "." + path;
+
+        redisTemplate.opsForHash().increment("visits",redisKey,1);
     }
 
-    @Scheduled(cron = "0 0 0/1 * * ?")
+    @Scheduled(cron = "0 0/17 * * * ?")
     public void savePageVisits() {
         Date todayDate = new Date();
-        long timesTamp = System.currentTimeMillis();
-
-        //要保存的记录
-        List<PageVisits> pageVisitsList = new ArrayList<>();
-
-        //查询缓存中命名空间【visits:】下的所有key
-        Set<String> keys = redisTemplate.keys("visits:*");
-        if(keys == null) {
-            Log.info("没有访问记录");
-            return;
-        }
+        Log.info("开始保存访问记录");
 
         String yyyyMMddHH = new SimpleDateFormat("yyyy/MM/dd HH").format(new Date());
 
-        for (String key : keys) {
-            Object redisValue = redisTemplate.opsForValue().get(key);
-            int visitsCount = Integer.parseInt(String.valueOf(redisValue));
-            String[] keySplit = key.split("\\.");
-            String path = keySplit[1];
-            String namespaceAndTime = keySplit[0];
-            String visitsTime = namespaceAndTime.split(":")[1];
-
+        Map<Object, Object> visits = redisTemplate.opsForHash().entries("visits");
+        for(Object field :visits.keySet()){
+            String timeAndURL  = String.valueOf(field);
+            int visitsCount = Integer.parseInt(String.valueOf((visits.get(field))));
+            String visitsTime =  timeAndURL.split("\\.")[0];
+            String pagePath = timeAndURL.split("\\.")[1];
             if(yyyyMMddHH.equals(visitsTime)){
                 Log.info("当时小时的访问未结束，不保存");
                 continue;
             }
 
             QueryWrapper<PageVisits> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("redis_key",key);
+            queryWrapper.eq("redis_key",timeAndURL);
             PageVisits savedPageVisits = pageVisitsMapper.selectOne(queryWrapper);
 
             if (savedPageVisits!=null) {
-
                 if(visitsCount> savedPageVisits.getVisitsCount()) {
                     QueryWrapper<PageVisits> updateWrapper = new QueryWrapper<>();
-                    updateWrapper.eq("id",savedPageVisits.getId());
+                    updateWrapper.eq("redis_key",savedPageVisits.getRedisKey());
                     savedPageVisits.setVisitsCount(visitsCount);
                     pageVisitsMapper.update(savedPageVisits,updateWrapper);
                     Log.info("更新记录");
                 }
-                redisTemplate.delete(key);
+                redisTemplate.opsForHash().delete("visits",timeAndURL);
                 continue;
             }
 
@@ -205,18 +200,18 @@ public class UserService {
 
 //            Log.info("redis的key："+key+"   访问路径："+path+"   访问时间："+visitsTime);
 
-            pageVisits.setId(timesTamp++);
-            pageVisits.setVisitsTime(visitsTime);
-            pageVisits.setPagePath(path);
-            pageVisits.setCreateTime(todayDate);
-            pageVisits.setRedisKey(key);
-            pageVisitsList.add(pageVisits);
 
+            pageVisits.setVisitsTime(visitsTime);
+            pageVisits.setPagePath(pagePath);
+            pageVisits.setCreateTime(todayDate);
+            pageVisits.setRedisKey(timeAndURL);
+            Log.info(visitsTime+"访问"+pagePath+"共"+visitsCount+"次");
+            pageVisitsMapper.insert(pageVisits);
         }
 
-        if (pageVisitsList.size() > 0) pageVisitsMapper.insertBatch(pageVisitsList);
-
     }
+
+
 
 
     public void updateVisits(String path) {
@@ -235,26 +230,52 @@ public class UserService {
     }
 
 
-    public HashMap<String, List<Object>> selectVisits(Date start, Date end) {
+    public List<PageVisitsVo> getVisits(VisitsTimeVo visitsTimeVo) {
 
-        QueryWrapper<Visits> create_time = new QueryWrapper<Visits>().ge("create_time", start).le("create_time", end);
-        List<Visits> visitsList = visitsMapper.selectList(create_time);
-        HashMap<String, List<Object>> hashMap = new HashMap<>();
-        for (Visits visits : visitsList) {
-            JSONObject visitsJson = JSONObject.parseObject(JSON.toJSONString(visits));
-            Set<String> paths = JSONObject.parseObject(visitsJson.toString()).keySet();
-            for (String path : paths) {
-                if (hashMap.get(path) != null) {
-                    List<Object> visitsResult = hashMap.get(path);
-                    visitsResult.add(visitsJson.getString(path));
-                    hashMap.put(path, visitsResult);
-                } else {
-                    List<Object> visitsResult = new ArrayList<>();
-                    hashMap.put(path, visitsResult);
-                }
-            }
+        QueryWrapper<PageVisits> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ge("create_time",visitsTimeVo.getStartTime()).le("create_time",visitsTimeVo.getEndTime());
+
+        List<PageVisits> dataList = pageVisitsMapper.selectList(queryWrapper);
+        Map<String, List<PageVisits>> collectByPagePath = dataList.stream().collect(Collectors.groupingBy(PageVisits::getPagePath));
+        Map<String, List<PageVisits>> collectByVisitsTime = dataList.stream().collect(Collectors.groupingBy(PageVisits::getVisitsTime));
+
+        int sumALl = dataList.stream().mapToInt(PageVisits::getVisitsCount).sum();
+        List<PageVisitsVo> pageVisitsVoList = new ArrayList<>();
+
+        PageVisitsVo pageVisitsVoAll = new PageVisitsVo();
+        pageVisitsVoAll.setPagePath("全站数据");
+        pageVisitsVoAll.setVisitsCount(sumALl);
+
+        List<PageVisits> pageVisitsListAll = new ArrayList<>();
+        for(String visitsTime:collectByVisitsTime.keySet()){
+            PageVisits pageVisitsAll = new PageVisits();
+            List<PageVisits> list = collectByVisitsTime.get(visitsTime);
+            int sum =list.stream().mapToInt(PageVisits::getVisitsCount).sum();
+            pageVisitsAll.setPagePath(list.get(0).getPagePath());
+            pageVisitsAll.setVisitsTime(visitsTime);
+            pageVisitsAll.setVisitsCount(sum);
+            pageVisitsListAll.add(pageVisitsAll);
         }
-        return hashMap;
+
+        pageVisitsListAll.sort(Comparator.comparing(PageVisits::getVisitsTime));
+        pageVisitsVoAll.setPageVisitsList(pageVisitsListAll);
+        pageVisitsVoList.add(pageVisitsVoAll);
+
+
+        for(String pagePath:collectByPagePath.keySet()){
+            PageVisitsVo pageVisitsVo = new PageVisitsVo();
+            List<PageVisits> pageVisitsList = collectByPagePath.get(pagePath);
+            pageVisitsList.sort(Comparator.comparing(PageVisits::getVisitsTime));
+            int sum = pageVisitsList.stream().mapToInt(PageVisits::getVisitsCount).sum();
+            pageVisitsVo.setPagePath(pagePath);
+            pageVisitsVo.setVisitsCount(sum);
+            pageVisitsVo.setPageVisitsList(pageVisitsList);
+            pageVisitsVoList.add(pageVisitsVo);
+        }
+
+        pageVisitsVoList.sort(Comparator.comparing(PageVisitsVo::getVisitsCount).reversed());
+
+        return pageVisitsVoList;
     }
 
 

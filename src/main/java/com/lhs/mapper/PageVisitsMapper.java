@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface PageVisitsMapper extends BaseMapper<PageVisits> {
-    Integer insertBatch(@Param("list") List<PageVisits> pageVisitsList);
+
 
 }

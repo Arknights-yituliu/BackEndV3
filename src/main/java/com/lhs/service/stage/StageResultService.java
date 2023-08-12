@@ -58,6 +58,7 @@ public class StageResultService  {
         if(items.size()<1){
             items = itemService.queryItemList("public-0.625");
         }
+
         items = itemService.ItemValueCalculation(items, stageAndItemCoefficient);  //用上面蓝材料对应的常驻最高关卡效率En计算新的新材料价值表Vn+1
         stageCalService.stageResultCal(items, stageAndItemCoefficient);      //用新材料价值表Vn+1再次计算新关卡效率En+1
         Log.info("关卡效率更新成功");
@@ -168,7 +169,7 @@ public class StageResultService  {
      * @param version 版本
      * @return 关卡结果
      */
-    @RedisCacheable(key = "stage.closed.#version", timeout = 1200)
+    @RedisCacheable(key = "stage.closed.#version", timeout = 86400)
     public List<List<StageResult>> queryStageResultData_closedActivities(String version) {
         List<List<StageResult>> stageResultList = new ArrayList<>();
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
@@ -291,7 +292,7 @@ public class StageResultService  {
      */
     public List<StageResult> queryStageResultDataDetailByStageId(String stageId) {
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("version", "public.expCoefficient="+0.625)
+        queryWrapper.eq("version", "public-"+0.625)
                 .eq("stage_id", stageId);
 
         List<StageResult> stageResults = stageResultMapper.selectList(queryWrapper);

@@ -43,6 +43,7 @@ public enum ResultCode {
 	
 	/* 系统错误：40001-49999 */
 	SYSTEM_INNER_ERROR(40001, "系统内部错误，请稍后重试"),
+	SYSTEM_TIME_ERROR(40002, "系统时间错误，请稍后重试"),
 	
 	/* 数据错误：50001-599999 */
 	DATA_NONE(50001, "数据未找到"),

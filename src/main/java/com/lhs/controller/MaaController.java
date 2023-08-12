@@ -1,6 +1,7 @@
 package com.lhs.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.lhs.common.util.Log;
 import com.lhs.common.util.Result;
 import com.lhs.service.maa.RecruitSurveyService;
 import com.lhs.service.maa.ScheduleService;
@@ -68,7 +69,7 @@ public class MaaController {
         schedule_id = new Date().getTime() * 1000 +new Random().nextInt(1000);   //id为时间戳后加0001至999
         scheduleService.saveScheduleJson(scheduleJson,schedule_id);
         HashMap<Object, Object> hashMap = new HashMap<>();
-        hashMap.put("uid",schedule_id);
+        hashMap.put("scheduleId",schedule_id);
         hashMap.put("message","生成成功");
         return Result.success(hashMap);
     }
@@ -77,6 +78,7 @@ public class MaaController {
     @ApiOperation("导出基建排班协议文件")
     @GetMapping("/schedule/export")
     public void exportMaaScheduleJson(HttpServletResponse response, @RequestParam Long schedule_id) {
+        Log.info("导出的排班id是："+schedule_id);
         scheduleService.exportScheduleFile(response, schedule_id);
     }
 

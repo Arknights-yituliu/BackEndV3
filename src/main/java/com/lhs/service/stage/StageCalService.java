@@ -251,8 +251,8 @@ public class StageCalService extends ServiceImpl<StageResultMapper,StageResult> 
             itemIterationValue.setIterationValue(list.get(0).getStageEfficiency());
             itemIterationValue.setVersion(version);
             iterationValueList.add(itemIterationValue);
-            Log.info(itemType + "的最优本是" + list.get(0).getStageCode());
-            Log.info(itemType + "的迭代系数是" + 1 / list.get(0).getStageEfficiency());
+            Log.info(itemType + "的最优本是" + list.get(0).getStageCode()+"，材料的迭代系数是" + 1 / list.get(0).getStageEfficiency());
+
         }
 
 

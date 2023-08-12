@@ -9,20 +9,21 @@ import com.lhs.entity.survey.CharacterTable;
 import com.lhs.mapper.CharacterTableMapper;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.io.File;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
+import java.io.*;
+import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class BaseDataService {
 
-    @Resource
-    private CharacterTableMapper characterTableMapper;
+    private final CharacterTableMapper characterTableMapper;
+    private final String githubBotResource = "E:\\Idea_Project\\Arknights-Bot-Resource\\";
 
-    private final String githubBotResource = "E:\\BOT_img\\botResource\\Arknights-Bot-Resource\\";
+    public BaseDataService(CharacterTableMapper characterTableMapper) {
+        this.characterTableMapper = characterTableMapper;
+    }
 
     public HashMap<String, Object> getCharacterData() {
 
@@ -37,9 +38,9 @@ public class BaseDataService {
         HashMap<String, HashMap<String, Boolean>> modTable = new HashMap<>();
 
         //干员的自定义id
-        List<CharacterTable> characterTables = characterTableMapper.selectList(null);
+        List<CharacterTable> characterTableList = characterTableMapper.selectList(null);
         //干员的自定义id
-        Map<String, Date> charIdAndId = characterTables.stream()
+        Map<String, Date> charIdAndId = characterTableList.stream()
                 .collect(Collectors.toMap(CharacterTable::getCharId, CharacterTable::getUpdateTime));
 
         equipDict.forEach((k, v) -> {
@@ -136,7 +137,7 @@ public class BaseDataService {
             JSONObject character_table = JSONObject.parseObject(character_tableStr);
             List<String> list  = new ArrayList<>();
 
-            String startPath = "E:\\BOT_img\\botResource\\portrait\\";
+            String startPath =  githubBotResource+"portrait\\";
             String portrait6 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\portrait-ori-6\\";
             String portrait5 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\portrait-ori-5\\";
             String portrait4 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\portrait-ori-4\\";
@@ -146,7 +147,7 @@ public class BaseDataService {
                 JSONObject charData = JSONObject.parseObject(character_table.getString(key));
                 int rarity = Integer.parseInt(charData.getString("rarity"));
                 System.out.println(key+"：星级："+rarity+"，文件名："+startPath+key+".png");
-                File startFile = new File(startPath+key+"_1.png");
+                File source = new File(startPath+key+"_1.png");
 
                 if(rarity==5) endPath=portrait6;
                 if(rarity==4) endPath=portrait5;
@@ -158,15 +159,35 @@ public class BaseDataService {
                     boolean mkdirs = tmpFile.mkdirs();
                 }
 
-                if (startFile.renameTo(new File(endPath + key+"_1.png"))) {
-                    System.out.println("文件移动成功！文件名：《{"+key+"}》 目标路径：{"+endPath+"}");
-                } else {
-                    System.out.println("文件移动失败！文件名：《{"+key+"}》 目标路径：{"+endPath+"}");
-                }
+                File dest = new File(endPath + key+"_1.png");
+                copyFile(source,dest);
             }
 
         }catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        File source = new File("E:\\VCProject\\frontend-v2-plus\\public\\image\\avg_npc_380_1.png");
+        File dest = new File("E:\\VCProject\\frontend-v2-plus\\public\\image\\avg_npc_380_1_copy.png");
+        copyFile(source,dest);
+    }
+
+    public static void copyFile(File source, File dest) {
+
+        try {
+            FileInputStream is = new FileInputStream(source);
+            FileOutputStream os = new FileOutputStream(dest);
+            FileChannel sourceChannel = is.getChannel();
+            FileChannel destChannel = os.getChannel();
+            sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
+            sourceChannel.close();
+            destChannel.close();
+            is.close();
+            os.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -178,9 +199,9 @@ public class BaseDataService {
             String character_tableStr = FileUtil.read(githubBotResource+"gamedata\\excel\\character_table.json");
 
             JSONObject character_table = JSONObject.parseObject(character_tableStr);
-            List<String> list  = new ArrayList<>();
 
-            String startPath = "E:\\BOT_img\\botResource\\avatar\\";
+
+            String startPath = githubBotResource+"avatar\\";
             String avatar6 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\avatar-ori-6\\";
             String avatar5 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\avatar-ori-5\\";
             String avatar4 = "E:\\VCProject\\frontend-v2-plus\\public\\image\\avatar-ori-4\\";
@@ -190,7 +211,7 @@ public class BaseDataService {
                 JSONObject charData = JSONObject.parseObject(character_table.getString(key));
                 int rarity = Integer.parseInt(charData.getString("rarity"));
                 System.out.println(key+"：星级："+rarity+"，文件名："+startPath+key+".png");
-                File startFile = new File(startPath+key+".png");
+                File source = new File(startPath+key+".png");
 
                 if(rarity==5) endPath=avatar6;
                 if(rarity==4) endPath=avatar5;
@@ -202,11 +223,9 @@ public class BaseDataService {
                     boolean mkdirs = tmpFile.mkdirs();
                 }
 
-                if (startFile.renameTo(new File(endPath + key+".png"))) {
-                    System.out.println("文件移动成功！文件名：《{"+key+"}》 目标路径：{"+endPath+"}");
-                } else {
-                    System.out.println("文件移动失败！文件名：《{"+key+"}》 目标路径：{"+endPath+"}");
-                }
+                File dest = new File(endPath + key+".png");
+                copyFile(source,dest);
+
             }
 
         }catch (Exception e){

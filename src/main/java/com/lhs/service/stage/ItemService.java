@@ -183,7 +183,6 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
         QueryWrapper<WorkShopProducts> workShopProductsQueryWrapper = new QueryWrapper<>();
         workShopProductsQueryWrapper.eq("version",version);
-        System.out.println(version);
         int delete = workShopProductsMapper.delete(workShopProductsQueryWrapper);
         if(delete>-1){
             Map<Integer, List<Item>> collect = items.stream()

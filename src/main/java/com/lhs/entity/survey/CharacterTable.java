@@ -13,9 +13,9 @@ import java.util.Date;
 @NoArgsConstructor
 @TableName("character_table")
 public class CharacterTable {
-     @TableId
-     public String id;
-     public String charId;
-     public String name;
-     public Date updateTime;
+    @TableId
+    public String id;
+    public String charId;
+    public String name;
+    public Date updateTime;
 }

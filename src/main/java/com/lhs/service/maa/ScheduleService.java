@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
+import com.lhs.common.util.Log;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.maa.Schedule;
 import com.lhs.mapper.ScheduleMapper;
@@ -38,6 +39,7 @@ public class ScheduleService {
     public void exportScheduleFile(HttpServletResponse response, Long scheduleId) {
 
         Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id", scheduleId));
+
         String jsonForMat = JSON.toJSONString(JSONObject.parseObject(schedule.getSchedule()), SerializerFeature.PrettyFormat,
                 SerializerFeature.WriteDateUseDateFormat, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty);

@@ -1,21 +1,19 @@
 package com.lhs.service.survey;
 
-import com.lhs.common.annotation.TakeCount;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.ResultCode;
-import com.lhs.entity.survey.CharacterTable;
 import com.lhs.entity.survey.SurveyScore;
 import com.lhs.entity.survey.SurveyStatisticsScore;
 import com.lhs.entity.survey.SurveyUser;
-import com.lhs.mapper.CharacterTableMapper;
 import com.lhs.mapper.SurveyScoreMapper;
-import com.lhs.mapper.SurveyUserMapper;
 import com.lhs.vo.survey.SurveyScoreVo;
 import com.lhs.vo.survey.SurveyStatisticsScoreVo;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -26,14 +24,17 @@ import java.util.stream.Collectors;
 @Service
 public class SurveyScoreService {
 
-    @Resource
+
     private SurveyScoreMapper surveyScoreMapper;
-    @Resource
+
     private SurveyUserService surveyUserService;
-    @Resource
-    private SurveyUserMapper surveyUserMapper;
-    @Resource
-    private CharacterTableMapper characterTableMapper;
+    private final RedisTemplate<String,Object> redisTemplate;
+
+    public SurveyScoreService(SurveyScoreMapper surveyScoreMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate) {
+        this.surveyScoreMapper = surveyScoreMapper;
+        this.surveyUserService = surveyUserService;
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 上传干员风评表
@@ -62,33 +63,23 @@ public class SurveyScoreService {
         //新增数据
         List<SurveyScore> insertList = new ArrayList<>();
 
-        //干员的自定义id
-        List<CharacterTable> characterTables = characterTableMapper.selectList(null);
-        //干员的自定义id
-        Map<String, String> charIdAndId = characterTables.stream()
-                .collect(Collectors.toMap(CharacterTable::getCharId, CharacterTable::getId));
-
         for (SurveyScore surveyScore : surveyScoreList) {
-            //没有自定义id的跳出
-            if (charIdAndId.get(surveyScore.getCharId()) == null) continue;
-            //唯一id为uid+自定义id
-            Long id = Long.parseLong(uid + charIdAndId.get(surveyScore.getCharId()));
 
             //和老数据进行对比
-            SurveyScore surveyDataCharByCharId = oldDataCollectById.get(surveyScore.getCharId());
+            SurveyScore savedData = oldDataCollectById.get(surveyScore.getCharId());
             //为空则新增
-            surveyScore.setId(id);
-            surveyScore.setUid(uid);
-
-            if (surveyDataCharByCharId == null) {
+            if (savedData == null) {
+                Long scoreId = redisTemplate.opsForValue().increment("CharacterId");
+                surveyScore.setId(scoreId);
+                surveyScore.setUid(uid);
                 insertList.add(surveyScore);  //加入批量插入集合
                 affectedRows++;  //新增数据条数
             } else {
-                //如果数据存在，同时有某个信息不一致则进行更新 （考虑到可能更新量不大，没用when case批量更新
-                if (comparativeData(surveyScore, surveyDataCharByCharId)) {
+                //如果数据存在,进行更新
                     affectedRows++;  //更新数据条数
+                    surveyScore.setId(savedData.getId());
+                    surveyScore.setUid(uid);
                     surveyScoreMapper.updateSurveyScoreById(tableName, surveyScore); //更新数据
-                }
             }
         }
 

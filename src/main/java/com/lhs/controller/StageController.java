@@ -1,29 +1,26 @@
 package com.lhs.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.lhs.common.util.Log;
+
 import com.lhs.common.util.Result;
 import com.lhs.entity.other.HoneyCake;
 import com.lhs.entity.stage.*;
-import com.lhs.service.dev.OSSService;
 import com.lhs.service.stage.*;
 import com.lhs.vo.stage.OrundumPerApResultVo;
-import com.lhs.vo.stage.StageAndItemCoefficient;
 import com.lhs.vo.stage.StoreActVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @Api(tags = "API—关卡效率、材料价值、商店性价比")
@@ -37,16 +34,15 @@ public class StageController {
     private final StoreService storeService;
     private final StageResultService stageResultService;
 
-    public StageController(ItemService itemService,
-                           StageResultService stageResultService,
-                           StageService stageService,
-                           StoreService storeService
-                          ) {
+    private final RedisTemplate<String,Object> redisTemplate;
+
+
+    public StageController(ItemService itemService, StageService stageService, StoreService storeService, StageResultService stageResultService, RedisTemplate<String, Object> redisTemplate) {
         this.itemService = itemService;
-        this.stageResultService = stageResultService;
         this.stageService = stageService;
         this.storeService = storeService;
-
+        this.stageResultService = stageResultService;
+        this.redisTemplate = redisTemplate;
     }
 
     @ApiOperation(value = "更新stage表")
@@ -207,9 +203,19 @@ public class StageController {
 
     @GetMapping("/stage/resetCache")
     public Result<String> authResetCache() {
-
         String message = stageResultService.resetCache();
-
         return Result.success(message);
+    }
+
+    @GetMapping("/visits/resetCache")
+    public Result<String> authVisitsResetCache() {
+        Set<String> keys = redisTemplate.keys("visits:2023*");
+        if(keys==null)return Result.success("失败了");
+        for(String key:keys){
+            redisTemplate.delete(key);
+        }
+
+
+        return Result.success("删除了"+keys.size());
     }
 }
