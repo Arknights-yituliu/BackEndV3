@@ -17,7 +17,7 @@ public class HttpRequestUtil {
     /**
      * @Description: 发送get请求
      */
-    public static String doGet(String url, HashMap<String,String> header) {
+    public static String get(String url, HashMap<String,String> header) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
         httpGet.setHeader("Content-type", "application/json");

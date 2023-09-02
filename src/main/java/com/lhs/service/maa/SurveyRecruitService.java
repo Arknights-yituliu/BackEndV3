@@ -2,33 +2,42 @@ package com.lhs.service.maa;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.lhs.entity.maa.RecruitData;
+import com.lhs.entity.maa.SurveyRecruit;
 import com.lhs.entity.maa.RecruitStatistics;
-import com.lhs.entity.maa.RecruitStatisticsConfig;
-import com.lhs.mapper.RecruitDataMapper;
+import com.lhs.mapper.SurveyRecruitMapper;
 import com.lhs.vo.maa.MaaRecruitVo;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class RecruitSurveyService {
-
-
-    @Resource
-    private RecruitDataMapper recruitDataMapper;
+public class SurveyRecruitService {
 
 
 
+    private final SurveyRecruitMapper surveyRecruitMapper;
+
+    private final RedisTemplate<String,Object> redisTemplate;
+
+    public SurveyRecruitService(SurveyRecruitMapper surveyRecruitMapper, RedisTemplate<String, Object> redisTemplate) {
+        this.surveyRecruitMapper = surveyRecruitMapper;
+        this.redisTemplate = redisTemplate;
+    }
 
     public String saveMaaRecruitDataNew(MaaRecruitVo maaRecruitVo) {
 
         Date date = new Date();
-        int end3 = new Random().nextInt(9999);
+        Long maaRecruitId = redisTemplate.opsForValue().increment("MaaRecruitId");
+        Object surveyRecruitTable = redisTemplate.opsForValue().get("SurveyRecruitTable");
+        if(surveyRecruitTable==null) {
+            redisTemplate.opsForValue().set("SurveyRecruitTable",3);
+            surveyRecruitTable = 3;
+        }
+        String tableName = "survey_recruit_"+surveyRecruitTable;
 
-        RecruitData recruitData = RecruitData.builder()
-                .id(date.getTime() * 1000 + end3)
+        SurveyRecruit surveyRecruit = SurveyRecruit.builder()
+                .id(maaRecruitId)
                 .uid(maaRecruitVo.getUuid())
                 .level(maaRecruitVo.getLevel())
                 .server(maaRecruitVo.getServer())
@@ -37,26 +46,38 @@ public class RecruitSurveyService {
                 .version(maaRecruitVo.getVersion())
                 .createTime(date).build();
 
-        recruitDataMapper.insertRecruitData("recruit_data_2",recruitData);
+        surveyRecruitMapper.insertRecruitData(tableName, surveyRecruit);
 
         return null;
     }
 
     public Map<String, Integer> recruitStatistics() {
 
-        List<RecruitStatistics> recruitStatistics = recruitDataMapper.selectRecruitStatistics();
+        List<RecruitStatistics> recruitStatistics = surveyRecruitMapper.selectRecruitStatistics();
+
+        //上次统计的结果根据统计项目分类
         Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream()
                 .collect(Collectors.toMap(RecruitStatistics::getStatisticalItem, RecruitStatistics::getStatisticalResult));
 
-        RecruitStatisticsConfig config = recruitDataMapper.selectConfigByKey("lastTime");
-        long lastTime = Long.parseLong(config.getConfigValue());
         Date date = new Date();
 
+        Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
+        if(lastStatisticsTime==null) lastStatisticsTime = date.getTime();
+        long lastTime = Long.parseLong(String.valueOf(lastStatisticsTime));
 
-        List<RecruitData> recruit_data_DB = recruitDataMapper.selectRecruitDataByCreateTime("recruit_data_2", new Date(lastTime), date);
-        System.out.println("公招统计数量："+recruit_data_DB.size()+"条");
-        Map<Integer, List<RecruitData>> collect = recruit_data_DB.stream()
-                .collect(Collectors.groupingBy(RecruitData::getLevel));
+
+        Object surveyRecruitTable = redisTemplate.opsForValue().get("SurveyRecruitTable");
+        if(surveyRecruitTable==null) {
+            redisTemplate.opsForValue().set("SurveyRecruitTable",3);
+            surveyRecruitTable = 3;
+        }
+
+        String tableName = "survey_recruit_"+surveyRecruitTable;
+
+        List<SurveyRecruit> recruit_data_DB = surveyRecruitMapper.selectRecruitDataByCreateTime(tableName, new Date(lastTime), date);
+
+        Map<Integer, List<SurveyRecruit>> collect = recruit_data_DB.stream()
+                .collect(Collectors.groupingBy(SurveyRecruit::getLevel));
 
         int topOperator = 0;  //高级资深总数
         int seniorOperator = 0; //资深总数
@@ -69,22 +90,22 @@ public class RecruitSurveyService {
         int vulcan = 0;             //火神出现次数
 
 
-        List<RecruitData> topOperatorResult = new ArrayList<>();
+        List<SurveyRecruit> topOperatorResult = new ArrayList<>();
         if(collect.get(6)!=null){
             topOperatorResult = collect.get(6);
         }
 
-        List<RecruitData> seniorOperatorCountResult = new ArrayList<>();
+        List<SurveyRecruit> seniorOperatorCountResult = new ArrayList<>();
         if(collect.get(5)!=null){
             seniorOperatorCountResult = collect.get(5);
         }
 
-        List<RecruitData> rareOperatorCountResult = new ArrayList<>();
+        List<SurveyRecruit> rareOperatorCountResult = new ArrayList<>();
         if(collect.get(4)!=null){
             rareOperatorCountResult = collect.get(4);
         }
 
-        List<RecruitData> commonOperatorCountResult = new ArrayList<>();
+        List<SurveyRecruit> commonOperatorCountResult = new ArrayList<>();
         if(collect.get(3)!=null){
             commonOperatorCountResult = collect.get(3);
         }
@@ -97,8 +118,8 @@ public class RecruitSurveyService {
         commonOperatorCount = commonOperatorCountResult.size(); //三星TAG总数
 
 
-        for(RecruitData recruitData:topOperatorResult){
-            List<String> tags = JSONArray.parseArray(recruitData.getTag(), String.class);
+        for(SurveyRecruit surveyRecruit :topOperatorResult){
+            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
 
             boolean vulcanSignMain = false; //火神标记
             boolean vulcanSignItem = false; //火神标记
@@ -127,11 +148,11 @@ public class RecruitSurveyService {
             }
         }
 
-        for(RecruitData recruitData:seniorOperatorCountResult){
-            List<String> tags = JSONArray.parseArray(recruitData.getTag(), String.class);
+        for(SurveyRecruit surveyRecruit :seniorOperatorCountResult){
+            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
 
-            boolean vulcanSignMain = false; //火神标记
-            boolean vulcanSignItem = false; //火神标记
+            boolean vulcanSignMain = false; //火神主标签
+            boolean vulcanSignItem = false; //火神副标签
 
             for(String tag:tags){
                 if("资深干员".equals(tag)) {
@@ -156,8 +177,8 @@ public class RecruitSurveyService {
             }
         }
 
-        for(RecruitData recruitData:seniorOperatorCountResult){
-            List<String> tags = JSONArray.parseArray(recruitData.getTag(), String.class);
+        for(SurveyRecruit surveyRecruit :seniorOperatorCountResult){
+            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
             for(String tag:tags){
                 if ("支援机械".equals(tag)) {
                     robot++;
@@ -166,8 +187,8 @@ public class RecruitSurveyService {
             }
         }
 
-        for(RecruitData recruitData:commonOperatorCountResult){
-            List<String> tags = JSONArray.parseArray(recruitData.getTag(), String.class);
+        for(SurveyRecruit surveyRecruit :commonOperatorCountResult){
+            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
             for(String tag:tags){
                 if ("支援机械".equals(tag)) {
                     robot++;
@@ -194,21 +215,20 @@ public class RecruitSurveyService {
 
         for(String key:recruitStatisticsMap.keySet()){
 
-            RecruitStatistics resultByItem = recruitDataMapper.selectRecruitStatisticsByItem(key);
+            RecruitStatistics resultByItem = surveyRecruitMapper.selectRecruitStatisticsByItem(key);
 
             RecruitStatistics build = RecruitStatistics.builder()
                     .statisticalItem(key)
                     .statisticalResult(recruitStatisticsMap.get(key))
                     .build();
             if(resultByItem!=null){
-                recruitDataMapper.updateRecruitStatistics(build);
+                surveyRecruitMapper.updateRecruitStatistics(build);
             }else {
-                recruitDataMapper.insertRecruitStatistics(build);
+                surveyRecruitMapper.insertRecruitStatistics(build);
             }
         }
 
-        recruitDataMapper.updateConfigByKey("lastTime",String.valueOf(date.getTime()) );
-
+        redisTemplate.opsForValue().set("LastRecruitStatisticsTime",date.getTime());
 
         return recruitStatisticsMap;
     }
@@ -216,11 +236,12 @@ public class RecruitSurveyService {
 
     public HashMap<String,Object> statisticalResult() {
 
-        List<RecruitStatistics> recruitStatistics = recruitDataMapper.selectRecruitStatistics();
+        List<RecruitStatistics> recruitStatistics = surveyRecruitMapper.selectRecruitStatistics();
         Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream().collect(Collectors.toMap(RecruitStatistics::getStatisticalItem, RecruitStatistics::getStatisticalResult));
-        RecruitStatisticsConfig config = recruitDataMapper.selectConfigByKey("lastTime");
+        Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
+        long lastTime = Long.parseLong(String.valueOf(lastStatisticsTime));
         HashMap<String, Object> hashMap = new HashMap<>(recruitStatisticsMap);
-        hashMap.put("createTime",Long.valueOf(config.getConfigValue()));
+        hashMap.put("createTime",Long.valueOf(String.valueOf(lastTime)));
 
         return hashMap;
     }

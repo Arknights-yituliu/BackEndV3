@@ -10,11 +10,10 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 @Data
-@TableName("recruit_data")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RecruitData {
+public class SurveyRecruit {
 
     @TableId
     private Long id;

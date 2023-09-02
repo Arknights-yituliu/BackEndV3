@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.RecruitDataMapper">
+<mapper namespace="com.lhs.mapper.SurveyRecruitMapper">
 
     <insert id="insertRecruitData">
         INSERT INTO ${tableName}
         (`id`, `create_time`, `level`, `server`, `source`, `tag`, `uid`, `version`)
-        VALUES (#{recruitData.id}, #{recruitData.createTime}, #{recruitData.level}, #{recruitData.server},
-                #{recruitData.source}, #{recruitData.tag}, #{recruitData.uid}, #{recruitData.version})
+        VALUES (#{surveyRecruit.id}, #{surveyRecruit.createTime}, #{surveyRecruit.level}, #{surveyRecruit.server},
+                #{surveyRecruit.source}, #{surveyRecruit.tag}, #{surveyRecruit.uid}, #{surveyRecruit.version})
     </insert>
 
-    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.maa.RecruitData">
+    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.maa.SurveyRecruit">
         SELECT *
         FROM  ${tableName}
         WHERE
@@ -24,34 +24,24 @@
         VALUES (#{statistics.statisticalItem}, #{statistics.statisticalResult});
     </insert>
 
-    <update id="updateRecruitStatistics">
-        UPDATE `recruit_statistics`
-        SET   `statistical_result` = #{statistics.statisticalResult}
-        WHERE `statistical_item`   = #{statistics.statisticalItem}
-    </update>
-
     <select id="selectRecruitStatistics" resultType="com.lhs.entity.maa.RecruitStatistics">
-         SELECT * FROM `recruit_statistics`
+        SELECT * FROM `recruit_statistics`
     </select>
 
     <select id="selectRecruitStatisticsByItem" resultType="com.lhs.entity.maa.RecruitStatistics">
         SELECT * FROM `recruit_statistics` WHERE  `statistical_item` = #{statisticalItem}
     </select>
 
-
-    <!--    公招统计表配置，根据key查询-->
-    <select id="selectConfigByKey" resultType="com.lhs.entity.maa.RecruitStatisticsConfig">
-        SELECT `config_value`
-        FROM `recruit_statistics_config`
-        WHERE `config_key` = #{configKey}
-    </select>
-
-    <!--    公招统计表配置，根据key更新-->
-    <update id="updateConfigByKey">
-        UPDATE `recruit_statistics_config`
-        SET `config_value` = #{configValue}
-        WHERE `config_key` = #{configKey};
+    <update id="updateRecruitStatistics">
+        UPDATE `recruit_statistics`
+        SET   `statistical_result` = #{statistics.statisticalResult}
+        WHERE `statistical_item`   = #{statistics.statisticalItem}
     </update>
+
+
+
+
+
 
 
 </mapper>

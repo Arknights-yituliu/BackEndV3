@@ -34,14 +34,14 @@ public class StageService {
 
 
         String penguinGlobal = ApplicationConfig.PenguinGlobal;
-        String responseGlobal = HttpRequestUtil.doGet(penguinGlobal, new HashMap<>());
+        String responseGlobal = HttpRequestUtil.get(penguinGlobal, new HashMap<>());
         if (responseGlobal == null) return;
         FileUtil.save(ApplicationConfig.Penguin, "matrix global.json", responseGlobal);
         ossService.upload(responseGlobal, "penguin/" + yyyyMMdd + "/matrix global " + yyyyMMddHHmm + ".json");
 
 
         String penguinAuto = ApplicationConfig.PenguinAuto;
-        String responseAuto = HttpRequestUtil.doGet(penguinAuto, new HashMap<>());
+        String responseAuto = HttpRequestUtil.get(penguinAuto, new HashMap<>());
         if (responseAuto == null) return;
         FileUtil.save(ApplicationConfig.Penguin, "matrix auto.json", responseAuto);
         ossService.upload(responseAuto, "penguin/" + yyyyMMdd + "/matrix auto " + yyyyMMddHHmm + ".json");

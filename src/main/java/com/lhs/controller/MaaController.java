@@ -3,7 +3,7 @@ package com.lhs.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.Log;
 import com.lhs.common.util.Result;
-import com.lhs.service.maa.RecruitSurveyService;
+import com.lhs.service.maa.SurveyRecruitService;
 import com.lhs.service.maa.ScheduleService;
 import com.lhs.vo.maa.MaaRecruitVo;
 import io.swagger.annotations.Api;
@@ -25,12 +25,12 @@ public class MaaController {
     private ScheduleService scheduleService;
 
     @Resource
-    private RecruitSurveyService recruitSurveyService;
+    private SurveyRecruitService surveyRecruitService;
 
     @ApiOperation("MAA公招记录上传")
     @PostMapping("/upload/recruit")
     public Result<Object> MaaTagResult(@RequestBody MaaRecruitVo maaTagRequestVo) {
-        String string = recruitSurveyService.saveMaaRecruitDataNew(maaTagRequestVo);
+        String string = surveyRecruitService.saveMaaRecruitDataNew(maaTagRequestVo);
         return Result.success(string);
     }
 
@@ -50,7 +50,7 @@ public class MaaController {
     @ApiOperation("公招统计")
     @GetMapping("/recruit/statistics")
     public Result<Object> saveMaaRecruitStatistical() {
-        Map<String, Integer> result = recruitSurveyService.recruitStatistics();
+        Map<String, Integer> result = surveyRecruitService.recruitStatistics();
         return Result.success(result);
     }
 
@@ -58,7 +58,7 @@ public class MaaController {
     @ApiOperation("公招统计结果")
     @GetMapping("/recruit/result")
     public Result<Object> queryMaaRecruitStatistical() {
-        HashMap<String, Object> result = recruitSurveyService.statisticalResult();
+        HashMap<String, Object> result = surveyRecruitService.statisticalResult();
 
         return Result.success(result);
     }

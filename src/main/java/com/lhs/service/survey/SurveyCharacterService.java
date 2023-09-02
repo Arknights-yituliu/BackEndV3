@@ -5,7 +5,14 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.ExcelUtil;
+import com.lhs.common.util.HttpRequestUtil;
+import com.lhs.common.util.ResultCode;
 import com.lhs.entity.survey.*;
 import com.lhs.mapper.SurveyCharacterMapper;
 import com.lhs.vo.survey.SurveyStatisticsChar;
@@ -34,7 +41,7 @@ public class SurveyCharacterService {
 
     private final SurveyUserService surveyUserService;
 
-    private final RedisTemplate<String,Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public SurveyCharacterService(SurveyCharacterMapper surveyCharacterMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate) {
         this.surveyCharacterMapper = surveyCharacterMapper;
@@ -44,31 +51,34 @@ public class SurveyCharacterService {
 
     /**
      * 上传干员练度调查表
-     * @param token token
-     * @param surveyCharacterList  干员练度调查表单
-     * @return  成功消息
+     *
+     * @param token               token
+     * @param surveyCharacterList 干员练度调查表单
+     * @return 成功消息
      */
 //    @TakeCount(name = "上传评分")
-    public HashMap<Object, Object> uploadCharForm(String token, List<SurveyCharacter> surveyCharacterList) {
+    public HashMap<String, Object> uploadCharForm(String token, List<SurveyCharacter> surveyCharacterList) {
         SurveyUser surveyUser = surveyUserService.getSurveyUserById(token);
         return updateSurveyData(surveyUser, surveyCharacterList);
     }
 
     /**
      * 导入干员练度调查表
-     * @param file Excel文件
+     *
+     * @param file  Excel文件
      * @param token token
      * @return 成功消息
      */
-    public HashMap<Object, Object> importSurveyCharacterForm(MultipartFile file,String token){
+    public HashMap<String, Object> importExcel(MultipartFile file, String token) {
         List<SurveyCharacter> list = new ArrayList<>();
         try {
             EasyExcel.read(file.getInputStream(), SurveyCharacterExcelVo.class, new AnalysisEventListener<SurveyCharacterExcelVo>() {
                 public void invoke(SurveyCharacterExcelVo surveyCharacterExcelVo, AnalysisContext analysisContext) {
                     SurveyCharacter surveyCharacter = new SurveyCharacter();
-                    BeanUtils.copyProperties(surveyCharacterExcelVo,surveyCharacter);
+                    BeanUtils.copyProperties(surveyCharacterExcelVo, surveyCharacter);
                     list.add(surveyCharacter);
                 }
+
                 public void doAfterAllAnalysed(AnalysisContext analysisContext) {
                 }
             }).sheet().doRead();
@@ -83,16 +93,17 @@ public class SurveyCharacterService {
 
 
     /**
-     * 通用的上传抽象方法
-     * @param surveyUser 用户信息
-     * @param surveyCharacterList  干员练度调查表
+     * 通用的上传方法
+     *
+     * @param surveyUser          用户信息
+     * @param surveyCharacterList 干员练度调查表
      * @return
      */
-    private HashMap<Object, Object> updateSurveyData(SurveyUser surveyUser, List<SurveyCharacter> surveyCharacterList){
+    private HashMap<String, Object> updateSurveyData(SurveyUser surveyUser, List<SurveyCharacter> surveyCharacterList) {
 
         long uid = surveyUser.getId();
         Date date = new Date();
-        String tableName = "survey_character_"+ surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
+        String tableName = "survey_character_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
         int affectedRows = 0;
 
         //用户之前上传的数据
@@ -110,7 +121,7 @@ public class SurveyCharacterService {
         for (SurveyCharacter surveyCharacter : surveyCharacterList) {
 
 
-            if(!surveyCharacter.getOwn()) continue;
+            if (!surveyCharacter.getOwn()) continue;
             //精英化阶段小于2 不能专精和开模组
             if (surveyCharacter.getElite() < 2) {
                 surveyCharacter.setSkill1(-1);
@@ -120,13 +131,9 @@ public class SurveyCharacterService {
                 surveyCharacter.setModY(-1);
             }
 
-            if(surveyCharacter.getRarity()<6){
+            if (surveyCharacter.getRarity() < 6) {
                 surveyCharacter.setSkill3(-1);
             }
-
-
-            System.out.println(surveyCharacter);
-
 
             //和老数据进行对比
             SurveyCharacter savedData = savedDataMap.get(surveyCharacter.getCharId());
@@ -140,10 +147,10 @@ public class SurveyCharacterService {
                 affectedRows++;  //新增数据条数
             } else {
                 //如果数据存在，进行更新
-                    affectedRows++;  //更新数据条数
-                    surveyCharacter.setId(savedData.getId());
-                    surveyCharacter.setUid(uid);
-                    surveyCharacterMapper.updateSurveyCharacterById(tableName,surveyCharacter); //更新数据
+                affectedRows++;  //更新数据条数
+                surveyCharacter.setId(savedData.getId());
+                surveyCharacter.setUid(uid);
+                surveyCharacterMapper.updateSurveyCharacterById(tableName, surveyCharacter); //更新数据
             }
         }
 
@@ -155,41 +162,45 @@ public class SurveyCharacterService {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-        HashMap<Object, Object> hashMap = new HashMap<>();
+        HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("affectedRows", affectedRows);
-        hashMap.put("updateTime",simpleDateFormat.format(date));
+        hashMap.put("updateTime", simpleDateFormat.format(date));
         return hashMap;
     }
 
-    public void exportSurveyCharacterForm(HttpServletResponse response,String token){
+    public void exportSurveyCharacterForm(HttpServletResponse response, String token) {
 
         SurveyUser surveyUser = surveyUserService.getSurveyUserById(token);
-        String tableName = "survey_character_"+ surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
+        //拿到这个用户的干员练度数据存在了哪个表
+        String tableName = "survey_character_" + surveyUserService.getTableIndex(surveyUser.getId());
         //用户之前上传的数据
         List<SurveyCharacter> list
                 = surveyCharacterMapper.selectSurveyCharacterByUid(tableName, surveyUser.getId());
+
         List<SurveyCharacterExcelVo> listVo = new ArrayList<>();
-        JSONObject characterTable = surveyUserService.getCharacterTable();
-        for(SurveyCharacter surveyCharacter:list){
+
+        Map<String, CharacterTable> characterTable = surveyUserService.getCharacterTable();
+
+        for (SurveyCharacter surveyCharacter : list) {
             SurveyCharacterExcelVo surveyCharacterExcelVo = new SurveyCharacterExcelVo();
-            BeanUtils.copyProperties(surveyCharacter,surveyCharacterExcelVo);
-            String charInfoStr = characterTable.getString(surveyCharacter.getCharId());
-            JSONObject charInfo = JSONObject.parseObject(charInfoStr);
-            if(charInfo.get("name")==null){
+            BeanUtils.copyProperties(surveyCharacter, surveyCharacterExcelVo);
+
+            if (characterTable.get(surveyCharacter.getCharId()) == null) {
                 surveyCharacterExcelVo.setName("未知干员，待更新");
-            }else {
-                surveyCharacterExcelVo.setName(charInfo.getString("name"));
+            } else {
+                surveyCharacterExcelVo.setName(characterTable.get(surveyCharacter.getCharId()).getName());
             }
 
             listVo.add(surveyCharacterExcelVo);
         }
-        ExcelUtil.exportExcel(response,listVo,SurveyCharacterExcelVo.class,"characterForm");
+        ExcelUtil.exportExcel(response, listVo, SurveyCharacterExcelVo.class, "characterForm");
     }
 
     /**
      * 判断这个干员是否有变更
-     * @param newData  新数据
-     * @param oldData  旧数据
+     *
+     * @param newData 新数据
+     * @param oldData 旧数据
      * @return 成功消息
      */
     private boolean surveyDataCharEquals(SurveyCharacter newData, SurveyCharacter oldData) {
@@ -205,15 +216,14 @@ public class SurveyCharacterService {
 
     /**
      * 干员练度调查表统计
-     *
      */
     public void characterStatistics() {
         List<Long> userIds = surveyUserService.selectSurveyUserIds();
 
         List<List<Long>> userIdsGroup = new ArrayList<>();
         String update_time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()),"user_count_character");
-        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()),update_time);
+        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_character");
+        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()), update_time);
 
         int length = userIds.size();
         // 计算用户id按500个用户一组可以分成多少组
@@ -233,7 +243,7 @@ public class SurveyCharacterService {
         List<SurveyStatisticsCharacter> surveyDataCharList = new ArrayList<>();  //最终结果
 
         for (List<Long> ids : userIdsGroup) {
-            if(ids.size()==0) continue;
+            if (ids.size() == 0) continue;
             List<SurveyCharacterVo> surveyDataCharList_DB =
                     surveyCharacterMapper.selectSurveyCharacterVoByUidList("survey_character_1", ids);
 
@@ -254,35 +264,35 @@ public class SurveyCharacterService {
 
                 //根据该干员精英等级分组统计 map(精英等级,该等级的数量)
                 Map<Integer, Long> collectByElite = list.stream()
-                        .filter(e->e.getElite()>-1)
-                        .collect(Collectors.groupingBy(SurveyCharacterVo::getElite,Collectors.counting()));
+                        .filter(e -> e.getElite() > -1)
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getElite, Collectors.counting()));
 
                 //根据该干员的潜能等级分组统计  map(潜能等级,该等级的数量)
-                Map<Integer, Long> collectByPotential =list.stream()
-                        .filter(e->e.getPotential()>-1)
-                        .collect(Collectors.groupingBy(SurveyCharacterVo::getPotential,Collectors.counting()));
+                Map<Integer, Long> collectByPotential = list.stream()
+                        .filter(e -> e.getPotential() > -1)
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getPotential, Collectors.counting()));
 
                 //根据该干员的技能专精等级分组统计  map(潜能等级,该等级的数量)
                 Map<Integer, Long> collectBySkill1 = list.stream()
-                        .filter(e->e.getSkill1()>-1)
-                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill1,Collectors.counting()));
+                        .filter(e -> e.getSkill1() > -1)
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill1, Collectors.counting()));
 
                 Map<Integer, Long> collectBySkill2 = list.stream()
-                        .filter(e->e.getSkill2()>-1)
-                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill2,Collectors.counting()));
+                        .filter(e -> e.getSkill2() > -1)
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill2, Collectors.counting()));
 
                 Map<Integer, Long> collectBySkill3 = list.stream()
-                        .filter(e->e.getSkill3()>-1)
-                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill3,Collectors.counting()));
+                        .filter(e -> e.getSkill3() > -1)
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getSkill3, Collectors.counting()));
 
                 //根据该干员的模组等级分组统计  map(潜能等级,该等级的数量)
                 Map<Integer, Long> collectByModX = list.stream()
-                        .filter(e->e.getModX()>-1)
-                        .collect(Collectors.groupingBy(SurveyCharacterVo::getModX,Collectors.counting()));
+                        .filter(e -> e.getModX() > -1)
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getModX, Collectors.counting()));
 
                 Map<Integer, Long> collectByModY = list.stream()
-                        .filter(e->e.getModY()>-1)
-                        .collect(Collectors.groupingBy(SurveyCharacterVo::getModY,Collectors.counting()));
+                        .filter(e -> e.getModY() > -1)
+                        .collect(Collectors.groupingBy(SurveyCharacterVo::getModY, Collectors.counting()));
 
                 //和上一组用户id的数据合并
                 if (hashMap.get(charId) != null) {
@@ -336,7 +346,7 @@ public class SurveyCharacterService {
             int sampleSizeSkill3 = getSampleSize(v.getSkill3());
             int sampleSizeModX = getSampleSize(v.getModX());
             int sampleSizeModY = getSampleSize(v.getModY());
-            int sampleSizePotential  = getSampleSize(v.getPotential());
+            int sampleSizePotential = getSampleSize(v.getPotential());
 
             SurveyStatisticsCharacter build = SurveyStatisticsCharacter.builder()
                     .charId(v.getCharId())
@@ -363,10 +373,10 @@ public class SurveyCharacterService {
         surveyCharacterMapper.insertBatchCharacterStatistics(surveyDataCharList);
     }
 
-    private static Integer getSampleSize(Map<Integer,Long> map){
+    private static Integer getSampleSize(Map<Integer, Long> map) {
         long sampleSize = 0L;
-        for(Integer rank : map.keySet()){
-            sampleSize+=map.get(rank);
+        for (Integer rank : map.keySet()) {
+            sampleSize += map.get(rank);
         }
         return (int) sampleSize;
 
@@ -375,20 +385,21 @@ public class SurveyCharacterService {
 
     /**
      * 找回用户填写的数据
+     *
      * @param token token
      * @return 成功消息
      */
-    public List<SurveyCharacterVo> findCharacterForm(String token) {
+    public List<SurveyCharacterVo> getCharacterForm(String token) {
 
         SurveyUser surveyUser = surveyUserService.getSurveyUserById(token);
         List<SurveyCharacterVo> surveyCharacterVos = new ArrayList<>();
         if (surveyUser.getCreateTime().getTime() == surveyUser.getUpdateTime().getTime())
             return surveyCharacterVos;  //更新时间和注册时间一致直接返回空
 
-        String tableName = "survey_character_"+ surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
+        String tableName = "survey_character_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
 
         List<SurveyCharacter> surveyCharacterList = surveyCharacterMapper.selectSurveyCharacterByUid(tableName, surveyUser.getId());
-        surveyCharacterList.forEach(e->{
+        surveyCharacterList.forEach(e -> {
             SurveyCharacterVo build = SurveyCharacterVo.builder()
                     .charId(e.getCharId())
                     .level(e.getLevel())
@@ -411,9 +422,10 @@ public class SurveyCharacterService {
 
     /**
      * 干员信息统计
+     *
      * @return 成功消息
      */
-    public HashMap<Object, Object> charStatisticsResult() {
+    public HashMap<Object, Object> getCharStatisticsResult() {
         List<SurveyStatisticsCharacter> surveyStatisticsCharacters = surveyCharacterMapper.selectCharacterStatisticsList();
         HashMap<Object, Object> hashMap = new HashMap<>();
 
@@ -426,7 +438,7 @@ public class SurveyCharacterService {
             CharacterStatisticsResult build = CharacterStatisticsResult.builder()
                     .charId(item.getCharId())
                     .rarity(item.getRarity())
-                    .own(item.getOwn()  / userCount)
+                    .own(item.getOwn() / userCount)
                     .elite(splitCalculation(item.getElite(), item.getSampleSizeElite()))
                     .skill1(splitCalculation(item.getSkill1(), item.getSampleSizeSkill1()))
                     .skill2(splitCalculation(item.getSkill2(), item.getSampleSizeSkill2()))
@@ -446,15 +458,89 @@ public class SurveyCharacterService {
 
     /**
      * 计算具体结果
-     * @param  result 旧结果
-     * @param  sampleSize 样本
+     *
+     * @param result     旧结果
+     * @param sampleSize 样本
      * @return 计算结果
      */
     public HashMap<String, Double> splitCalculation(String result, Integer sampleSize) {
         HashMap<String, Double> hashMap = new HashMap<>();
         JSONObject jsonObject = JSONObject.parseObject(result);
-        jsonObject.forEach((k, v) ->hashMap.put("rank" + k, Double.parseDouble(String.valueOf(v)) / sampleSize));
+        jsonObject.forEach((k, v) -> hashMap.put("rank" + k, Double.parseDouble(String.valueOf(v)) / sampleSize));
         return hashMap;
+    }
+
+
+    public HashMap<String, Object> importSKLandPlayerInfo(String token, String cred) {
+        SurveyUser surveyUser = surveyUserService.getSurveyUserById(token);
+        List<SurveyCharacter> surveyCharacterList = new ArrayList<>();
+
+        HashMap<String, String> header = new HashMap<>();
+        cred = cred.trim();
+        header.put("cred", cred);
+
+        String SKLandPlayerBindingAPI = ApplicationConfig.SKLandPlayerBindingAPI;
+        String SKLandPlayerBinding = HttpRequestUtil.get(SKLandPlayerBindingAPI, header);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode SKLandPlayerBindingNode = null;
+        JsonNode SKLandPlayerInfoNode = null;
+        try {
+            SKLandPlayerBindingNode = objectMapper.readTree(SKLandPlayerBinding);
+            JsonNode data = SKLandPlayerBindingNode.get("data");
+            int code = SKLandPlayerBindingNode.get("code").intValue();
+            if(code!=0) throw new ServiceException(ResultCode.SKLAND_CRED_ERROR);
+            JsonNode list = data.get("list");
+            JsonNode bindingList = list.get(0).get("bindingList");
+            String uid = bindingList.get(0).get("uid").asText();
+
+            String SKLandPlayerInfoAPI = ApplicationConfig.SKLandPlayerInfoAPI + uid;
+            String SKLandPlayerInfo = HttpRequestUtil.get(SKLandPlayerInfoAPI, header);
+            SKLandPlayerInfoNode = objectMapper.readTree(SKLandPlayerInfo);
+            JsonNode data1 = SKLandPlayerInfoNode.get("data");
+            JsonNode chars = data1.get("chars");
+            JsonNode charInfoMap = data1.get("charInfoMap");
+
+            for (int i = 0; i < chars.size(); i++) {
+                SurveyCharacter surveyCharacter = new SurveyCharacter();
+                String charId = chars.get(i).get("charId").asText();
+                int level = chars.get(i).get("level").intValue();
+                int evolvePhase = chars.get(i).get("evolvePhase").intValue();
+                int potentialRank = chars.get(i).get("potentialRank").intValue()+1;
+                int rarity = charInfoMap.get(charId).get("rarity").intValue()+1;
+                surveyCharacter.setCharId(charId);
+                surveyCharacter.setOwn(true);
+                surveyCharacter.setLevel(level);
+                surveyCharacter.setElite(evolvePhase);
+                surveyCharacter.setRarity(rarity);
+                surveyCharacter.setPotential(potentialRank);
+                surveyCharacter.setSkill1(-1);
+                surveyCharacter.setSkill2(-1);
+                surveyCharacter.setSkill3(-1);
+                surveyCharacter.setModX(-1);
+                surveyCharacter.setModY(-1);
+                JsonNode skills = chars.get(i).get("skills");
+                for (int j = 0; j < skills.size(); j++) {
+                    int specializeLevel = skills.get(j).get("specializeLevel").intValue();
+                    if(j==0){
+                        surveyCharacter.setSkill1(specializeLevel);
+                    }
+                    if(j==1){
+                        surveyCharacter.setSkill2(specializeLevel);
+                    }
+                    if(j==2){
+                        surveyCharacter.setSkill3(specializeLevel);
+                    }
+                }
+                surveyCharacterList.add(surveyCharacter);
+            }
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        return updateSurveyData(surveyUser, surveyCharacterList);
+
     }
 
 
@@ -462,7 +548,7 @@ public class SurveyCharacterService {
      * 上传maa干员信息
      * @param maaOperBoxVo  maa识别出的的结果
      * @param ipAddress   ip
-     * @return  成功消息
+     * @return 成功消息
      */
 //    public HashMap<Object, Object> saveMaaCharData(MaaOperBoxVo maaOperBoxVo, String ipAddress) {
 //        JSONArray operBoxs = maaOperBoxVo.getOperBox();
@@ -543,13 +629,6 @@ public class SurveyCharacterService {
 //        hashMap.put("uid", uid);
 //        return hashMap;
 //    }
-
-
-
-
-
-
-
 
 
 }

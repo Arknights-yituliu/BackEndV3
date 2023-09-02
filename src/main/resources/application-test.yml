@@ -8,6 +8,10 @@ spring:
     url: jdbc:mysql://localhost:3306/数据库名?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true
     username: root
     password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
   redis:
     host: 127.0.0.1
     port: 6379
@@ -40,17 +44,21 @@ resourcesPath:
   schedule: src/main/resources/schedule/
 
 encryption:
-  secret: "密匙"
-  signKey: "密匙"
-  machineId: "密匙"
+  secret: 密匙
+  signKey: 签名
 
 penguin:
-  auto: "企鹅物流API"
+  auto: 企鹅物流API
   global: https://penguin-stats.io/PenguinStats/api/v2/result/matrix?show_closed_zones=true
 
 aliyun:
-  accessKeyID:  "阿里云密匙"
-  accessKeySecret: "阿里云密匙"
+  accessKeyID:  阿里云密匙
+  accessKeySecret: 阿里云密匙
+  bakBucketName: 存储桶名称
+
+skland:
+  playerInfoAPI: skdAPI
+  playerBindingAPI: skdAPI
 
 #mybatis-plus:
 #  configuration:
@@ -58,6 +66,6 @@ aliyun:
 
 swagger2:
    enable: true
-   type: test
+
 
 

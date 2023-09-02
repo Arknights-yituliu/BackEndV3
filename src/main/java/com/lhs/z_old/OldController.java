@@ -3,7 +3,7 @@ package com.lhs.z_old;
 
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.Result;
-import com.lhs.service.maa.RecruitSurveyService;
+import com.lhs.service.maa.SurveyRecruitService;
 import com.lhs.service.maa.ScheduleService;
 import com.lhs.vo.maa.MaaRecruitVo;
 import io.swagger.annotations.Api;
@@ -26,7 +26,7 @@ public class OldController {
     private ScheduleService scheduleService;
 
     @Resource
-    private RecruitSurveyService recruitSurveyService;
+    private SurveyRecruitService surveyRecruitService;
 
     @ApiOperation("MAA公招记录上传")
     @PostMapping("/recruitUpload")
@@ -55,7 +55,7 @@ public class OldController {
     @ApiOperation("各类公招统计结果")
     @GetMapping("/recruit/statistical")
     public Result queryMaaRecruitStatistical() {
-        HashMap<String, Object> result = recruitSurveyService.statisticalResult();
+        HashMap<String, Object> result = surveyRecruitService.statisticalResult();
 
         return Result.success(result);
     }

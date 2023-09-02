@@ -17,15 +17,21 @@ public class ApplicationConfig implements InitializingBean {
     @Value("${resourcesPath.schedule}")
     private String schedule;  //    排班文件路径
 
-
     @Value("${encryption.secret}")
     private String secret;
     @Value("${encryption.signKey}")
     private String signKey;
+
+
     @Value("${penguin.auto}")
     private String penguinAuto;
     @Value("${penguin.global}")
     private String penguinGlobal;
+
+    @Value("${skland.playerInfoAPI}")
+    private String sklandPlayerInfoAPI;
+    @Value("${skland.playerBindingAPI}")
+    private String sklandPlayerBindingAPI;
 
 
     public static String Penguin;
@@ -36,12 +42,11 @@ public class ApplicationConfig implements InitializingBean {
     public static String Secret;
     public static String SignKey;
 
-
-
     public static String PenguinAuto;
     public static String PenguinGlobal;
 
-
+    public static String SKLandPlayerBindingAPI;
+    public static String SKLandPlayerInfoAPI;
 
 
     @Override
@@ -56,6 +61,9 @@ public class ApplicationConfig implements InitializingBean {
 
         PenguinAuto = penguinAuto;
         PenguinGlobal = penguinGlobal;
+
+        SKLandPlayerBindingAPI = sklandPlayerBindingAPI;
+        SKLandPlayerInfoAPI = sklandPlayerInfoAPI;
 
     }
 }

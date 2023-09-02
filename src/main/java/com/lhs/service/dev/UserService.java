@@ -172,8 +172,15 @@ public class UserService {
         for(Object field :visits.keySet()){
             String timeAndURL  = String.valueOf(field);
             int visitsCount = Integer.parseInt(String.valueOf((visits.get(field))));
-            String visitsTime =  timeAndURL.split("\\.")[0];
-            String pagePath = timeAndURL.split("\\.")[1];
+            String[] split = timeAndURL.split("\\.");
+            String visitsTime =  split[0];
+            String pagePath = "/";
+
+            if(split.length>1){
+                pagePath = split[1];
+            }
+
+
             if(yyyyMMddHH.equals(visitsTime)){
                 Log.info("当时小时的访问未结束，不保存");
                 continue;

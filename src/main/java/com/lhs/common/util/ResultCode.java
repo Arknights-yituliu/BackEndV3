@@ -19,9 +19,8 @@ public enum ResultCode {
 	FILE_SIZE_LARGE(10007, "文件过大"),
 	FILE_NOT_IN_EXCEL_FORMAT(10008, "文件格式必须为.xlsx"),
 	USER_NAME_LENGTH_TOO_LONG(10009, "用户名长度超过30"),
-
 	USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH(100010, "用户名只能使用中文或英文"),
-
+	SKLAND_CRED_ERROR(10011,"森空岛CRED错误"),
 
 	
 	/* 用户错误：20001-29999*/

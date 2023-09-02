@@ -2,7 +2,6 @@ package com.lhs.service.stage;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Log;

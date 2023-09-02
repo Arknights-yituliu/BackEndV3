@@ -2,12 +2,17 @@ package com.lhs.service.survey;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.AES;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.survey.CharacterTable;
 import com.lhs.entity.survey.SurveyUser;
+import com.lhs.mapper.CharacterTableMapper;
 import com.lhs.mapper.SurveyUserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,16 +20,25 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class SurveyUserService {
 
-    @Resource
-    private SurveyUserMapper surveyUserMapper;
 
-    @Resource
-    private RedisTemplate<String, String> redisTemplate;
+    private final SurveyUserMapper surveyUserMapper;
+
+    private final RedisTemplate<String, String> redisTemplate;
+
+    private final CharacterTableMapper characterTableMapper;
+
+    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, CharacterTableMapper characterTableMapper) {
+        this.surveyUserMapper = surveyUserMapper;
+        this.redisTemplate = redisTemplate;
+        this.characterTableMapper = characterTableMapper;
+    }
 
     /**
      * 调查表注册
@@ -144,6 +158,9 @@ public class SurveyUserService {
     }
 
     public SurveyUser getSurveyUserById(String token){
+        if(token==null||"undefined".equals(token)){
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
         Long id = decryptToken(token);
         SurveyUser surveyUser = surveyUserMapper.selectSurveyUserById(id); //查询用户
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
@@ -197,13 +214,31 @@ public class SurveyUserService {
         return surveyUser;
     }
 
-
-
     @RedisCacheable(key = "CharacterTableSimple",timeout = -1)
-    public JSONObject getCharacterTable(){
-        String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
-        return JSONObject.parseObject(read);
+    public Map<String, CharacterTable> getCharacterTable(){
+
+        List<CharacterTable> characterTables = characterTableMapper.selectList(null);
+        Map<String, CharacterTable> collect = characterTables.stream()
+                .collect(Collectors.toMap(CharacterTable::getCharId, Function.identity()));
+
+
+        return collect;
     }
+
+
+//    @RedisCacheable(key = "CharacterTableSimple",timeout = -1)
+//    public JsonNode getCharacterTable(){
+//        String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        JsonNode jsonNode = null;
+//        try {
+//             jsonNode = objectMapper.readTree(read);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        return jsonNode;
+//    }
 
 
 
