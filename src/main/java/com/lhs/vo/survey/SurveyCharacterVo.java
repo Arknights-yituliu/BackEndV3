@@ -16,6 +16,7 @@ public class SurveyCharacterVo {
     private Integer elite;
     private Integer potential;
     private Integer rarity;
+    private Integer mainSkill;
     private Integer skill1;
     private Integer skill2;
     private Integer skill3;

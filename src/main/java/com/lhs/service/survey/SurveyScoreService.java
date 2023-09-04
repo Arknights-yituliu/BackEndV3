@@ -128,8 +128,7 @@ public class SurveyScoreService {
 
         List<List<Long>> userIdsGroup = new ArrayList<>();
         String update_time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_score");
-        surveyUserService.updateConfigByKey(update_time, "update_time_score");
+
 
         int length = userIds.size();
         // 计算用户id按300个用户一组可以分成多少组
@@ -247,8 +246,7 @@ public class SurveyScoreService {
 
         List<List<Long>> userIdsGroup = new ArrayList<>();
         String update_time = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        surveyUserService.updateConfigByKey(String.valueOf(userIds.size()), "user_count_score");
-        surveyUserService.updateConfigByKey(update_time, "update_time_score");
+
 
         int length = userIds.size();
         // 计算用户id按300个用户一组可以分成多少组

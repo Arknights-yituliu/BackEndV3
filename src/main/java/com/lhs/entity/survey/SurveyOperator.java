@@ -1,13 +1,15 @@
 package com.lhs.entity.survey;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 @Data
 @Builder
 @AllArgsConstructor
+@TableName("survey_character_1")
 @NoArgsConstructor
-public class SurveyCharacter {
+public class SurveyOperator {
     @ExcelProperty("id")
     private Long id;
     @ExcelProperty("uid")
@@ -24,6 +26,8 @@ public class SurveyCharacter {
     private Integer potential;
     @ExcelProperty("星级")
     private Integer rarity;
+    @ExcelProperty("通用技能")
+    private Integer mainSkill;
     @ExcelProperty("一技能")
     private Integer skill1;
     @ExcelProperty("二技能")

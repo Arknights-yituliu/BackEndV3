@@ -1,6 +1,7 @@
 package com.lhs.service.survey;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,11 +12,16 @@ import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.survey.CharacterTable;
+import com.lhs.entity.survey.SurveyOperator;
 import com.lhs.entity.survey.SurveyUser;
+import com.lhs.entity.survey.SurveyUserStatistics;
 import com.lhs.mapper.CharacterTableMapper;
+import com.lhs.mapper.SurveyOperatorMapper;
 import com.lhs.mapper.SurveyUserMapper;
+import com.lhs.mapper.SurveyUserStatisticsMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.web.config.QuerydslWebConfiguration;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -34,10 +40,16 @@ public class SurveyUserService {
 
     private final CharacterTableMapper characterTableMapper;
 
-    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, CharacterTableMapper characterTableMapper) {
+    private final SurveyOperatorMapper surveyOperatorMapper;
+
+    private final SurveyUserStatisticsMapper surveyUserStatisticsMapper;
+
+    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, CharacterTableMapper characterTableMapper, SurveyOperatorMapper surveyOperatorMapper, SurveyUserStatisticsMapper surveyUserStatisticsMapper) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
         this.characterTableMapper = characterTableMapper;
+        this.surveyOperatorMapper = surveyOperatorMapper;
+        this.surveyUserStatisticsMapper = surveyUserStatisticsMapper;
     }
 
     /**
@@ -52,15 +64,18 @@ public class SurveyUserService {
         String userNameAndEnd = null;
         SurveyUser surveyUser = null;
 
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_name",userName);
+
         for (int i = 0; i < 5; i++) {
             if (i < 3) {
                 userNameAndEnd = userName + randomEnd4(4); //用户id后四位后缀  #xxxx
-                surveyUser = surveyUserMapper.selectSurveyUserByUserName(userNameAndEnd);
+                surveyUser = surveyUserMapper.selectOne(queryWrapper);
                 if (surveyUser == null) break;  //未注册就跳出开始注册
                 log.warn("id后缀重复");
             } else {
                 userNameAndEnd = userName + randomEnd4(5);
-                surveyUser = surveyUserMapper.selectSurveyUserByUserName(userNameAndEnd);
+                surveyUser = surveyUserMapper.selectOne(queryWrapper);
                 if (surveyUser == null) break;  //未注册就跳出开始注册
                 log.warn("id后缀重复次数过多扩充位数");
             }
@@ -80,7 +95,7 @@ public class SurveyUserService {
                 .ip(ipAddress)
                 .build();
 
-        Integer row = surveyUserMapper.insertSurveyUser(surveyUser);
+        Integer row = surveyUserMapper.insert(surveyUser);
         if (row < 1) throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
 
         String token = AES.encrypt(surveyUser.getUserName()+"."+id, ApplicationConfig.Secret);
@@ -109,10 +124,8 @@ public class SurveyUserService {
                 throw new ServiceException(ResultCode.USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH);
             }
         }
-
-
-
     }
+
 
     private String randomEnd4(Integer digit) {
         int random = new Random().nextInt(9999);
@@ -134,7 +147,9 @@ public class SurveyUserService {
      * @return 成功消息
      */
     public HashMap<Object, Object> login(String ipAddress, String userName) {
-        SurveyUser surveyUser = surveyUserMapper.selectSurveyUserByUserName(userName);  //查询用户
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_name",userName);
+        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);  //查询用户
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         if (surveyUser.getStatus()==0) throw new ServiceException(ResultCode.USER_ACCOUNT_FORBIDDEN);
         HashMap<Object, Object> hashMap = new HashMap<>();
@@ -151,70 +166,85 @@ public class SurveyUserService {
         return Long.valueOf(idStr);
     }
 
-    public SurveyUser getSurveyUserByUserName(String userName){
-        SurveyUser surveyUser = surveyUserMapper.selectSurveyUserByUserName(userName); //查询用户
-        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        return surveyUser;
-    }
+
 
     public SurveyUser getSurveyUserById(String token){
         if(token==null||"undefined".equals(token)){
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
         Long id = decryptToken(token);
-        SurveyUser surveyUser = surveyUserMapper.selectSurveyUserById(id); //查询用户
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id",id);
+        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper); //查询用户
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         return surveyUser;
     }
 
+    public SurveyUser getSurveyUserByUid(Long uid){
+
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("uid",uid);
+        return surveyUserMapper.selectOne(queryWrapper);
+    }
+
+
 
     public void updateSurveyUser(SurveyUser surveyUser){
-        surveyUserMapper.updateSurveyUser(surveyUser);   //更新用户表
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id",surveyUser.getId());
+        surveyUserMapper.update(surveyUser,queryWrapper);   //更新用户表
     }
 
     public List<Long> selectSurveyUserIds() {
-        return  surveyUserMapper.selectSurveyUserIds();
+        QueryWrapper<SurveyUserStatistics> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ge("operator_count",1);
+
+        List<SurveyUserStatistics> surveyUserStatisticList = surveyUserStatisticsMapper.selectList(queryWrapper);
+        List<Long> ids = new ArrayList<>();
+        for (SurveyUserStatistics statistics : surveyUserStatisticList) {
+            ids.add(statistics.getId());
+        }
+        return  ids;
     }
 
-
-    public void updateConfigByKey(String value, String key) {
-        surveyUserMapper.updateConfigByKey(value,key);
-    }
-
-    public String selectConfigByKey(String key) {
-       return    surveyUserMapper.selectConfigByKey(key);
-    }
 
     public Integer getTableIndex(Long id){
         return 1;
     }
 
+    public Map<String,Object> userStatistics(){
+        List<Long> list = surveyUserMapper.selectSurveyUserIds();
+        int insert = 0;
+        for (Long id : list) {
+            QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("uid",id);
+            Long count = surveyOperatorMapper.selectCount(queryWrapper);
 
 
-    public SurveyUser registerByMaa(String ipAddress) {
-        Long incrId = redisTemplate.opsForValue().increment("incrUId");
-        SurveyUser surveyUser = surveyUserMapper.selectLastSurveyUserIp(ipAddress);
+            QueryWrapper<SurveyUserStatistics> userQueryWrapper = new QueryWrapper<>();
+            userQueryWrapper.eq("id",id);
+            SurveyUserStatistics savedData = surveyUserStatisticsMapper.selectOne(userQueryWrapper);
+            if(savedData==null){
+                SurveyUserStatistics statistics = new SurveyUserStatistics();
+                statistics.setId(id);
+                statistics.setOperatorCount(count.intValue());
+                insert+= surveyUserStatisticsMapper.insert(statistics);
+            }else {
+                savedData.setOperatorCount(count.intValue());
+                surveyUserStatisticsMapper.update(savedData,userQueryWrapper);
+            }
 
-        if(surveyUser!=null) return surveyUser;
+        }
 
-        Date date = new Date();
-        long id = incrId;
-        String userNameAndEnd = "MAA#" + incrId;
-        surveyUser = SurveyUser.builder()
-                .id(id)
-                .userName(userNameAndEnd)
-                .createTime(date)
-                .updateTime(date)
-                .status(1)
-                .ip(ipAddress)
-                .build();
-        Integer row = surveyUserMapper.insertSurveyUser(surveyUser);
-        if (row < 1) throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
-
-        return surveyUser;
+        Map<String, Object> hashMap = new HashMap<>();
+        return hashMap;
     }
 
-    @RedisCacheable(key = "CharacterTableSimple",timeout = -1)
+
+
+
+
+    @RedisCacheable(key = "CharacterTableSimple",timeout = 3000)
     public Map<String, CharacterTable> getCharacterTable(){
 
         List<CharacterTable> characterTables = characterTableMapper.selectList(null);
@@ -226,19 +256,6 @@ public class SurveyUserService {
     }
 
 
-//    @RedisCacheable(key = "CharacterTableSimple",timeout = -1)
-//    public JsonNode getCharacterTable(){
-//        String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        JsonNode jsonNode = null;
-//        try {
-//             jsonNode = objectMapper.readTree(read);
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        return jsonNode;
-//    }
 
 
 

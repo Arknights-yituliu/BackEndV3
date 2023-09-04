@@ -1,6 +1,7 @@
 package com.lhs.mapper;
 
-import com.lhs.entity.survey.SurveyCharacter;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lhs.entity.survey.SurveyOperator;
 import com.lhs.vo.survey.SurveyCharacterVo;
 import com.lhs.entity.survey.SurveyStatisticsCharacter;
 import org.apache.ibatis.annotations.Param;
@@ -9,23 +10,23 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SurveyCharacterMapper {
+public interface SurveyOperatorMapper extends BaseMapper<SurveyOperator> {
 
     //批量插入干员练度信息表
     Integer insertBatchSurveyCharacter(@Param("tableName") String tableName,
-                                       @Param("characterList") List<SurveyCharacter> characterList);
+                                       @Param("characterList") List<SurveyOperator> characterList);
 
      //根据id更新干员练度信息表
     Integer updateSurveyCharacterById(@Param("tableName") String tableName,
-                                      @Param("character") SurveyCharacter character);
+                                      @Param("character") SurveyOperator character);
 
     // 根据多个uid查询干员练度信息表
     List<SurveyCharacterVo> selectSurveyCharacterVoByUidList(@Param("tableName") String tableName,
                                                              @Param("ids") List<Long> ids);
 
     // 根据单个uid查询干员练度信息表
-    List<SurveyCharacter> selectSurveyCharacterByUid(@Param("tableName") String tableName,
-                                                     @Param("uid") Long uid);
+    List<SurveyOperator> selectSurveyCharacterByUid(@Param("tableName") String tableName,
+                                                    @Param("uid") Long uid);
 
     //批量插入统计表
     Integer insertBatchCharacterStatistics(@Param("surveyStatisticsList")List<SurveyStatisticsCharacter> surveyStatisticsList);

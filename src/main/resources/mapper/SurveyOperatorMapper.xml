@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.SurveyCharacterMapper">
+<mapper namespace="com.lhs.mapper.SurveyOperatorMapper">
 
 
     <!--  批量插入干员练度信息表-->
     <insert id="insertBatchSurveyCharacter">
         INSERT INTO ${tableName}
-        (`id`, `uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`,
+        (`id`, `uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `main_skill`, `skill1`, `skill2`, `skill3`, `mod_x`,
         `mod_y`,`own`)
         VALUES
         <foreach collection="characterList" item="character" separator="," >
             (#{character.id}, #{character.uid}, #{character.charId}, #{character.elite},
-            #{character.level},#{character.potential}, #{character.rarity}, #{character.skill1},
+            #{character.level},#{character.potential}, #{character.rarity}, #{character.mainSkill}, #{character.skill1},
             #{character.skill2},#{character.skill3},#{character.modX},#{character.modY},
             #{character.own})
         </foreach>
@@ -26,6 +26,7 @@
             `elite`     = #{character.elite},
             `level`     = #{character.level},
             `potential` = #{character.potential},
+            `main_skill`= #{character.mainSkill},
             `skill1`    = #{character.skill1},
             `skill2`    = #{character.skill2},
             `skill3`    = #{character.skill3},
@@ -38,7 +39,7 @@
 
     <!-- 根据多个uid查询干员练度信息表-->
     <select id="selectSurveyCharacterVoByUidList" resultType="com.lhs.vo.survey.SurveyCharacterVo">
-        SELECT `char_id`, `elite`, `level`, `potential`, `rarity`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
+        SELECT `char_id`, `elite`, `level`, `potential`, `rarity`, `main_skill`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
         FROM ${tableName}
         WHERE `uid` IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
@@ -47,7 +48,7 @@
     </select>
 
     <!-- 根据单个uid查询干员练度信息表-->
-    <select id="selectSurveyCharacterByUid" resultType="com.lhs.entity.survey.SurveyCharacter">
+    <select id="selectSurveyCharacterByUid" resultType="com.lhs.entity.survey.SurveyOperator">
         SELECT *
         FROM ${tableName}
         WHERE `uid` = #{uid}
