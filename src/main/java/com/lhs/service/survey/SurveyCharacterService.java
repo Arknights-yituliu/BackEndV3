@@ -17,6 +17,7 @@ import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -97,10 +98,6 @@ public class SurveyCharacterService {
 
         long uid = surveyUser.getId();
 
-//        if (surveyUser.getUid() != null) {
-//            uid = surveyUser.getUid();
-//        }
-
         Date date = new Date();
         String tableName = "survey_character_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
         int affectedRows = 0;
@@ -119,8 +116,6 @@ public class SurveyCharacterService {
 
         for (SurveyOperator surveyOperator : surveyOperatorList) {
 
-
-            if (!surveyOperator.getOwn()) continue;
             //精英化阶段小于2 不能专精和开模组
             if (surveyOperator.getElite() < 2) {
                 surveyOperator.setSkill1(-1);
@@ -134,7 +129,15 @@ public class SurveyCharacterService {
                 surveyOperator.setSkill3(-1);
             }
 
-
+            if (!surveyOperator.getOwn()) {
+                surveyOperator.setMainSkill(-1);
+                surveyOperator.setPotential(-1);
+                surveyOperator.setSkill1(-1);
+                surveyOperator.setSkill2(-1);
+                surveyOperator.setSkill3(-1);
+                surveyOperator.setModX(-1);
+                surveyOperator.setModY(-1);
+            }
 
             //和老数据进行对比
             SurveyOperator savedData = savedDataMap.get(surveyOperator.getCharId());
@@ -226,6 +229,7 @@ public class SurveyCharacterService {
     /**
      * 干员练度调查表统计
      */
+    @Scheduled(cron = "0 10 0/1 * * ?")
     public void characterStatistics() {
         List<Long> userIds = surveyUserService.selectSurveyUserIds();
 
@@ -538,7 +542,6 @@ public class SurveyCharacterService {
                 hashMap.put("registered",true);
                 return hashMap;
             }
-
         }
 
 

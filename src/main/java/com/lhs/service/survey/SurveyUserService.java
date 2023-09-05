@@ -10,6 +10,7 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.FileUtil;
+import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.survey.CharacterTable;
 import com.lhs.entity.survey.SurveyOperator;
@@ -19,9 +20,11 @@ import com.lhs.mapper.CharacterTableMapper;
 import com.lhs.mapper.SurveyOperatorMapper;
 import com.lhs.mapper.SurveyUserMapper;
 import com.lhs.mapper.SurveyUserStatisticsMapper;
+import com.lhs.vo.survey.SurveyUserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.web.config.QuerydslWebConfiguration;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -60,6 +63,7 @@ public class SurveyUserService {
      * @return 成功消息
      */
     public HashMap<Object, Object> register(String ipAddress, String userName) {
+        checkUserName(userName);
         Date date = new Date();  //存入的时间
         String userNameAndEnd = null;
         SurveyUser surveyUser = null;
@@ -108,19 +112,24 @@ public class SurveyUserService {
     }
 
 
-    private void checkUserName(String userName){
-        if(userName.length()>30){
+    private static void checkUserName(String userName){
+
+        if(userName.length()<2){
+            throw new ServiceException(ResultCode.USER_NAME_LENGTH_TOO_SHORT);
+        }
+
+        if(userName.length()>20){
             throw new ServiceException(ResultCode.USER_NAME_LENGTH_TOO_LONG);
         }
 
         for (int i = 0; i < userName.length(); i++) {
             String substring = userName.substring(i, i + 1);
-            if (substring.matches("[\u4e00-\u9fa5 ]+")){
-                System.out.println("中文: "+substring);
-            } else if (substring.matches("[a-zA-Z ]+")) {
-                System.out.println("英文 ：" + substring);
+            if (substring.matches("[\u4e00-\u9fa5]+")){
+//                System.out.println("中文: "+substring);
+            } else if (substring.matches("[a-zA-Z\0-9]+")) {
+//                System.out.println("英文 ：" + substring);
             } else {
-                System.out.println("其他字符："+substring);
+//                System.out.println("其他字符："+substring);
                 throw new ServiceException(ResultCode.USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH);
             }
         }
@@ -143,14 +152,26 @@ public class SurveyUserService {
     /**
      * 调查表登录
      * @param ipAddress  ip
-     * @param userName  用户id
+     * @param surveyUserVo  用户信息
      * @return 成功消息
      */
-    public HashMap<Object, Object> login(String ipAddress, String userName) {
+    public HashMap<Object, Object> login(String ipAddress,  SurveyUserVo surveyUserVo) {
+        String userName = surveyUserVo.getUserName();
+//        String passWord = surveyUserVo.getPassWord();
+
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name",userName);
         SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);  //查询用户
+
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+
+//        if(surveyUser.getStatus()==2){
+//            String encrypt = AES.encrypt(passWord, ApplicationConfig.Secret);
+//            if(!surveyUser.getPassWord().equals(encrypt)){
+//                throw new ServiceException(ResultCode.USER_LOGIN_ERROR);
+//            }
+//        }
+
         if (surveyUser.getStatus()==0) throw new ServiceException(ResultCode.USER_ACCOUNT_FORBIDDEN);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("userName", userName);
@@ -212,6 +233,8 @@ public class SurveyUserService {
         return 1;
     }
 
+
+    @Scheduled(cron = "0 0 0/1 * * ?")
     public Map<String,Object> userStatistics(){
         List<Long> list = surveyUserMapper.selectSurveyUserIds();
         int insert = 0;
@@ -219,7 +242,6 @@ public class SurveyUserService {
             QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("uid",id);
             Long count = surveyOperatorMapper.selectCount(queryWrapper);
-
 
             QueryWrapper<SurveyUserStatistics> userQueryWrapper = new QueryWrapper<>();
             userQueryWrapper.eq("id",id);
