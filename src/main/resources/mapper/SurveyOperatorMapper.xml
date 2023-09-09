@@ -1,100 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.SurveyOperatorMapper">
+<mapper namespace="com.lhs.mapper.survey.SurveyOperatorMapper">
 
 
     <!--  批量插入干员练度信息表-->
-    <insert id="insertBatchSurveyCharacter">
+    <insert id="insertBatch">
         INSERT INTO ${tableName}
         (`id`, `uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `main_skill`, `skill1`, `skill2`, `skill3`, `mod_x`,
         `mod_y`,`own`)
         VALUES
-        <foreach collection="characterList" item="character" separator="," >
-            (#{character.id}, #{character.uid}, #{character.charId}, #{character.elite},
-            #{character.level},#{character.potential}, #{character.rarity}, #{character.mainSkill}, #{character.skill1},
-            #{character.skill2},#{character.skill3},#{character.modX},#{character.modY},
-            #{character.own})
+        <foreach collection="list" item="item" separator="," >
+            (#{item.id}, #{item.uid}, #{item.charId}, #{item.elite},
+            #{item.level},#{item.potential}, #{item.rarity}, #{item.mainSkill}, #{item.skill1},
+            #{item.skill2},#{item.skill3},#{item.modX},#{item.modY},
+            #{item.own})
         </foreach>
     </insert>
-
-
-    <!-- 根据id更新干员练度信息表-->
-    <update id="updateSurveyCharacterById">
-        UPDATE ${tableName}
-        SET
-            `elite`     = #{character.elite},
-            `level`     = #{character.level},
-            `potential` = #{character.potential},
-            `main_skill`= #{character.mainSkill},
-            `skill1`    = #{character.skill1},
-            `skill2`    = #{character.skill2},
-            `skill3`    = #{character.skill3},
-            `mod_x`     = #{character.modX},
-            `mod_y`     = #{character.modY},
-            `own`       = #{character.own}
-        WHERE
-            `id` = #{character.id};
-    </update>
-
-    <!-- 根据多个uid查询干员练度信息表-->
-    <select id="selectSurveyCharacterVoByUidList" resultType="com.lhs.vo.survey.SurveyCharacterVo">
-        SELECT `char_id`, `elite`, `level`, `potential`, `rarity`, `main_skill`, `skill1`, `skill2`, `skill3`, `mod_x`, `mod_y`,`own`
-        FROM ${tableName}
-        WHERE `uid` IN
-        <foreach collection="ids" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </select>
-
-    <!-- 根据单个uid查询干员练度信息表-->
-    <select id="selectSurveyCharacterByUid" resultType="com.lhs.entity.survey.SurveyOperator">
-        SELECT *
-        FROM ${tableName}
-        WHERE `uid` = #{uid}
-    </select>
-
-
-    <!--  批量插入统计表-->
-    <insert id="insertBatchCharacterStatistics">
-        INSERT INTO `survey_statistics_character`
-        (`char_id`,`rarity`,`own`,`elite`,`sample_size_elite`,`skill1`,`sample_size_skill1`,`skill2`,
-         `sample_size_skill2`,`skill3`,`sample_size_skill3`, `mod_x`,`sample_size_mod_x`, `mod_y`,
-         `sample_size_mod_y`,`potential`,`sample_size_potential`)
-        VALUES
-        <foreach collection="surveyStatisticsList" item="surveyStatistics" separator=",">
-            (
-            #{surveyStatistics.charId},
-            #{surveyStatistics.rarity},
-            #{surveyStatistics.own},
-            #{surveyStatistics.elite},
-            #{surveyStatistics.sampleSizeElite},
-            #{surveyStatistics.skill1},
-            #{surveyStatistics.sampleSizeSkill1},
-            #{surveyStatistics.skill2},
-            #{surveyStatistics.sampleSizeSkill2},
-            #{surveyStatistics.skill3},
-            #{surveyStatistics.sampleSizeSkill3},
-            #{surveyStatistics.modX},
-            #{surveyStatistics.sampleSizeModX},
-            #{surveyStatistics.modY},
-            #{surveyStatistics.sampleSizeModY},
-            #{surveyStatistics.potential},
-            #{surveyStatistics.sampleSizePotential}
-            )
-        </foreach>
-    </insert>
-
-    <!--  清空统计表-->
-    <delete id="truncateCharacterStatisticsTable">
-        TRUNCATE TABLE `survey_statistics_character`
-    </delete>
-
-    <!-- 查询统计表所有结果-->
-    <select id="selectCharacterStatisticsList" resultType="com.lhs.entity.survey.SurveyStatisticsCharacter">
-        Select *
-        FROM `survey_statistics_character`
-    </select>
-
+    
 
 </mapper>

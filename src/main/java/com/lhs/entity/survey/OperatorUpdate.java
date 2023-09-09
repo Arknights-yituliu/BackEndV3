@@ -11,14 +11,11 @@ import javax.persistence.Id;
 import java.util.Date;
 
 @Data
-@Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("character_table")
-public class CharacterTable {
+public class OperatorUpdate {
 
     @TableId
-    @Id
     public String charId;
     public String name;
     public String obtainApproach;

@@ -17,5 +17,7 @@ public class SurveyUserStatistics {
 
     @Id
     private Long id;
+
+    private String uid;
     private int operatorCount;
 }

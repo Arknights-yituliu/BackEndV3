@@ -4,6 +4,7 @@ import com.aliyun.oss.ClientException;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.OSSException;
+import com.aliyun.oss.model.PutObjectResult;
 import com.lhs.common.config.ApplicationConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,9 @@ public class OSSService {
      *
      * @param content 上传内容
      * @param objectName  资源路径
+     * @return 是否上传成功
      */
-    public  void upload(String content, String objectName) {
+    public Boolean upload(String content, String objectName) {
         String endpoint = "https://oss-cn-beijing.aliyuncs.com";
         String accessKeyId = AccessKeyId;
         String accessKeySecret = AccessKeySecret;
@@ -34,9 +36,9 @@ public class OSSService {
 
         // 创建OSSClient实例。
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
-
+        PutObjectResult putObjectResult ;
         try {
-            ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(content.getBytes()));
+            putObjectResult =  ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(content.getBytes()));
         } catch (OSSException oe) {
             System.out.println("Caught an OSSException, which means your request made it to OSS, "
                     + "but was rejected with an error response for some reason.");
@@ -54,5 +56,7 @@ public class OSSService {
                 ossClient.shutdown();
             }
         }
+
+        return true;
     }
 }

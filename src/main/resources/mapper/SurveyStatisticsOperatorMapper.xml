@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.survey.SurveyStatisticsOperatorMapper">
+
+
+    <!--  批量插入统计表-->
+    <insert id="insertBatch">
+        INSERT INTO `survey_statistics_operator`
+        (`char_id`,`rarity`,`own`,`elite`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`,`potential`)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.charId},
+            #{item.rarity},
+            #{item.own},
+            #{item.elite},
+            #{item.skill1},
+            #{item.skill2},
+            #{item.skill3},
+            #{item.modX},
+            #{item.modY},
+            #{item.potential}
+            )
+        </foreach>
+    </insert>
+
+    <!--  清空统计表-->
+    <delete id="truncate">
+        TRUNCATE TABLE `survey_statistics_operator`
+    </delete>
+
+
+
+
+</mapper>

@@ -287,7 +287,7 @@ public class StageResultService  {
      * 查询关卡详细
      *
      * @param stageId 关卡id
-     * @return
+     * @return 关卡详情信息
      */
     public List<StageResult> queryStageResultDataDetailByStageId(String stageId) {
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();

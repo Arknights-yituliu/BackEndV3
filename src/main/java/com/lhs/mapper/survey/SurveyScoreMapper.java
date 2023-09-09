@@ -1,4 +1,4 @@
-package com.lhs.mapper;
+package com.lhs.mapper.survey;
 
 import com.lhs.entity.survey.SurveyScore;
 import com.lhs.entity.survey.SurveyStatisticsScore;

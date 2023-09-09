@@ -5,7 +5,7 @@ import com.lhs.common.util.ResultCode;
 import com.lhs.entity.survey.SurveyScore;
 import com.lhs.entity.survey.SurveyStatisticsScore;
 import com.lhs.entity.survey.SurveyUser;
-import com.lhs.mapper.SurveyScoreMapper;
+import com.lhs.mapper.survey.SurveyScoreMapper;
 import com.lhs.vo.survey.SurveyScoreVo;
 import com.lhs.vo.survey.SurveyStatisticsScoreVo;
 
@@ -46,7 +46,7 @@ public class SurveyScoreService {
 //    @TakeCount(name = "上传评分")
     public HashMap<Object, Object> uploadScoreForm(String token, List<SurveyScore> surveyScoreList) {
 
-        SurveyUser surveyUser = surveyUserService.getSurveyUserById(token);
+        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
         long uid = surveyUser.getId();
         String tableName = "survey_score_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
 

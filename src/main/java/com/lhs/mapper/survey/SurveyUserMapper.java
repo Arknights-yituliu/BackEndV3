@@ -1,4 +1,4 @@
-package com.lhs.mapper;
+package com.lhs.mapper.survey;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lhs.entity.survey.SurveyUser;
@@ -10,9 +10,5 @@ import java.util.List;
 
 @Repository
 public interface SurveyUserMapper extends BaseMapper<SurveyUser> {
-
-    //用户表所有uid
-    List<Long> selectSurveyUserIds();
-
 
 }

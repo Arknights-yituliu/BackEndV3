@@ -1,4 +1,4 @@
-package com.lhs.mapper;
+package com.lhs.mapper.survey;
 
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;

@@ -11,7 +11,7 @@ import java.util.HashMap;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CharacterStatisticsResult {
+public class OperatorStatisticsResult {
 
     private String charId;
     private Integer rarity;
