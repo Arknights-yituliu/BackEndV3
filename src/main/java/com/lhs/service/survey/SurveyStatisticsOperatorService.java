@@ -269,7 +269,7 @@ public class SurveyStatisticsOperatorService {
         String data = JsonMapper.toJSONString(surveyStatisticsOperators);
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHH = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式
-        ossService.upload(data, "survey/operator/statistics" + yyyyMMdd + "/operator " + yyyyMMddHH + ".json");
+        ossService.upload(data, "backup/survey/operator/statistics" + yyyyMMdd + "/operator " + yyyyMMddHH + ".json");
     }
 
 

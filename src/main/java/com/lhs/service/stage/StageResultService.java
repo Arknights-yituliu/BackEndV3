@@ -96,9 +96,9 @@ public class StageResultService  {
         List<List<StageResult>> resultData_closed =queryStageResultData_closedActivities(version);
         List<Item> items = itemService.queryItemList(version);
 
-        ossService.upload(JSON.toJSONString(resultData_t3), "stage/" + yyyyMMdd + "/t3—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
-        ossService.upload(JSON.toJSONString(resultData_closed), "stage/" + yyyyMMdd + "/closed—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
-        ossService.upload(JSON.toJSONString(items), "item/" + yyyyMMdd + "/item—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
+        ossService.upload(JSON.toJSONString(resultData_t3), "backup/stage/" + yyyyMMdd + "/t3—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
+        ossService.upload(JSON.toJSONString(resultData_closed), "backup/stage/" + yyyyMMdd + "/closed—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
+        ossService.upload(JSON.toJSONString(items), "backup/item/" + yyyyMMdd + "/item—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
 
     }
 

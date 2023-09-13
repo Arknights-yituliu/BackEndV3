@@ -73,7 +73,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-        ossService.upload(JSON.toJSONString(storePerms), "store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
+        ossService.upload(JSON.toJSONString(storePerms), "backup/store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
 
     }
 
@@ -127,7 +127,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-        ossService.upload(JSON.toJSONString(storeActVo), "store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
+        ossService.upload(JSON.toJSONString(storeActVo), "backup/store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
         return message;
     }
 

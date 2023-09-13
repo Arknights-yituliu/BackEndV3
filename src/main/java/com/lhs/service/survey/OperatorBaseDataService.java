@@ -8,8 +8,8 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.ResultCode;
-import com.lhs.entity.survey.OperatorUpdate;
-import com.lhs.mapper.survey.CharacterTableMapper;
+import com.lhs.entity.survey.OperatorTable;
+import com.lhs.mapper.survey.OperatorTableMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,14 +23,14 @@ import java.util.stream.Collectors;
 @Service
 public class OperatorBaseDataService {
 
-    private final CharacterTableMapper characterTableMapper;
+    private final OperatorTableMapper operatorTableMapper;
     private final String githubBotResource = "E:\\Idea_Project\\Arknights-Bot-Resource\\";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public OperatorBaseDataService(CharacterTableMapper characterTableMapper, RedisTemplate<String, Object> redisTemplate) {
-        this.characterTableMapper = characterTableMapper;
+    public OperatorBaseDataService(OperatorTableMapper operatorTableMapper, RedisTemplate<String, Object> redisTemplate) {
+        this.operatorTableMapper = operatorTableMapper;
         this.redisTemplate = redisTemplate;
     }
 
@@ -84,12 +84,12 @@ public class OperatorBaseDataService {
     }
 
     @RedisCacheable(key = "OperatorUpdateTable",timeout = 3000)
-    public List<OperatorUpdate> getOperatorTable(){
+    public List<OperatorTable> getOperatorTable(){
 
-        List<OperatorUpdate> operatorUpdateList = characterTableMapper.selectList(null);
+        List<OperatorTable> operatorTableList = operatorTableMapper.selectList(null);
 
 
-        return operatorUpdateList;
+        return operatorTableList;
     }
 
 
@@ -108,10 +108,10 @@ public class OperatorBaseDataService {
 
         HashMap<String, HashMap<String, Object>> modTable = new HashMap<>();
 
-        List<OperatorUpdate> operatorTable = getOperatorTable();
+        List<OperatorTable> operatorTable = getOperatorTable();
 
-        Map<String, OperatorUpdate> characterTableMap = operatorTable.stream()
-                .collect(Collectors.toMap(OperatorUpdate::getCharId, Function.identity()));
+        Map<String, OperatorTable> characterTableMap = operatorTable.stream()
+                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
         Iterator<Map.Entry<String, JsonNode>> equipDictElements = equipDict.fields();
 
@@ -149,6 +149,7 @@ public class OperatorBaseDataService {
             if (equipId.contains("_001_")) continue;
             if (equipData == null) continue;
             String charId = equipData.get("charId").asText();
+            String typeName1 = equipData.get("typeName1").asText();
             String typeName2 = equipData.get("typeName2").asText();
             String uniEquipIcon = equipData.get("uniEquipIcon").asText();
             String typeIcon = equipData.get("typeIcon").asText();
@@ -160,6 +161,7 @@ public class OperatorBaseDataService {
                 Map<String, Object> tempMap = new HashMap<>();
                 tempMap.put("charId",charId);
                 tempMap.put("uniEquipId",equipId);
+                tempMap.put("typeName1",typeName1);
                 tempMap.put("typeName2",typeName2);
                 tempMap.put("uniEquipIcon",uniEquipIcon);
                 tempMap.put("typeIcon",typeIcon);
@@ -171,6 +173,7 @@ public class OperatorBaseDataService {
                 Map<String, Object> tempMap = new HashMap<>();
                 tempMap.put("charId",charId);
                 tempMap.put("uniEquipId",equipId);
+                tempMap.put("typeName1",typeName1);
                 tempMap.put("typeName2",typeName2);
                 tempMap.put("uniEquipIcon",uniEquipIcon);
                 tempMap.put("typeIcon",typeIcon);
@@ -227,11 +230,11 @@ public class OperatorBaseDataService {
             int rarity = characterData.get("rarity").intValue() + 1;
             String subProfessionId = characterData.get("subProfessionId").asText();
 
-            OperatorUpdate operatorUpdateSimple = characterTableMap.get(charId);
+            OperatorTable operatorTableSimple = characterTableMap.get(charId);
 
             character.put("name", name);
             character.put("rarity", rarity);
-            character.put("itemObtainApproach", operatorUpdateSimple.getObtainApproach());
+            character.put("itemObtainApproach", operatorTableSimple.getObtainApproach());
             character.put("mod", modTable.get(charId));
             character.put("equip",equipListMap.get(charId));
             character.put("skill", skillList);
@@ -275,22 +278,22 @@ public class OperatorBaseDataService {
                 int rarity = characterData.get("rarity").intValue() + 1;
                 String subProfessionId = characterData.get("subProfessionId").asText();
 
-                OperatorUpdate operatorUpdateSimple = characterTableMap.get(charId);
+                OperatorTable operatorTableSimple = characterTableMap.get(charId);
 
                 if (characterTableMap.get(charId) == null) {
-                    OperatorUpdate operatorUpdateNew = new OperatorUpdate();
-                    operatorUpdateNew.setCharId(charId);
-                    operatorUpdateNew.setName(name);
-                    operatorUpdateNew.setRarity(rarity);
-                    operatorUpdateNew.setUpdateTime(new Date());
-                    operatorUpdateNew.setObtainApproach("常驻干员");
-                    characterTableMapper.insert(operatorUpdateNew);
+                    OperatorTable operatorTableNew = new OperatorTable();
+                    operatorTableNew.setCharId(charId);
+                    operatorTableNew.setName(name);
+                    operatorTableNew.setRarity(rarity);
+                    operatorTableNew.setUpdateTime(new Date());
+                    operatorTableNew.setObtainApproach("常驻干员");
+                    operatorTableMapper.insert(operatorTableNew);
                 }
 
 
                 character.put("name", name);
                 character.put("rarity", rarity);
-                character.put("itemObtainApproach", operatorUpdateSimple.getObtainApproach());
+                character.put("itemObtainApproach", operatorTableSimple.getObtainApproach());
                 character.put("mod", modTable.get(charId));
                 character.put("equip",equipListMap.get(charId));
                 character.put("skill", skillList);
@@ -439,6 +442,45 @@ public class OperatorBaseDataService {
         FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
 
         return null;
+    }
+
+
+
+    public  void classifyModImageByRarity(){
+        String uniequip_table_text = FileUtil.read(githubBotResource + "gamedata\\excel\\uniequip_table.json");
+        String character_table_text = FileUtil.read(githubBotResource + "gamedata\\excel\\character_table.json");
+
+        JsonNode uniEquipTable = JsonMapper.parseJSONObject(uniequip_table_text);
+        JsonNode equipDict = uniEquipTable.get("equipDict");
+        Iterator<Map.Entry<String, JsonNode>> fields = equipDict.fields();
+
+        JsonNode characterTable = JsonMapper.parseJSONObject(character_table_text);
+        Iterator<Map.Entry<String, JsonNode>> characterTableFields = characterTable.fields();
+
+        Map<String,Integer> charIdAndRarity = new HashMap<>();
+
+        while(characterTableFields.hasNext()){
+            String charId = characterTableFields.next().getKey();
+            JsonNode charData = characterTable.get(charId);
+            int rarity = charData.get("rarity").asInt()+1;
+            charIdAndRarity.put(charId,rarity);
+        }
+
+        while (fields.hasNext()) {
+
+            String key = fields.next().getKey();
+            if (key.contains("_001_")) continue;
+            JsonNode equip = equipDict.get(key);
+            String uniEquipName = equip.get("uniEquipName").asText();
+            String uniEquipIcon = equip.get("uniEquipIcon").asText();
+            String charId = equip.get("charId").asText();
+            Integer rarity = charIdAndRarity.get(charId);
+
+            File source = new File("E:\\VCProject\\operatorImage\\mod\\" + uniEquipIcon + ".png");
+            File dest = new File("E:\\VCProject\\operatorImage\\mod-ori-"+rarity+"\\" + uniEquipIcon + ".png");
+            copyFile(source,dest);
+        }
+
     }
 
 

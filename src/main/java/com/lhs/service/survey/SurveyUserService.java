@@ -91,10 +91,13 @@ public class SurveyUserService {
         int row = surveyUserMapper.insert(surveyUser);
         if (row < 1) throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
 
+        long time = System.currentTimeMillis();
+
+        String token = AES.encrypt(surveyUser.getUserName()+"."+id+"."+time, ApplicationConfig.Secret);
 
         UserDataResponse response = new UserDataResponse();
         response.setUserName(userNameAndEnd);
-        response.setToken(AES.encrypt(surveyUser.getUserName()+"."+id, ApplicationConfig.Secret));
+        response.setToken(token);
         response.setStatus(1);
 
         return response;
@@ -129,8 +132,13 @@ public class SurveyUserService {
         if (surveyUser.getStatus()<0) throw new ServiceException(ResultCode.USER_ACCOUNT_FORBIDDEN);
 
 
+        long time = System.currentTimeMillis();
+        Long id = surveyUser.getId();
+
+        String token = AES.encrypt(surveyUser.getUserName()+"."+id+"."+time, ApplicationConfig.Secret);
+
         response.setUserName(userName);
-        response.setToken(AES.encrypt(userName+"."+surveyUser.getId(), ApplicationConfig.Secret));
+        response.setToken(token);
         response.setStatus(surveyUser.getStatus());
 
         return response;
@@ -226,10 +234,9 @@ public class SurveyUserService {
 
 
     public  Long decryptToken(String token){
-
         String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ApplicationConfig.Secret);
-        String idStr = decrypt.split("\\.")[1];
-        return Long.valueOf(idStr);
+        String idText = decrypt.split("\\.")[1];
+        return Long.valueOf(idText);
     }
 
 

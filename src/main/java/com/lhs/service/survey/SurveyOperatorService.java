@@ -198,12 +198,12 @@ public class SurveyOperatorService {
         List<SurveyOperatorExcelVo> listVo = new ArrayList<>();
 
 
-        List<OperatorUpdate> operatorUpdateDateTableList = operatorBaseDataService.getOperatorTable();
+        List<OperatorTable> operatorTableDateTableList = operatorBaseDataService.getOperatorTable();
 
         Map<String, SurveyOperator> collect = list.stream()
                 .collect(Collectors.toMap(SurveyOperator::getCharId, Function.identity()));
 
-        for(OperatorUpdate operator:operatorUpdateDateTableList){
+        for(OperatorTable operator: operatorTableDateTableList){
             String charId = operator.getCharId();
             String name = operator.getName();
             SurveyOperatorExcelVo surveyOperatorExcelVo = new SurveyOperatorExcelVo();

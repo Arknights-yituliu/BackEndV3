@@ -5,9 +5,11 @@ import com.lhs.common.util.FileType;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.survey.OperatorPlan;
 import com.lhs.entity.survey.SurveyOperator;
 import com.lhs.entity.survey.SurveyOperatorVo;
 import com.lhs.service.survey.*;
+import com.lhs.vo.survey.OperatorPlanVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +28,15 @@ import java.util.Map;
 public class SurveyOperatorController {
     private final SurveyOperatorService surveyOperatorService;
 
+    private final OperatorPlanService operatorPlanService;
+
     private final OperatorBaseDataService operatorBaseDataService;
 
     private final SurveyStatisticsOperatorService surveyStatisticsOperatorService;
 
-    public SurveyOperatorController(SurveyOperatorService surveyOperatorService, OperatorBaseDataService operatorBaseDataService, SurveyStatisticsOperatorService surveyStatisticsOperatorService) {
+    public SurveyOperatorController(SurveyOperatorService surveyOperatorService, OperatorPlanService operatorPlanService, OperatorBaseDataService operatorBaseDataService, SurveyStatisticsOperatorService surveyStatisticsOperatorService) {
         this.surveyOperatorService = surveyOperatorService;
+        this.operatorPlanService = operatorPlanService;
         this.operatorBaseDataService = operatorBaseDataService;
         this.surveyStatisticsOperatorService = surveyStatisticsOperatorService;
     }
@@ -72,8 +77,6 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
-
-
     @ApiOperation("找回干员练度调查表")
     @PostMapping("/operator/retrieval")
     public Result<Object> findCharacterForm(@RequestBody Map<String,String> params) {
@@ -83,7 +86,12 @@ public class SurveyOperatorController {
         return Result.success(surveyDataCharList);
     }
 
-
+    @ApiOperation("干员练度调查表统计结果")
+    @GetMapping("/operator/result")
+    public Result<Object> characterStatisticsResult() {
+        HashMap<Object, Object> hashMap = surveyStatisticsOperatorService.getCharStatisticsResult();
+        return Result.success(hashMap);
+    }
 
     @ApiOperation("导出干员练度调查表")
     @GetMapping("/operator/export")
@@ -91,10 +99,17 @@ public class SurveyOperatorController {
         surveyOperatorService.exportSurveyOperatorForm(response,token);
     }
 
-    @ApiOperation("干员练度调查表统计结果")
-    @GetMapping("/operator/result")
-    public Result<Object> characterStatisticsResult() {
-        HashMap<Object, Object> hashMap = surveyStatisticsOperatorService.getCharStatisticsResult();
-        return Result.success(hashMap);
+    @ApiOperation("上传训练干员计划")
+    @PostMapping("/operator/plan/save")
+    public Result<Object> saveOperatorPlan(@RequestBody OperatorPlanVo OperatorPlanVo) {
+
+        return operatorPlanService.savePlan(OperatorPlanVo);
+    }
+
+    @ApiOperation("获取训练干员计划")
+    @PostMapping("/operator/plan")
+    public Result<List<OperatorPlan>> getOperatorPlan(@RequestBody OperatorPlanVo OperatorPlanVo) {
+
+        return operatorPlanService.getPlan(OperatorPlanVo);
     }
 }
