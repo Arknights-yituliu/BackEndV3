@@ -30,7 +30,4 @@
         TRUNCATE TABLE `survey_statistics_operator`
     </delete>
 
-
-
-
 </mapper>

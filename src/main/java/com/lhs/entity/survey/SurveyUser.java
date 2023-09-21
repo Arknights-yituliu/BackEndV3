@@ -20,4 +20,7 @@ public class SurveyUser {
     private Date updateTime;  //最后一次上传数据时间
     private String ip;   //ip地址
     private Integer status;  //用户状态，1正常，0封禁
+    private String email;
+    private String nickName;
+
 }

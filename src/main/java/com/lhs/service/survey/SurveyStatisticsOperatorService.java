@@ -48,7 +48,7 @@ public class SurveyStatisticsOperatorService {
     /**
      * 干员练度调查表统计
      */
-    @Scheduled(cron = "0 10 0/1 * * ?")
+//    @Scheduled(cron = "0 10 0/2 * * ?")
     public void operatorStatistics() {
         List<Long> userIds = surveyUserService.selectSurveyUserIds();
 

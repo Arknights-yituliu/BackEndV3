@@ -5,7 +5,9 @@ import lombok.Data;
 @Data
 public class UserDataResponse {
     private String userName;
+    private String nickName;
+    private String email;
+    private String uid;
     private Integer status;
     private String token;
-    private Boolean registered;
 }

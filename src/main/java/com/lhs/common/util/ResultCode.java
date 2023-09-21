@@ -44,7 +44,9 @@ public enum ResultCode {
 	
 	/* 业务错误：30001-39999 */
 	SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001, "业务逻辑出现问题"),
-	USER_LOGIN_CODE_ERROR(30003, "验证码错误"),
+	CODE_ERROR(30003, "验证码错误"),
+
+	CODE_NOT_EXIST(30003, "验证码不存在"),
 	OSS_UPLOAD_ERROR(30002, "OSS上传错误"),
 	
 	/* 系统错误：40001-49999 */

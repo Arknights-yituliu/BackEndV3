@@ -8,19 +8,22 @@ import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.*;
 import com.lhs.entity.survey.SurveyOperator;
 import com.lhs.entity.survey.SurveyUser;
-import com.lhs.entity.survey.SurveyUserStatistics;
+import com.lhs.entity.survey.SurveyStatisticsUser;
 
 import com.lhs.mapper.survey.SurveyOperatorMapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
 import com.lhs.mapper.survey.SurveyStatisticsUserMapper;
-import com.lhs.vo.survey.SurveyUserVo;
+import com.lhs.service.dev.EmailService;
+import com.lhs.service.dev.OSSService;
+import com.lhs.vo.survey.SurveyRequestVo;
 import com.lhs.vo.survey.UserDataResponse;
+import com.lhs.vo.user.EmailRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -31,17 +34,21 @@ public class SurveyUserService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-
-
     private final SurveyOperatorMapper surveyOperatorMapper;
 
     private final SurveyStatisticsUserMapper surveyStatisticsUserMapper;
 
-    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate,  SurveyOperatorMapper surveyOperatorMapper, SurveyStatisticsUserMapper surveyStatisticsUserMapper) {
+    private final EmailService emailService;
+
+    private final OSSService ossService;
+
+    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, SurveyOperatorMapper surveyOperatorMapper, SurveyStatisticsUserMapper surveyStatisticsUserMapper, EmailService emailService, OSSService ossService) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
         this.surveyOperatorMapper = surveyOperatorMapper;
         this.surveyStatisticsUserMapper = surveyStatisticsUserMapper;
+        this.emailService = emailService;
+        this.ossService = ossService;
     }
 
     /**
@@ -88,7 +95,7 @@ public class SurveyUserService {
                 .ip(ipAddress)
                 .build();
 
-        int row = surveyUserMapper.insert(surveyUser);
+        int row = surveyUserMapper.save(surveyUser);
         if (row < 1) throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
 
         long time = System.currentTimeMillis();
@@ -103,15 +110,108 @@ public class SurveyUserService {
         return response;
     }
 
+    public Result<UserDataResponse> loginV2(String ipAddress, SurveyRequestVo surveyRequestVo){
+        String userName = surveyRequestVo.getUserName();
+        QueryWrapper<SurveyUser> queryWrapperLogin = new QueryWrapper<>();
+        queryWrapperLogin.eq("user_name",userName);
+        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapperLogin);  //查询用户
+
+        if (surveyUser == null) {
+            checkUserName(userName);
+            QueryWrapper<SurveyUser> queryWrapperRegister = new QueryWrapper<>();
+            queryWrapperRegister.eq("user_name",userName);
+        };
+
+        if (surveyUser.getStatus()<0) throw new ServiceException(ResultCode.USER_ACCOUNT_FORBIDDEN);
+
+
+        long time = System.currentTimeMillis();
+        Long id = surveyUser.getId();
+
+        String token = AES.encrypt(surveyUser.getUserName()+"."+id+"."+time, ApplicationConfig.Secret);
+
+        UserDataResponse response = new UserDataResponse();
+        response.setUserName(userName);
+        response.setToken(token);
+        response.setStatus(surveyUser.getStatus());
+
+        return Result.success(response);
+    }
+
+    public Result<UserDataResponse> loginByCRED(String ipAddress, SurveyRequestVo surveyRequestVo) {
+        UserDataResponse response = new UserDataResponse();
+        Date date = new Date();
+        long time = date.getTime();
+
+        String uid = surveyRequestVo.getUid();
+        String nickName = surveyRequestVo.getNickName();
+
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+         queryWrapper.eq("uid", uid);
+        SurveyUser surveyUserByUid = surveyUserMapper.selectOne(queryWrapper);
+        if(surveyUserByUid!=null){
+            response.setUserName(surveyUserByUid.getUserName());
+            String token = AES.encrypt(surveyUserByUid.getUserName()+"."+surveyUserByUid.getId()+"."+time, ApplicationConfig.Secret);
+            response.setToken(token);
+            response.setStatus(surveyUserByUid.getStatus());
+            surveyUserByUid.setNickName(nickName);
+            updateSurveyUser(surveyUserByUid);
+            return Result.success(response);
+
+        }
+
+
+        String idStr = date.getTime()+randomEnd4_id();
+        long id = Long.parseLong(idStr);
+
+
+        String[] split = nickName.split("#");
+        String userName = split[0]+ randomEnd4(4);
+
+        for (int i = 0; i < 6; i++) {
+            QueryWrapper<SurveyUser> queryWrapperNoExist = new QueryWrapper<>();
+            queryWrapperNoExist.eq("user_name", userName);
+            SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapperNoExist);
+            if(surveyUser==null){
+                break;
+            }else {
+                userName = split[0]+ randomEnd4(4);
+            }
+        }
+
+        SurveyUser surveyUser = new SurveyUser();
+        surveyUser.setId(id);
+        surveyUser.setNickName(nickName);
+        surveyUser.setIp(ipAddress);
+        surveyUser.setUserName(userName);
+        surveyUser.setUid(uid);
+        surveyUser.setStatus(1);
+        surveyUser.setCreateTime(date);
+        surveyUser.setUpdateTime(new Date(time+3600));
+
+        String token = AES.encrypt(userName+"."+id+"."+time, ApplicationConfig.Secret);
+
+        surveyUserMapper.save(surveyUser);
+
+
+        response.setUserName(surveyUser.getUserName());
+        response.setToken(token);
+        response.setStatus(surveyUser.getStatus());
+
+
+
+        return Result.success(response);
+    }
+
     /**
      * 调查表登录
      * @param ipAddress  ip
-     * @param surveyUserVo  用户信息
+     * @param surveyRequestVo  用户信息
      * @return 成功消息
      */
-    public UserDataResponse login(String ipAddress, SurveyUserVo surveyUserVo) {
-        String userName = surveyUserVo.getUserName();
-        String passWord = surveyUserVo.getPassWord();
+    public UserDataResponse login(String ipAddress, SurveyRequestVo surveyRequestVo) {
+        String userName = surveyRequestVo.getUserName();
+        String passWord = surveyRequestVo.getPassWord();
         Map<String, Object> hashMap = new HashMap<>();
 
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
@@ -146,9 +246,9 @@ public class SurveyUserService {
 
     public Result<Object> retrievalAccountByCRED(String CRED) {
 
-        JsonNode skLandPlayerBinding = getSKLandPlayerBinding(CRED);
-        JsonNode list = skLandPlayerBinding.get("list");
-        String uid = list.get(0).get("defaultUid").asText();
+        Map<String, String> skLandPlayerBinding = getSKLandPlayerBinding(CRED);
+        String uid = skLandPlayerBinding.get("uid");
+
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("uid",uid);
         SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
@@ -172,75 +272,84 @@ public class SurveyUserService {
         return Result.success(response);
     }
 
+    public Result<Object> sendEmailCode(SurveyRequestVo surveyRequestVo) {
+        String email = surveyRequestVo.getEmail();
+        String token = surveyRequestVo.getToken();
+        getSurveyUserByToken(token);
 
-    public Result<Object> updateAccountStatus(SurveyUserVo surveyUserVo){
-        Map<String,Object> hashMap = new HashMap<>();
-        String token = surveyUserVo.getToken();
-        String cred = surveyUserVo.getCred();
-        String passWord = surveyUserVo.getPassWord();
-        String userName = surveyUserVo.getUserName();
 
-        SurveyUser bindAccount = getSurveyUserByToken(token);
+        EmailRequest emailRequest = new EmailRequest();
+        emailRequest.setFrom("1820702789@qq.com");
+        emailRequest.setTo(email);
+        emailRequest.setSubject("一图流账号绑定邮箱");
+        int random = new Random().nextInt(999999);
+        String code = String.format("%6s", random).replace(" ", "0");
+        redisTemplate.opsForValue().set("CODE:CODE." + email , code, 300, TimeUnit.SECONDS);
+        emailRequest.setText("本次绑定验证码：" + code);
+        emailService.sendMail(emailRequest);
+        return Result.success();
+    }
+
+    public Result<Object> updateEmail(SurveyRequestVo surveyRequestVo) {
+        String email = surveyRequestVo.getEmail();
+        String token = surveyRequestVo.getToken();
+        String verificationCode = surveyRequestVo.getEmailCode();
+        SurveyUser surveyUserByToken = getSurveyUserByToken(token);
+
+        String code = redisTemplate.opsForValue().get("CODE:CODE." + email);
+        if(code == null) {
+            throw new ServiceException(ResultCode.CODE_NOT_EXIST);
+        }
+        if(!verificationCode.equals(code)){
+            throw new ServiceException(ResultCode.CODE_ERROR);
+        }
+
+        surveyUserByToken.setEmail(email);
+        updateSurveyUser(surveyUserByToken);
+        return Result.success();
+    }
+
+    public Result<Object> updatePassWord(SurveyRequestVo surveyRequestVo){
+        String token = surveyRequestVo.getToken();
+        String passWord = surveyRequestVo.getPassWord();
+        checkPassWord(passWord);
+
+        SurveyUser surveyUserByToken = getSurveyUserByToken(token);
+
+        surveyUserByToken.setPassWord(passWord);
+        surveyUserByToken.setStatus(2);
+        updateSurveyUser(surveyUserByToken);
+        return Result.success();
+    }
+
+
+
+    public Result<UserDataResponse> authentication(SurveyRequestVo surveyRequestVo) {
+        String token = surveyRequestVo.getToken();
+        SurveyUser surveyUser = getSurveyUserByToken(token);
+        String cred = surveyRequestVo.getCred();
+        Map<String, String> skLandPlayerBinding = getSKLandPlayerBinding(cred);
+        String uid = skLandPlayerBinding.get("uid");
+        String nickName = skLandPlayerBinding.get("nickName");
+        if(!surveyUser.getUid().equals(uid)){
+            throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_BIND_UID);
+        }
+
+        surveyUser.setNickName(nickName);
 
         UserDataResponse response = new UserDataResponse();
-
-        //获取玩家uid
-        JsonNode PlayerBindingData = getSKLandPlayerBinding(cred);
-        JsonNode list = PlayerBindingData.get("list");
-        JsonNode bindingList = list.get(0).get("bindingList");
-        String uid = bindingList.get(0).get("uid").asText();
-        //查询这个uid是否有绑定一图流账号
-        SurveyUser surveyUserByUid = getSurveyUserByUid(uid);
-
-        //uid有绑定一图流账号，返回之前绑定过的账号
-        if(surveyUserByUid!=null){
-            if(!Objects.equals(surveyUserByUid.getId(), bindAccount.getId())){
-                hashMap.put("userName",surveyUserByUid.getUserName());
-                response.setUserName(userName);
-                return Result.failure(ResultCode.USER_ACCOUNT_BIND_UID,response);
-            }
-        }
-
-
-        //如果是改密码则先验证旧密码
-        if(bindAccount.getStatus()==2){
-            String oldPassWord = surveyUserVo.getOldPassWord();
-           if(!Objects.equals(bindAccount.getPassWord(), AES.encrypt(oldPassWord, ApplicationConfig.Secret))){
-               throw new ServiceException(ResultCode.USER_LOGIN_ERROR);
-           }
-        }
-
-
-        //更新用户名和密码和账号状态
-        checkPassWord(passWord);
-        passWord = AES.encrypt(passWord,ApplicationConfig.Secret);
-        bindAccount.setUserName(userName);
-        bindAccount.setUid(uid);
-        bindAccount.setPassWord(passWord);
-        bindAccount.setStatus(2);
-
-        //更新账号信息到数据库
-        Long id = bindAccount.getId();
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id",id);
-        int update = surveyUserMapper.update(bindAccount, queryWrapper);
-        response.setUserName(userName);
-        response.setStatus(2);
-
+        response.setStatus(surveyUser.getStatus());
+        response.setUserName(surveyUser.getUserName());
+        response.setUid(uid);
+        response.setNickName(nickName);
         return Result.success(response);
     }
 
 
 
 
-    public  Long decryptToken(String token){
-        String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ApplicationConfig.Secret);
-        String idText = decrypt.split("\\.")[1];
-        return Long.valueOf(idText);
-    }
 
-
-    public JsonNode getSKLandPlayerBinding(String cred){
+    public Map<String, String> getSKLandPlayerBinding(String cred){
         HashMap<String, String> header = new HashMap<>();
         cred = cred.trim();
         header.put("cred", cred);
@@ -248,10 +357,45 @@ public class SurveyUserService {
         String SKLandPlayerBindingAPI = ApplicationConfig.SKLandPlayerBindingAPI;
         String SKLandPlayerBinding = HttpRequestUtil.get(SKLandPlayerBindingAPI, header);
         JsonNode SKLandPlayerBindingNode = JsonMapper.parseJSONObject(SKLandPlayerBinding);
-        JsonNode data = SKLandPlayerBindingNode.get("data");
         int code = SKLandPlayerBindingNode.get("code").intValue();
         if (code != 0) throw new ServiceException(ResultCode.SKLAND_CRED_ERROR);
-        return data;
+        JsonNode data = SKLandPlayerBindingNode.get("data");
+
+        JsonNode list = data.get("list");
+        JsonNode bindingList = list.get(0).get("bindingList");
+        String uid = "";
+        String nickName = "";
+        for (int i = 0; i < bindingList.size(); i++) {
+            if(bindingList.get(i).get("isDefault").asBoolean()){
+                uid = bindingList.get(i).get("uid").asText();
+                nickName = bindingList.get(i).get("nickName").asText();
+            }
+        }
+
+        if("".equals(uid)){
+            for (int i = 0; i < bindingList.size(); i++) {
+                if(bindingList.get(i).get("isOfficial").asBoolean()){
+                    uid = bindingList.get(i).get("uid").asText();
+                    nickName = bindingList.get(i).get("nickName").asText();
+                }
+            }
+        }
+
+        if("".equals(uid)){
+            uid = bindingList.get(0).get("uid").asText();
+            nickName = bindingList.get(0).get("nickName").asText();
+        }
+
+
+
+        Map<String, String> hashMap = new HashMap<>();
+        hashMap.put("uid",uid);
+        hashMap.put("nickName",nickName);
+
+        System.out.println(uid);
+        System.out.println(nickName);
+
+        return hashMap;
     }
 
 
@@ -280,15 +424,20 @@ public class SurveyUserService {
         queryWrapper.eq("id",surveyUser.getId());
         surveyUser.setUpdateTime(new Date());
         surveyUserMapper.update(surveyUser,queryWrapper);   //更新用户表
+
+        Long id = surveyUser.getId();
+        ossService.upload(JsonMapper.toJSONString(surveyUser),"survey/user/info/"+id+".json");
     }
 
+
+
     public List<Long> selectSurveyUserIds() {
-        QueryWrapper<SurveyUserStatistics> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<SurveyStatisticsUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.ge("operator_count",1);
 
-        List<SurveyUserStatistics> surveyUserStatisticList = surveyStatisticsUserMapper.selectList(queryWrapper);
+        List<SurveyStatisticsUser> surveyUserStatisticList = surveyStatisticsUserMapper.selectList(queryWrapper);
         List<Long> ids = new ArrayList<>();
-        for (SurveyUserStatistics statistics : surveyUserStatisticList) {
+        for (SurveyStatisticsUser statistics : surveyUserStatisticList) {
             ids.add(statistics.getId());
         }
         return  ids;
@@ -300,10 +449,11 @@ public class SurveyUserService {
     }
 
 
-    @Scheduled(cron = "0 0 0/1 * * ?")
+//    @Scheduled(cron = "0 0 0/2 * * ?")
     public void userStatistics(){
         List<SurveyUser> surveyUserList = surveyUserMapper.selectList(null);
-        int insert = 0;
+
+
         for (SurveyUser surveyUser : surveyUserList) {
             long yituliuId = surveyUser.getId(); //一图流id
 
@@ -319,17 +469,17 @@ public class SurveyUserService {
 
 
             //查询是否统计过这个用户
-            QueryWrapper<SurveyUserStatistics> userQueryWrapper = new QueryWrapper<>();
+            QueryWrapper<SurveyStatisticsUser> userQueryWrapper = new QueryWrapper<>();
             userQueryWrapper.eq("id",yituliuId);
-            SurveyUserStatistics savedData = surveyStatisticsUserMapper.selectOne(userQueryWrapper);
+            SurveyStatisticsUser savedData = surveyStatisticsUserMapper.selectOne(userQueryWrapper);
 
 
             if(savedData==null){
-                SurveyUserStatistics statistics = new SurveyUserStatistics();
+                SurveyStatisticsUser statistics = new SurveyStatisticsUser();
                 statistics.setId(yituliuId);
                 statistics.setUid(uid);
                 statistics.setOperatorCount(count.intValue());
-                insert+= surveyStatisticsUserMapper.insert(statistics);
+
             }else {
                 savedData.setUid(uid);
                 savedData.setOperatorCount(count.intValue());
@@ -342,7 +492,12 @@ public class SurveyUserService {
     }
 
 
+    private Long decryptToken(String token){
+        String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ApplicationConfig.Secret);
 
+        String idText = decrypt.split("\\.")[1];
+        return Long.valueOf(idText);
+    }
 
 
     private static void checkUserName(String userName){
@@ -397,6 +552,7 @@ public class SurveyUserService {
         int random = new Random().nextInt(99);
         return String.format("%02d", random);
     }
+
 
 
 }

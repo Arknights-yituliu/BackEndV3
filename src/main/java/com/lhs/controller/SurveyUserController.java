@@ -5,7 +5,7 @@ import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
 import com.lhs.service.survey.SurveyUserService;
-import com.lhs.vo.survey.SurveyUserVo;
+import com.lhs.vo.survey.SurveyRequestVo;
 import com.lhs.vo.survey.UserDataResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,24 +28,49 @@ public class SurveyUserController {
 
     @ApiOperation("调查用户注册")
     @PostMapping("/register")
-    public Result<UserDataResponse> register(HttpServletRequest httpServletRequest, @RequestBody SurveyUserVo surveyUserVo) {
+    public Result<UserDataResponse> register(HttpServletRequest httpServletRequest, @RequestBody SurveyRequestVo surveyRequestVo) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-        UserDataResponse response = surveyUserService.register(ipAddress, surveyUserVo.getUserName());
+        UserDataResponse response = surveyUserService.register(ipAddress, surveyRequestVo.getUserName());
         return Result.success(response);
+    }
+
+    @ApiOperation("通过森空岛CRED直接登录")
+    @PostMapping("/user/login/cred")
+    public Result<UserDataResponse> loginByCRED(HttpServletRequest httpServletRequest, @RequestBody SurveyRequestVo surveyRequestVo) {
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
+        return surveyUserService.loginByCRED(ipAddress, surveyRequestVo);
+    }
+
+    @ApiOperation("身份验证")
+    @PostMapping("/user/authentication")
+    public Result<UserDataResponse> authentication(HttpServletRequest httpServletRequest,@RequestBody SurveyRequestVo surveyRequestVo){
+        return   surveyUserService.authentication(surveyRequestVo);
     }
 
     @ApiOperation("调查用户登录")
     @PostMapping("/login")
-    public Result<UserDataResponse> login(HttpServletRequest httpServletRequest,@RequestBody SurveyUserVo surveyUserVo) {
+    public Result<UserDataResponse> login(HttpServletRequest httpServletRequest,@RequestBody SurveyRequestVo surveyRequestVo) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-        UserDataResponse response = surveyUserService.login(ipAddress, surveyUserVo);
+        UserDataResponse response = surveyUserService.login(ipAddress, surveyRequestVo);
         return Result.success(response);
     }
 
-    @ApiOperation("升级用户账号")
-    @PostMapping("/user/update")
-    public Result<Object> updateUser(@RequestBody SurveyUserVo surveyUserVo) {
-        return surveyUserService.updateAccountStatus(surveyUserVo);
+    @ApiOperation("更新密码")
+    @PostMapping("/user/sendEmailCode")
+    public Result<Object> sendEmailCode(@RequestBody SurveyRequestVo surveyRequestVo) {
+        return surveyUserService.sendEmailCode(surveyRequestVo);
+    }
+
+    @ApiOperation("更新密码")
+    @PostMapping("/user/updateEmail")
+    public Result<Object> updateEmail(@RequestBody SurveyRequestVo surveyRequestVo) {
+        return surveyUserService.updateEmail(surveyRequestVo);
+    }
+
+    @ApiOperation("更新密码")
+    @PostMapping("/user/updatePassWord")
+    public Result<Object> updatePassWord(@RequestBody SurveyRequestVo surveyRequestVo) {
+        return surveyUserService.updatePassWord(surveyRequestVo);
     }
 
     @ApiOperation("找回账号")

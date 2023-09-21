@@ -17,6 +17,25 @@
             #{item.own})
         </foreach>
     </insert>
+
+    <update id="updateByUid">
+        UPDATE ${tableName}
+        SET
+            `char_id` = #{item.charId},
+            `own` = #{item.own},
+            `level` = #{item.level},
+            `elite` = #{item.elite},
+            `potential` = #{item.potential},
+            `rarity` = #{item.rarity},
+            `main_skill` = #{item.mainSkill},
+            `skill1` = #{item.skill1},
+            `skill2` = #{item.skill2},
+            `skill3` = #{item.skill3},
+            `mod_x` = #{item.modX},
+            `mod_y` = #{item.modY}
+            WHERE
+                id = #{item.id}
+    </update>
     
 
 </mapper>

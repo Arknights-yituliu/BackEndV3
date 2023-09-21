@@ -101,7 +101,7 @@ public class UserService {
         String code = String.valueOf(redisTemplate.opsForValue().get("CODE:" + developer.getEmail() + "CODE"));
         //检查邮件验证码
         if (!loginVo.getCode().equals(code)) {
-            throw new ServiceException(ResultCode.USER_LOGIN_CODE_ERROR);
+            throw new ServiceException(ResultCode.CODE_ERROR);
         }
 
         //登录时间

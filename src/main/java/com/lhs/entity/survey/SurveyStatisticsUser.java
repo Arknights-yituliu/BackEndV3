@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyUserStatistics {
+public class SurveyStatisticsUser {
 
     @Id
     private Long id;

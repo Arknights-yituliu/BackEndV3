@@ -147,6 +147,8 @@ public class SurveyOperatorService {
                 surveyOperator.setModY(-1);
             }
 
+//            System.out.println(surveyOperator);
+
             //和老数据进行对比
             SurveyOperator lastOperatorData = lastOperatorDataMap.get(surveyOperator.getCharId());
             //为空则新增
@@ -164,10 +166,12 @@ public class SurveyOperatorService {
                 surveyOperator.setUid(yituliuId);
                 QueryWrapper<SurveyOperator> updateQueryWrapper = new QueryWrapper<>();
                 updateQueryWrapper.eq("uid",lastOperatorData.getId());
-                surveyOperatorMapper.update(surveyOperator, updateQueryWrapper); //更新数据
-
+                surveyOperatorMapper.updateByUid(tableName,surveyOperator); //更新数据
+//                System.out.println(surveyOperator);
             }
         }
+
+//        System.out.println(insertOperatorList.size());
 
         if (insertOperatorList.size() > 0) surveyOperatorMapper.insertBatch(tableName, insertOperatorList);  //批量插入
 
@@ -266,6 +270,7 @@ public class SurveyOperatorService {
 
         QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
         queryWrapper.eq("uid",surveyUser.getId());
+
         List<SurveyOperator> surveyOperatorList = surveyOperatorMapper.selectList(queryWrapper);
 
         surveyOperatorList.forEach(e -> {
@@ -296,8 +301,9 @@ public class SurveyOperatorService {
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
         List<SurveyOperator> surveyOperatorList = new ArrayList<>();
 
-        Map<String, String> uniEquipIdAndType = operatorBaseDataService.getEquipDict();
+        Map<String, String> uniEquipIdAndType = operatorBaseDataService.getEquipIdAndType();
         JsonNode data =  JsonMapper.parseJSONObject(dataStr);
+        String nickName = data.get("nickName").asText();
         String uid = data.get("uid").asText();
 
         SurveyUser bindAccount = surveyUserService.getSurveyUserByUid(uid);
@@ -379,9 +385,11 @@ public class SurveyOperatorService {
                     }
                 }
             }
-
+//            System.out.println(surveyOperator);
             surveyOperatorList.add(surveyOperator);
         }
+
+        surveyUser.setNickName(nickName);
 
         return Result.success(updateSurveyData(surveyUser, surveyOperatorList));
     }

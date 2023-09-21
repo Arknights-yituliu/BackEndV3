@@ -10,7 +10,6 @@ import java.util.List;
 @Repository
 public interface SurveyStatisticsOperatorMapper extends BaseMapper<SurveyStatisticsOperator> {
 
-
     void truncate();
 
     void insertBatch(@Param("list")List<SurveyStatisticsOperator> statisticsOperatorList);

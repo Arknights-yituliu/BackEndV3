@@ -1,6 +1,7 @@
 package com.lhs.entity.survey;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
@@ -11,6 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 public class SurveyOperator {
 
+    @TableId
     private Long id;
 
     private Long uid;

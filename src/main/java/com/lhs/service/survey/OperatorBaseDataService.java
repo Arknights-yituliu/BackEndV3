@@ -34,8 +34,8 @@ public class OperatorBaseDataService {
         this.redisTemplate = redisTemplate;
     }
 
-    @RedisCacheable(key = "EquipDictSimple", timeout = 86400)
-    public Map<String, String> getEquipDict() {
+    @RedisCacheable(key = "EquipIdAndType", timeout = 86400)
+    public Map<String, String> getEquipIdAndType() {
         String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
         if(read==null) throw new ServiceException(ResultCode.FILE_NOT_EXIST);
         JsonNode characterTableSimple = JsonMapper.parseJSONObject(read);
@@ -53,9 +53,10 @@ public class OperatorBaseDataService {
             }
         }
 
-        for(String key: uniEquipIdAndType.keySet()){
-            System.out.println(key);
-        }
+
+//        for(String key: uniEquipIdAndType.keySet()){
+//            System.out.println(key);
+//        }
 
         return uniEquipIdAndType;
 
