@@ -53,58 +53,77 @@ public class SurveyUserService {
 
     /**
      * 调查站注册
-     * @param ipAddress ip
-     * @param userName  用户id
+     * @param ipAddress       ip
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释，每个方法一般只会用到其中几个属性）
      * @return 用户状态信息
      */
-    public UserDataResponse register(String ipAddress, String userName) {
+
+    public UserDataResponse register(String ipAddress, SurveyRequestVo surveyRequestVo) {
+        String userName = surveyRequestVo.getUserName();
+        String passWord = surveyRequestVo.getPassWord();
         checkUserName(userName);
-        Date date = new Date();  //存入的时间
-        String userNameAndEnd = null;
-        SurveyUser surveyUser = null;
+        Date date = new Date();  //当前时间
+        String userNameAndSuffix = userName + getSuffix(4); //游客注册的用户名可重复，但是有后缀，格式：用户名#xxxx
+        SurveyUser surveyUserExist = null;  //是否存在的旧用户信息
 
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_name",userName);
+        String idStr = date.getTime() + randomEnd4_id();
+        long yituliuId = Long.parseLong(idStr);   //一图流id 当前时间戳加随机4位数字
 
-        for (int i = 0; i < 6; i++) {
-            if (i < 3) {
-                userNameAndEnd = userName + randomEnd4(4); //用户id后四位后缀  #xxxx
-                surveyUser = surveyUserMapper.selectOne(queryWrapper);
-                if (surveyUser == null) break;  //未注册就跳出开始注册
-                log.warn("id后缀重复");
-            } else {
-                userNameAndEnd = userName + randomEnd4(5);
-                surveyUser = surveyUserMapper.selectOne(queryWrapper);
-                if (surveyUser == null) break;  //未注册就跳出开始注册
-                log.warn("id后缀重复次数过多扩充位数");
-            }
-        }
+        int status = 1;
 
-        if (surveyUser != null) throw new ServiceException(ResultCode.USER_ID_TOO_MANY_TIMES);
-
-        String idStr = date.getTime()+randomEnd4_id();
-        long id = Long.parseLong(idStr);
-
-        surveyUser = SurveyUser.builder()
-                .id(id)
-                .userName(userNameAndEnd)
+        SurveyUser  surveyUserNew = SurveyUser.builder()  //新用户信息
+                .id(yituliuId)
                 .createTime(date)
                 .updateTime(date)
-                .status(1)
+                .status(status) //无密码的账号状态值为2
                 .ip(ipAddress)
                 .build();
 
-        int row = surveyUserMapper.save(surveyUser);
+
+        if (passWord != null && !"undefined".equals(passWord) && !"null".equals(passWord) && passWord.length() > 5) {  //注册正式账号，密码不为空或未知值且长度大于5
+            Log.info("注册有密码的账号");
+            checkPassWord(passWord); //检查密码
+            QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_name", userName);  //查询用户名是否存在
+            surveyUserExist = surveyUserMapper.selectOne(queryWrapper);
+
+            passWord = AES.encrypt(passWord, ApplicationConfig.Secret);
+            surveyUserNew.setUserName(userName);  //非游客用户设置的用户名不带后缀
+            surveyUserNew.setPassWord(passWord);
+            status = UserStatus.addPermission(surveyUserNew.getStatus(),UserStatusCode.HAS_PASSWORD); //有密码的账号增加权限
+            surveyUserNew.setStatus(status);
+        }else { //注册游客账号
+            Log.info("注册无密码的账号");
+            for (int i = 0; i < 6; i++) {
+                QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("user_name", userNameAndSuffix);  //查询用户名#后缀是否存在
+                surveyUserExist = surveyUserMapper.selectOne(queryWrapper);
+                if (surveyUserExist == null) break;  //不存在就跳出开始注册
+                if (i < 4) {
+                    userNameAndSuffix = userName + getSuffix(4); //用户id后四位后缀  #xxxx
+                    Log.error("id后缀重复");
+                } else {
+                    userNameAndSuffix = userName + getSuffix(5);
+                    Log.error("id后缀重复次数过多扩充位数");
+                }
+            }
+            surveyUserNew.setUserName(userNameAndSuffix);  //设置游客用户名
+        }
+
+        if (surveyUserExist != null) throw new ServiceException(ResultCode.USER_EXISTED);
+
+        int row = surveyUserMapper.save(surveyUserNew);
         if (row < 1) throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
 
-        long time = System.currentTimeMillis();
+        long timeStamp = date.getTime();
 
-        String token = AES.encrypt(surveyUser.getUserName()+"."+id+"."+time, ApplicationConfig.Secret);
+        //用户凭证  由用户名+一图流id+时间戳 加密得到
+        String token = AES.encrypt(surveyUserNew.getUserName() + "." + yituliuId + "." + timeStamp, ApplicationConfig.Secret);
 
-        UserDataResponse response = new UserDataResponse();
-        response.setUserName(userNameAndEnd);
+        UserDataResponse response = new UserDataResponse();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
+        response.setUserName(userNameAndSuffix);
         response.setToken(token);
-        response.setStatus(1);
+        response.setStatus(surveyUserNew.getStatus());
 
         return response;
     }
@@ -112,48 +131,49 @@ public class SurveyUserService {
 
     /**
      * 通过森空岛cred登录
-     * @param ipAddress  ip地址
-     * @param surveyRequestVo  自定义的请求实体类（具体内容看实体类的注释）
+     *
+     * @param ipAddress       ip地址
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释，每个方法一般只会用到其中几个属性）
      * @return 用户状态信息
      */
     public Result<UserDataResponse> loginByCRED(String ipAddress, SurveyRequestVo surveyRequestVo) {
         UserDataResponse response = new UserDataResponse();
-        Date date = new Date();
-        long time = date.getTime();
+        Date date = new Date();  //当前时间
+        long timeStamp = date.getTime();
 
         String uid = surveyRequestVo.getUid();
         String nickName = surveyRequestVo.getNickName();
 
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-         queryWrapper.eq("uid", uid);
+        queryWrapper.eq("uid", uid);
         SurveyUser surveyUserByUid = surveyUserMapper.selectOne(queryWrapper);
-        if(surveyUserByUid!=null){
+
+        if (surveyUserByUid != null) {
             response.setUserName(surveyUserByUid.getUserName());
-            String token = AES.encrypt(surveyUserByUid.getUserName()+"."+surveyUserByUid.getId()+"."+time, ApplicationConfig.Secret);
+            String token = AES.encrypt(surveyUserByUid.getUserName() + "." + surveyUserByUid.getId() + "." + timeStamp, ApplicationConfig.Secret);
             response.setToken(token);
             response.setStatus(surveyUserByUid.getStatus());
             surveyUserByUid.setNickName(nickName);
             updateSurveyUser(surveyUserByUid);
             return Result.success(response);
-
         }
 
 
-        String idStr = date.getTime()+randomEnd4_id();
+        String idStr = date.getTime() + randomEnd4_id();
         long id = Long.parseLong(idStr);
 
 
         String[] split = nickName.split("#");
-        String userName = split[0]+ randomEnd4(4);
+        String userName = split[0] + getSuffix(4);
 
         for (int i = 0; i < 6; i++) {
             QueryWrapper<SurveyUser> queryWrapperNoExist = new QueryWrapper<>();
             queryWrapperNoExist.eq("user_name", userName);
             SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapperNoExist);
-            if(surveyUser==null){
+            if (surveyUser == null) {
                 break;
-            }else {
-                userName = split[0]+ randomEnd4(4);
+            } else {
+                userName = split[0] + getSuffix(4);
             }
         }
 
@@ -165,9 +185,9 @@ public class SurveyUserService {
         surveyUser.setUid(uid);
         surveyUser.setStatus(1);
         surveyUser.setCreateTime(date);
-        surveyUser.setUpdateTime(new Date(time+3600));
+        surveyUser.setUpdateTime(new Date(timeStamp + 3600));
 
-        String token = AES.encrypt(userName+"."+id+"."+time, ApplicationConfig.Secret);
+        String token = AES.encrypt(userName + "." + id + "." + timeStamp, ApplicationConfig.Secret);
 
         surveyUserMapper.save(surveyUser);
 
@@ -177,44 +197,57 @@ public class SurveyUserService {
         response.setStatus(surveyUser.getStatus());
 
 
-
         return Result.success(response);
     }
 
     /**
-     * 调查表登录
-     * @param ipAddress  ip
-     * @param surveyRequestVo  用户信息
+     * 调查站登录
+     * @param ipAddress       ip
+     * @param surveyRequestVo 用户信息
      * @return 用户状态信息
      */
     public UserDataResponse login(String ipAddress, SurveyRequestVo surveyRequestVo) {
         String userName = surveyRequestVo.getUserName();
         String passWord = surveyRequestVo.getPassWord();
-        Map<String, Object> hashMap = new HashMap<>();
+        String email = surveyRequestVo.getEmail();
 
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_name",userName);
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);  //查询用户
+        if(userName==null) {
+            userName = "";
+        }
+
+        //根据用户名查询用户信息
+        QueryWrapper<SurveyUser> queryWrapperByUserName = new QueryWrapper<>();
+        queryWrapperByUserName.eq("user_name", userName);
+        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapperByUserName);
+
+        //根据邮箱查询用户信息
+        if (surveyUser == null){
+            if(email==null) {
+                email = "";
+            }
+            Log.info("通过邮箱查询");
+            QueryWrapper<SurveyUser> queryWrapperByEmail = new QueryWrapper<>();
+            queryWrapperByEmail.eq("email", email);
+            surveyUser = surveyUserMapper.selectOne(queryWrapperByEmail);
+        }
 
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_EXIST);
 
-        UserDataResponse response = new UserDataResponse();
+        //用户状态为2则为正式账号 需匹配密码
+        if(UserStatus.hasPermission(surveyUser.getStatus(),UserStatusCode.HAS_PASSWORD)){
+            String encrypt = AES.encrypt(passWord, ApplicationConfig.Secret);
+            if(surveyUser.getPassWord()==null||(!surveyUser.getPassWord().equals(encrypt))){
+                throw new ServiceException(ResultCode.USER_LOGIN_ERROR);
+            }
+        }
 
-//        if(surveyUser.getStatus()==2){
-//            String encrypt = AES.encrypt(passWord, ApplicationConfig.Secret);
-//            if(surveyUser.getPassWord()==null||(!surveyUser.getPassWord().equals(encrypt))){
-//                throw new ServiceException(ResultCode.USER_NEED_PASSWORD);
-//            }
-//        }
+        long timeStamp = System.currentTimeMillis();
+        Long yituliuId = surveyUser.getId();  //一图流id
 
-        if (surveyUser.getStatus()<0) throw new ServiceException(ResultCode.USER_ACCOUNT_FORBIDDEN);
+        //用户凭证  由用户名+一图流id+时间戳 加密得到
+        String token = AES.encrypt(surveyUser.getUserName() + "." + yituliuId + "." + timeStamp, ApplicationConfig.Secret);
 
-
-        long time = System.currentTimeMillis();
-        Long id = surveyUser.getId();
-
-        String token = AES.encrypt(surveyUser.getUserName()+"."+id+"."+time, ApplicationConfig.Secret);
-
+        UserDataResponse response = new UserDataResponse();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
         response.setUserName(userName);
         response.setToken(token);
         response.setStatus(surveyUser.getStatus());
@@ -224,6 +257,7 @@ public class SurveyUserService {
 
     /**
      * 通过森空岛CRED找回账号
+     *
      * @param CRED 森空岛CRED
      * @return 用户状态信息
      */
@@ -233,10 +267,10 @@ public class SurveyUserService {
         String uid = skLandPlayerBinding.get("uid");
 
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid",uid);
+        queryWrapper.eq("uid", uid);
         SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-        if(surveyUser==null){
-            throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_BIND_UID);
+        if (surveyUser == null) {
+            throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
         }
         UserDataResponse response = new UserDataResponse();
         response.setUserName(surveyUser.getUserName());
@@ -245,10 +279,10 @@ public class SurveyUserService {
 
     public Result<Object> retrievalAccount(String uid) {
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid",uid);
+        queryWrapper.eq("uid", uid);
         SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-        if(surveyUser==null){
-            throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_BIND_UID);
+        if (surveyUser == null) {
+            throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
         }
         UserDataResponse response = new UserDataResponse();
         response.setUserName(surveyUser.getUserName());
@@ -257,22 +291,27 @@ public class SurveyUserService {
 
     /**
      * 发送邮件验证码
-     * @param surveyRequestVo  自定义的请求实体类（具体内容看实体类的注释）
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释，每个方法一般只会用到其中几个属性）
      * @return
      */
     public Result<Object> sendEmailCode(SurveyRequestVo surveyRequestVo) {
-        String email = surveyRequestVo.getEmail();
-        String token = surveyRequestVo.getToken();
-        getSurveyUserByToken(token);
 
-
+        String email = surveyRequestVo.getEmail();  //绑定的邮箱
+        String token = surveyRequestVo.getToken();  //用户凭证
+        SurveyUser surveyUserByToken = getSurveyUserByToken(token);
         EmailRequest emailRequest = new EmailRequest();
         emailRequest.setFrom("1820702789@qq.com");
-        emailRequest.setTo(email);
-        emailRequest.setSubject("一图流账号绑定邮箱");
-        int random = new Random().nextInt(999999);
-        String code = String.format("%6s", random).replace(" ", "0");
-        redisTemplate.opsForValue().set("CODE:CODE." + email , code, 300, TimeUnit.SECONDS);
+
+        if(UserStatus.hasPermission(surveyUserByToken.getStatus(),UserStatusCode.HAS_EMAIL)){   //判断是否绑定过邮箱
+            emailRequest.setTo(surveyUserByToken.getEmail()); //以前绑定过邮箱则发给旧邮箱
+            emailRequest.setSubject("一图流账号换绑新邮箱");
+        }else {
+            emailRequest.setTo(email); //没有绑定过邮箱则发给新邮箱
+            emailRequest.setSubject("一图流账号绑定新邮箱");
+        }
+        int random = new Random().nextInt(9999);
+        String code = String.format("%4s", random).replace(" ", "0");
+        redisTemplate.opsForValue().set("CODE:CODE." + email, code, 300, TimeUnit.SECONDS);
         emailRequest.setText("本次绑定验证码：" + code);
         emailService.sendMail(emailRequest);
         return Result.success();
@@ -280,50 +319,73 @@ public class SurveyUserService {
 
     /**
      * 更新或绑定邮箱
-     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释）
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释，每个方法一般只会用到其中几个属性）
      * @return
      */
     public Result<Object> updateOrBindEmail(SurveyRequestVo surveyRequestVo) {
         String email = surveyRequestVo.getEmail();
         String token = surveyRequestVo.getToken();
-        String verificationCode = surveyRequestVo.getEmailCode();
+        String emailCode = surveyRequestVo.getEmailCode();
         SurveyUser surveyUserByToken = getSurveyUserByToken(token);
-
         String code = redisTemplate.opsForValue().get("CODE:CODE." + email);
-        if(code == null) {
+        //检查验证码
+        if (code == null) {
             throw new ServiceException(ResultCode.CODE_NOT_EXIST);
         }
-        if(!verificationCode.equals(code)){
+        if (!emailCode.equals(code)) {
             throw new ServiceException(ResultCode.CODE_ERROR);
         }
 
         surveyUserByToken.setEmail(email);
+        if(!UserStatus.hasPermission(surveyUserByToken.getStatus(),UserStatusCode.HAS_EMAIL)){
+            surveyUserByToken.setStatus(UserStatus.addPermission(surveyUserByToken.getStatus(),UserStatusCode.HAS_EMAIL));
+        }
+
         updateSurveyUser(surveyUserByToken);
         return Result.success();
     }
 
     /**
      * 更新密码
-     * @param surveyRequestVo  自定义的请求实体类（具体内容看实体类的注释）
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释，每个方法一般只会用到其中几个属性）
      * @return
      */
-    public Result<Object> updatePassWord(SurveyRequestVo surveyRequestVo){
+    public Result<Object> updatePassWord(SurveyRequestVo surveyRequestVo) {
+
         String token = surveyRequestVo.getToken();
-        String passWord = surveyRequestVo.getPassWord();
-        checkPassWord(passWord);
+        SurveyUser surveyUserByToken = getSurveyUserByToken(token); //用户信息
+        String newPassWord = surveyRequestVo.getNewPassWord(); //新密码
+        checkPassWord(newPassWord);  //检查新密码格式
 
-        SurveyUser surveyUserByToken = getSurveyUserByToken(token);
+        newPassWord = AES.encrypt(newPassWord, ApplicationConfig.Secret);  //加密新密码
 
-        surveyUserByToken.setPassWord(passWord);
-        surveyUserByToken.setStatus(2);
+        Integer status = surveyUserByToken.getStatus();
+        //设置新密码
+        if(UserStatus.hasPermission(status,UserStatusCode.HAS_PASSWORD)){
+            String oldPassWord = surveyRequestVo.getOldPassWord(); //旧密码
+            checkPassWord(oldPassWord);  //检查旧密码
+            if(surveyUserByToken.getPassWord().equals(oldPassWord)){  //检查旧密码是否正确
+                surveyUserByToken.setPassWord(newPassWord);  //更新旧密码为新密码
+            }else {
+                throw new ServiceException(ResultCode.USER_PASSWORD_ERROR);
+            }
+
+        }else {
+            status = UserStatus.addPermission(status,UserStatusCode.HAS_PASSWORD);
+            surveyUserByToken.setPassWord(newPassWord);
+            surveyUserByToken.setStatus(status);
+        }
+
         updateSurveyUser(surveyUserByToken);
+
         return Result.success();
     }
 
 
     /**
      * 通过cred进行身份验证
-     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释）
+     *
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释，每个方法一般只会用到其中几个属性）
      * @return
      */
     public Result<UserDataResponse> authentication(SurveyRequestVo surveyRequestVo) {
@@ -333,8 +395,8 @@ public class SurveyUserService {
         Map<String, String> skLandPlayerBinding = getSKLandPlayerBinding(cred);
         String uid = skLandPlayerBinding.get("uid");
         String nickName = skLandPlayerBinding.get("nickName");
-        if(!surveyUser.getUid().equals(uid)){
-            throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_BIND_UID);
+        if (!surveyUser.getUid().equals(uid)) {
+            throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
         }
 
         surveyUser.setNickName(nickName);
@@ -350,10 +412,11 @@ public class SurveyUserService {
 
     /**
      * 获得森空岛绑定信息
+     *
      * @param CRED 森空岛CRED
      * @return
      */
-    public Map<String, String> getSKLandPlayerBinding(String CRED){
+    public Map<String, String> getSKLandPlayerBinding(String CRED) {
         HashMap<String, String> header = new HashMap<>();
         CRED = CRED.trim();
         header.put("cred", CRED);
@@ -370,130 +433,135 @@ public class SurveyUserService {
         String uid = "";
         String nickName = "";
         for (int i = 0; i < bindingList.size(); i++) {
-            if(bindingList.get(i).get("isDefault").asBoolean()){
+            if (bindingList.get(i).get("isDefault").asBoolean()) {
                 uid = bindingList.get(i).get("uid").asText();
                 nickName = bindingList.get(i).get("nickName").asText();
             }
         }
 
-        if("".equals(uid)){
+        if ("".equals(uid)) {
             for (int i = 0; i < bindingList.size(); i++) {
-                if(bindingList.get(i).get("isOfficial").asBoolean()){
+                if (bindingList.get(i).get("isOfficial").asBoolean()) {
                     uid = bindingList.get(i).get("uid").asText();
                     nickName = bindingList.get(i).get("nickName").asText();
                 }
             }
         }
 
-        if("".equals(uid)){
+        if ("".equals(uid)) {
             uid = bindingList.get(0).get("uid").asText();
             nickName = bindingList.get(0).get("nickName").asText();
         }
 
         Map<String, String> hashMap = new HashMap<>();
-        hashMap.put("uid",uid);
-        hashMap.put("nickName",nickName);
+        hashMap.put("uid", uid);
+        hashMap.put("nickName", nickName);
 
         return hashMap;
     }
 
     /**
      * 通过用户凭证查找用户信息
+     *
      * @param token 用户凭证
      * @return 用户信息
      */
-    public SurveyUser getSurveyUserByToken(String token){
-        if(token==null||"undefined".equals(token)){
+    public SurveyUser getSurveyUserByToken(String token) {
+        if (token == null || "undefined".equals(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
-        Long id = decryptToken(token);
+        Long yituliuId = decryptToken(token);
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id",id);
+        queryWrapper.eq("id", yituliuId);
         SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper); //查询用户
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_EXIST);
+        if(surveyUser.getStatus()<0) throw new ServiceException(ResultCode.USER_FORBIDDEN);
         return surveyUser;
     }
 
     /**
      * 通过游戏内的玩家uid查找用户信息
+     *
      * @param uid 游戏内的玩家uid
      * @return 用户信息
      */
-    public SurveyUser getSurveyUserByUid(String uid){
+    public SurveyUser getSurveyUserByUid(String uid) {
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid",uid);
-        return surveyUserMapper.selectOne(queryWrapper);
+        queryWrapper.eq("uid", uid);
+        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
+        if (surveyUser == null) throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_EXIST);
+        if(surveyUser.getStatus()<0) throw new ServiceException(ResultCode.USER_FORBIDDEN);
+        return surveyUser;
     }
 
     /**
      * 更新用户信息
+     *
      * @param surveyUser 用户信息
      */
-    public void updateSurveyUser(SurveyUser surveyUser){
+    public void updateSurveyUser(SurveyUser surveyUser) {
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id",surveyUser.getId());
+        queryWrapper.eq("id", surveyUser.getId());
         surveyUser.setUpdateTime(new Date());
-        surveyUserMapper.update(surveyUser,queryWrapper);   //更新用户表
+        surveyUserMapper.update(surveyUser, queryWrapper);   //更新用户表
 
         Long id = surveyUser.getId();
-        ossService.upload(JsonMapper.toJSONString(surveyUser),"survey/user/info/"+id+".json");
+        ossService.upload(JsonMapper.toJSONString(surveyUser), "survey/user/info/" + id + ".json");
     }
-
 
 
     public List<Long> selectSurveyUserIds() {
         QueryWrapper<SurveyStatisticsUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ge("operator_count",1);
+        queryWrapper.ge("operator_count", 1);
 
         List<SurveyStatisticsUser> surveyUserStatisticList = surveyStatisticsUserMapper.selectList(queryWrapper);
         List<Long> ids = new ArrayList<>();
         for (SurveyStatisticsUser statistics : surveyUserStatisticList) {
             ids.add(statistics.getId());
         }
-        return  ids;
+        return ids;
     }
 
 
-    public Integer getTableIndex(Long id){
+    public Integer getTableIndex(Long id) {
         return 1;
     }
 
 
-//    @Scheduled(cron = "0 0 0/2 * * ?")
-    public void userStatistics(){
+    //    @Scheduled(cron = "0 0 0/2 * * ?")
+    public void userStatistics() {
         List<SurveyUser> surveyUserList = surveyUserMapper.selectList(null);
-
 
         for (SurveyUser surveyUser : surveyUserList) {
             long yituliuId = surveyUser.getId(); //一图流id
 
             String uid = surveyUser.getUid();
-            if(uid==null) continue;
-            if(uid.length()<10)
-            if(uid.contains("delete")) continue;
+            if (uid == null) continue;
+            if (uid.length() < 10)
+            if (uid.contains("delete")) continue;
 
 
             QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("uid",yituliuId);
+            queryWrapper.eq("uid", yituliuId);
             Long count = surveyOperatorMapper.selectCount(queryWrapper);
 
 
             //查询是否统计过这个用户
             QueryWrapper<SurveyStatisticsUser> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id",yituliuId);
+            userQueryWrapper.eq("id", yituliuId);
             SurveyStatisticsUser savedData = surveyStatisticsUserMapper.selectOne(userQueryWrapper);
 
 
-            if(savedData==null){
+            if (savedData == null) {
                 SurveyStatisticsUser statistics = new SurveyStatisticsUser();
                 statistics.setId(yituliuId);
                 statistics.setUid(uid);
                 statistics.setOperatorCount(count.intValue());
 
-            }else {
+            } else {
                 savedData.setUid(uid);
                 savedData.setOperatorCount(count.intValue());
-                surveyStatisticsUserMapper.update(savedData,userQueryWrapper);
+                surveyStatisticsUserMapper.update(savedData, userQueryWrapper);
             }
 
         }
@@ -503,10 +571,11 @@ public class SurveyUserService {
 
     /**
      * 解密用户凭证
+     *
      * @param token 用户凭证
      * @return
      */
-    private Long decryptToken(String token){
+    private Long decryptToken(String token) {
         String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ApplicationConfig.Secret);
 
         String idText = decrypt.split("\\.")[1];
@@ -517,18 +586,18 @@ public class SurveyUserService {
      * 检查用户名是否为中文，英文，数字
      * @param userName
      */
-    private static void checkUserName(String userName){
-        if(userName==null||userName.length()<2){
+    private static void checkUserName(String userName) {
+        if (userName == null || userName.length() < 2) {
             throw new ServiceException(ResultCode.USER_NAME_LENGTH_TOO_SHORT);
         }
 
-        if(userName.length()>20){
+        if (userName.length() > 20) {
             throw new ServiceException(ResultCode.USER_NAME_LENGTH_TOO_LONG);
         }
 
         for (int i = 0; i < userName.length(); i++) {
             String substring = userName.substring(i, i + 1);
-            if (substring.matches("[\u4e00-\u9fa5]+")){
+            if (substring.matches("[\u4e00-\u9fa5]+")) {
 //                System.out.println("中文: "+substring);
             } else if (substring.matches("[a-zA-Z\0-9]+")) {
 //                System.out.println("英文 ：" + substring);
@@ -543,12 +612,12 @@ public class SurveyUserService {
      * 检查密码是否为英文，数字
      * @param passWord
      */
-    private static void checkPassWord(String passWord){
-        if(passWord==null||passWord.length()<6){
+    private static void checkPassWord(String passWord) {
+        if (passWord == null || passWord.length() < 6) {
             throw new ServiceException(ResultCode.PASS_WORD_LENGTH_TOO_SHORT);
         }
 
-        if(passWord.length()>20){
+        if (passWord.length() > 20) {
             throw new ServiceException(ResultCode.PASS_WORD_LENGTH_TOO_LONG);
         }
 
@@ -563,17 +632,17 @@ public class SurveyUserService {
         }
     }
 
-    private String randomEnd4(Integer digit) {
+
+    private String getSuffix(Integer digit) {
         int random = new Random().nextInt(9999);
         String end4 = String.format("%0" + digit + "d", random);
         return "#" + end4;
     }
 
-    private String randomEnd4_id(){
+    private String randomEnd4_id() {
         int random = new Random().nextInt(99);
         return String.format("%02d", random);
     }
-
 
 
 }

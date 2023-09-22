@@ -33,7 +33,7 @@ public class SurveyInterceptor implements HandlerInterceptor {
             return  true;
         }
         int times = Integer.parseInt(String.valueOf(cache));
-        if(times>5) throw new ServiceException(ResultCode.USER_IP_TOO_MANY_TIMES);
+        if(times>5) throw new ServiceException(ResultCode.IP_TOO_MANY_TIMES);
         redisTemplate.opsForValue().increment("IP:"+ipAddress);
         return true;
     }

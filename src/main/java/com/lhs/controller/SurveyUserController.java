@@ -30,7 +30,7 @@ public class SurveyUserController {
     @PostMapping("/register")
     public Result<UserDataResponse> register(HttpServletRequest httpServletRequest, @RequestBody SurveyRequestVo surveyRequestVo) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-        UserDataResponse response = surveyUserService.register(ipAddress, surveyRequestVo.getUserName());
+        UserDataResponse response = surveyUserService.register(ipAddress, surveyRequestVo);
         return Result.success(response);
     }
 
