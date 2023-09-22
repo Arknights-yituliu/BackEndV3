@@ -395,12 +395,6 @@ public class SurveyOperatorService {
     }
 
 
-
-
-
-
-
-
     /**
      * 判断这个干员是否有变更
      *

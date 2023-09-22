@@ -64,7 +64,7 @@ public class SurveyUserController {
     @ApiOperation("更新密码")
     @PostMapping("/user/updateEmail")
     public Result<Object> updateEmail(@RequestBody SurveyRequestVo surveyRequestVo) {
-        return surveyUserService.updateEmail(surveyRequestVo);
+        return surveyUserService.updateOrBindEmail(surveyRequestVo);
     }
 
     @ApiOperation("更新密码")
@@ -75,7 +75,7 @@ public class SurveyUserController {
 
     @ApiOperation("找回账号")
     @PostMapping("/user/retrieval")
-    public Result<Object> retrievalAccount(@RequestBody Map<String,Object> map) {
+    public Result<UserDataResponse> retrievalAccount(@RequestBody Map<String,Object> map) {
         String cred = String.valueOf(map.get("cred"));
         return surveyUserService.retrievalAccountByCRED(cred);
     }

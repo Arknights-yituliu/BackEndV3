@@ -34,6 +34,10 @@ public class OperatorBaseDataService {
         this.redisTemplate = redisTemplate;
     }
 
+    /**
+     * 返回一个集合 key:模组id,value:模组分支
+     * @return  Map<模组id,模组分支>
+     */
     @RedisCacheable(key = "EquipIdAndType", timeout = 86400)
     public Map<String, String> getEquipIdAndType() {
         String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
@@ -62,6 +66,10 @@ public class OperatorBaseDataService {
 
     }
 
+    /**
+     * 返回一个集合 key:干员id_模组分支,value:模组分支
+     * @return  Map<干员id_模组分支,模组分支>
+     */
     @RedisCacheable(key = "HasEquipTable", timeout = 86400)
     public Map<String, String> getHasEquipTable() {
         String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
@@ -84,11 +92,14 @@ public class OperatorBaseDataService {
         return map;
     }
 
+    /**
+     * 返回一个干员信息的集合 里面主要用到干员的获取方式和实装时间
+     * @return
+     */
     @RedisCacheable(key = "OperatorUpdateTable",timeout = 3000)
     public List<OperatorTable> getOperatorTable(){
 
         List<OperatorTable> operatorTableList = operatorTableMapper.selectList(null);
-
 
         return operatorTableList;
     }

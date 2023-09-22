@@ -52,11 +52,10 @@ public class SurveyUserService {
     }
 
     /**
-     * 调查表注册
-     *
+     * 调查站注册
      * @param ipAddress ip
      * @param userName  用户id
-     * @return 成功消息
+     * @return 用户状态信息
      */
     public UserDataResponse register(String ipAddress, String userName) {
         checkUserName(userName);
@@ -110,34 +109,13 @@ public class SurveyUserService {
         return response;
     }
 
-    public Result<UserDataResponse> loginV2(String ipAddress, SurveyRequestVo surveyRequestVo){
-        String userName = surveyRequestVo.getUserName();
-        QueryWrapper<SurveyUser> queryWrapperLogin = new QueryWrapper<>();
-        queryWrapperLogin.eq("user_name",userName);
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapperLogin);  //查询用户
 
-        if (surveyUser == null) {
-            checkUserName(userName);
-            QueryWrapper<SurveyUser> queryWrapperRegister = new QueryWrapper<>();
-            queryWrapperRegister.eq("user_name",userName);
-        };
-
-        if (surveyUser.getStatus()<0) throw new ServiceException(ResultCode.USER_ACCOUNT_FORBIDDEN);
-
-
-        long time = System.currentTimeMillis();
-        Long id = surveyUser.getId();
-
-        String token = AES.encrypt(surveyUser.getUserName()+"."+id+"."+time, ApplicationConfig.Secret);
-
-        UserDataResponse response = new UserDataResponse();
-        response.setUserName(userName);
-        response.setToken(token);
-        response.setStatus(surveyUser.getStatus());
-
-        return Result.success(response);
-    }
-
+    /**
+     * 通过森空岛cred登录
+     * @param ipAddress  ip地址
+     * @param surveyRequestVo  自定义的请求实体类（具体内容看实体类的注释）
+     * @return 用户状态信息
+     */
     public Result<UserDataResponse> loginByCRED(String ipAddress, SurveyRequestVo surveyRequestVo) {
         UserDataResponse response = new UserDataResponse();
         Date date = new Date();
@@ -207,7 +185,7 @@ public class SurveyUserService {
      * 调查表登录
      * @param ipAddress  ip
      * @param surveyRequestVo  用户信息
-     * @return 成功消息
+     * @return 用户状态信息
      */
     public UserDataResponse login(String ipAddress, SurveyRequestVo surveyRequestVo) {
         String userName = surveyRequestVo.getUserName();
@@ -244,7 +222,12 @@ public class SurveyUserService {
         return response;
     }
 
-    public Result<Object> retrievalAccountByCRED(String CRED) {
+    /**
+     * 通过森空岛CRED找回账号
+     * @param CRED 森空岛CRED
+     * @return 用户状态信息
+     */
+    public Result<UserDataResponse> retrievalAccountByCRED(String CRED) {
 
         Map<String, String> skLandPlayerBinding = getSKLandPlayerBinding(CRED);
         String uid = skLandPlayerBinding.get("uid");
@@ -272,6 +255,11 @@ public class SurveyUserService {
         return Result.success(response);
     }
 
+    /**
+     * 发送邮件验证码
+     * @param surveyRequestVo  自定义的请求实体类（具体内容看实体类的注释）
+     * @return
+     */
     public Result<Object> sendEmailCode(SurveyRequestVo surveyRequestVo) {
         String email = surveyRequestVo.getEmail();
         String token = surveyRequestVo.getToken();
@@ -290,7 +278,12 @@ public class SurveyUserService {
         return Result.success();
     }
 
-    public Result<Object> updateEmail(SurveyRequestVo surveyRequestVo) {
+    /**
+     * 更新或绑定邮箱
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释）
+     * @return
+     */
+    public Result<Object> updateOrBindEmail(SurveyRequestVo surveyRequestVo) {
         String email = surveyRequestVo.getEmail();
         String token = surveyRequestVo.getToken();
         String verificationCode = surveyRequestVo.getEmailCode();
@@ -309,6 +302,11 @@ public class SurveyUserService {
         return Result.success();
     }
 
+    /**
+     * 更新密码
+     * @param surveyRequestVo  自定义的请求实体类（具体内容看实体类的注释）
+     * @return
+     */
     public Result<Object> updatePassWord(SurveyRequestVo surveyRequestVo){
         String token = surveyRequestVo.getToken();
         String passWord = surveyRequestVo.getPassWord();
@@ -323,7 +321,11 @@ public class SurveyUserService {
     }
 
 
-
+    /**
+     * 通过cred进行身份验证
+     * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释）
+     * @return
+     */
     public Result<UserDataResponse> authentication(SurveyRequestVo surveyRequestVo) {
         String token = surveyRequestVo.getToken();
         SurveyUser surveyUser = getSurveyUserByToken(token);
@@ -346,13 +348,15 @@ public class SurveyUserService {
     }
 
 
-
-
-
-    public Map<String, String> getSKLandPlayerBinding(String cred){
+    /**
+     * 获得森空岛绑定信息
+     * @param CRED 森空岛CRED
+     * @return
+     */
+    public Map<String, String> getSKLandPlayerBinding(String CRED){
         HashMap<String, String> header = new HashMap<>();
-        cred = cred.trim();
-        header.put("cred", cred);
+        CRED = CRED.trim();
+        header.put("cred", CRED);
 
         String SKLandPlayerBindingAPI = ApplicationConfig.SKLandPlayerBindingAPI;
         String SKLandPlayerBinding = HttpRequestUtil.get(SKLandPlayerBindingAPI, header);
@@ -386,19 +390,18 @@ public class SurveyUserService {
             nickName = bindingList.get(0).get("nickName").asText();
         }
 
-
-
         Map<String, String> hashMap = new HashMap<>();
         hashMap.put("uid",uid);
         hashMap.put("nickName",nickName);
 
-        System.out.println(uid);
-        System.out.println(nickName);
-
         return hashMap;
     }
 
-
+    /**
+     * 通过用户凭证查找用户信息
+     * @param token 用户凭证
+     * @return 用户信息
+     */
     public SurveyUser getSurveyUserByToken(String token){
         if(token==null||"undefined".equals(token)){
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
@@ -411,14 +414,21 @@ public class SurveyUserService {
         return surveyUser;
     }
 
+    /**
+     * 通过游戏内的玩家uid查找用户信息
+     * @param uid 游戏内的玩家uid
+     * @return 用户信息
+     */
     public SurveyUser getSurveyUserByUid(String uid){
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("uid",uid);
         return surveyUserMapper.selectOne(queryWrapper);
     }
 
-
-
+    /**
+     * 更新用户信息
+     * @param surveyUser 用户信息
+     */
     public void updateSurveyUser(SurveyUser surveyUser){
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id",surveyUser.getId());
@@ -491,7 +501,11 @@ public class SurveyUserService {
 
     }
 
-
+    /**
+     * 解密用户凭证
+     * @param token 用户凭证
+     * @return
+     */
     private Long decryptToken(String token){
         String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ApplicationConfig.Secret);
 
@@ -499,7 +513,10 @@ public class SurveyUserService {
         return Long.valueOf(idText);
     }
 
-
+    /**
+     * 检查用户名是否为中文，英文，数字
+     * @param userName
+     */
     private static void checkUserName(String userName){
         if(userName==null||userName.length()<2){
             throw new ServiceException(ResultCode.USER_NAME_LENGTH_TOO_SHORT);
@@ -522,6 +539,10 @@ public class SurveyUserService {
         }
     }
 
+    /**
+     * 检查密码是否为英文，数字
+     * @param passWord
+     */
     private static void checkPassWord(String passWord){
         if(passWord==null||passWord.length()<6){
             throw new ServiceException(ResultCode.PASS_WORD_LENGTH_TOO_SHORT);

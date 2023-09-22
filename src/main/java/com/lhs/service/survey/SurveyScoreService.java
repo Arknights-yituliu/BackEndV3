@@ -26,7 +26,6 @@ public class SurveyScoreService {
 
 
     private SurveyScoreMapper surveyScoreMapper;
-
     private SurveyUserService surveyUserService;
     private final RedisTemplate<String,Object> redisTemplate;
 
