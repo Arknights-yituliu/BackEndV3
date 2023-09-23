@@ -48,6 +48,15 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
+    @ApiOperation("通过uid找回森空岛练度")
+    @PostMapping("/operator/retrieval/uid")
+    public Result<Object> retrievalCharacterForm(@RequestBody Map<String,String> params) {
+        String token = params.get("token");
+        String uid = params.get("uid");
+        List<SurveyOperatorVo> surveyDataCharList = surveyOperatorService.retrievalCharacterForm(token,uid);
+        surveyDataCharList.sort(Comparator.comparing(SurveyOperatorVo::getRarity).reversed());
+        return Result.success(surveyDataCharList);
+    }
 
     @ApiOperation("通过森空岛导入干员练度V2")
     @PostMapping("/operator/import/skland/v2")
@@ -72,7 +81,7 @@ public class SurveyOperatorController {
         boolean checkFileType = FileUtil.checkFileType(file, FileType.ZIP.getValue());
         if(!checkFileType) throw new ServiceException(ResultCode.FILE_NOT_IN_EXCEL_FORMAT);
         long size = file.getSize();
-        if(size/1024>100) throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_EXIST);
+        if(size/1024>100) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         Map<String, Object> hashMap = surveyOperatorService.importExcel(file, token);
         return Result.success(hashMap);
     }

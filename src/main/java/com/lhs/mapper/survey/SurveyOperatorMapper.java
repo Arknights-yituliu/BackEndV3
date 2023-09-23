@@ -2,6 +2,8 @@ package com.lhs.mapper.survey;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lhs.entity.survey.SurveyOperator;
+import com.lhs.entity.survey.SurveyOperatorVo;
+import com.lhs.entity.survey.SurveyStatisticsUser;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +18,7 @@ public interface SurveyOperatorMapper extends BaseMapper<SurveyOperator> {
 
     void updateByUid(@Param("tableName") String tableName, @Param("item") SurveyOperator surveyOperator);
 
+    SurveyStatisticsUser selectBakId(@Param("uid") String uid);
+
+    List<SurveyOperator> selectBakOperatorDataById(@Param("id") Long id);
 }

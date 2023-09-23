@@ -10,5 +10,12 @@ public class UserStatusCode {
 
     public static final Integer HAS_EMAIL = 1<<2;
 
+    public static final Integer HAS_16 = 1<<3;
+
+    public static final Integer HAS_32 = 1<<4;
+
+    public static final Integer HAS_64 = 1<<5;
+
+    public static final Integer HAS_128 = 1<<6;
 
 }

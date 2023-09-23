@@ -239,13 +239,12 @@ public class SurveyOperatorService {
 
 
     public Result<Object> operatorDataReset(String token){
-        SurveyUser surveyUserById = surveyUserService.getSurveyUserByToken(token);
-        if (surveyUserById==null) throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_EXIST);
+        SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
         Long resetId = redisTemplate.opsForValue().increment("resetId");
-        surveyUserById.setUid("delete"+resetId);
-        surveyUserService.updateSurveyUser(surveyUserById);
+        surveyUserByToken.setUid("delete"+resetId);
+        surveyUserService.updateSurveyUser(surveyUserByToken);
         QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
-        Long id = surveyUserById.getId();
+        Long id = surveyUserByToken.getId();
         queryWrapper.eq("uid", id);
 
         int delete = surveyOperatorMapper.delete(queryWrapper);
@@ -312,7 +311,7 @@ public class SurveyOperatorService {
             if(!Objects.equals(bindAccount.getId(), surveyUser.getId())){
                 UserDataResponse response = new UserDataResponse();
                 response.setUserName(bindAccount.getUserName());
-                return Result.failure(ResultCode.USER_ACCOUNT_BIND_UID,response);
+                return Result.failure(ResultCode.USER_BIND_UID,response);
             }
         }
 
@@ -414,8 +413,41 @@ public class SurveyOperatorService {
     }
 
 
+    public List<SurveyOperatorVo> retrievalCharacterForm(String token,String uid) {
+
+        SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
+
+        SurveyStatisticsUser surveyStatisticsUser = surveyOperatorMapper.selectBakId(uid);
+        if(surveyStatisticsUser==null) throw new ServiceException(ResultCode.DATA_NONE);
+        Long id = surveyStatisticsUser.getId();
 
 
+        List<SurveyOperator> surveyOperatorList = surveyOperatorMapper.selectBakOperatorDataById(id);
+        if(surveyOperatorList==null) throw new ServiceException(ResultCode.DATA_NONE);
+        if(surveyOperatorList.size()<1) throw new ServiceException(ResultCode.DATA_NONE);
 
+        List<SurveyOperatorVo> surveyOperatorVos = new ArrayList<>();
+        surveyOperatorList.forEach(e -> {
+            SurveyOperatorVo build = SurveyOperatorVo.builder()
+                    .charId(e.getCharId())
+                    .level(e.getLevel())
+                    .own(e.getOwn())
+                    .mainSkill(e.getMainSkill())
+                    .elite(e.getElite())
+                    .potential(e.getPotential())
+                    .rarity(e.getRarity())
+                    .skill1(e.getSkill1())
+                    .skill2(e.getSkill2())
+                    .skill3(e.getSkill3())
+                    .modX(e.getModX())
+                    .modY(e.getModY())
+                    .build();
+            surveyOperatorVos.add(build);
+        });
 
+        updateSurveyData(surveyUserByToken,surveyOperatorList);
+
+        return surveyOperatorVos;
+
+    }
 }

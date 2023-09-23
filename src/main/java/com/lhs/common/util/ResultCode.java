@@ -32,9 +32,9 @@ public enum ResultCode {
 	USER_NOT_LOGIN(20001, "用户未登录"),
 	USER_NEED_PASSWORD(20002, "需要输入密码"),
 	USER_LOGIN_ERROR(20003, "账号不存在或密码错误"),
-	USER_ACCOUNT_BIND_UID(20004, "已经绑定uid了"),
+	USER_BIND_UID(20004, "已经绑定uid了"),
 
-	USER_ACCOUNT_NOT_EXIST(20006, "用户不存在"),
+	USER_NOT_EXIST(20006, "用户不存在"),
 	USER_EXISTED(20007, "用户已存在"),
 	USER_FORBIDDEN(20008, "账号已被禁用"),
 	USER_NOT_BIND_UID(20009, "未绑定uid"),
@@ -46,10 +46,11 @@ public enum ResultCode {
 	
 	/* 业务错误：30001-39999 */
 	SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001, "业务逻辑出现问题"),
-	CODE_ERROR(30003, "验证码错误"),
+	CODE_ERROR(30002, "验证码错误"),
 
 	CODE_NOT_EXIST(30003, "验证码不存在"),
-	OSS_UPLOAD_ERROR(30002, "OSS上传错误"),
+	CODE_NOT_SEND(30004, "验证码未发送"),
+	OSS_UPLOAD_ERROR(30005, "OSS上传错误"),
 	
 	/* 系统错误：40001-49999 */
 	SYSTEM_INNER_ERROR(40001, "系统内部错误，请稍后重试"),

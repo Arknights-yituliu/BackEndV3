@@ -79,7 +79,7 @@ public class UserService {
         QueryWrapper<Developer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("developer", loginVo.getDeveloper());
         Developer developer = developerMapper.selectOne(queryWrapper);
-        if (developer == null) throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_EXIST);
+        if (developer == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
 //        String token =  developer.getDeveloper()+developer.getEmail()+new Date().getTime();
         EmailRequest emailRequest = new EmailRequest();
         emailRequest.setFrom("1820702789@qq.com");
@@ -97,7 +97,7 @@ public class UserService {
         QueryWrapper<Developer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("developer", loginVo.getDeveloper());
         Developer developer = developerMapper.selectOne(queryWrapper);
-        if (developer == null) throw new ServiceException(ResultCode.USER_ACCOUNT_NOT_EXIST);
+        if (developer == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         String code = String.valueOf(redisTemplate.opsForValue().get("CODE:" + developer.getEmail() + "CODE"));
         //检查邮件验证码
         if (!loginVo.getCode().equals(code)) {

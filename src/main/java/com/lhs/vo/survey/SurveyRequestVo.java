@@ -7,6 +7,7 @@ import lombok.Data;
 public class SurveyRequestVo {
 
     private String userName;//用户名
+    private String accountType;
     private String passWord;//密码
     private String oldPassWord;//密码
     private String newPassWord;//密码

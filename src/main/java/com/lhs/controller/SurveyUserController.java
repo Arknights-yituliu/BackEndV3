@@ -26,11 +26,41 @@ public class SurveyUserController {
         this.surveyUserService = surveyUserService;
     }
 
-    @ApiOperation("调查用户注册")
-    @PostMapping("/register")
-    public Result<UserDataResponse> register(HttpServletRequest httpServletRequest, @RequestBody SurveyRequestVo surveyRequestVo) {
+    @ApiOperation("调查用户注册V2")
+    @PostMapping("/register/v2")
+    public Result<UserDataResponse> registerV2(HttpServletRequest httpServletRequest, @RequestBody SurveyRequestVo surveyRequestVo) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-        UserDataResponse response = surveyUserService.register(ipAddress, surveyRequestVo);
+        return  Result.success(surveyUserService.registerV2(ipAddress, surveyRequestVo));
+    }
+
+    @ApiOperation("调查用户登录")
+    @PostMapping("/login/v2")
+    public Result<UserDataResponse> loginV2(HttpServletRequest httpServletRequest,@RequestBody SurveyRequestVo surveyRequestVo) {
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
+        UserDataResponse response = surveyUserService.loginV2(ipAddress, surveyRequestVo);
+        return Result.success(response);
+    }
+
+    @ApiOperation("发送邮件验证码")
+    @PostMapping("/user/emailCode")
+    public Result<Object> sendEmailCodeBYRegister(@RequestParam String type,@RequestBody SurveyRequestVo surveyRequestVo) {
+        System.out.println(type);
+        surveyUserService.sendEmailCode(type,surveyRequestVo);
+
+        return Result.success();
+    }
+
+    @ApiOperation("更新用户信息")
+    @PostMapping("/user/update")
+    public Result<UserDataResponse> updateEmail(@RequestParam String  property,@RequestBody SurveyRequestVo surveyRequestVo) {
+        UserDataResponse response = null;
+        if("email".equals(property)){
+            response =  surveyUserService.updateOrBindEmail(surveyRequestVo);
+        }
+
+        if("passWord".equals(property)){
+            response =  surveyUserService.updatePassWord(surveyRequestVo);
+        }
         return Result.success(response);
     }
 
@@ -44,7 +74,22 @@ public class SurveyUserController {
     @ApiOperation("身份验证")
     @PostMapping("/user/authentication")
     public Result<UserDataResponse> authentication(HttpServletRequest httpServletRequest,@RequestBody SurveyRequestVo surveyRequestVo){
-        return   surveyUserService.authentication(surveyRequestVo);
+        return   Result.success(surveyUserService.authentication(surveyRequestVo));
+    }
+
+    @ApiOperation("找回账号")
+    @PostMapping("/user/retrieval")
+    public Result<UserDataResponse> retrievalAccount(@RequestBody Map<String,Object> map) {
+        String cred = String.valueOf(map.get("cred"));
+        return surveyUserService.retrievalAccountByCRED(cred);
+    }
+
+    @ApiOperation("调查用户注册")
+    @PostMapping("/register")
+    public Result<UserDataResponse> register(HttpServletRequest httpServletRequest, @RequestBody SurveyRequestVo surveyRequestVo) {
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
+        UserDataResponse response = surveyUserService.register(ipAddress, surveyRequestVo);
+        return Result.success(response);
     }
 
     @ApiOperation("调查用户登录")
@@ -53,30 +98,5 @@ public class SurveyUserController {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
         UserDataResponse response = surveyUserService.login(ipAddress, surveyRequestVo);
         return Result.success(response);
-    }
-
-    @ApiOperation("更新密码")
-    @PostMapping("/user/sendEmailCode")
-    public Result<Object> sendEmailCode(@RequestBody SurveyRequestVo surveyRequestVo) {
-        return surveyUserService.sendEmailCode(surveyRequestVo);
-    }
-
-    @ApiOperation("更新密码")
-    @PostMapping("/user/updateEmail")
-    public Result<Object> updateEmail(@RequestBody SurveyRequestVo surveyRequestVo) {
-        return surveyUserService.updateOrBindEmail(surveyRequestVo);
-    }
-
-    @ApiOperation("更新密码")
-    @PostMapping("/user/updatePassWord")
-    public Result<Object> updatePassWord(@RequestBody SurveyRequestVo surveyRequestVo) {
-        return surveyUserService.updatePassWord(surveyRequestVo);
-    }
-
-    @ApiOperation("找回账号")
-    @PostMapping("/user/retrieval")
-    public Result<UserDataResponse> retrievalAccount(@RequestBody Map<String,Object> map) {
-        String cred = String.valueOf(map.get("cred"));
-        return surveyUserService.retrievalAccountByCRED(cred);
     }
 }

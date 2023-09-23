@@ -36,6 +36,14 @@
             WHERE
                 id = #{item.id}
     </update>
-    
+
+
+    <select id="selectBakId" resultType="com.lhs.entity.survey.SurveyStatisticsUser">
+         SELECT * FROM  `survey_statistics_user_bak` WHERE uid = #{uid}
+    </select>
+
+    <select id="selectBakOperatorDataById" resultType="com.lhs.entity.survey.SurveyOperator">
+        SELECT * FROM  `survey_character_1_bak` WHERE uid = #{id}
+    </select>
 
 </mapper>
