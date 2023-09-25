@@ -1,14 +1,15 @@
 package com.lhs.common.util;
 
 import com.alibaba.excel.EasyExcel;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.List;
 
 public class ExcelUtil {
 
-    public static  <T> void  exportExcel(HttpServletResponse response, List<T> list, Class<T> tClass,String fileName) {
+    public static  <T> void  exportExcel(HttpServletResponse response, List<T> list, Class<T> tClass, String fileName) {
         try {
             response.setContentType("application/vnd.ms-excel");
             response.setCharacterEncoding("utf-8");

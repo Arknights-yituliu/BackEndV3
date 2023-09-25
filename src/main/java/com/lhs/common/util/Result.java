@@ -1,23 +1,19 @@
 package com.lhs.common.util;
 
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+
 
 import java.io.Serializable;
 
 /**
  * 统一Controller中RESTFul风格接口返回的结果
  */
-@ApiModel(value = "统一数据返回对象")
+
 public class Result<T> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	@ApiModelProperty(required = true,value = "返回状态码", dataType = "int", example = "200")
 	private Integer code;
-	@ApiModelProperty(required = true, value = "返回message信息", dataType = "string", example = "操作成功", position = 1)
 	private String msg;
-	@ApiModelProperty(required = true, value = "返回数据", dataType = "string", example = "返回数据", position = 2)
 	private T data;
 	
 	private Result() {}

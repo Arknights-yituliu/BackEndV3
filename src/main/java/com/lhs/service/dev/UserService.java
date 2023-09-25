@@ -26,8 +26,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -40,21 +40,24 @@ public class UserService {
 
     @Resource
     JavaMailSender javaMailSender;
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
-    @Resource
-    private DeveloperMapper developerMapper;
-    @Resource
-    private UserService userService;
-    @Resource
-    private VisitsMapper visitsMapper;
 
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    private PageVisitsMapper pageVisitsMapper;
+    private final DeveloperMapper developerMapper;
 
-    public UserService(PageVisitsMapper pageVisitsMapper){
+    private final VisitsMapper visitsMapper;
+
+    private final PageVisitsMapper pageVisitsMapper;
+
+    public UserService(RedisTemplate<String, Object> redisTemplate, DeveloperMapper developerMapper, VisitsMapper visitsMapper, PageVisitsMapper pageVisitsMapper) {
+        this.redisTemplate = redisTemplate;
+        this.developerMapper = developerMapper;
+        this.visitsMapper = visitsMapper;
         this.pageVisitsMapper = pageVisitsMapper;
     }
+
+
+
 
     public void sendMail(EmailRequest emailRequest) {
         SimpleMailMessage smm = new SimpleMailMessage();
@@ -89,7 +92,7 @@ public class UserService {
         String code = String.format("%6s", random).replace(" ", "0");
         redisTemplate.opsForValue().set("CODE:" + developer.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
         emailRequest.setText("本次登录验证码：" + code);
-        userService.sendMail(emailRequest);
+        sendMail(emailRequest);
     }
 
 

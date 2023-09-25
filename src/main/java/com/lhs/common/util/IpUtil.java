@@ -5,7 +5,7 @@ package com.lhs.common.util;
 import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class IpUtil {
     public static String getIpAddress(HttpServletRequest request) {

@@ -12,18 +12,20 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    database: 0
-    connect-timeout: 1800000
-    lettuce:
-      pool:
-        max-active: 20
-        max-wait: -1
-        max-idle: 5
-        min-idle: 0
-    password:
+  data:
+   redis:
+     host: 127.0.0.1
+     port: 6379
+     password:
+     database: 0
+     connect-timeout: 1800000
+     lettuce:
+       pool:
+         max-active: 20
+         max-wait: -1
+         max-idle: 5
+         min-idle: 0
+
   mail:
     host: smtp.qq.com #邮件服务器地址
     port: 465 #端口号
@@ -35,7 +37,7 @@ spring:
         debug: true #启动debug调试
         smtp:  "你的qq邮箱授权码"
           socketFactory:
-            class: javax.net.ssl.SSLSocketFactory #SSL连接配置
+            class: jakarta.net.ssl.SSLSocketFactory #SSL连接配置
 
 resourcesPath:
   penguin: src/main/resources/penguin/

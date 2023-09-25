@@ -10,19 +10,20 @@ import com.lhs.entity.survey.SurveyOperator;
 import com.lhs.entity.survey.SurveyOperatorVo;
 import com.lhs.service.survey.*;
 import com.lhs.vo.survey.OperatorPlanVo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@Api(tags = "干员练度调查")
+@Tag(name ="干员练度调查")
 @RequestMapping(value = "/survey")
 @CrossOrigin()
 public class SurveyOperatorController {
@@ -41,14 +42,14 @@ public class SurveyOperatorController {
         this.surveyStatisticsOperatorService = surveyStatisticsOperatorService;
     }
 
-    @ApiOperation("上传干员练度调查表")
+    @Operation(summary ="上传干员练度调查表")
     @PostMapping("/character/upload")
     public Result<Object> uploadCharacterForm(@RequestParam String token, @RequestBody List<SurveyOperator> surveyOperatorList) {
         Map<String, Object> hashMap = surveyOperatorService.uploadCharForm(token, surveyOperatorList);
         return Result.success(hashMap);
     }
 
-    @ApiOperation("通过uid找回森空岛练度")
+    @Operation(summary ="通过uid找回森空岛练度")
     @PostMapping("/operator/retrieval/uid")
     public Result<Object> retrievalCharacterForm(@RequestBody Map<String,String> params) {
         String token = params.get("token");
@@ -58,7 +59,7 @@ public class SurveyOperatorController {
         return Result.success(surveyDataCharList);
     }
 
-    @ApiOperation("通过森空岛导入干员练度V2")
+    @Operation(summary ="通过森空岛导入干员练度V2")
     @PostMapping("/operator/import/skland/v2")
     public Result<Object> importSurveyCharacterFormBySKLandV2(@RequestBody Map<String,String> params) {
         String token = params.get("token");
@@ -66,7 +67,7 @@ public class SurveyOperatorController {
         return surveyOperatorService.importSKLandPlayerInfoV2(token, data);
     }
 
-    @ApiOperation("用户干员练度重置")
+    @Operation(summary ="用户干员练度重置")
     @PostMapping("/operator/reset")
     public Result<Object> operatorDataReset(@RequestBody Map<String,String> params) {
         String token = params.get("token");
@@ -74,7 +75,7 @@ public class SurveyOperatorController {
     }
 
 
-    @ApiOperation("导入干员练度调查表")
+    @Operation(summary ="导入干员练度调查表")
     @PostMapping("/operator/import/excel")
     public Result<Object> importSurveyCharacterFormByExcel(MultipartFile file, @RequestParam String token) {
 
@@ -86,7 +87,7 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
-    @ApiOperation("找回干员练度调查表")
+    @Operation(summary ="找回干员练度调查表")
     @PostMapping("/operator/retrieval")
     public Result<Object> findCharacterForm(@RequestBody Map<String,String> params) {
         String token = params.get("token");
@@ -95,27 +96,27 @@ public class SurveyOperatorController {
         return Result.success(surveyDataCharList);
     }
 
-    @ApiOperation("干员练度调查表统计结果")
+    @Operation(summary ="干员练度调查表统计结果")
     @GetMapping("/operator/result")
     public Result<Object> characterStatisticsResult() {
         HashMap<Object, Object> hashMap = surveyStatisticsOperatorService.getCharStatisticsResult();
         return Result.success(hashMap);
     }
 
-    @ApiOperation("导出干员练度调查表")
+    @Operation(summary ="导出干员练度调查表")
     @GetMapping("/operator/export")
     public void exportSurveyCharacterForm(HttpServletResponse response, @RequestParam String token) {
         surveyOperatorService.exportSurveyOperatorForm(response,token);
     }
 
-    @ApiOperation("上传训练干员计划")
+    @Operation(summary ="上传训练干员计划")
     @PostMapping("/operator/plan/save")
     public Result<Object> saveOperatorPlan(@RequestBody OperatorPlanVo OperatorPlanVo) {
 
         return operatorPlanService.savePlan(OperatorPlanVo);
     }
 
-    @ApiOperation("获取训练干员计划")
+    @Operation(summary ="获取训练干员计划")
     @PostMapping("/operator/plan")
     public Result<List<OperatorPlan>> getOperatorPlan(@RequestBody OperatorPlanVo OperatorPlanVo) {
 

@@ -7,22 +7,26 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.Log;
+
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.maa.Schedule;
 import com.lhs.mapper.ScheduleMapper;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.util.Date;
 
 @Service
 public class ScheduleService {
 
-    @Resource
-    private ScheduleMapper scheduleMapper;
+
+    private final ScheduleMapper scheduleMapper;
+
+    public ScheduleService(ScheduleMapper scheduleMapper) {
+        this.scheduleMapper = scheduleMapper;
+    }
 
     public void saveScheduleJson(String scheduleJson, Long scheduleId) {
         Schedule schedule = new Schedule();

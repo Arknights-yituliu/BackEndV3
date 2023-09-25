@@ -42,6 +42,7 @@ public enum ResultCode {
 	REGISTER_TOO_MANY_TIMES(20012, "同ID注册次数过多"),
 
 	USER_PASSWORD_ERROR(20014, "密码错误"),
+	NOT_SET_PASSWORD_OR_BIND_EMAIL(20015,"请先设置密码或绑定邮箱"),
 
 	
 	/* 业务错误：30001-39999 */
