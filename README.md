@@ -1,7 +1,7 @@
 # yituliuBackEnd
 项目框架:
-![](https://img.shields.io/badge/java-8-blue)
-![](https://img.shields.io/badge/SpringBoot-2.5.5-brightgreen) 
+![](https://img.shields.io/badge/java-17-blue)
+![](https://img.shields.io/badge/SpringBoot-3.0.11-brightgreen) 
 ![](https://img.shields.io/badge/Mysql-5.7.3-blue)
 ![](https://img.shields.io/badge/Redis-7.0.5-red) 
 
@@ -11,6 +11,5 @@
 ### 运行前准备：<br>
 需要初始导入的数据在src/main/resources/sql/下（关卡信息表不会更新，但保证了最低正常运行所需的数据)
 
-加工站合成表等数据存在src/main/resources/item/下
 
 MAA相关接口如需了解请进群938710832
