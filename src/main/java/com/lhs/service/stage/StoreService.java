@@ -9,18 +9,18 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.other.HoneyCake;
-import com.lhs.entity.stage.StoreAct;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.entity.po.dev.HoneyCake;
+import com.lhs.entity.po.stage.StoreAct;
 import com.lhs.mapper.HoneyCakeMapper;
 import com.lhs.mapper.StoreActMapper;
 import com.lhs.mapper.StorePermMapper;
-import com.lhs.entity.stage.Item;
-import com.lhs.entity.stage.StorePerm;
+import com.lhs.entity.po.stage.Item;
+import com.lhs.entity.po.stage.StorePerm;
 import com.lhs.service.dev.OSSService;
-import com.lhs.vo.stage.ItemCustomValue;
-import com.lhs.vo.stage.StoreItem;
-import com.lhs.vo.stage.StoreActVo;
+import com.lhs.entity.dto.stage.ItemCustomValue;
+import com.lhs.entity.vo.stage.StoreItem;
+import com.lhs.entity.vo.stage.StoreActVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -59,7 +59,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     @Transactional
     public void updateStorePerm() {
         List<StorePerm> storePerms = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.getItemListCache("public-"+0.625)
+        Map<String, Item> collect = itemService.getItemListCache("public."+0.625)
                 .stream()
                 .collect(Collectors.toMap(Item::getItemName, Function.identity()));
 
@@ -87,7 +87,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
     public String updateActStoreByActName(StoreActVo storeActVo,Boolean level)  {
-        List<Item> items = itemService.getItemListCache("public-"+0.625);
+        List<Item> items = itemService.getItemListCache("public."+0.625);
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItem> storeItemList = storeActVo.getActStore();
@@ -165,7 +165,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         List<ItemCustomValue> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValue.class);
         Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValue::getItemName, ItemCustomValue::getItemValue));
-        itemService.getItemListCache("public-"+0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
+        itemService.getItemListCache("public."+0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
         JSONArray packList = JSONArray.parseArray(packStr);
 

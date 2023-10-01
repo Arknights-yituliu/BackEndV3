@@ -1,12 +1,17 @@
+#启动端口
 server:
   port: 10012
 
 spring:
+#  数据库配置
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
+    #  数据库链接
     url: jdbc:mysql://localhost:3306/数据库名?serverTimezone=GMT%2B8&characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true
+    #  账号
     username: root
+    #  密码
     password: root
   jpa:
     hibernate:
@@ -15,6 +20,7 @@ spring:
   data:
    redis:
      host: 127.0.0.1
+     #  redis默认端口
      port: 6379
      password:
      database: 0
@@ -26,38 +32,30 @@ spring:
          max-idle: 5
          min-idle: 0
 
-  mail:
-    host: smtp.qq.com #邮件服务器地址
-    port: 465 #端口号
-    username:
-    password:
-    default-encoding: UTF-8 #默认编码格式
-    properties:
-      mail:
-        debug: true #启动debug调试
-        smtp:  "你的qq邮箱授权码"
-          socketFactory:
-            class: jakarta.net.ssl.SSLSocketFactory #SSL连接配置
-
+#  资源路径
 resourcesPath:
   penguin: src/main/resources/penguin/
   item: src/main/resources/item/
   backup: src/main/resources/backups/
   schedule: src/main/resources/schedule/
 
+#  密匙
 encryption:
   secret: 密匙
   signKey: 签名
 
+#  企鹅物流API
 penguin:
   auto: 企鹅物流API
   global: https://penguin-stats.io/PenguinStats/api/v2/result/matrix?show_closed_zones=true
 
+#  阿里云AccessKey
 aliyun:
   accessKeyID:  阿里云密匙
   accessKeySecret: 阿里云密匙
   bakBucketName: 存储桶名称
 
+#  阿里云AccessKey
 skland:
   playerInfoAPI: skdAPI
   playerBindingAPI: skdAPI
@@ -66,6 +64,7 @@ skland:
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+#  是否开启swagger文档
 swagger2:
    enable: true
 

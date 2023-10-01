@@ -1,7 +1,7 @@
 package com.lhs.common.exception;
 
 
-import com.lhs.common.util.Result;
+import com.lhs.common.entity.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;

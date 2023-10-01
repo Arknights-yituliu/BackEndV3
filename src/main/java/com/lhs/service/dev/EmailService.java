@@ -1,9 +1,7 @@
 package com.lhs.service.dev;
 
-import com.lhs.vo.user.EmailRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -11,16 +9,11 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.Resource;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
@@ -170,8 +163,6 @@ public class EmailService {
      *
      * @param encryptText 被签名的字符串
      * @param encryptKey  密钥
-     * @return
-     * @throws Exception
      */
     public static byte[] HmacSHA1Encrypt(String encryptText, String encryptKey) throws Exception {
         byte[] data = encryptKey.getBytes(ENCODING);
@@ -192,8 +183,6 @@ public class EmailService {
     /**
      * 得到UTC时间，类型为字符串，格式为"yyyy-MM-dd HH:mm"<br />
      * 如果获取失败，返回null
-     *
-     * @return
      */
     public static String getUTCTimeStr() {
         // 1、取得本地时间：

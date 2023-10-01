@@ -3,15 +3,19 @@ package com.lhs.service.survey;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.entity.Result;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.UserStatus;
+import com.lhs.common.util.UserStatusCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.EmailDto;
 import com.lhs.entity.dto.survey.UserDataDto;
 import com.lhs.entity.dto.survey.SklandDto;
-import com.lhs.entity.survey.SurveyOperator;
-import com.lhs.entity.survey.SurveyUser;
-import com.lhs.entity.survey.SurveyStatisticsUser;
+import com.lhs.entity.po.survey.SurveyOperator;
+import com.lhs.entity.po.survey.SurveyUser;
+import com.lhs.entity.po.survey.SurveyStatisticsUser;
 
 import com.lhs.mapper.survey.SurveyOperatorMapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
@@ -19,16 +23,13 @@ import com.lhs.mapper.survey.SurveyStatisticsUserMapper;
 import com.lhs.service.dev.EmailService;
 import com.lhs.service.dev.OSSService;
 
-import com.lhs.vo.survey.UserDataResponse;
-import com.lhs.vo.user.EmailRequest;
+import com.lhs.entity.vo.survey.UserDataResponse;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.SSLSocketFactory;
 
 @Service
 public class SurveyUserService {
@@ -410,7 +411,6 @@ public class SurveyUserService {
             throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
         }
 
-        surveyUser.setNickName(nickName);
 
         UserDataResponse response = new UserDataResponse();
         response.setStatus(surveyUser.getStatus());
@@ -836,7 +836,7 @@ public class SurveyUserService {
             String token = AES.encrypt(surveyUserByUid.getUserName() + "." + surveyUserByUid.getId() + "." + timeStamp, ApplicationConfig.Secret);
             response.setToken(token);
             response.setStatus(surveyUserByUid.getStatus());
-            surveyUserByUid.setNickName(nickName);
+
             updateSurveyUser(surveyUserByUid);
             return Result.success(response);
         }
@@ -862,7 +862,6 @@ public class SurveyUserService {
 
         SurveyUser surveyUser = new SurveyUser();
         surveyUser.setId(id);
-        surveyUser.setNickName(nickName);
         surveyUser.setIp(ipAddress);
         surveyUser.setUserName(userName);
         surveyUser.setUid(uid);

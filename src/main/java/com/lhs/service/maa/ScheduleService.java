@@ -8,12 +8,11 @@ import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.maa.Schedule;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.entity.po.maa.Schedule;
 import com.lhs.mapper.ScheduleMapper;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.util.Date;

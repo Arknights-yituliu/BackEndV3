@@ -1,13 +1,13 @@
 package com.lhs.service.survey;
 
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.survey.SurveyScore;
-import com.lhs.entity.survey.SurveyStatisticsScore;
-import com.lhs.entity.survey.SurveyUser;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.entity.po.survey.SurveyScore;
+import com.lhs.entity.po.survey.SurveyStatisticsScore;
+import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.mapper.survey.SurveyScoreMapper;
-import com.lhs.vo.survey.SurveyScoreVo;
-import com.lhs.vo.survey.SurveyStatisticsScoreVo;
+import com.lhs.entity.vo.survey.SurveyScoreVo;
+import com.lhs.entity.vo.survey.SurveyStatisticsScoreVo;
 
 import lombok.extern.slf4j.Slf4j;
 

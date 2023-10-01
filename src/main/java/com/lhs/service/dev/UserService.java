@@ -7,26 +7,22 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.Log;
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.other.Developer;
-import com.lhs.entity.other.PageVisits;
-import com.lhs.entity.other.Visits;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.entity.po.dev.Developer;
+import com.lhs.entity.po.dev.PageVisits;
+import com.lhs.entity.po.dev.Visits;
 import com.lhs.mapper.PageVisitsMapper;
 
 import com.lhs.mapper.VisitsMapper;
-import com.lhs.vo.user.LoginVo;
+import com.lhs.entity.vo.user.LoginVo;
 import com.lhs.mapper.DeveloperMapper;
-import com.lhs.vo.user.EmailRequest;
-import com.lhs.vo.user.PageVisitsVo;
-import com.lhs.vo.user.VisitsTimeVo;
+import com.lhs.entity.vo.user.PageVisitsVo;
+import com.lhs.entity.vo.user.VisitsTimeVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -38,8 +34,7 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    @Resource
-    JavaMailSender javaMailSender;
+
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -49,24 +44,18 @@ public class UserService {
 
     private final PageVisitsMapper pageVisitsMapper;
 
-    public UserService(RedisTemplate<String, Object> redisTemplate, DeveloperMapper developerMapper, VisitsMapper visitsMapper, PageVisitsMapper pageVisitsMapper) {
+    private EmailService emailService;
+
+
+    public UserService(RedisTemplate<String, Object> redisTemplate, DeveloperMapper developerMapper, VisitsMapper visitsMapper, PageVisitsMapper pageVisitsMapper, EmailService emailService) {
         this.redisTemplate = redisTemplate;
         this.developerMapper = developerMapper;
         this.visitsMapper = visitsMapper;
         this.pageVisitsMapper = pageVisitsMapper;
+        this.emailService = emailService;
     }
 
 
-
-
-    public void sendMail(EmailRequest emailRequest) {
-        SimpleMailMessage smm = new SimpleMailMessage();
-        smm.setFrom(emailRequest.getFrom());//发送者
-        smm.setTo(emailRequest.getTo());//收件人
-        smm.setSubject(emailRequest.getSubject());//邮件主题
-        smm.setText(emailRequest.getText());//邮件内容
-        javaMailSender.send(smm);//发送邮件
-    }
 
     public Boolean developerLevel(HttpServletRequest request) {
         String token = request.getHeader("token");
@@ -83,16 +72,13 @@ public class UserService {
         queryWrapper.eq("developer", loginVo.getDeveloper());
         Developer developer = developerMapper.selectOne(queryWrapper);
         if (developer == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-//        String token =  developer.getDeveloper()+developer.getEmail()+new Date().getTime();
-        EmailRequest emailRequest = new EmailRequest();
-        emailRequest.setFrom("1820702789@qq.com");
-        emailRequest.setTo(developer.getEmail());
-        emailRequest.setSubject("开发者登录");
+        String email = developer.getEmail();
         int random = new Random().nextInt(999999);
         String code = String.format("%6s", random).replace(" ", "0");
         redisTemplate.opsForValue().set("CODE:" + developer.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
-        emailRequest.setText("本次登录验证码：" + code);
-        sendMail(emailRequest);
+        String text =  "本次登录验证码："+ code;
+        String subject = "开发者登录";
+        emailService.singleSendMail(email,text,subject);
     }
 
 

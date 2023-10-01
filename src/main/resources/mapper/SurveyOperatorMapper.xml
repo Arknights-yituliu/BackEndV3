@@ -38,11 +38,11 @@
     </update>
 
 
-    <select id="selectBakId" resultType="com.lhs.entity.survey.SurveyStatisticsUser">
+    <select id="selectBakId" resultType="com.lhs.entity.po.survey.SurveyStatisticsUser">
          SELECT * FROM  `survey_statistics_user_bak` WHERE uid = #{uid}
     </select>
 
-    <select id="selectBakOperatorDataById" resultType="com.lhs.entity.survey.SurveyOperator">
+    <select id="selectBakOperatorDataById" resultType="com.lhs.entity.po.survey.SurveyOperator">
         SELECT * FROM  `survey_character_1_bak` WHERE uid = #{id}
     </select>
 

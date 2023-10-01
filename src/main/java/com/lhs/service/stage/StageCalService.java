@@ -4,18 +4,18 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.SerializationUtils;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.Log;
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.stage.*;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.entity.po.stage.*;
+
 import com.lhs.mapper.QuantileMapper;
 import com.lhs.mapper.StageResultMapper;
-import com.lhs.vo.stage.PenguinDataVo;
-import com.lhs.vo.stage.StageAndItemCoefficient;
+import com.lhs.entity.dto.stage.PenguinDataDto;
+import com.lhs.entity.vo.stage.StageVersion;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class StageCalService extends ServiceImpl<StageResultMapper,StageResult> {
+public class StageCalService extends ServiceImpl<StageResultMapper, StageResult> {
 
 
 
@@ -53,27 +53,27 @@ public class StageCalService extends ServiceImpl<StageResultMapper,StageResult> 
      * 用企鹅物流的数据和第一次迭代值Vn进行第一次关卡效率En计算
      *
      * @param items          材料表
-     * @param stageAndItemCoefficient 各种计算条件
+     * @param stageVersion 各种计算条件
      * @return map<蓝材料名称 ， 蓝材料对应的常驻最高关卡效率En>
      */
     @Transactional
-    public Map<String, Double> stageResultCal(List<Item> items, StageAndItemCoefficient stageAndItemCoefficient) {
+    public Map<String, Double> stageResultCal(List<Item> items, StageVersion stageVersion) {
         //读取企鹅物流数据文件
         String response = FileUtil.read(ApplicationConfig.Penguin + "matrix auto.json");
         if (response == null) throw new ServiceException(ResultCode.DATA_NONE);
         String itemTypeTableStr = FileUtil.read(ApplicationConfig.Item + "itemTypeTable.json");
         JSONObject itemTypeTable = JSONObject.parseObject(itemTypeTableStr);
 
-        double expCoefficient = stageAndItemCoefficient.getExpCoefficient();
-        int sampleSize = stageAndItemCoefficient.getSampleSize();
-        String version = stageAndItemCoefficient.getType() + "-" + expCoefficient;
+        int sampleSize = stageVersion.getSampleSize();
+        String version = stageVersion.getVersion();
+        System.out.println(version);
 
 
         //将企鹅物流文件的内容转为集合
-        List<PenguinDataVo> penguinDataVoList = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataVo.class);
+        List<PenguinDataDto> penguinDataDtoList = JSONArray.parseArray(JSONObject.parseObject(response).getString("matrix"), PenguinDataDto.class);
 
         //合并企鹅物流的标准和磨难关卡的样本
-        penguinDataVoList = mergePenguinData(penguinDataVoList);
+        penguinDataDtoList = mergePenguinData(penguinDataDtoList);
 
         //将item表的各项信息转为Map  <itemId,Item>
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
@@ -94,7 +94,7 @@ public class StageCalService extends ServiceImpl<StageResultMapper,StageResult> 
 
         long id = 1690901576000L-date.getTime();
 
-        for (PenguinDataVo penguinData : penguinDataVoList) {
+        for (PenguinDataDto penguinData : penguinDataDtoList) {
             //样本量小进行下次循环
             if (penguinData.getTimes() < sampleSize) continue;
             //掉落为零进行下次循环
@@ -194,7 +194,7 @@ public class StageCalService extends ServiceImpl<StageResultMapper,StageResult> 
             String secondary = "empty";
             String secondaryId = "empty";
             if(stageResults.size()>1){
-                double ratio = stageResults.get(1).getResult()/apValueSum;
+                double ratio = stageResults.get(1).getResult()/apCost;
                 if(ratio>0.1){
                     secondary = stageResults.get(1).getItemName();
                     secondaryId = stageResults.get(1).getItemId();
@@ -281,13 +281,13 @@ public class StageCalService extends ServiceImpl<StageResultMapper,StageResult> 
      * @param penguinDataList 企鹅物流数据
      * @return 合并完的企鹅数据
      */
-    public List<PenguinDataVo> mergePenguinData(List<PenguinDataVo> penguinDataList) {
-        Map<String, PenguinDataVo> collect = penguinDataList.stream().collect(Collectors.toMap(entity -> entity.getStageId() + entity.getItemId(), Function.identity()));
+    public List<PenguinDataDto> mergePenguinData(List<PenguinDataDto> penguinDataList) {
+        Map<String, PenguinDataDto> collect = penguinDataList.stream().collect(Collectors.toMap(entity -> entity.getStageId() + entity.getItemId(), Function.identity()));
         penguinDataList.stream()
                 .filter(penguinData -> penguinData.getStageId().startsWith("main_10") || penguinData.getStageId().startsWith("main_11") || penguinData.getStageId().startsWith("main_12"))
                 .forEach(entity -> {
                     if (collect.get(entity.getStageId().replace("main", "tough") + entity.getItemId()) != null) {
-                        PenguinDataVo toughData = collect.get(entity.getStageId().replace("main", "tough") + entity.getItemId());
+                        PenguinDataDto toughData = collect.get(entity.getStageId().replace("main", "tough") + entity.getItemId());
                         entity.setTimes(entity.getTimes() + toughData.getTimes());
                         entity.setQuantity(entity.getQuantity() + toughData.getQuantity());
                     }

@@ -10,18 +10,18 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.FileUtil;
 
-import com.lhs.entity.stage.ItemIterationValue;
-import com.lhs.entity.stage.WorkShopProducts;
+import com.lhs.entity.po.stage.ItemIterationValue;
+import com.lhs.entity.po.stage.WorkShopProducts;
 import com.lhs.mapper.ItemIterationValueMapper;
 import com.lhs.mapper.ItemMapper;
-import com.lhs.entity.stage.Item;
+import com.lhs.entity.po.stage.Item;
 
 import com.lhs.mapper.WorkShopProductsMapper;
-import com.lhs.vo.stage.CompositeTable;
-import com.lhs.vo.stage.ItemCost;
+import com.lhs.entity.dto.stage.CompositeTable;
+import com.lhs.entity.dto.stage.ItemCost;
 
-import com.lhs.vo.stage.ItemVo;
-import com.lhs.vo.stage.StageAndItemCoefficient;
+import com.lhs.entity.vo.stage.ItemVo;
+import com.lhs.entity.vo.stage.StageVersion;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -63,20 +63,22 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
      * @return 新的材料信息表Vn+1
      */
     @Transactional
-    public List<Item> ItemValueCalculation(List<Item> items, StageAndItemCoefficient stageAndItemCoefficient) {
+    public List<Item> ItemValueCalculation(List<Item> items, StageVersion stageVersion) {
 
-        double expCoefficient =  stageAndItemCoefficient.getExpCoefficient();
-        String version = stageAndItemCoefficient.getType() + "-" + expCoefficient;
+        double expCoefficient =  stageVersion.getExpCoefficient();
+        String version = stageVersion.getVersion();
 
         //读取上次迭代根据Vn计算出的副产物价值
         QueryWrapper<ItemIterationValue> iterationValueQueryWrapper = new QueryWrapper<>();
         iterationValueQueryWrapper.eq("version",version);
         List<ItemIterationValue> itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
 
+
+
         //找不到读默认的0.625版本
         if(itemIterationValueList.size()<1){
             iterationValueQueryWrapper.clear();
-            iterationValueQueryWrapper.eq("version","public-0.625");
+            iterationValueQueryWrapper.eq("version","original");
             itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
         }
 
@@ -88,7 +90,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         //找不到读默认的0.625版本
         if(workShopProductsList.size()<1){
             workShopProductsQueryWrapper.clear();
-            workShopProductsQueryWrapper.eq("version","public-0.625");
+            workShopProductsQueryWrapper.eq("version","original");
             workShopProductsList = workShopProductsMapper.selectList(workShopProductsQueryWrapper);
         }
 
@@ -248,7 +250,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             String fileName = URLEncoder.encode("itemValue", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
-            List<Item> list = getItemListCache("public-0.625");
+            List<Item> list = getItemListCache("public.0.625");
             List<ItemVo> itemVoList = new ArrayList<>();
             for (Item item : list) {
                 ItemVo itemVo = new ItemVo();
@@ -263,7 +265,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
     }
 
     public void exportItemJson(HttpServletResponse response) {
-        List<Item> list = getItemListCache("public-0.625");
+        List<Item> list = getItemListCache("public.0.625");
         List<ItemVo> itemVoList = new ArrayList<>();
         for (Item item : list) {
             ItemVo itemVo = new ItemVo();

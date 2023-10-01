@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.HttpRequestUtil;
-import com.lhs.entity.stage.Stage;
+import com.lhs.entity.po.stage.Stage;
 
 import com.lhs.mapper.StageMapper;
 import com.lhs.service.dev.OSSService;

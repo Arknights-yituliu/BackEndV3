@@ -1,12 +1,16 @@
 package com.lhs.controller;
 
 
-import com.lhs.common.util.Result;
-import com.lhs.entity.other.HoneyCake;
-import com.lhs.entity.stage.*;
+import com.lhs.common.entity.Result;
+import com.lhs.entity.po.dev.HoneyCake;
+import com.lhs.entity.po.stage.Item;
+import com.lhs.entity.po.stage.Stage;
+import com.lhs.entity.po.stage.StageResult;
+import com.lhs.entity.po.stage.StorePerm;
+import com.lhs.entity.vo.stage.StageResultVo;
 import com.lhs.service.stage.*;
-import com.lhs.vo.stage.OrundumPerApResultVo;
-import com.lhs.vo.stage.StoreActVo;
+import com.lhs.entity.vo.stage.OrundumPerApResultVo;
+import com.lhs.entity.vo.stage.StoreActVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +59,7 @@ public class StageController {
     @Operation(summary ="获取物品价值表")
     @GetMapping("/item/value")
     public Result<List<Item>> getItemValue(@RequestParam Double expCoefficient) {
-        List<Item> items = itemService.getItemListCache("public-"+expCoefficient);
+        List<Item> items = itemService.getItemListCache("public."+expCoefficient);
         return Result.success(items);
     }
 
@@ -79,12 +83,12 @@ public class StageController {
     //    @TakeCount(name = "蓝材料推荐关卡")
     @Operation(summary ="获取蓝材料推荐关卡按效率倒序")
     @GetMapping("/stage/t3")
-    public Result<List<List<StageResult>>> queryStageResult_t3(@RequestParam Double expCoefficient) {
+    public Result<List<List<StageResultVo>>> queryStageResult_t3(@RequestParam Double expCoefficient) {
 
-        String version = "public-" + expCoefficient;
+        String version = "public." + expCoefficient;
 
-        List<List<StageResult>> stageResultVoList =
-                stageResultService.queryStageResultData_t3(version);
+        List<List<StageResultVo>> stageResultVoList =
+                stageResultService.queryStageResultDataT3V2(version);
 
         return Result.success(stageResultVoList);
     }
@@ -94,7 +98,7 @@ public class StageController {
     @GetMapping("/stage/t2")
     public Result<List<List<StageResult>>> queryStageResult_t2(@RequestParam Double expCoefficient) {
 
-        String version = "public-" + expCoefficient;
+        String version = "public." + expCoefficient;
 
         List<List<StageResult>> stageResultVoList =
                 stageResultService.queryStageResultData_t2(version);
@@ -107,7 +111,7 @@ public class StageController {
     @GetMapping("/stage/closed")
     public Result<List<List<StageResult>>> queryStageResult_closedActivities(@RequestParam Double expCoefficient) {
 
-        String version = "public-" + expCoefficient;
+        String version = "public." + expCoefficient;
 
         List<List<StageResult>> stageResultVoList =
                 stageResultService.queryStageResultData_closedActivities(version);
@@ -121,7 +125,7 @@ public class StageController {
     public Result<List<OrundumPerApResultVo>> queryStageResult_Orundum() {
 
         double expCoefficient = 0.625;
-        String version = "public-" + expCoefficient;
+        String version = "public." + expCoefficient;
 
         List<OrundumPerApResultVo> OrundumPerApResultVoList = stageResultService
                 .queryStageResultData_Orundum(version);
@@ -184,10 +188,10 @@ public class StageController {
 
 
     @Operation(summary ="获取蓝材料推荐关卡按效率倒序")
-    @GetMapping("auth/stage/t3")
-    public Result<List<List<StageResult>>> authQueryStageResult_t3(@RequestParam Double expCoefficient) {
+    @GetMapping("/auth/stage/t3")
+    public Result<List<List<StageResultVo>>> authQueryStageResult_t3(@RequestParam Double expCoefficient) {
         String version = "auth-" + expCoefficient;
-        List<List<StageResult>> stageResultVoList =
+        List<List<StageResultVo>> stageResultVoList =
                 stageResultService.queryStageResultData_t3(version);
 
         return Result.success(stageResultVoList);

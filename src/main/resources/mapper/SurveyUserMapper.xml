@@ -5,9 +5,9 @@
 
     <insert id="save">
         INSERT INTO survey_user
-        (`id`,`pass_word`,`uid`,`user_name`,`create_time`,`update_time`,`ip`,`status`,`email`,`nick_name`)
+        (`id`,`pass_word`,`uid`,`user_name`,`create_time`,`update_time`,`ip`,`status`,`email`)
         VALUES
-       (#{item.id},#{item.passWord},#{item.uid},#{item.userName},#{item.createTime},#{item.updateTime},#{item.ip},#{item.status},#{item.email},#{item.nickName})
+       (#{item.id},#{item.passWord},#{item.uid},#{item.userName},#{item.createTime},#{item.updateTime},#{item.ip},#{item.status},#{item.email})
     </insert>
 
     <update id="updateUserById">
@@ -18,8 +18,7 @@
             `user_name`   = #{item.userName},
             `update_time` = #{item.updateTime},
             `status`      = #{item.status},
-            `email`       = #{item.email},
-            `nick_name`   = #{item.nickName}
+            `email`       = #{item.email}
             WHERE
             id = #{item.id}
     </update>

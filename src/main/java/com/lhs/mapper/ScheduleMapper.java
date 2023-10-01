@@ -1,7 +1,7 @@
 package com.lhs.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lhs.entity.maa.Schedule;
+import com.lhs.entity.po.maa.Schedule;
 import org.apache.ibatis.annotations.Mapper;
 
 

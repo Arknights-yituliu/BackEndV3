@@ -2,10 +2,10 @@ package com.lhs.service.maa;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.lhs.entity.maa.SurveyRecruit;
-import com.lhs.entity.maa.RecruitStatistics;
+import com.lhs.entity.po.maa.SurveyRecruit;
+import com.lhs.entity.po.maa.RecruitStatistics;
 import com.lhs.mapper.survey.SurveyRecruitMapper;
-import com.lhs.vo.maa.MaaRecruitVo;
+import com.lhs.entity.vo.maa.MaaRecruitVo;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import java.util.*;

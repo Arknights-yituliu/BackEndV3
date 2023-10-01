@@ -2,10 +2,10 @@ package com.lhs.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.lhs.common.util.Log;
-import com.lhs.common.util.Result;
+import com.lhs.common.entity.Result;
 import com.lhs.service.maa.SurveyRecruitService;
 import com.lhs.service.maa.ScheduleService;
-import com.lhs.vo.maa.MaaRecruitVo;
+import com.lhs.entity.vo.maa.MaaRecruitVo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

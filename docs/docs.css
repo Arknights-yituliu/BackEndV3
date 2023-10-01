@@ -1,0 +1,104 @@
+.docs {
+    display: flex;
+}
+
+.menu {
+    width: 240px;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 12px;
+    border-right: black solid 2px;
+}
+
+.image {
+    width: 600px;
+    display: block;
+    margin: 12px;
+    box-shadow: 1px 1px 1px #d7d7d7;
+}
+
+.menu_a {
+    text-decoration: none;
+    color: #0076a9;
+}
+
+.menu_item_1 {
+    padding: 4px;
+    font-size: 20px;
+    font-weight: 800;
+    display: block;
+
+}
+
+.menu_item_2 {
+    padding: 4px 0 4px 12px;
+    font-size: 18px;
+    font-weight: 800;
+    display: block;
+}
+
+.menu_item_3 {
+    padding: 4px 0 4px 20px;
+    font-size: 16px;
+    font-weight: 800;
+    display: block;
+}
+
+.menu_item_4 {
+    padding: 4px 0 4px 28px;
+    font-size: 16px;
+    font-weight: 800;
+    display: block;
+}
+
+.menu_item_5 {
+    padding: 4px 0 4px 28px;
+    font-size: 16px;
+    font-weight: 800;
+    display: block;
+}
+
+.main {
+    width: calc(99% - 300px);
+    position: absolute;
+    left: 300px;
+    line-height: 28px;
+}
+
+.tree_table div{
+    display: flex;
+}
+
+.blank_space{
+    width: 60px;
+    height: 24px;
+    margin-top: -8px;
+    border-left:2px red solid;
+    margin-left: 10px;
+}
+
+.blank_space_line{
+    width: 40px;
+    color: red;
+    font-weight: 600;
+    height: 24px;
+    margin-top: -8px;
+    border-bottom:2px red solid;
+    border-left:2px red solid;
+    margin-left: 10px;
+}
+
+.code_area{
+    background-color: #3f3f3f;
+    color: white;
+    font-weight: 600;
+    margin: 20px;
+    font-size: 18px;
+}
+
+.code{
+    margin: 0;
+    padding: 0;
+}

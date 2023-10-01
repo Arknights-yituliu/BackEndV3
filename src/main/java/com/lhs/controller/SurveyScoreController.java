@@ -1,10 +1,10 @@
 package com.lhs.controller;
 
 
-import com.lhs.common.util.*;
-import com.lhs.entity.survey.SurveyScore;
+import com.lhs.common.entity.Result;
+import com.lhs.entity.po.survey.SurveyScore;
 import com.lhs.service.survey.*;
-import com.lhs.vo.survey.SurveyStatisticsScoreVo;
+import com.lhs.entity.vo.survey.SurveyStatisticsScoreVo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

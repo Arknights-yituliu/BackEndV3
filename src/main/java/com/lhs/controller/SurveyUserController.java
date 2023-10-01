@@ -3,13 +3,13 @@ package com.lhs.controller;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.IpUtil;
-import com.lhs.common.util.Result;
+import com.lhs.common.entity.Result;
 import com.lhs.entity.dto.survey.EmailDto;
 import com.lhs.entity.dto.survey.UserDataDto;
 import com.lhs.entity.dto.survey.SklandDto;
 import com.lhs.service.survey.SurveyUserService;
 
-import com.lhs.vo.survey.UserDataResponse;
+import com.lhs.entity.vo.survey.UserDataResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

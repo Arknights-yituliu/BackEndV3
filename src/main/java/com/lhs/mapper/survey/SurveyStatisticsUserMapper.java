@@ -1,7 +1,7 @@
 package com.lhs.mapper.survey;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lhs.entity.survey.SurveyStatisticsUser;
+import com.lhs.entity.po.survey.SurveyStatisticsUser;
 import org.springframework.stereotype.Repository;
 
 @Repository

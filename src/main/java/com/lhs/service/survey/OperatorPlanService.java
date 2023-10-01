@@ -2,14 +2,14 @@ package com.lhs.service.survey;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Result;
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.survey.OperatorPlan;
-import com.lhs.entity.survey.OperatorTable;
-import com.lhs.entity.survey.SurveyUser;
+import com.lhs.common.entity.Result;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.entity.po.survey.OperatorPlan;
+import com.lhs.entity.po.survey.OperatorTable;
+import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.mapper.survey.OperatorTableMapper;
 import com.lhs.service.dev.OSSService;
-import com.lhs.vo.survey.OperatorPlanVo;
+import com.lhs.entity.vo.survey.OperatorPlanVo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

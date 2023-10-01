@@ -5,13 +5,16 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.entity.Result;
+import com.lhs.common.entity.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
-import com.lhs.entity.survey.*;
+import com.lhs.entity.po.survey.*;
+import com.lhs.entity.vo.survey.SurveyOperatorExcelVo;
+import com.lhs.entity.vo.survey.UserDataResponse;
 import com.lhs.mapper.survey.SurveyOperatorMapper;
 import com.lhs.mapper.survey.SurveyOperatorVoMapper;
 import com.lhs.service.dev.OSSService;
-import com.lhs.vo.survey.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -388,7 +391,6 @@ public class SurveyOperatorService {
             surveyOperatorList.add(surveyOperator);
         }
 
-        surveyUser.setNickName(nickName);
 
         return Result.success(updateSurveyData(surveyUser, surveyOperatorList));
     }

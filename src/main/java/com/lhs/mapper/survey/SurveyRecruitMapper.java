@@ -1,8 +1,8 @@
 package com.lhs.mapper.survey;
 
 
-import com.lhs.entity.maa.SurveyRecruit;
-import com.lhs.entity.maa.RecruitStatistics;
+import com.lhs.entity.po.maa.SurveyRecruit;
+import com.lhs.entity.po.maa.RecruitStatistics;
 
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;

@@ -10,7 +10,7 @@
                 #{surveyRecruit.source}, #{surveyRecruit.tag}, #{surveyRecruit.uid}, #{surveyRecruit.version})
     </insert>
 
-    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.maa.SurveyRecruit">
+    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.po.maa.SurveyRecruit">
         SELECT *
         FROM  ${tableName}
         WHERE
@@ -24,11 +24,11 @@
         VALUES (#{statistics.statisticalItem}, #{statistics.statisticalResult});
     </insert>
 
-    <select id="selectRecruitStatistics" resultType="com.lhs.entity.maa.RecruitStatistics">
+    <select id="selectRecruitStatistics" resultType="com.lhs.entity.po.maa.RecruitStatistics">
         SELECT * FROM `recruit_statistics`
     </select>
 
-    <select id="selectRecruitStatisticsByItem" resultType="com.lhs.entity.maa.RecruitStatistics">
+    <select id="selectRecruitStatisticsByItem" resultType="com.lhs.entity.po.maa.RecruitStatistics">
         SELECT * FROM `recruit_statistics` WHERE  `statistical_item` = #{statisticalItem}
     </select>
 
