@@ -15,6 +15,7 @@ import com.lhs.entity.dto.survey.EmailDto;
 import com.lhs.entity.dto.survey.UpdateUserDataDto;
 import com.lhs.entity.dto.survey.UserDataDto;
 import com.lhs.entity.dto.survey.SklandDto;
+import com.lhs.entity.po.stage.Item;
 import com.lhs.entity.po.survey.SurveyOperator;
 import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.entity.po.survey.SurveyStatisticsUser;
@@ -152,68 +153,28 @@ public class SurveyUserService {
 
     /**
      * 调查站登录
-     *
      * @param ipAddress       ip
      * @param userDataDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return 用户状态信息
      */
     public UserDataResponse loginV2(String ipAddress, UserDataDto userDataDto) {
         String accountType = userDataDto.getAccountType();
-        String userName = userDataDto.getUserName().trim();
-        String passWord = userDataDto.getPassWord().trim();
-        String email = userDataDto.getEmail().trim();
-        String emailCode = userDataDto.getEmailCode().trim();
 
         if (accountType == null || "undefined".equals(accountType) || "null".equals(accountType)) {
             throw new ServiceException(ResultCode.PARAM_TYPE_BIND_ERROR);
         }
 
-        passWord = AES.encrypt(passWord, ApplicationConfig.Secret);
-
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-
-        boolean allowLogin = false;
+        SurveyUser surveyUser = null;
 
         if ("passWord".equals(accountType)) {
-            if (userName.contains("@")) {
-                queryWrapper.eq("email", userName);
-            } else {
-                queryWrapper.eq("user_name", userName);
-            }
+            surveyUser = loginByPassWord(userDataDto);
         }
 
         if ("emailCode".equals(accountType)) {
-            queryWrapper.eq("email", email);
+            surveyUser = loginByEmailCode(userDataDto);
         }
 
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-
-        if ("passWord".equals(accountType)) {
-            Log.info("密码登录");
-            if (UserStatus.hasPermission(surveyUser.getStatus(), UserStatusCode.HAS_PASSWORD)) {
-                if (!surveyUser.getPassWord().equals(passWord)) {
-                    throw new ServiceException(ResultCode.USER_LOGIN_ERROR);
-                }
-            }
-            allowLogin = true;
-        }
-
-        if ("emailCode".equals(accountType)) {
-            Log.info("邮箱登录");
-            String code = redisTemplate.opsForValue().get("CODE:CODE." + email);
-            //检查验证码
-            if (code == null) {
-                throw new ServiceException(ResultCode.CODE_NOT_SEND);
-            }
-            if (emailCode.equals(code)) {
-                allowLogin = true;
-            }else {
-                throw new ServiceException(ResultCode.CODE_ERROR);
-            }
-        }
-
-        if (!allowLogin) throw new ServiceException(ResultCode.USER_LOGIN_ERROR);
 
         long timeStamp = System.currentTimeMillis();
         Long yituliuId = surveyUser.getId();  //一图流id
@@ -231,7 +192,62 @@ public class SurveyUserService {
         response.setEmail(surveyUser.getEmail());
 
         return response;
+    }
 
+    /**
+     * 通过密码登录
+     * @param userDataDto 前端传来的用户名密码
+     * @return 用户数据
+     */
+    public SurveyUser loginByPassWord(UserDataDto userDataDto){
+        String userName = userDataDto.getUserName().trim();
+        String passWord = userDataDto.getPassWord().trim();
+        passWord = AES.encrypt(passWord, ApplicationConfig.Secret); //密码加密
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+
+        //判断用户名/邮箱登录
+        if (userName.contains("@")) {
+            queryWrapper.eq("email", userName);  //邮箱
+        } else {
+            queryWrapper.eq("user_name", userName); //用户名
+        }
+
+        //查询用户信息是否存在
+        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
+        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+
+        //用户是否设置了密码
+        if (UserStatus.hasPermission(surveyUser.getStatus(), UserStatusCode.HAS_PASSWORD)) {
+            //对比密码是否正确
+            if (!surveyUser.getPassWord().equals(passWord)) {
+                throw new ServiceException(ResultCode.USER_LOGIN_ERROR);
+            }
+        }
+
+        return surveyUser;
+    }
+
+    /**
+     * 通过邮箱验证码登录
+     * @param userDataDto 前端传来的邮箱和验证码
+     * @return 用户数据
+     */
+    public SurveyUser loginByEmailCode(UserDataDto userDataDto){
+        String email = userDataDto.getEmail().trim();
+        String emailCode = userDataDto.getEmailCode().trim();
+
+        //设置查询构造器条件
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", email);
+
+        //查询用户是否存在
+        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
+        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+
+        //对比输入的验证码和redis中的验证码
+        emailService.compareVerificationCode(emailCode,"CODE:CODE." + email);
+
+        return surveyUser;
     }
 
     /**
@@ -240,31 +256,33 @@ public class SurveyUserService {
      */
     public void sendEmailForRegister(EmailDto emailDto){
         String emailAddress = emailDto.getEmail().trim();
+        //设置查询构造器条件
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", emailAddress);
+        //查询是否有绑定这个邮箱的用户
         SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
-
-        //判断是否注册过
         if (surveyUserByEmail != null) throw new ServiceException(ResultCode.USER_EXISTED);
-        String code = emailService.CreateVerificationCode(emailAddress, 9999);
+
+        Integer code = emailService.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流注册验证码";
         String text = "您本次注册验证码： " + code +",验证码有效时间5分钟";
+
         sendEmailCode(emailAddress,subject,text);
     }
 
     /**
      * 设置登录验证码的邮件信息
-     * @param emailDto 邮件信息
+     * @param emailDto 前端输入的收件人地址
      */
     public void sendEmailForLogin(EmailDto emailDto){
-        String emailAddress = emailDto.getEmail().trim();
+        String emailAddress = emailDto.getEmail().trim();  //收件人地址
+        //设置查询构造器条件
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", emailAddress);
+        //查询是否有绑定这个邮箱的用户
         SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
-
-        //判断用户是否绑定过邮箱
         if(surveyUserByEmail == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        String code = emailService.CreateVerificationCode(emailAddress, 9999);
+        Integer code = emailService.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流登录验证码";
         String text = "您本次登录验证码：" + code+",验证码有效时间5分钟";
         sendEmailCode(emailAddress,subject,text);
@@ -284,9 +302,9 @@ public class SurveyUserService {
             emailAddress = surveyUserByToken.getEmail();
         }
 
-        String code = emailService.CreateVerificationCode(emailAddress, 9999);
+        Integer code = emailService.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流邮箱变更验证码";
-        String text = "您本次变更邮箱验证码：" + code+",验证码有效时间5分钟";
+        String text = "您本次变更邮箱验证码：" + code +",验证码有效时间5分钟";
         sendEmailCode(emailAddress,subject,text);
     }
 
@@ -304,32 +322,7 @@ public class SurveyUserService {
         if(daySendingLimit>50000){
             throw new ServiceException(ResultCode.INTERFACE_DAILY_SENDING_LIMIT);
         }
-
         emailService.singleSendMail(emailAddress,text,subject);
-
-//        //注册
-//
-//
-//        //登录
-//        if ("login".equals(type)) {
-//            //判断用户是否绑定过邮箱
-//            if(surveyUserByEmail ==null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-//            subject = "一图流登录验证码";
-//            text = "您本次登录验证码：" + code+",验证码有效时间5分钟";
-//        }
-//
-//        //变更邮箱
-//        if ("changeEmail".equals(type)) {
-//            subject = "一图流邮箱变更验证码";
-//            text = "您本次变更邮箱验证码：" + code+",验证码有效时间5分钟";
-//            SurveyUser surveyUserByToken = getSurveyUserByToken(token);
-//            //判断是否绑定过邮箱
-//            if (UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
-//                toAddress = surveyUserByToken.getEmail();
-//            }
-//        }
-
-
 
     }
 
@@ -346,20 +339,13 @@ public class SurveyUserService {
         String emailCode = updateUserDataDto.getEmailCode().trim();
 
         SurveyUser surveyUserByToken = getSurveyUserByToken(token);
-        String code = redisTemplate.opsForValue().get("CODE:CODE." + email);
-        //检查验证码
-        if (code == null) {
-            throw new ServiceException(ResultCode.CODE_NOT_EXIST);
-        }
-        if (emailCode.equals(code)) {
-            surveyUserByToken.setEmail(email);
-            if (!UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
-                surveyUserByToken.setStatus(UserStatus.addPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL));
-            }
-        }else {
-            throw new ServiceException(ResultCode.CODE_ERROR);
-        }
 
+        emailService.compareVerificationCode(emailCode,"CODE:CODE." + email);
+
+        surveyUserByToken.setEmail(email);
+        if (!UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
+            surveyUserByToken.setStatus(UserStatus.addPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL));
+        }
 
 
         updateSurveyUser(surveyUserByToken);
@@ -380,10 +366,7 @@ public class SurveyUserService {
         String token = updateUserDataDto.getToken();
         String newPassWord = updateUserDataDto.getNewPassWord().trim(); //新密码
 
-
         SurveyUser surveyUserByToken = getSurveyUserByToken(token); //用户信息
-
-
 
         checkPassWord(newPassWord);  //检查新密码格式
 

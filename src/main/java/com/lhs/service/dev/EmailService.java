@@ -1,5 +1,8 @@
 package com.lhs.service.dev;
 
+import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.entity.ResultCode;
+import com.lhs.common.exception.ServiceException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -7,6 +10,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -32,12 +36,14 @@ public class EmailService {
         this.redisTemplate = redisTemplate;
     }
 
+    @Value("${aliyun.accessKeyID}")
+    private  String AccessKeyId;
+    @Value("${aliyun.accessKeySecret}")
+    private  String AccessKeySecret;
 
     private final static String protocol = "https";
     //dm.ap-southeast-1.aliyuncs.com//dm.ap-southeast-2.aliyuncs.com
     private final static String host = "dm.aliyuncs.com";
-    private final static String AccessKeyId = "";
-    private final static String AccessKeySecret = "";
     //发信地址
     private final static String AccountName = "survey@email.yituliu.site";
     //收信地址
@@ -56,12 +62,23 @@ public class EmailService {
     private final static HttpMethod method = HttpMethod.POST;
 
 
-    public String CreateVerificationCode(String redisKey,Integer maxCodeNum){
-
+    public Integer CreateVerificationCode(String redisKey,Integer maxCodeNum){
         int random = new Random().nextInt(9999);
-        String code = String.format("%4s", random).replace(" ", "0");
+        String code = String.format("%04d",random);
         redisTemplate.opsForValue().set("CODE:CODE." + redisKey, code, 300, TimeUnit.SECONDS);
-        return code;
+        return random;
+    }
+
+    public Boolean compareVerificationCode(String inputCode,String redisKey){
+        Object code = redisTemplate.opsForValue().get(redisKey);
+
+        if(inputCode==null) throw new ServiceException(ResultCode.CODE_ERROR);
+
+        if(code==null)throw new ServiceException(ResultCode.CODE_NOT_EXIST);
+
+        if(!inputCode.equals(code)) throw new ServiceException(ResultCode.CODE_ERROR);
+
+        return true;
     }
 
 
