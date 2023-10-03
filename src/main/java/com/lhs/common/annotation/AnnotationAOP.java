@@ -1,5 +1,7 @@
 package com.lhs.common.annotation;
 
+import com.lhs.common.entity.ResultCode;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -11,7 +13,6 @@ import org.aspectj.lang.reflect.CodeSignature;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -22,8 +23,12 @@ import java.util.concurrent.TimeUnit;
 public class AnnotationAOP {
     private static final ThreadLocal<Long> startTime = new ThreadLocal<>();
 
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public AnnotationAOP(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     //扫描所有添加了@TakeCount注解的方法
     @Before("@annotation(takeCount)")
@@ -44,10 +49,33 @@ public class AnnotationAOP {
         startTime.remove();
     }
 
+    @Before("@annotation(rateLimiter)")
+    public void rateLimiter(RateLimiter rateLimiter){
+
+        int time = rateLimiter.time();
+        int maximumTimes = rateLimiter.MaximumTimes();
+        String key = rateLimiter.key();
+
+        Object cache = redisTemplate.opsForValue().get(key);
+
+        if(cache!=null){
+            int times = Integer.parseInt(String.valueOf(cache));
+
+            if(times>maximumTimes) {
+                throw new ServiceException(ResultCode.INTERFACE_TOO_MANY_EMAIL_SENT);
+            }
+            times++;
+            redisTemplate.opsForValue().set(key,times,time,TimeUnit.SECONDS);
+        }else {
+            redisTemplate.opsForValue().set(key,1,time,TimeUnit.SECONDS);
+        }
+
+    }
+
 
     //扫描所有添加了@RedisCacheable注解的方法
     @Around("@annotation(redisCacheable)")
-    public Object redis(ProceedingJoinPoint pjp, RedisCacheable redisCacheable) throws Throwable {
+    public Object redisCacheable(ProceedingJoinPoint pjp, RedisCacheable redisCacheable) throws Throwable {
         Object[] args = pjp.getArgs();
         String[] argNames = ((CodeSignature) pjp.getSignature()).getParameterNames();
         Map<String, Object> argMap = new HashMap<>();

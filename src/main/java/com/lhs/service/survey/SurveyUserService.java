@@ -3,6 +3,7 @@ package com.lhs.service.survey;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.annotation.RateLimiter;
 import com.lhs.common.entity.Result;
 import com.lhs.common.entity.ResultCode;
 import com.lhs.common.util.UserStatus;
@@ -11,6 +12,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.EmailDto;
+import com.lhs.entity.dto.survey.UpdateUserDataDto;
 import com.lhs.entity.dto.survey.UserDataDto;
 import com.lhs.entity.dto.survey.SklandDto;
 import com.lhs.entity.po.survey.SurveyOperator;
@@ -233,70 +235,115 @@ public class SurveyUserService {
     }
 
     /**
-     * 发送邮件验证码
-     * @param type 验证码用途
-     * @param emailDto 自定义的请求实体类（具体内容看实体类的注释）
+     * 设置注册验证码的邮件信息
+     * @param emailDto 邮件信息
      */
-    public void sendEmailCode(String type, EmailDto emailDto) {
-        String toAddress = emailDto.getEmail().trim();
-        String token = emailDto.getToken();  //用户凭证
-
+    public void sendEmailForRegister(EmailDto emailDto){
+        String emailAddress = emailDto.getEmail().trim();
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", toAddress);
+        queryWrapper.eq("email", emailAddress);
         SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
 
-        //邮件信息的实体类
+        //判断是否注册过
+        if (surveyUserByEmail != null) throw new ServiceException(ResultCode.USER_EXISTED);
+        String code = emailService.CreateVerificationCode(emailAddress, 9999);
+        String subject = "一图流注册验证码";
+        String text = "您本次注册验证码： " + code +",验证码有效时间5分钟";
+        sendEmailCode(emailAddress,subject,text);
+    }
 
-        String subject = "默认标题";
-        String text = "默认内容";
+    /**
+     * 设置登录验证码的邮件信息
+     * @param emailDto 邮件信息
+     */
+    public void sendEmailForLogin(EmailDto emailDto){
+        String emailAddress = emailDto.getEmail().trim();
+        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("email", emailAddress);
+        SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
 
-        //验证码5分钟过期
-        int random = new Random().nextInt(9999);
-        String code = String.format("%4s", random).replace(" ", "0");
-        redisTemplate.opsForValue().set("CODE:CODE." + toAddress, code, 300, TimeUnit.SECONDS);
+        //判断用户是否绑定过邮箱
+        if(surveyUserByEmail == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        String code = emailService.CreateVerificationCode(emailAddress, 9999);
+        String subject = "一图流登录验证码";
+        String text = "您本次登录验证码：" + code+",验证码有效时间5分钟";
+        sendEmailCode(emailAddress,subject,text);
+    }
 
-        //注册
-        if ("register".equals(type)) {
-            //判断是否注册过
-            if (surveyUserByEmail != null) throw new ServiceException(ResultCode.USER_EXISTED);
-            subject = "一图流注册验证码";
-            text = "您本次注册验证码： " + code+",验证码有效时间5分钟";
-        }
-
-        //登录
-        if ("login".equals(type)) {
-            //判断用户是否绑定过邮箱
-            if(surveyUserByEmail ==null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-            subject = "一图流登录验证码";
-            text = "您本次登录验证码：" + code+",验证码有效时间5分钟";
-        }
-
+    /**
+     * 设置修改邮箱验证码的邮件信息
+     * @param emailDto 邮件信息
+     */
+    public void sendEmailForChangeEmail(EmailDto emailDto){
+        String emailAddress = emailDto.getEmail().trim();
+        String token = emailDto.getToken();  //用户凭证
         //变更邮箱
-        if ("changeEmail".equals(type)) {
-            subject = "一图流邮箱变更验证码";
-            text = "您本次变更邮箱验证码：" + code+",验证码有效时间5分钟";
-            SurveyUser surveyUserByToken = getSurveyUserByToken(token);
-            //判断是否绑定过邮箱
-            if (UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
-                toAddress = surveyUserByToken.getEmail();
-            }
+        SurveyUser surveyUserByToken = getSurveyUserByToken(token);
+        //判断是否绑定过邮箱
+        if (UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
+            emailAddress = surveyUserByToken.getEmail();
         }
 
+        String code = emailService.CreateVerificationCode(emailAddress, 9999);
+        String subject = "一图流邮箱变更验证码";
+        String text = "您本次变更邮箱验证码：" + code+",验证码有效时间5分钟";
+        sendEmailCode(emailAddress,subject,text);
+    }
 
-        emailService.singleSendMail(toAddress,text,subject);
+    /**
+     * 发送验证码
+     * @param emailAddress 要发送的邮箱地址
+     * @param subject  标题
+     * @param text  内容
+     */
+    @RateLimiter(key = "SurveyEmailRateLimit")
+    public void sendEmailCode(String emailAddress,String subject,String text) {
+
+        Long daySendingLimit = redisTemplate.opsForValue().increment("OuterServiceMaximumLimit");
+        daySendingLimit = daySendingLimit==null?1L:daySendingLimit;
+        if(daySendingLimit>50000){
+            throw new ServiceException(ResultCode.INTERFACE_DAILY_SENDING_LIMIT);
+        }
+
+        emailService.singleSendMail(emailAddress,text,subject);
+
+//        //注册
+//
+//
+//        //登录
+//        if ("login".equals(type)) {
+//            //判断用户是否绑定过邮箱
+//            if(surveyUserByEmail ==null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+//            subject = "一图流登录验证码";
+//            text = "您本次登录验证码：" + code+",验证码有效时间5分钟";
+//        }
+//
+//        //变更邮箱
+//        if ("changeEmail".equals(type)) {
+//            subject = "一图流邮箱变更验证码";
+//            text = "您本次变更邮箱验证码：" + code+",验证码有效时间5分钟";
+//            SurveyUser surveyUserByToken = getSurveyUserByToken(token);
+//            //判断是否绑定过邮箱
+//            if (UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
+//                toAddress = surveyUserByToken.getEmail();
+//            }
+//        }
+
+
+
     }
 
 
     /**
      * 更新或绑定邮箱
      *
-     * @param EmailDto 自定义的请求实体类（具体内容看实体类的注释）
+     * @param updateUserDataDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return 成功信息
      */
-    public UserDataResponse updateOrBindEmail(EmailDto EmailDto) {
-        String email = EmailDto.getEmail().trim();
-        String token = EmailDto.getToken();
-        String emailCode = EmailDto.getEmailCode().trim();
+    public UserDataResponse updateOrBindEmail(UpdateUserDataDto updateUserDataDto) {
+        String email = updateUserDataDto.getEmail().trim();
+        String token = updateUserDataDto.getToken();
+        String emailCode = updateUserDataDto.getEmailCode().trim();
 
         SurveyUser surveyUserByToken = getSurveyUserByToken(token);
         String code = redisTemplate.opsForValue().get("CODE:CODE." + email);
@@ -325,13 +372,13 @@ public class SurveyUserService {
     /**
      * 更新密码
      *
-     * @param emailDto 自定义的请求实体类（具体内容看实体类的注释）
+     * @param updateUserDataDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return
      */
-    public UserDataResponse updatePassWord(EmailDto emailDto) {
+    public UserDataResponse updatePassWord(UpdateUserDataDto updateUserDataDto) {
 
-        String token = emailDto.getToken();
-        String newPassWord = emailDto.getNewPassWord().trim(); //新密码
+        String token = updateUserDataDto.getToken();
+        String newPassWord = updateUserDataDto.getNewPassWord().trim(); //新密码
 
 
         SurveyUser surveyUserByToken = getSurveyUserByToken(token); //用户信息
@@ -346,7 +393,7 @@ public class SurveyUserService {
 
         if (UserStatus.hasPermission(status, UserStatusCode.HAS_PASSWORD)) {
             //替换旧密码
-            String oldPassWord = emailDto.getOldPassWord().trim(); //旧密码
+            String oldPassWord = updateUserDataDto.getOldPassWord().trim(); //旧密码
             checkPassWord(oldPassWord);  //检查旧密码
             oldPassWord = AES.encrypt(oldPassWord, ApplicationConfig.Secret);
             if (surveyUserByToken.getPassWord().equals(oldPassWord)) {  //检查旧密码是否正确
@@ -370,9 +417,9 @@ public class SurveyUserService {
     }
 
 
-    public UserDataResponse updateUserName(EmailDto emailDto) {
-        String token = emailDto.getToken();
-        String userName = emailDto.getUserName().trim();
+    public UserDataResponse updateUserName(UpdateUserDataDto updateUserDataDto) {
+        String token = updateUserDataDto.getToken();
+        String userName = updateUserDataDto.getUserName().trim();
 
         SurveyUser surveyUserByToken = getSurveyUserByToken(token);
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();

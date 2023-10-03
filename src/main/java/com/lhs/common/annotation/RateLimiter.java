@@ -7,8 +7,10 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-public @interface RedisCacheable {
-    String key() default "test";     //缓存key
+public @interface RateLimiter {
 
-    int timeout() default 3600;
+    String key() default "MaximumLimit"; //限流的key
+    int time() default 10;  //限流的窗口时间
+    int MaximumTimes() default 10;  //窗口时间内的最大次数
+
 }

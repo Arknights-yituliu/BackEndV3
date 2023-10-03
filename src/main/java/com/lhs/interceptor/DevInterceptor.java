@@ -18,10 +18,10 @@ import jakarta.servlet.http.HttpServletResponse;
 public class DevInterceptor implements HandlerInterceptor {
 
 
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
-    @Resource
-    private UserService userService;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final UserService userService;
     public DevInterceptor(RedisTemplate<String, Object> redisTemplate,UserService userService){
             this.redisTemplate =redisTemplate;
         this.userService =userService;

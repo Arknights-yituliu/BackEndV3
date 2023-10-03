@@ -25,7 +25,7 @@ public enum ResultCode {
 	USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH(100013, "用户名只能由中文、英文、数字组成"),
 	PASS_WORD_MUST_BE_IN_CHINESE_OR_ENGLISH(100015, "密码只能由英文、数字组成"),
 	SKLAND_CRED_ERROR(10016,"森空岛CRED错误"),
-	IP_TOO_MANY_TIMES(10017, "同IP注册次数过多,5分钟5次"),
+	EXCESSIVE_IP_ACCESS_TIMES(10017, "同IP注册次数过多,5分钟5次"),
 
 	
 	/* 用户错误：20001-29999*/
@@ -52,6 +52,8 @@ public enum ResultCode {
 	CODE_NOT_EXIST(30003, "验证码不存在"),
 	CODE_NOT_SEND(30004, "验证码未发送"),
 	OSS_UPLOAD_ERROR(30005, "OSS上传错误"),
+
+
 	
 	/* 系统错误：40001-49999 */
 	SYSTEM_INNER_ERROR(40001, "系统内部错误，请稍后重试"),
@@ -70,6 +72,8 @@ public enum ResultCode {
 	INTERFACE_FORBID_VISIT(60003, "该接口禁止访问"),
 	INTERFACE_ADDRESS_INVALID(60004, "接口地址无效"),
 	INTERFACE_REQUEST_TIMEOUT(60005, "接口请求超时"),
+	INTERFACE_TOO_MANY_EMAIL_SENT(60006,"发送邮件次数过多，请稍后重试"),
+	INTERFACE_DAILY_SENDING_LIMIT(60007,"邮件推送服务次数达到上线，无法发送"),
 	
 	/* 权限错误：70001-79999 */
 	PERMISSION_NO_ACCESS(70001, "无访问权限");

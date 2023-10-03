@@ -16,8 +16,9 @@ import java.util.concurrent.TimeUnit;
 
 public class SurveyInterceptor implements HandlerInterceptor {
 
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
 
     public SurveyInterceptor(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate  = redisTemplate;
@@ -33,7 +34,7 @@ public class SurveyInterceptor implements HandlerInterceptor {
             return  true;
         }
         int times = Integer.parseInt(String.valueOf(cache));
-        if(times>5) throw new ServiceException(ResultCode.IP_TOO_MANY_TIMES);
+        if(times>5) throw new ServiceException(ResultCode.EXCESSIVE_IP_ACCESS_TIMES);
         redisTemplate.opsForValue().increment("IP:"+ipAddress);
         return true;
     }

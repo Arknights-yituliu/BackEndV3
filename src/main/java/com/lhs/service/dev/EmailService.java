@@ -19,6 +19,7 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class EmailService {
@@ -53,6 +54,16 @@ public class EmailService {
     private final static String TagName = "测试Tag";
 
     private final static HttpMethod method = HttpMethod.POST;
+
+
+    public String CreateVerificationCode(String redisKey,Integer maxCodeNum){
+
+        int random = new Random().nextInt(9999);
+        String code = String.format("%4s", random).replace(" ", "0");
+        redisTemplate.opsForValue().set("CODE:CODE." + redisKey, code, 300, TimeUnit.SECONDS);
+        return code;
+    }
+
 
     /**
      * 发送邮件

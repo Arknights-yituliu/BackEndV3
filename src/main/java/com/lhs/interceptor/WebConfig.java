@@ -11,11 +11,16 @@ import jakarta.annotation.Resource;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
 
-    @Resource
-    private UserService userService;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final UserService userService;
+
+    public WebConfig(RedisTemplate<String, Object> redisTemplate, UserService userService) {
+        this.redisTemplate = redisTemplate;
+        this.userService = userService;
+    }
+
     /**
      * 配置拦截器
      * @param registry 拦截器的注册中心

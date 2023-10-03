@@ -5,6 +5,7 @@ import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.entity.Result;
 import com.lhs.entity.dto.survey.EmailDto;
+import com.lhs.entity.dto.survey.UpdateUserDataDto;
 import com.lhs.entity.dto.survey.UserDataDto;
 import com.lhs.entity.dto.survey.SklandDto;
 import com.lhs.service.survey.SurveyUserService;
@@ -45,29 +46,41 @@ public class SurveyUserController {
         return Result.success(response);
     }
 
-    @Operation(summary ="发送邮件验证码")
+    @Operation(summary ="发送注册邮件验证码")
     @PostMapping("/user/emailCode")
-    public Result<Object> sendEmailCodeBYRegister(@RequestParam String type,@RequestBody EmailDto EmailDto) {
-        System.out.println(type);
-        surveyUserService.sendEmailCode(type,EmailDto);
+    public Result<Object> sendEmailCodeForRegister(@RequestBody EmailDto emailDto) {
+        String mailUsage = emailDto.getMailUsage();
+        if("register".equals(mailUsage)){
+            surveyUserService.sendEmailForRegister(emailDto);
+        }
+
+        if("login".equals(mailUsage)){
+            surveyUserService.sendEmailForLogin(emailDto);
+        }
+
+        if("changeEmail".equals(mailUsage)){
+            surveyUserService.sendEmailForChangeEmail(emailDto);
+        }
 
         return Result.success();
     }
 
+
     @Operation(summary ="更新用户信息")
     @PostMapping("/user/update")
-    public Result<UserDataResponse> updateEmail(@RequestParam String property,@RequestBody EmailDto emailDto) {
+    public Result<UserDataResponse> updateEmail(@RequestBody UpdateUserDataDto updateUserDataDto) {
+        String property = updateUserDataDto.getProperty();
         UserDataResponse response = null;
         if("email".equals(property)){
-            response =  surveyUserService.updateOrBindEmail(emailDto);
+            response =  surveyUserService.updateOrBindEmail(updateUserDataDto);
         }
 
         if("passWord".equals(property)){
-            response =  surveyUserService.updatePassWord(emailDto);
+            response =  surveyUserService.updatePassWord(updateUserDataDto);
         }
 
         if("userName".equals(property)){
-            response = surveyUserService.updateUserName(emailDto);
+            response = surveyUserService.updateUserName(updateUserDataDto);
         }
 
         return Result.success(response);
