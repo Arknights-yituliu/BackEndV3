@@ -2,15 +2,16 @@ package com.lhs.controller;
 
 
 import com.lhs.common.entity.Result;
+import com.lhs.entity.dto.stage.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.stage.Item;
 import com.lhs.entity.po.stage.Stage;
 import com.lhs.entity.po.stage.StageResult;
 import com.lhs.entity.po.stage.StorePerm;
-import com.lhs.entity.vo.stage.StageResultVo;
+import com.lhs.entity.vo.stage.StageResultVO;
 import com.lhs.service.stage.*;
-import com.lhs.entity.vo.stage.OrundumPerApResultVo;
-import com.lhs.entity.vo.stage.StoreActVo;
+import com.lhs.entity.vo.stage.OrundumPerApResultVO;
+import com.lhs.entity.vo.stage.StoreActVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @Tag(name ="API—关卡效率、材料价值、商店性价比")
@@ -68,7 +68,6 @@ public class StageController {
     @GetMapping("/stage")
     public Result<Map<String, List<Stage>>> getStageV2() {
         Map<String, List<Stage>> stringListMap = stageService.getStageMap();
-
         return Result.success(stringListMap);
     }
 
@@ -80,15 +79,30 @@ public class StageController {
         return Result.success(stringListMap);
     }
 
+    @Operation(summary ="查询新章的关卡效率")
+    @GetMapping("/stage/chapter")
+    public Result<List<StageResultVO>> getStageResultByZone(@RequestParam Double expCoefficient, @RequestParam String zone) {
+
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(expCoefficient);
+        String version = stageParamDTO.getVersion();
+
+        List<StageResultVO> stageResultVOList =
+                stageResultService.getStageResultDataByZone(version,zone);
+
+        return Result.success(stageResultVOList);
+    }
+
     //    @TakeCount(name = "蓝材料推荐关卡")
     @Operation(summary ="获取蓝材料推荐关卡按效率倒序")
     @GetMapping("/stage/t3")
-    public Result<List<List<StageResultVo>>> queryStageResult_t3(@RequestParam Double expCoefficient) {
+    public Result<List<List<StageResultVO>>> getStageResultT3(@RequestParam Double expCoefficient) {
 
-        String version = "public." + expCoefficient;
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(expCoefficient);
 
-        List<List<StageResultVo>> stageResultVoList =
-                stageResultService.queryStageResultDataT3V2(version);
+        List<List<StageResultVO>> stageResultVoList =
+                stageResultService.getStageResultDataT3V2(stageParamDTO);
 
         return Result.success(stageResultVoList);
     }
@@ -96,12 +110,13 @@ public class StageController {
     //    @TakeCount(name = "绿材料推荐关卡")
     @Operation(summary ="获取绿材料推荐关卡按期望正序")
     @GetMapping("/stage/t2")
-    public Result<List<List<StageResult>>> queryStageResult_t2(@RequestParam Double expCoefficient) {
+    public Result<List<List<StageResultVO>>> getStageResultT2(@RequestParam Double expCoefficient) {
 
-        String version = "public." + expCoefficient;
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(expCoefficient);
 
-        List<List<StageResult>> stageResultVoList =
-                stageResultService.queryStageResultData_t2(version);
+        List<List<StageResultVO>> stageResultVoList =
+                stageResultService.getStageResultDataT2(stageParamDTO);
 
         return Result.success(stageResultVoList);
     }
@@ -109,12 +124,12 @@ public class StageController {
     //    @TakeCount(name = "历史活动关卡")
     @Operation(summary ="获取历史活动关卡")
     @GetMapping("/stage/closed")
-    public Result<List<List<StageResult>>> queryStageResult_closedActivities(@RequestParam Double expCoefficient) {
+    public Result<List<List<StageResult>>> getStageResultClosedActivities(@RequestParam Double expCoefficient) {
 
-        String version = "public." + expCoefficient;
-
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(expCoefficient);
         List<List<StageResult>> stageResultVoList =
-                stageResultService.queryStageResultData_closedActivities(version);
+                stageResultService.getStageResultDataClosedStage(stageParamDTO);
 
         return Result.success(stageResultVoList);
     }
@@ -122,15 +137,13 @@ public class StageController {
     //    @TakeCount(name = "搓玉推荐关卡")
     @Operation(summary ="获取搓玉推荐关卡")
     @GetMapping("/stage/orundum")
-    public Result<List<OrundumPerApResultVo>> queryStageResult_Orundum() {
+    public Result<List<OrundumPerApResultVO>> getStageResult_Orundum() {
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        String version = stageParamDTO.getVersion();
+        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService
+                .getStageResultDataOrundum(version);
 
-        double expCoefficient = 0.625;
-        String version = "public." + expCoefficient;
-
-        List<OrundumPerApResultVo> OrundumPerApResultVoList = stageResultService
-                .queryStageResultData_Orundum(version);
-
-        return Result.success(OrundumPerApResultVoList);
+        return Result.success(orundumPerApResultVOList);
     }
 
 
@@ -138,8 +151,8 @@ public class StageController {
     //    @TakeCount(name = "查询关卡详细信息")
     @Operation(summary ="查询关卡详细信息")
     @GetMapping("/stage/detail")
-    public Result<List<StageResult>> queryStageResult_detail(@RequestParam String stageId) {
-        List<StageResult> stageResultVoList = stageResultService.queryStageResultDataDetailByStageId(stageId);
+    public Result<List<StageResult>> getStageResult_detail(@RequestParam String stageId) {
+        List<StageResult> stageResultVoList = stageResultService.getStageResultDataDetailByStageId(stageId);
         return Result.success(stageResultVoList);
     }
 
@@ -155,9 +168,9 @@ public class StageController {
     //    @TakeCount(name = "活动商店性价比")
     @Operation(summary ="获取活动商店性价比")
     @GetMapping("/store/act")
-    public Result<List<StoreActVo>> getStoreActData() {
-        List<StoreActVo> storeActVoList = storeService.getStoreAct();
-        return Result.success(storeActVoList);
+    public Result<List<StoreActVO>> getStoreActData() {
+        List<StoreActVO> storeActVOList = storeService.getStoreAct();
+        return Result.success(storeActVOList);
     }
 
     @Operation(summary = "攒抽计算器活动排期")
@@ -189,10 +202,12 @@ public class StageController {
 
     @Operation(summary ="获取蓝材料推荐关卡按效率倒序")
     @GetMapping("/auth/stage/t3")
-    public Result<List<List<StageResultVo>>> authQueryStageResult_t3(@RequestParam Double expCoefficient) {
-        String version = "auth-" + expCoefficient;
-        List<List<StageResultVo>> stageResultVoList =
-                stageResultService.queryStageResultData_t3(version);
+    public Result<List<List<StageResultVO>>> authQueryStageResult_t3(@RequestParam Double expCoefficient) {
+
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setType("auth");
+        List<List<StageResultVO>> stageResultVoList =
+                stageResultService.getStageResultDataT3V2(stageParamDTO);
 
         return Result.success(stageResultVoList);
     }
@@ -203,15 +218,5 @@ public class StageController {
         return Result.success(message);
     }
 
-    @GetMapping("/visits/resetCache")
-    public Result<String> authVisitsResetCache() {
-        Set<String> keys = redisTemplate.keys("visits:2023*");
-        if(keys==null)return Result.success("失败了");
-        for(String key:keys){
-            redisTemplate.delete(key);
-        }
 
-
-        return Result.success("删除了"+keys.size());
-    }
 }

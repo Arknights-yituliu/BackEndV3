@@ -2,7 +2,7 @@ package com.lhs.mapper.survey;
 
 import com.lhs.entity.po.survey.SurveyScore;
 import com.lhs.entity.po.survey.SurveyStatisticsScore;
-import com.lhs.entity.vo.survey.SurveyScoreVo;
+import com.lhs.entity.vo.survey.SurveyScoreVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +21,7 @@ public interface SurveyScoreMapper {
                                   @Param("score") SurveyScore score);
 
     // 根据多个uid查询干员练度信息表
-    List<SurveyScoreVo> selectSurveyScoreVoByUidList(@Param("tableName") String tableName,
+    List<SurveyScoreVO> selectSurveyScoreVoByUidList(@Param("tableName") String tableName,
                                                      @Param("ids") List<Long> ids);
 
     // 根据单个uid查询干员练度信息表Score

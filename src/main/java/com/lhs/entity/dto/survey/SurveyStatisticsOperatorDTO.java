@@ -1,4 +1,4 @@
-package com.lhs.entity.vo.survey;
+package com.lhs.entity.dto.survey;
 
 
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyStatisticsChar {
+public class SurveyStatisticsOperatorDTO {
     private String  charId;
     private Integer own;
     private Integer rarity;

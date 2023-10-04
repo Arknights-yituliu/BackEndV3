@@ -1,11 +1,11 @@
 package com.lhs.service.dev;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
 import com.lhs.common.entity.ResultCode;
 import com.lhs.entity.po.dev.Developer;
@@ -95,15 +95,15 @@ public class UserService {
 
         //登录时间
         String format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        JSONObject header = new JSONObject();
-        header.put("developer", loginVo.getDeveloper());
-        header.put("loginDate", format);
-        String headerStr = JSON.toJSONString(header);  //token头是登录名+登录时间的map
+        Map<String, String> hashMap = new HashMap<>();
+        hashMap.put("developer", loginVo.getDeveloper());
+        hashMap.put("loginDate", format);
+        String headerText = JsonMapper.toJSONString(hashMap);  //token头是登录名+登录时间的map
 //        类似jwt
 //        String HeaderBase64 =  Base64.getEncoder().encodeToString((headerStr).getBytes());
 //        String sign = AES.encrypt(headerStr+ConfigUtil.SignKey, ConfigUtil.Secret);
 //        String token =  HeaderBase64+"."+sign;
-        String sign = AES.encrypt(headerStr + ApplicationConfig.SignKey, ApplicationConfig.Secret);  //组成签名：token头+签名key
+        String sign = AES.encrypt(headerText + ApplicationConfig.SignKey, ApplicationConfig.Secret);  //组成签名：token头+签名key
         String developerBase64 = Base64.getEncoder().encodeToString(loginVo.getDeveloper().getBytes());  //进行base64转换
 
         String token = developerBase64 + "." + sign;  //完整token：token头.token尾

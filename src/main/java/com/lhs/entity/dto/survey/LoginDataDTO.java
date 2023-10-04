@@ -3,7 +3,7 @@ package com.lhs.entity.dto.survey;
 import lombok.Data;
 
 @Data
-public class UserDataDto {
+public class LoginDataDTO {
 
     private String userName;//用户名
     private String email; //邮箱

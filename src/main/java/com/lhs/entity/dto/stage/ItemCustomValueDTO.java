@@ -2,7 +2,7 @@ package com.lhs.entity.dto.stage;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 
-public class ItemCustomValue {
+public class ItemCustomValueDTO {
 
     @ExcelProperty("物品名称")
     private String itemName;

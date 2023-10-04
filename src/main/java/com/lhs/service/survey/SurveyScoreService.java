@@ -6,8 +6,8 @@ import com.lhs.entity.po.survey.SurveyScore;
 import com.lhs.entity.po.survey.SurveyStatisticsScore;
 import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.mapper.survey.SurveyScoreMapper;
-import com.lhs.entity.vo.survey.SurveyScoreVo;
-import com.lhs.entity.vo.survey.SurveyStatisticsScoreVo;
+import com.lhs.entity.vo.survey.SurveyScoreVO;
+import com.lhs.entity.vo.survey.SurveyStatisticsScoreVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -147,34 +147,34 @@ public class SurveyScoreService {
 
 
         for (List<Long> longs : userIdsGroup) {
-            List<SurveyScoreVo> surveyScoreVoList_DB =
+            List<SurveyScoreVO> surveyScoreVOList_DB =
                     surveyScoreMapper.selectSurveyScoreVoByUidList("survey_score_1", longs);
 
-            log.info("本次统计数量：" + surveyScoreVoList_DB.size());
+            log.info("本次统计数量：" + surveyScoreVOList_DB.size());
 
-            Map<String, List<SurveyScoreVo>> collectByCharId = surveyScoreVoList_DB.stream()
-                    .collect(Collectors.groupingBy(SurveyScoreVo::getCharId));
+            Map<String, List<SurveyScoreVO>> collectByCharId = surveyScoreVOList_DB.stream()
+                    .collect(Collectors.groupingBy(SurveyScoreVO::getCharId));
             collectByCharId.forEach((charId, arr) -> {
 
                 int rarity = arr.get(0).getRarity();
 
                 List<Integer> collectByDaily = arr.stream()
-                        .map(SurveyScoreVo::getDaily).filter(e -> e > 0).collect(Collectors.toList());
+                        .map(SurveyScoreVO::getDaily).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByRogue = arr.stream()
-                        .map(SurveyScoreVo::getRogue).filter(e -> e > 0).collect(Collectors.toList());
+                        .map(SurveyScoreVO::getRogue).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByHard = arr.stream()
-                        .map(SurveyScoreVo::getHard).filter(e -> e > 0).collect(Collectors.toList());
+                        .map(SurveyScoreVO::getHard).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectBySecurityService = arr.stream()
-                        .map(SurveyScoreVo::getSecurityService).filter(e -> e > 0).collect(Collectors.toList());
+                        .map(SurveyScoreVO::getSecurityService).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByUniversal = arr.stream()
-                        .map(SurveyScoreVo::getUniversal).filter(e -> e > 0).collect(Collectors.toList());
+                        .map(SurveyScoreVO::getUniversal).filter(e -> e > 0).collect(Collectors.toList());
 
                 List<Integer> collectByCountermeasures = arr.stream()
-                        .map(SurveyScoreVo::getCounter).filter(e -> e > 0).collect(Collectors.toList());
+                        .map(SurveyScoreVO::getCounter).filter(e -> e > 0).collect(Collectors.toList());
 
 
                 int sampleSizeDaily = collectByDaily.size();
@@ -265,13 +265,13 @@ public class SurveyScoreService {
 
 
         for (List<Long> longs : userIdsGroup) {
-            List<SurveyScoreVo> surveyScoreVoList_DB =
+            List<SurveyScoreVO> surveyScoreVOList_DB =
                     surveyScoreMapper.selectSurveyScoreVoByUidList("survey_score_1", longs);
 
-            log.info("本次统计数量：" + surveyScoreVoList_DB.size());
+            log.info("本次统计数量：" + surveyScoreVOList_DB.size());
 
-            Map<String, List<SurveyScoreVo>> collectByCharId = surveyScoreVoList_DB.stream()
-                    .collect(Collectors.groupingBy(SurveyScoreVo::getCharId));
+            Map<String, List<SurveyScoreVO>> collectByCharId = surveyScoreVOList_DB.stream()
+                    .collect(Collectors.groupingBy(SurveyScoreVO::getCharId));
 
             collectByCharId.forEach((charId, arr) -> {
                 int sampleSizeDaily = 0;
@@ -294,7 +294,7 @@ public class SurveyScoreService {
 
                 int rarity = arr.get(0).getRarity();
 
-                for (SurveyScoreVo surveyScoreVo : arr) {
+                for (SurveyScoreVO surveyScoreVo : arr) {
                     if (surveyScoreVo.getDaily() > 0) {
                         sampleSizeDaily++;
                         daily+=surveyScoreVo.getDaily();
@@ -393,13 +393,13 @@ public class SurveyScoreService {
         surveyScoreMapper.insertBatchScoreStatistics(statisticsResultList);
     }
 
-    public List<SurveyStatisticsScoreVo> getScoreStatisticsResult() {
+    public List<SurveyStatisticsScoreVO> getScoreStatisticsResult() {
         List<SurveyStatisticsScore> surveyStatisticsScores = surveyScoreMapper.selectScoreStatisticsList();
 
-        List<SurveyStatisticsScoreVo> statisticsResult = new ArrayList<>();
+        List<SurveyStatisticsScoreVO> statisticsResult = new ArrayList<>();
 
         surveyStatisticsScores.forEach(e -> {
-            SurveyStatisticsScoreVo build = SurveyStatisticsScoreVo.builder()
+            SurveyStatisticsScoreVO build = SurveyStatisticsScoreVO.builder()
                     .charId(e.getCharId())
                     .rarity(e.getRarity())
                     .daily(limitDecimalPoint(e.getDaily(), e.getSampleSizeDaily()))

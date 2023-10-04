@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 
-public class StoreItem {
+public class StoreItemVO {
     private Integer itemArea;
 
     private String itemId;

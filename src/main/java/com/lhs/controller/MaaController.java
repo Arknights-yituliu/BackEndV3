@@ -1,6 +1,8 @@
 package com.lhs.controller;
 
-import com.alibaba.fastjson.JSONObject;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
 import com.lhs.common.entity.Result;
 import com.lhs.service.maa.SurveyRecruitService;
@@ -20,10 +22,7 @@ import java.util.*;
 @CrossOrigin(maxAge = 86400)
 public class MaaController {
 
-
-
     private final ScheduleService scheduleService;
-
 
     private final SurveyRecruitService surveyRecruitService;
 
@@ -38,18 +37,6 @@ public class MaaController {
         String string = surveyRecruitService.saveMaaRecruitDataNew(maaTagRequestVo);
         return Result.success(string);
     }
-
-//    @Operation(summary ="MAA干员信息上传")
-//    @PostMapping("/upload/operBox")
-//    public Result<Object> MaaOperatorBoxUpload(HttpServletRequest httpServletRequest, @RequestBody MaaOperBoxVo maaOperBoxVo) {
-//
-//        String ipAddress = IpUtil.getIpAddress(httpServletRequest);
-//        ipAddress = AES.encrypt(ipAddress, ApplicationConfig.Secret);  //加密
-//        HashMap<Object, Object> result = surveyCharacterService.saveMaaCharData(maaOperBoxVo, ipAddress);
-//
-//        return Result.success(result);
-//    }
-
 
 
     @Operation(summary ="公招统计")
@@ -91,7 +78,7 @@ public class MaaController {
     @GetMapping("/schedule/retrieve")
     public Result<Object> retrieveMaaScheduleJson(@RequestParam Long schedule_id) {
         String str = scheduleService.retrieveScheduleJson(schedule_id);
-        JSONObject jsonObject = JSONObject.parseObject(str);
+        JsonNode jsonObject = JsonMapper.parseJSONObject(str);
         HashMap<Object, Object> hashMap = new HashMap<>();
         hashMap.put("schedule",jsonObject);
         hashMap.put("message","导入成功");

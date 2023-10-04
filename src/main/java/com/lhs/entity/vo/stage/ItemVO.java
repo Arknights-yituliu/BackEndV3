@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemVo {
+public class ItemVO {
     @ExcelProperty("物品id")
     private String itemId;  //物品id
     @ExcelProperty("物品名称")

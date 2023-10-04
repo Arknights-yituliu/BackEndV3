@@ -9,7 +9,7 @@ import com.lhs.entity.po.survey.OperatorPlan;
 import com.lhs.entity.po.survey.SurveyOperator;
 import com.lhs.entity.po.survey.SurveyOperatorVo;
 import com.lhs.service.survey.*;
-import com.lhs.entity.vo.survey.OperatorPlanVo;
+import com.lhs.entity.vo.survey.OperatorPlanVO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -111,14 +111,14 @@ public class SurveyOperatorController {
 
     @Operation(summary ="上传训练干员计划")
     @PostMapping("/operator/plan/save")
-    public Result<Object> saveOperatorPlan(@RequestBody OperatorPlanVo OperatorPlanVo) {
+    public Result<Object> saveOperatorPlan(@RequestBody OperatorPlanVO OperatorPlanVo) {
 
         return operatorPlanService.savePlan(OperatorPlanVo);
     }
 
     @Operation(summary ="获取训练干员计划")
     @PostMapping("/operator/plan")
-    public Result<List<OperatorPlan>> getOperatorPlan(@RequestBody OperatorPlanVo OperatorPlanVo) {
+    public Result<List<OperatorPlan>> getOperatorPlan(@RequestBody OperatorPlanVO OperatorPlanVo) {
 
         return operatorPlanService.getPlan(OperatorPlanVo);
     }

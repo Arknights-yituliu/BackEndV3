@@ -11,11 +11,10 @@ import com.lhs.common.util.UserStatusCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.*;
-import com.lhs.entity.dto.survey.EmailDto;
-import com.lhs.entity.dto.survey.UpdateUserDataDto;
-import com.lhs.entity.dto.survey.UserDataDto;
-import com.lhs.entity.dto.survey.SklandDto;
-import com.lhs.entity.po.stage.Item;
+import com.lhs.entity.dto.survey.EmailDTO;
+import com.lhs.entity.dto.survey.UpdateUserDataDTO;
+import com.lhs.entity.dto.survey.LoginDataDTO;
+import com.lhs.entity.dto.survey.SklandDTO;
 import com.lhs.entity.po.survey.SurveyOperator;
 import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.entity.po.survey.SurveyStatisticsUser;
@@ -26,13 +25,12 @@ import com.lhs.mapper.survey.SurveyStatisticsUserMapper;
 import com.lhs.service.dev.EmailService;
 import com.lhs.service.dev.OSSService;
 
-import com.lhs.entity.vo.survey.UserDataResponse;
+import com.lhs.entity.vo.survey.UserDataVO;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class SurveyUserService {
@@ -60,7 +58,7 @@ public class SurveyUserService {
     }
 
 
-    public UserDataResponse registerV2(String ipAddress, UserDataDto surveyRequestVo) {
+    public UserDataVO registerV2(String ipAddress, LoginDataDTO surveyRequestVo) {
         String accountType = surveyRequestVo.getAccountType();
         String userName = surveyRequestVo.getUserName().trim();
         String passWord = surveyRequestVo.getPassWord().trim();
@@ -140,7 +138,7 @@ public class SurveyUserService {
         String header = JsonMapper.toJSONString(hashMap);
         String token = AES.encrypt(header + "." + yituliuId + "." + timeStamp, ApplicationConfig.Secret);
 
-        UserDataResponse response = new UserDataResponse();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
+        UserDataVO response = new UserDataVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
         response.setUserName(surveyUserNew.getUserName());
         response.setToken(token);
         response.setStatus(surveyUserNew.getStatus());
@@ -154,11 +152,11 @@ public class SurveyUserService {
     /**
      * 调查站登录
      * @param ipAddress       ip
-     * @param userDataDto 自定义的请求实体类（具体内容看实体类的注释）
+     * @param loginDataDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return 用户状态信息
      */
-    public UserDataResponse loginV2(String ipAddress, UserDataDto userDataDto) {
-        String accountType = userDataDto.getAccountType();
+    public UserDataVO loginV2(String ipAddress, LoginDataDTO loginDataDto) {
+        String accountType = loginDataDto.getAccountType();
 
         if (accountType == null || "undefined".equals(accountType) || "null".equals(accountType)) {
             throw new ServiceException(ResultCode.PARAM_TYPE_BIND_ERROR);
@@ -167,11 +165,11 @@ public class SurveyUserService {
         SurveyUser surveyUser = null;
 
         if ("passWord".equals(accountType)) {
-            surveyUser = loginByPassWord(userDataDto);
+            surveyUser = loginByPassWord(loginDataDto);
         }
 
         if ("emailCode".equals(accountType)) {
-            surveyUser = loginByEmailCode(userDataDto);
+            surveyUser = loginByEmailCode(loginDataDto);
         }
 
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
@@ -185,7 +183,7 @@ public class SurveyUserService {
         String header = JsonMapper.toJSONString(hashMap);
         String token = AES.encrypt(header + "." + yituliuId + "." + timeStamp, ApplicationConfig.Secret);
 
-        UserDataResponse response = new UserDataResponse();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
+        UserDataVO response = new UserDataVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
         response.setUserName(surveyUser.getUserName());
         response.setToken(token);
         response.setStatus(surveyUser.getStatus());
@@ -196,12 +194,12 @@ public class SurveyUserService {
 
     /**
      * 通过密码登录
-     * @param userDataDto 前端传来的用户名密码
+     * @param loginDataDto 前端传来的用户名密码
      * @return 用户数据
      */
-    public SurveyUser loginByPassWord(UserDataDto userDataDto){
-        String userName = userDataDto.getUserName().trim();
-        String passWord = userDataDto.getPassWord().trim();
+    public SurveyUser loginByPassWord(LoginDataDTO loginDataDto){
+        String userName = loginDataDto.getUserName().trim();
+        String passWord = loginDataDto.getPassWord().trim();
         passWord = AES.encrypt(passWord, ApplicationConfig.Secret); //密码加密
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
 
@@ -229,12 +227,12 @@ public class SurveyUserService {
 
     /**
      * 通过邮箱验证码登录
-     * @param userDataDto 前端传来的邮箱和验证码
+     * @param loginDataDto 前端传来的邮箱和验证码
      * @return 用户数据
      */
-    public SurveyUser loginByEmailCode(UserDataDto userDataDto){
-        String email = userDataDto.getEmail().trim();
-        String emailCode = userDataDto.getEmailCode().trim();
+    public SurveyUser loginByEmailCode(LoginDataDTO loginDataDto){
+        String email = loginDataDto.getEmail().trim();
+        String emailCode = loginDataDto.getEmailCode().trim();
 
         //设置查询构造器条件
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
@@ -254,7 +252,7 @@ public class SurveyUserService {
      * 设置注册验证码的邮件信息
      * @param emailDto 邮件信息
      */
-    public void sendEmailForRegister(EmailDto emailDto){
+    public void sendEmailForRegister(EmailDTO emailDto){
         String emailAddress = emailDto.getEmail().trim();
         //设置查询构造器条件
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
@@ -274,7 +272,7 @@ public class SurveyUserService {
      * 设置登录验证码的邮件信息
      * @param emailDto 前端输入的收件人地址
      */
-    public void sendEmailForLogin(EmailDto emailDto){
+    public void sendEmailForLogin(EmailDTO emailDto){
         String emailAddress = emailDto.getEmail().trim();  //收件人地址
         //设置查询构造器条件
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
@@ -292,7 +290,7 @@ public class SurveyUserService {
      * 设置修改邮箱验证码的邮件信息
      * @param emailDto 邮件信息
      */
-    public void sendEmailForChangeEmail(EmailDto emailDto){
+    public void sendEmailForChangeEmail(EmailDTO emailDto){
         String emailAddress = emailDto.getEmail().trim();
         String token = emailDto.getToken();  //用户凭证
         //变更邮箱
@@ -333,7 +331,7 @@ public class SurveyUserService {
      * @param updateUserDataDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return 成功信息
      */
-    public UserDataResponse updateOrBindEmail(UpdateUserDataDto updateUserDataDto) {
+    public UserDataVO updateOrBindEmail(UpdateUserDataDTO updateUserDataDto) {
         String email = updateUserDataDto.getEmail().trim();
         String token = updateUserDataDto.getToken();
         String emailCode = updateUserDataDto.getEmailCode().trim();
@@ -349,7 +347,7 @@ public class SurveyUserService {
 
 
         updateSurveyUser(surveyUserByToken);
-        UserDataResponse response = new UserDataResponse();
+        UserDataVO response = new UserDataVO();
         response.setStatus(surveyUserByToken.getStatus());
 
         return response;
@@ -361,7 +359,7 @@ public class SurveyUserService {
      * @param updateUserDataDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return
      */
-    public UserDataResponse updatePassWord(UpdateUserDataDto updateUserDataDto) {
+    public UserDataVO updatePassWord(UpdateUserDataDTO updateUserDataDto) {
 
         String token = updateUserDataDto.getToken();
         String newPassWord = updateUserDataDto.getNewPassWord().trim(); //新密码
@@ -393,14 +391,14 @@ public class SurveyUserService {
 
         updateSurveyUser(surveyUserByToken);
 
-        UserDataResponse response = new UserDataResponse();
+        UserDataVO response = new UserDataVO();
         response.setStatus(surveyUserByToken.getStatus());
 
         return response;
     }
 
 
-    public UserDataResponse updateUserName(UpdateUserDataDto updateUserDataDto) {
+    public UserDataVO updateUserName(UpdateUserDataDTO updateUserDataDto) {
         String token = updateUserDataDto.getToken();
         String userName = updateUserDataDto.getUserName().trim();
 
@@ -417,7 +415,7 @@ public class SurveyUserService {
             throw new ServiceException(ResultCode.NOT_SET_PASSWORD_OR_BIND_EMAIL);
         }
 
-        UserDataResponse response = new UserDataResponse();
+        UserDataVO response = new UserDataVO();
         response.setUserName(surveyUserByToken.getUserName());
         return response;
 
@@ -429,7 +427,7 @@ public class SurveyUserService {
      * @param sklandDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return
      */
-    public UserDataResponse authentication(SklandDto sklandDto) {
+    public UserDataVO authentication(SklandDTO sklandDto) {
         String token = sklandDto.getToken();
         String cred = sklandDto.getCred();
         SurveyUser surveyUser = getSurveyUserByToken(token);
@@ -442,7 +440,7 @@ public class SurveyUserService {
         }
 
 
-        UserDataResponse response = new UserDataResponse();
+        UserDataVO response = new UserDataVO();
         response.setStatus(surveyUser.getStatus());
         response.setUserName(surveyUser.getUserName());
         response.setUid(uid);
@@ -849,8 +847,8 @@ public class SurveyUserService {
      * @param sklandDto 自定义的请求实体类（具体内容看实体类的注释）
      * @return 用户状态信息
      */
-    public Result<UserDataResponse> loginByCRED(String ipAddress, SklandDto sklandDto) {
-        UserDataResponse response = new UserDataResponse();
+    public Result<UserDataVO> loginByCRED(String ipAddress, SklandDTO sklandDto) {
+        UserDataVO response = new UserDataVO();
         Date date = new Date();  //当前时间
         long timeStamp = date.getTime();
 
@@ -918,7 +916,7 @@ public class SurveyUserService {
      * @param CRED 森空岛CRED
      * @return 用户状态信息
      */
-    public Result<UserDataResponse> retrievalAccountByCRED(String CRED) {
+    public Result<UserDataVO> retrievalAccountByCRED(String CRED) {
 
         Map<String, String> skLandPlayerBinding = getSKLandPlayerBinding(CRED);
         String uid = skLandPlayerBinding.get("uid");
@@ -929,7 +927,7 @@ public class SurveyUserService {
         if (surveyUser == null) {
             throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
         }
-        UserDataResponse response = new UserDataResponse();
+        UserDataVO response = new UserDataVO();
         response.setUserName(surveyUser.getUserName());
         return Result.success(response);
     }

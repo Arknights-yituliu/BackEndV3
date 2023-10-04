@@ -1,7 +1,8 @@
 package com.lhs.service.maa;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.po.maa.SurveyRecruit;
 import com.lhs.entity.po.maa.RecruitStatistics;
 import com.lhs.mapper.survey.SurveyRecruitMapper;
@@ -42,7 +43,7 @@ public class SurveyRecruitService {
                 .level(maaRecruitVo.getLevel())
                 .server(maaRecruitVo.getServer())
                 .source(maaRecruitVo.getSource())
-                .tag(JSON.toJSONString(maaRecruitVo.getTags()))
+                .tag(JsonMapper.toJSONString(maaRecruitVo.getTags()))
                 .version(maaRecruitVo.getVersion())
                 .createTime(date).build();
 
@@ -119,7 +120,9 @@ public class SurveyRecruitService {
 
 
         for(SurveyRecruit surveyRecruit :topOperatorResult){
-            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
+            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+            });
+
 
             boolean vulcanSignMain = false; //火神标记
             boolean vulcanSignItem = false; //火神标记
@@ -149,7 +152,8 @@ public class SurveyRecruitService {
         }
 
         for(SurveyRecruit surveyRecruit :seniorOperatorCountResult){
-            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
+            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+            });
 
             boolean vulcanSignMain = false; //火神主标签
             boolean vulcanSignItem = false; //火神副标签
@@ -178,7 +182,8 @@ public class SurveyRecruitService {
         }
 
         for(SurveyRecruit surveyRecruit :seniorOperatorCountResult){
-            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
+            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+            });
             for(String tag:tags){
                 if ("支援机械".equals(tag)) {
                     robot++;
@@ -188,7 +193,8 @@ public class SurveyRecruitService {
         }
 
         for(SurveyRecruit surveyRecruit :commonOperatorCountResult){
-            List<String> tags = JSONArray.parseArray(surveyRecruit.getTag(), String.class);
+            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+            });
             for(String tag:tags){
                 if ("支援机械".equals(tag)) {
                     robot++;

@@ -9,7 +9,7 @@ import com.lhs.entity.po.survey.OperatorTable;
 import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.mapper.survey.OperatorTableMapper;
 import com.lhs.service.dev.OSSService;
-import com.lhs.entity.vo.survey.OperatorPlanVo;
+import com.lhs.entity.vo.survey.OperatorPlanVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public class OperatorPlanService {
         this.operatorTableMapper = operatorTableMapper;
     }
 
-    public Result<Object> savePlan(OperatorPlanVo operatorPlanVo){
+    public Result<Object> savePlan(OperatorPlanVO operatorPlanVo){
 
         SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(operatorPlanVo.getToken());
         String userName = surveyUserByToken.getUserName();
@@ -58,7 +58,7 @@ public class OperatorPlanService {
         }
     }
 
-    public Result<List<OperatorPlan>> getPlan(OperatorPlanVo operatorPlanVo){
+    public Result<List<OperatorPlan>> getPlan(OperatorPlanVO operatorPlanVo){
         String token = operatorPlanVo.getToken();
         SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
         String userName = surveyUserByToken.getUserName();

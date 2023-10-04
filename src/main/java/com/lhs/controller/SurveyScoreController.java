@@ -4,7 +4,7 @@ package com.lhs.controller;
 import com.lhs.common.entity.Result;
 import com.lhs.entity.po.survey.SurveyScore;
 import com.lhs.service.survey.*;
-import com.lhs.entity.vo.survey.SurveyStatisticsScoreVo;
+import com.lhs.entity.vo.survey.SurveyStatisticsScoreVO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,8 +39,8 @@ public class SurveyScoreController {
 
     @Operation(summary ="干员风评表统计结果")
     @GetMapping("/score/result")
-    public Result<List<SurveyStatisticsScoreVo>> scoreStatisticsResult() {
-        List<SurveyStatisticsScoreVo> surveyScoreServiceScoreStatisticsResult = surveyScoreService.getScoreStatisticsResult();
+    public Result<List<SurveyStatisticsScoreVO>> scoreStatisticsResult() {
+        List<SurveyStatisticsScoreVO> surveyScoreServiceScoreStatisticsResult = surveyScoreService.getScoreStatisticsResult();
         return Result.success(surveyScoreServiceScoreStatisticsResult);
     }
 

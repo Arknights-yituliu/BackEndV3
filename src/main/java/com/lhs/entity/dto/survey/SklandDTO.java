@@ -3,7 +3,7 @@ package com.lhs.entity.dto.survey;
 import lombok.Data;
 
 @Data
-public class SklandDto {
+public class SklandDTO {
     private String uid;
     private String nickName;
     private String token;

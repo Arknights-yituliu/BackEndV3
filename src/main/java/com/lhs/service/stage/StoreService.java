@@ -1,15 +1,16 @@
 package com.lhs.service.stage;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.stage.StoreAct;
 import com.lhs.mapper.HoneyCakeMapper;
@@ -18,9 +19,9 @@ import com.lhs.mapper.StorePermMapper;
 import com.lhs.entity.po.stage.Item;
 import com.lhs.entity.po.stage.StorePerm;
 import com.lhs.service.dev.OSSService;
-import com.lhs.entity.dto.stage.ItemCustomValue;
-import com.lhs.entity.vo.stage.StoreItem;
-import com.lhs.entity.vo.stage.StoreActVo;
+import com.lhs.entity.dto.stage.ItemCustomValueDTO;
+import com.lhs.entity.vo.stage.StoreItemVO;
+import com.lhs.entity.vo.stage.StoreActVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -73,7 +74,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-        ossService.upload(JSON.toJSONString(storePerms), "backup/store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
+        ossService.upload(JsonMapper.toJSONString(storePerms), "backup/store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
 
     }
 
@@ -86,11 +87,11 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         return  resultMap;
     }
 
-    public String updateActStoreByActName(StoreActVo storeActVo,Boolean level)  {
+    public String updateActStoreByActName(StoreActVO storeActVo, Boolean level)  {
         List<Item> items = itemService.getItemListCache("public."+0.625);
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        List<StoreItem> storeItemList = storeActVo.getActStore();
+        List<StoreItemVO> storeItemVOList = storeActVo.getActStore();
         String actName = storeActVo.getActName();
         String actEndDate = storeActVo.getActEndDate();
 
@@ -101,15 +102,15 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
             throw new RuntimeException(e);
         }
 
-        storeItemList.forEach(a -> {
+        storeItemVOList.forEach(a -> {
             a.setItemPPR(itemMap.get(a.getItemName()).getItemValueAp() * a.getItemQuantity() / a.getItemPrice());
             a.setItemId(itemMap.get(a.getItemName()).getItemId());
         });
 
-        storeItemList.sort(Comparator.comparing(StoreItem::getItemPPR).reversed());
+        storeItemVOList.sort(Comparator.comparing(StoreItemVO::getItemPPR).reversed());
 
         StoreAct act_name = storeActMapper.selectOne(new QueryWrapper<StoreAct>().eq("act_name", actName));
-        StoreAct build = StoreAct.builder().actName(actName).endTime(date).result(JSON.toJSONString(storeActVo)).build();
+        StoreAct build = StoreAct.builder().actName(actName).endTime(date).result(JsonMapper.toJSONString(storeActVo)).build();
         if(act_name==null){
             storeActMapper.insert(build);
         }else {
@@ -127,33 +128,33 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-        ossService.upload(JSON.toJSONString(storeActVo), "backup/store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
+        ossService.upload(JsonMapper.toJSONString(storeActVo), "backup/store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
         return message;
     }
 
     @RedisCacheable(key = "StoreAct",timeout=86400)
-    public List<StoreActVo> getStoreAct(){
+    public List<StoreActVO> getStoreAct(){
         List<StoreAct> storeActs = storeActMapper.selectList(null);
-        List<StoreActVo> storeActVoList = new ArrayList<>();
+        List<StoreActVO> storeActVOList = new ArrayList<>();
         storeActs.forEach(l->{
             String result = l.getResult();
             if(l.getEndTime().getTime()>new Date().getTime()){
-                StoreActVo storeActVo = JSONObject.parseObject(result, StoreActVo.class);
-                storeActVoList.add(storeActVo);
+                StoreActVO storeActVo = JsonMapper.parseObject(result, StoreActVO.class);
+                storeActVOList.add(storeActVo);
             }
         });
-        return  storeActVoList;
+        return storeActVOList;
     }
 
-    public List<StoreActVo> selectActStoreHistory() {
+    public List<StoreActVO> selectActStoreHistory() {
         List<StoreAct> storeActs = storeActMapper.selectList(null);
-        List<StoreActVo> storeActVoList = new ArrayList<>();
+        List<StoreActVO> storeActVOList = new ArrayList<>();
         storeActs.forEach(l->{
             String result = l.getResult();
-            StoreActVo storeActVo = JSONObject.parseObject(result, StoreActVo.class);
-            storeActVoList.add(storeActVo);
+            StoreActVO storeActVo = JsonMapper.parseObject(result, StoreActVO.class);
+            storeActVOList.add(storeActVo);
         });
-        return storeActVoList;
+        return storeActVOList;
     }
 
 
@@ -163,11 +164,13 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         String fileStr = FileUtil.read(ApplicationConfig.Item + "itemCustomValue.json");
         if (fileStr == null) throw new ServiceException(ResultCode.DATA_NONE);
 
-        List<ItemCustomValue> itemCustomValues = JSONArray.parseArray(fileStr, ItemCustomValue.class);
-        Map<String, Double> itemMap = itemCustomValues.stream().collect(Collectors.toMap(ItemCustomValue::getItemName, ItemCustomValue::getItemValue));
+        List<ItemCustomValueDTO> itemCustomValueDTOS = JsonMapper.parseJSONArray(fileStr, new TypeReference<List<ItemCustomValueDTO>>() {
+        });
+        Map<String, Double> itemMap = itemCustomValueDTOS.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemName, ItemCustomValueDTO::getItemValue));
         itemService.getItemListCache("public."+0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
-        JSONArray packList = JSONArray.parseArray(packStr);
+        List<String> packList = JsonMapper.parseJSONArray(packStr,new TypeReference<List<String>>(){
+        });
 
         List<Object> packResultList = new ArrayList<>();
 
@@ -176,7 +179,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
         if (packList != null) {
             packList.forEach(obj -> {
-                JSONObject packData = JSONObject.parseObject(obj.toString());
+                JsonNode packData = JsonMapper.parseJSONObject(obj);
 
                 double apValueToOriginium = 0.0;  //材料理智折合源石
 
@@ -193,19 +196,19 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
                 int gachaPermit10 = 0;   //十连
 
                 if (packData.get("gachaOrundum") != null) {
-                    gachaOrundum = Integer.parseInt(packData.getString("gachaOrundum")); // 合成玉
+                    gachaOrundum = packData.get("gachaOrundum").asInt(); // 合成玉
                 }
                 if (packData.get("gachaOriginium") != null) {
-                    gachaOriginium = Integer.parseInt(packData.getString("gachaOriginium"));// 源石
+                    gachaOriginium = packData.get("gachaOriginium").asInt();// 源石
                 }
                 if (packData.get("gachaPermit") != null) {
-                    gachaPermit = Integer.parseInt(packData.getString("gachaPermit"));// 单抽
+                    gachaPermit = packData.get("gachaPermit").asInt();// 单抽
                 }
                 if (packData.get("gachaPermit10") != null) {
-                    gachaPermit10 = Integer.parseInt(packData.getString("gachaPermit10"));// 十连
+                    gachaPermit10 = packData.get("gachaPermit10").asInt();// 十连
                 }
 
-                int packPrice = Integer.parseInt(packData.getString("packPrice"));// 价格
+                int packPrice = packData.get("packPrice").asInt();// 价格
 
 
                 //计算该理智的材料总理智折合源石
@@ -213,11 +216,12 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
 
                 if (packData.get("packContent") != null) {
 
-                    JSONArray packContents = JSONArray.parseArray(packData.getString("packContent"));
-                    for (Object contentObj : packContents) {
-                        JSONObject packContent = JSONObject.parseObject(contentObj.toString());
+                    List<String> packContents = JsonMapper.parseJSONArray(packData.get("packContent").toPrettyString(), new TypeReference<List<String>>() {
+                    });
+                    for (String contentObj : packContents) {
+                        JsonNode packContent = JsonMapper.parseJSONObject(contentObj);
 
-                        apValueToOriginium += itemMap.get(packContent.getString("packContentItem")) / 1.25 * Integer.parseInt(packContent.getString("packContentQuantity"));
+                        apValueToOriginium += itemMap.get(packContent.get("packContentItem").asText()) / 1.25 * packContent.get("packContentQuantity").asInt();
                     }
 
                     if (apValueToOriginium > 0.0) apValueToOriginium = apValueToOriginium / 135;
@@ -230,12 +234,12 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
                 packPPRDraw = standard_gacha / packRmbPerDraw;
                 packPPROriginium = standard_ap / packRmbPerOriginium;
 
-                packData.put("packDraw", packDraw);
-                packData.put("packRmbPerDraw", packRmbPerDraw);
-                packData.put("packOriginium", packOriginium);
-                packData.put("packRmbPerOriginium", packRmbPerOriginium);
-                packData.put("packPPRDraw", packPPRDraw);
-                packData.put("packPPROriginium", packPPROriginium);
+//                packData.put("packDraw", packDraw);
+//                packData.put("packRmbPerDraw", packRmbPerDraw);
+//                packData.put("packOriginium", packOriginium);
+//                packData.put("packRmbPerOriginium", packRmbPerOriginium);
+//                packData.put("packPPRDraw", packPPRDraw);
+//                packData.put("packPPROriginium", packPPROriginium);
                 packResultList.add(packData);
 
             });

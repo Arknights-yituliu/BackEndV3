@@ -4,13 +4,13 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.entity.Result;
-import com.lhs.entity.dto.survey.EmailDto;
-import com.lhs.entity.dto.survey.UpdateUserDataDto;
-import com.lhs.entity.dto.survey.UserDataDto;
-import com.lhs.entity.dto.survey.SklandDto;
+import com.lhs.entity.dto.survey.EmailDTO;
+import com.lhs.entity.dto.survey.UpdateUserDataDTO;
+import com.lhs.entity.dto.survey.LoginDataDTO;
+import com.lhs.entity.dto.survey.SklandDTO;
 import com.lhs.service.survey.SurveyUserService;
 
-import com.lhs.entity.vo.survey.UserDataResponse;
+import com.lhs.entity.vo.survey.UserDataVO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,22 +33,22 @@ public class SurveyUserController {
 
     @Operation(summary ="调查用户注册V2")
     @PostMapping("/register/v2")
-    public Result<UserDataResponse> registerV2(HttpServletRequest httpServletRequest, @RequestBody UserDataDto userDataDto) {
+    public Result<UserDataVO> registerV2(HttpServletRequest httpServletRequest, @RequestBody LoginDataDTO loginDataDto) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-        return  Result.success(surveyUserService.registerV2(ipAddress, userDataDto));
+        return  Result.success(surveyUserService.registerV2(ipAddress, loginDataDto));
     }
 
     @Operation(summary ="调查用户登录")
     @PostMapping("/login/v2")
-    public Result<UserDataResponse> loginV2(HttpServletRequest httpServletRequest,@RequestBody UserDataDto userDataDto) {
+    public Result<UserDataVO> loginV2(HttpServletRequest httpServletRequest, @RequestBody LoginDataDTO loginDataDto) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-        UserDataResponse response = surveyUserService.loginV2(ipAddress, userDataDto);
+        UserDataVO response = surveyUserService.loginV2(ipAddress, loginDataDto);
         return Result.success(response);
     }
 
     @Operation(summary ="发送注册邮件验证码")
     @PostMapping("/user/emailCode")
-    public Result<Object> sendEmailCodeForRegister(@RequestBody EmailDto emailDto) {
+    public Result<Object> sendEmailCodeForRegister(@RequestBody EmailDTO emailDto) {
         String mailUsage = emailDto.getMailUsage();
         if("register".equals(mailUsage)){
             surveyUserService.sendEmailForRegister(emailDto);
@@ -68,9 +68,9 @@ public class SurveyUserController {
 
     @Operation(summary ="更新用户信息")
     @PostMapping("/user/update")
-    public Result<UserDataResponse> updateEmail(@RequestBody UpdateUserDataDto updateUserDataDto) {
+    public Result<UserDataVO> updateEmail(@RequestBody UpdateUserDataDTO updateUserDataDto) {
         String property = updateUserDataDto.getProperty();
-        UserDataResponse response = null;
+        UserDataVO response = null;
         if("email".equals(property)){
             response =  surveyUserService.updateOrBindEmail(updateUserDataDto);
         }
@@ -88,20 +88,20 @@ public class SurveyUserController {
 
     @Operation(summary ="通过森空岛CRED直接登录")
     @PostMapping("/user/login/cred")
-    public Result<UserDataResponse> loginByCRED(HttpServletRequest httpServletRequest, @RequestBody SklandDto sklandDto) {
+    public Result<UserDataVO> loginByCRED(HttpServletRequest httpServletRequest, @RequestBody SklandDTO sklandDto) {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
         return surveyUserService.loginByCRED(ipAddress, sklandDto);
     }
 
     @Operation(summary ="身份验证")
     @PostMapping("/user/authentication")
-    public Result<UserDataResponse> authentication(HttpServletRequest httpServletRequest,@RequestBody SklandDto sklandDto){
+    public Result<UserDataVO> authentication(HttpServletRequest httpServletRequest, @RequestBody SklandDTO sklandDto){
         return   Result.success(surveyUserService.authentication(sklandDto));
     }
 
     @Operation(summary ="找回账号")
     @PostMapping("/user/retrieval")
-    public Result<UserDataResponse> retrievalAccount(@RequestBody Map<String,Object> map) {
+    public Result<UserDataVO> retrievalAccount(@RequestBody Map<String,Object> map) {
         String cred = String.valueOf(map.get("cred"));
         return surveyUserService.retrievalAccountByCRED(cred);
     }

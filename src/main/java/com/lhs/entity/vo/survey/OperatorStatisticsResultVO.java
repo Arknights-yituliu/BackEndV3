@@ -6,22 +6,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class OperatorStatisticsResult {
+public class OperatorStatisticsResultVO {
 
     private String charId;
     private Integer rarity;
     private Double own;
-    private HashMap<String,Double> elite;
-    private HashMap<String,Double> skill1;
-    private HashMap<String,Double> skill2;
-    private HashMap<String,Double> skill3;
-    private HashMap<String,Double> modX;
-    private HashMap<String,Double> modY;
+    private Map<String,Double> elite;
+    private Map<String,Double> skill1;
+    private Map<String,Double> skill2;
+    private Map<String,Double> skill3;
+    private Map<String,Double> modX;
+    private Map<String,Double> modY;
 
 
 }

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 
-public class OrundumPerApResultVo {
+public class OrundumPerApResultVO {
 
     private String stageCode;
 

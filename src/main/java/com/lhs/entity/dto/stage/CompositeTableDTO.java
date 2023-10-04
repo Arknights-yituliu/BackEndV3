@@ -5,9 +5,9 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class CompositeTable {
+public class CompositeTableDTO {
     private String id;
-    private List<ItemCost> itemCost;
+    private List<ItemCostDTO> itemCostDTO;
 }
 
 

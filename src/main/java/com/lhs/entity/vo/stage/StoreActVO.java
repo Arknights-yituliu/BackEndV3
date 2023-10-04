@@ -1,16 +1,16 @@
 package com.lhs.entity.vo.stage;
 
 
-import com.lhs.entity.dto.stage.ActTagArea;
+import com.lhs.entity.dto.stage.ActTagAreaDTO;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class StoreActVo {
+public class StoreActVO {
     private String actEndDate;
 
-    private List<ActTagArea> actTagArea;
+    private List<ActTagAreaDTO> actTagArea;
 
     private String actImgUrl;
 
@@ -20,5 +20,5 @@ public class StoreActVo {
 
     private String actName;
 
-    private List<StoreItem> actStore;
+    private List<StoreItemVO> actStore;
 }

@@ -10,8 +10,8 @@ import com.lhs.common.entity.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.po.survey.*;
-import com.lhs.entity.vo.survey.SurveyOperatorExcelVo;
-import com.lhs.entity.vo.survey.UserDataResponse;
+import com.lhs.entity.vo.survey.SurveyOperatorExcelVO;
+import com.lhs.entity.vo.survey.UserDataVO;
 import com.lhs.mapper.survey.SurveyOperatorMapper;
 import com.lhs.mapper.survey.SurveyOperatorVoMapper;
 import com.lhs.service.dev.OSSService;
@@ -77,8 +77,8 @@ public class SurveyOperatorService {
     public Map<String, Object> importExcel(MultipartFile file, String token) {
         List<SurveyOperator> list = new ArrayList<>();
         try {
-            EasyExcel.read(file.getInputStream(), SurveyOperatorExcelVo.class, new AnalysisEventListener<SurveyOperatorExcelVo>() {
-                public void invoke(SurveyOperatorExcelVo surveyOperatorExcelVo, AnalysisContext analysisContext) {
+            EasyExcel.read(file.getInputStream(), SurveyOperatorExcelVO.class, new AnalysisEventListener<SurveyOperatorExcelVO>() {
+                public void invoke(SurveyOperatorExcelVO surveyOperatorExcelVo, AnalysisContext analysisContext) {
                     SurveyOperator surveyOperator = new SurveyOperator();
                     BeanUtils.copyProperties(surveyOperatorExcelVo, surveyOperator);
                     list.add(surveyOperator);
@@ -202,7 +202,7 @@ public class SurveyOperatorService {
         List<SurveyOperator> list =
                 surveyOperatorMapper.selectList(queryWrapper);
 
-        List<SurveyOperatorExcelVo> listVo = new ArrayList<>();
+        List<SurveyOperatorExcelVO> listVo = new ArrayList<>();
 
 
         List<OperatorTable> operatorTableDateTableList = operatorBaseDataService.getOperatorTable();
@@ -213,7 +213,7 @@ public class SurveyOperatorService {
         for(OperatorTable operator: operatorTableDateTableList){
             String charId = operator.getCharId();
             String name = operator.getName();
-            SurveyOperatorExcelVo surveyOperatorExcelVo = new SurveyOperatorExcelVo();
+            SurveyOperatorExcelVO surveyOperatorExcelVo = new SurveyOperatorExcelVO();
             if(collect.get(charId)!=null){
                 SurveyOperator surveyOperator = collect.get(charId);
                 BeanUtils.copyProperties(surveyOperator, surveyOperatorExcelVo);
@@ -237,7 +237,7 @@ public class SurveyOperatorService {
 
         String userName = surveyUser.getUserName();
 
-        ExcelUtil.exportExcel(response, listVo, SurveyOperatorExcelVo.class, userName);
+        ExcelUtil.exportExcel(response, listVo, SurveyOperatorExcelVO.class, userName);
     }
 
 
@@ -312,7 +312,7 @@ public class SurveyOperatorService {
 
         if(bindAccount!=null){
             if(!Objects.equals(bindAccount.getId(), surveyUser.getId())){
-                UserDataResponse response = new UserDataResponse();
+                UserDataVO response = new UserDataVO();
                 response.setUserName(bindAccount.getUserName());
                 return Result.failure(ResultCode.USER_BIND_UID,response);
             }

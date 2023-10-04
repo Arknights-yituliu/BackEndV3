@@ -35,7 +35,7 @@
     </update>
 
     <!-- 干员练度信息表，根据多个uid查询-->
-    <select id="selectSurveyScoreVoByUidList" resultType="com.lhs.entity.vo.survey.SurveyScoreVo">
+    <select id="selectSurveyScoreVoByUidList" resultType="com.lhs.entity.vo.survey.SurveyScoreVO">
         SELECT `char_id`,`rarity`, `daily`, `rogue`,`security_service` , `hard`,
                `universal`, `counter`,`building`, `comprehensive`
         FROM ${tableName}

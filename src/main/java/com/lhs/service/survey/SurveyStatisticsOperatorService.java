@@ -5,12 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
 import com.lhs.entity.po.survey.SurveyOperatorVo;
-import com.lhs.entity.po.survey.SurveyStatisticsOperator;
 import com.lhs.mapper.survey.SurveyOperatorVoMapper;
 import com.lhs.mapper.survey.SurveyStatisticsOperatorMapper;
 import com.lhs.service.dev.OSSService;
-import com.lhs.entity.vo.survey.OperatorStatisticsResult;
-import com.lhs.entity.vo.survey.SurveyStatisticsChar;
+import com.lhs.entity.vo.survey.OperatorStatisticsResultVO;
+import com.lhs.entity.dto.survey.SurveyStatisticsOperatorDTO;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -74,9 +73,9 @@ public class SurveyStatisticsOperatorService {
 
         surveyStatisticsOperatorMapper.truncate(); //清空统计表
 
-        HashMap<String, SurveyStatisticsChar> hashMap = new HashMap<>();  //结果暂存对象
+        HashMap<String, SurveyStatisticsOperatorDTO> hashMap = new HashMap<>();  //结果暂存对象
 
-        List<SurveyStatisticsOperator> statisticsOperatorList = new ArrayList<>();  //最终结果
+        List<com.lhs.entity.po.survey.SurveyStatisticsOperator> statisticsOperatorList = new ArrayList<>();  //最终结果
 
 
         for (List<Long> ids : userIdsGroup) {
@@ -130,7 +129,7 @@ public class SurveyStatisticsOperatorService {
 
                 //和上一组用户id的数据合并
                 if (hashMap.get(charId) != null) {
-                    SurveyStatisticsChar lastData = hashMap.get(charId);
+                    SurveyStatisticsOperatorDTO lastData = hashMap.get(charId);
                     own += lastData.getOwn();
 
                     lastData.getElite()
@@ -156,7 +155,7 @@ public class SurveyStatisticsOperatorService {
                 }
 
                 //存入dto对象进行暂存
-                SurveyStatisticsChar build = SurveyStatisticsChar.builder()
+                SurveyStatisticsOperatorDTO build = SurveyStatisticsOperatorDTO.builder()
                         .charId(charId)
                         .own(own)
                         .elite(collectByElite)
@@ -175,7 +174,7 @@ public class SurveyStatisticsOperatorService {
         //将dto对象转为数据库对象
         hashMap.forEach((k, v) -> {
 
-            SurveyStatisticsOperator build = SurveyStatisticsOperator.builder()
+            com.lhs.entity.po.survey.SurveyStatisticsOperator build = com.lhs.entity.po.survey.SurveyStatisticsOperator.builder()
                     .charId(v.getCharId())
                     .rarity(v.getRarity())
                     .own(v.getOwn())
@@ -204,7 +203,7 @@ public class SurveyStatisticsOperatorService {
      * @return 成功消息
      */
     public HashMap<Object, Object> getCharStatisticsResult() {
-        List<SurveyStatisticsOperator> statisticsOperatorList = surveyStatisticsOperatorMapper.selectList(null);
+        List<com.lhs.entity.po.survey.SurveyStatisticsOperator> statisticsOperatorList = surveyStatisticsOperatorMapper.selectList(null);
 
         HashMap<Object, Object> hashMap = new HashMap<>();
 
@@ -212,9 +211,9 @@ public class SurveyStatisticsOperatorService {
         String updateTime = String.valueOf(redisTemplate.opsForHash().get("Survey", "UpdateTime.Operator"));
 
         double userCount = Double.parseDouble(survey + ".0");
-        List<OperatorStatisticsResult> operatorStatisticsResultList = new ArrayList<>();
+        List<OperatorStatisticsResultVO> operatorStatisticsResultVOList = new ArrayList<>();
         statisticsOperatorList.forEach(item -> {
-            OperatorStatisticsResult build = OperatorStatisticsResult.builder()
+            OperatorStatisticsResultVO build = OperatorStatisticsResultVO.builder()
                     .charId(item.getCharId())
                     .rarity(item.getRarity())
                     .own((double) item.getOwn() / userCount)
@@ -226,12 +225,12 @@ public class SurveyStatisticsOperatorService {
                     .modY(splitCalculation(item.getModY(),item.getOwn()))
                     .build();
 
-            operatorStatisticsResultList.add(build);
+            operatorStatisticsResultVOList.add(build);
         });
 
 
         hashMap.put("userCount", userCount);
-        hashMap.put("result", operatorStatisticsResultList);
+        hashMap.put("result", operatorStatisticsResultVOList);
         hashMap.put("updateTime", updateTime);
 
         return hashMap;
@@ -265,7 +264,7 @@ public class SurveyStatisticsOperatorService {
 
     @Scheduled(cron = "0 0 0/1 * * ? ")
     public void saveOperatorStatisticsData(){
-        List<SurveyStatisticsOperator> surveyStatisticsOperators = surveyStatisticsOperatorMapper.selectList(null);
+        List<com.lhs.entity.po.survey.SurveyStatisticsOperator> surveyStatisticsOperators = surveyStatisticsOperatorMapper.selectList(null);
         String data = JsonMapper.toJSONString(surveyStatisticsOperators);
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHH = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式

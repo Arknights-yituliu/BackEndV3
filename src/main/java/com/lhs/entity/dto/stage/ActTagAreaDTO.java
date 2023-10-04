@@ -3,7 +3,7 @@ package com.lhs.entity.dto.stage;
 import lombok.Data;
 
 @Data
-public class ActTagArea {
+public class ActTagAreaDTO {
     private String tagText;
     private String tagRank;
 }

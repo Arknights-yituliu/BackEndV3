@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class OperatorPlanVo {
+public class OperatorPlanVO {
     private String token;
     private List<OperatorPlan>  operatorPlanList;
 

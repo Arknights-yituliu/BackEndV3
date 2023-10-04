@@ -1,6 +1,6 @@
 package com.lhs.service.stage;
 
-import com.alibaba.fastjson.JSON;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
@@ -10,13 +10,13 @@ import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
 import com.lhs.common.entity.ResultCode;
+import com.lhs.entity.dto.stage.StageParamDTO;
 import com.lhs.entity.po.stage.Item;
 import com.lhs.entity.po.stage.StageResult;
-import com.lhs.entity.vo.stage.StageResultVo;
+import com.lhs.entity.vo.stage.StageResultVO;
 import com.lhs.mapper.StageResultMapper;
 import com.lhs.service.dev.OSSService;
-import com.lhs.entity.vo.stage.OrundumPerApResultVo;
-import com.lhs.entity.vo.stage.StageVersion;
+import com.lhs.entity.vo.stage.OrundumPerApResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,42 +50,39 @@ public class StageResultService  {
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(cron = "0 3/10 * * * ?")
+    @Scheduled(cron = "0 4/10 * * * ?")
     public void updateStageResult(){
-        StageVersion stageVersion = new StageVersion();
-        stageVersion.setExpCoefficient(0.625);
-        stageVersion.setSampleSize(200);
-        stageVersion.setType("public");
-        String version = stageVersion.getVersion();
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(0.625);
+        stageParamDTO.setSampleSize(200);
+        stageParamDTO.setType("public");
 
-        List<Item> items = itemService.queryItemList(version);   //找出该经验书价值系数版本的材料价值表Vn
+        List<Item> items = itemService.queryItemList(stageParamDTO);   //找出对应版本的材料价值
 
         if(items==null||items.size()<1){
-            items = itemService.queryItemList("original");
+            items = itemService.queryBaseItemList();
         }
 
-        items = itemService.ItemValueCalculation(items, stageVersion);  //用上面蓝材料对应的常驻最高关卡效率En计算新的新材料价值表Vn+1
-        stageCalService.stageResultCal(items, stageVersion);      //用新材料价值表Vn+1再次计算新关卡效率En+1
+        items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
+        stageCalService.stageResultCal(items, stageParamDTO);      //用新材料价值计算新关卡效率
         Log.info("关卡效率更新成功");
     }
 
     @Scheduled(cron = "0 5/10 * * * ?")
     public void authUpdateStageResult(){
-        StageVersion stageVersion = new StageVersion();
-        stageVersion.setExpCoefficient(0.625);
-        stageVersion.setSampleSize(10);
-        stageVersion.setType("auth");
-        String version = stageVersion.getVersion();
-
-        List<Item> items = itemService.queryItemList(version);   //找出该经验书价值系数版本的材料价值表Vn
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(0.625);
+        stageParamDTO.setSampleSize(10);
+        stageParamDTO.setType("auth");
+        List<Item> items = itemService.queryItemList(stageParamDTO);   //找出对应版本的材料价值
 
         if(items==null||items.size()<1){
-            items = itemService.queryItemList("original");
+            items = itemService.queryBaseItemList();
         }
 
-        items = itemService.ItemValueCalculation(items, stageVersion);  //用上面蓝材料对应的常驻最高关卡效率En计算新的新材料价值表Vn+1
+        items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
 
-        stageCalService.stageResultCal(items, stageVersion);      //用新材料价值表Vn+1再次计算新关卡效率En+1
+        stageCalService.stageResultCal(items, stageParamDTO);      //用新材料价值计算新关卡效率
         Log.info("低样本关卡效率更新成功");
     }
 
@@ -93,73 +90,35 @@ public class StageResultService  {
     public void backupStageResult(){
 
         double expCoefficient = 0.625;
-        String version = "public."+expCoefficient;
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(expCoefficient);
+        String version = stageParamDTO.getVersion();
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
 
-        List<List<StageResultVo>> resultData_t3 = queryStageResultData_t3(version);
-        List<List<StageResult>> resultData_closed =queryStageResultData_closedActivities(version);
-        List<Item> items = itemService.queryItemList(version);
+        List<List<StageResultVO>> resultData_t3 = getStageResultDataT3V2(stageParamDTO);
+        List<List<StageResult>> resultData_closed = getStageResultDataClosedStage(stageParamDTO);
+        List<Item> items = itemService.queryItemList(stageParamDTO);
 
-        ossService.upload(JSON.toJSONString(resultData_t3), "backup/stage/" + yyyyMMdd + "/t3—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
-        ossService.upload(JSON.toJSONString(resultData_closed), "backup/stage/" + yyyyMMdd + "/closed—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
-        ossService.upload(JSON.toJSONString(items), "backup/item/" + yyyyMMdd + "/item—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
+        ossService.upload(JsonMapper.toJSONString(resultData_t3), "backup/stage/" + yyyyMMdd + "/t3—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
+        ossService.upload(JsonMapper.toJSONString(resultData_closed), "backup/stage/" + yyyyMMdd + "/closed—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
+        ossService.upload(JsonMapper.toJSONString(items), "backup/item/" + yyyyMMdd + "/item—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
 
     }
 
-    /**
-     * 查询蓝材料的推荐关卡
-     *
-     * @param version 版本
-     * @return 关卡结果
-     */
-    @RedisCacheable(key = "stage.t3.#version", timeout = 1200)
-    public List<List<StageResultVo>> queryStageResultData_t3(String version) {
-        List<List<StageResultVo>> stageResultVoListList = new ArrayList<>();
-        QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("ratio_rank", 0)
-                .eq("version", version)
-                .ge("end_time", new Date())
-                .ne("item_type", "empty");
-
-        List<StageResult> list = stageResultMapper.selectList(queryWrapper);
-        Map<String, List<StageResult>> collect = list.stream()
-                .collect(Collectors.groupingBy(StageResult::getItemType));
-
-        for (String itemType : collect.keySet()) {
-            List<StageResult> resultList = collect.get(itemType);
-            resultList = resultList.stream()
-                    .sorted(Comparator.comparing(StageResult::getStageEfficiency).reversed())
-                    .limit(8)
-                    .collect(Collectors.toList());
-            setStageColor(resultList);
-
-            List<StageResultVo> stageResultVoList = new ArrayList<>();
-
-            for(StageResult stageResult:resultList){
-                StageResultVo stageResultVo = new StageResultVo();
-                stageResultVo.copy(stageResult);
-                stageResultVoList.add(stageResultVo);
-            }
-
-            stageResultVoListList.add(stageResultVoList);
-        }
-
-        return stageResultVoListList;
-    }
-
-    public List<List<StageResultVo>> queryStageResultDataT3V2(String version) {
+    @RedisCacheable(key = "Stage.T3", timeout = 1200)
+    public List<List<StageResultVO>> getStageResultDataT3V2(StageParamDTO stageParamDTO) {
 
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("version", version)
+        queryWrapper.eq("version", stageParamDTO.getVersion())
                 .ge("end_time", new Date())
                 .ne("item_type", "empty");
 
         //查出全部计算结果
         List<StageResult> list = stageResultMapper.selectList(queryWrapper);
 
-        List<StageResultVo> stageResultVoList = new ArrayList<>();
+        List<StageResultVO> stageResultVOList = new ArrayList<>();
         //根据关卡id分组
         Map<String, List<StageResult>> collectByStageId = list.stream()
                 .collect(Collectors.groupingBy(StageResult::getStageId));
@@ -170,26 +129,26 @@ public class StageResultService  {
             stageResults = stageResults.stream()
                     .sorted(Comparator.comparing(StageResult::getRatioRank)).collect(Collectors.toList());
             //返还前端的vo类
-            StageResultVo stageResultVo = new StageResultVo();
+            StageResultVO stageResultVo = new StageResultVO();
             //复制关卡结果
             stageResultVo.copy(stageResults.get(0));
             //计算主产物所在材料系每种等级的产出占比
             calMainItemRatio(stageResultVo,stageResults);
-            stageResultVoList.add(stageResultVo);
+            stageResultVOList.add(stageResultVo);
         }
 
         //根据材料系分类关卡计算结果
-        Map<String, List<StageResultVo>> collectByItemType = stageResultVoList.stream()
-                .collect(Collectors.groupingBy(StageResultVo::getItemType));
+        Map<String, List<StageResultVO>> collectByItemType = stageResultVOList.stream()
+                .collect(Collectors.groupingBy(StageResultVO::getItemType));
 
 
-        List<List<StageResultVo>> stageResultVoListList = new ArrayList<>();
+        List<List<StageResultVO>> stageResultVoListList = new ArrayList<>();
 
         //给每个材料系的关卡结果排序，截取最大长度，赋予效率等级颜色
         for (String itemType : collectByItemType.keySet()) {
-            List<StageResultVo> resultList = collectByItemType.get(itemType);
+            List<StageResultVO> resultList = collectByItemType.get(itemType);
             resultList = resultList.stream()
-                    .sorted(Comparator.comparing(StageResultVo::getStageEfficiency).reversed())
+                    .sorted(Comparator.comparing(StageResultVO::getStageEfficiency).reversed())
                     .limit(8)
                     .collect(Collectors.toList());
             //赋予效率等级颜色
@@ -205,7 +164,7 @@ public class StageResultService  {
      * @param stageResultVo  关卡结果展示对象
      * @param stageResults  关卡每种掉落物品的详细数据
      */
-    private void calMainItemRatio(StageResultVo stageResultVo,List<StageResult> stageResults){
+    private void calMainItemRatio(StageResultVO stageResultVo, List<StageResult> stageResults){
 
         String itemType = stageResults.get(0).getItemType();  //关卡掉落材料所属类型   比如1-7，4-6这种同属”固源岩组“类
         //获取材料的上下位材料
@@ -237,51 +196,79 @@ public class StageResultService  {
         stageResultVo.setItemRarityLessThan3Ratio(rarity2Ratio+rarity1Ratio); //等级1-2的材料占比
     }
 
+    public List<StageResultVO> getStageResultDataByZone(String version, String zone) {
+        QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("ratio_rank", 0)
+                .eq("version", version)
+                .ge("end_time", new Date())
+                .ne("item_type", "empty")
+                .like("stage_code",zone);
+
+        List<StageResult> stageResults = stageResultMapper.selectList(queryWrapper);
+        List<StageResultVO> stageResultVOList = new ArrayList<>();
+
+        stageResults.stream().sorted(Comparator.comparing(StageResult::getStageId).reversed()).forEach(e->{
+            StageResultVO stageResultVo = new StageResultVO();
+            stageResultVo.copy(e);
+            stageResultVOList.add(stageResultVo);
+        });
+
+
+
+        return stageResultVOList;
+    }
+
     /**
      * 查询绿材料的推荐关卡
      *
-     * @param version 版本
+     * @param stageParamDTO 版本
      * @return 关卡结果
      */
-    @RedisCacheable(key = "stage.t2.#version", timeout = 1200)
-    public List<List<StageResult>> queryStageResultData_t2(String version) {
-        List<List<StageResult>> stageResultList = new ArrayList<>();
+    @RedisCacheable(key = "Stage.T2", timeout = 1200)
+    public List<List<StageResultVO>> getStageResultDataT2(StageParamDTO stageParamDTO) {
+
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("item_rarity", 2)
-                .eq("version", version)
+                .eq("version", stageParamDTO.getVersion())
                 .ge("end_time", new Date());
         List<StageResult> resultNewList = stageResultMapper.selectList(queryWrapper);
         Map<String, List<StageResult>> collect = resultNewList.stream()
                 .collect(Collectors.groupingBy(StageResult::getItemName));
 
-        for (String itemName : collect.keySet()) {
-            List<StageResult> resultList = collect.get(itemName);
-            resultList = resultList.stream()
-                                   .sorted(Comparator
-                                   .comparing(StageResult::getApExpect))
-                                   .limit(8)
-                                   .collect(Collectors.toList());
+        List<List<StageResultVO>> stageResultVoListList = new ArrayList<>();
 
-            stageResultList.add(resultList);
+        for (String itemName : collect.keySet()) {
+            List<StageResultVO> stageResultVOList = new ArrayList<>();
+            collect.get(itemName).stream()
+                    .sorted(Comparator
+                            .comparing(StageResult::getApExpect))
+                    .limit(8)
+                    .collect(Collectors.toList())
+                    .forEach(e->{
+                         StageResultVO stageResultVo = new StageResultVO();
+                         stageResultVo.copy(e);
+                         stageResultVOList.add(stageResultVo);
+                       });
+            stageResultVoListList.add(stageResultVOList);
         }
-        return stageResultList;
+        return stageResultVoListList;
     }
 
     /**
      * 查询已关闭活动关卡
-     * @param version 版本
+     * @param stageParamDTO 版本
      * @return 关卡结果
      */
-    @RedisCacheable(key = "stage.closed.#version", timeout = 86400)
-    public List<List<StageResult>> queryStageResultData_closedActivities(String version) {
+    @RedisCacheable(key = "Stage.Closed", timeout = 86400)
+    public List<List<StageResult>> getStageResultDataClosedStage(StageParamDTO stageParamDTO) {
         List<List<StageResult>> stageResultList = new ArrayList<>();
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("ratio_rank", 0)
                 .eq("item_rarity", 3)
                 .eq("stage_type",3)
-                .eq("version", version)
+                .eq("version", stageParamDTO.getVersion())
                 .le("end_time", new Date())
-                .notLike("stage_id", "LMD")
+                .like("stage_id", "LMD")
                 .notLike("stage_id", "rep")
                 .ne("item_type", "empty");
 
@@ -316,9 +303,9 @@ public class StageResultService  {
      * @param version 版本
      * @return 关卡结果
      */
-    @RedisCacheable(key = "stage.orundum.#version", timeout = 1200)
-    public List<OrundumPerApResultVo> queryStageResultData_Orundum(String version) {
-        List<OrundumPerApResultVo> orundumPerApResultVoList = new ArrayList<>();
+    @RedisCacheable(key = "Stage.Orundum", timeout = 1200)
+    public List<OrundumPerApResultVO> getStageResultDataOrundum(String version) {
+        List<OrundumPerApResultVO> orundumPerApResultVOList = new ArrayList<>();
 
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("version", version)
@@ -332,20 +319,20 @@ public class StageResultService  {
                     HashMap<String, Double> calResult = orundumPerApCal(list);
                     if (calResult.get("orundumPerAp") > 0.2) {
 
-                        OrundumPerApResultVo resultVo = OrundumPerApResultVo.builder()
+                        OrundumPerApResultVO resultVo = OrundumPerApResultVO.builder()
                                 .stageCode(list.get(0).getStageCode())
                                 .stageEfficiency(list.get(0).getStageEfficiency())
                                 .orundumPerAp(calResult.get("orundumPerAp"))
                                 .lMDCost(calResult.get("LMDCost"))
                                 .orundumPerApEfficiency(calResult.get("orundumPerAp") / 1.09 * 100)
                                 .build();
-                        orundumPerApResultVoList.add(resultVo);
+                        orundumPerApResultVOList.add(resultVo);
                     }
                 });
 
-        orundumPerApResultVoList.sort(Comparator.comparing(OrundumPerApResultVo::getOrundumPerAp).reversed());
+        orundumPerApResultVOList.sort(Comparator.comparing(OrundumPerApResultVO::getOrundumPerAp).reversed());
 
-        return orundumPerApResultVoList;
+        return orundumPerApResultVOList;
     }
 
     private HashMap<String, Double> orundumPerApCal(List<StageResult> stageResults) {
@@ -393,7 +380,7 @@ public class StageResultService  {
      * @param stageId 关卡id
      * @return 关卡详情信息
      */
-    public List<StageResult> queryStageResultDataDetailByStageId(String stageId) {
+    public List<StageResult> getStageResultDataDetailByStageId(String stageId) {
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("version", "public."+0.625)
                 .eq("stage_id", stageId);
@@ -421,13 +408,13 @@ public class StageResultService  {
     }
 
 
-    private static void setStageResultVoColor(List<StageResultVo> stageResultList) {
+    private static void setStageResultVoColor(List<StageResultVO> stageResultList) {
         if (stageResultList.size() < 1) return;
 
         stageResultList = stageResultList.stream()
                 .filter(e -> e.getStageColor() > 0).collect(Collectors.toList());
 
-        for (StageResultVo stageResult : stageResultList) {
+        for (StageResultVO stageResult : stageResultList) {
             stageResult.setStageColor(2);
             if (stageResult.getItemRarity() == 2) {
                 double apExpect = stageResult.getApExpect() * 4 + 200 * 0.0036 - 1.17;
@@ -444,7 +431,7 @@ public class StageResultService  {
 
         stageResultList = stageResultList.stream()
                 .limit(8)  //限制个数
-                .sorted(Comparator.comparing(StageResultVo::getApExpect))  //根据期望理智排序
+                .sorted(Comparator.comparing(StageResultVO::getApExpect))  //根据期望理智排序
                 .collect(Collectors.toList());  //流转为集合
 
         String stageId_expectMin = stageResultList.get(0).getStageId(); //拿到期望理智最低的关卡id
@@ -455,7 +442,7 @@ public class StageResultService  {
             stageResultList.get(0).setStageColor(1); // 不一致为1
         }
 
-        for (StageResultVo stageResult : stageResultList) {
+        for (StageResultVO stageResult : stageResultList) {
             if (stageResult.getItemRarity() == 2) {
                 double apExpect = (stageResult.getApExpect() + 1.17 - 200 * 0.0036) / 4;
 
@@ -512,4 +499,6 @@ public class StageResultService  {
             }
         }
     }
+
+
 }

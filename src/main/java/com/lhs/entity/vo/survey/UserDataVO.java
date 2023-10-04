@@ -3,7 +3,7 @@ package com.lhs.entity.vo.survey;
 import lombok.Data;
 
 @Data
-public class UserDataResponse {
+public class UserDataVO {
     private String userName;
     private String nickName;
     private String email;

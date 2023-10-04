@@ -12,12 +12,13 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class HttpRequestUtil {
     /**
      * @Description: 发送get请求
      */
-    public static String get(String url, HashMap<String,String> header) {
+    public static String get(String url, Map<String,String> header) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
         httpGet.setHeader("Content-type", "application/json");

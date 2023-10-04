@@ -3,7 +3,7 @@ package com.lhs.entity.dto.survey;
 import lombok.Data;
 
 @Data
-public class UpdateUserDataDto {
+public class UpdateUserDataDTO {
     private String property;
     private String token;
     private String userName;

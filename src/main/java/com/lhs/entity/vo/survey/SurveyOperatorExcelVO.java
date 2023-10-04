@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyOperatorExcelVo {
+public class SurveyOperatorExcelVO {
     @ExcelProperty("角色id")
     private String charId;
     @ExcelProperty("角色名称")
