@@ -1,8 +1,10 @@
 package com.lhs.service.dev;
 
+import com.lhs.common.annotation.RateLimiter;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.entity.ResultCode;
 import com.lhs.common.exception.ServiceException;
+import com.lhs.common.util.Log;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -62,16 +64,17 @@ public class EmailService {
     private final static HttpMethod method = HttpMethod.POST;
 
 
-    public Integer CreateVerificationCode(String redisKey,Integer maxCodeNum){
+    public Integer CreateVerificationCode(String emailAddress,Integer maxCodeNum){
+
         int random = new Random().nextInt(9999);
         String code = String.format("%04d",random);
-        redisTemplate.opsForValue().set("CODE:CODE." + redisKey, code, 300, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set("CODE:CODE." + emailAddress, code, 300, TimeUnit.SECONDS);
         return random;
     }
 
-    public Boolean compareVerificationCode(String inputCode,String redisKey){
-        Object code = redisTemplate.opsForValue().get(redisKey);
-
+    public Boolean compareVerificationCode(String inputCode,String emailAddress){
+        Object code = redisTemplate.opsForValue().get(emailAddress);
+        Log.info(inputCode+" = "+code);
         if(inputCode==null) throw new ServiceException(ResultCode.CODE_ERROR);
 
         if(code==null)throw new ServiceException(ResultCode.CODE_NOT_EXIST);
@@ -88,7 +91,24 @@ public class EmailService {
      * @param htmlBody 邮件内容
      * @param subject 邮件标题
      */
+    @RateLimiter(key = "SurveyEmailRateLimit")
     public void singleSendMail(String toAddress,String htmlBody,String subject) {
+
+        Long daySendingLimit = redisTemplate.opsForValue().increment("OuterServiceMaximumLimit");
+        daySendingLimit = daySendingLimit==null?1L:daySendingLimit;
+        if(daySendingLimit>50000){
+            throw new ServiceException(ResultCode.INTERFACE_DAILY_SENDING_LIMIT);
+        }
+
+        Object lastSentTimeText = redisTemplate.opsForValue().get("LastSent:" + toAddress);
+        if(lastSentTimeText!=null){
+            throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
+        }else {
+            redisTemplate.opsForValue().set("LastSent:"+toAddress,System.currentTimeMillis(),30,TimeUnit.SECONDS);
+        }
+
+
+
         Map<String, Object> params = new TreeMap<String, Object>();
         params.put("AccessKeyId", AccessKeyId);
         params.put("Action", "SingleSendMail");

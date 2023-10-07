@@ -180,7 +180,7 @@ public class SurveyOperatorService {
 
 
         surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
-        surveyUserService.updateSurveyUser(surveyUser);
+        surveyUserService.backupSurveyUser(surveyUser);
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -245,7 +245,7 @@ public class SurveyOperatorService {
         SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
         Long resetId = redisTemplate.opsForValue().increment("resetId");
         surveyUserByToken.setUid("delete"+resetId);
-        surveyUserService.updateSurveyUser(surveyUserByToken);
+        surveyUserService.backupSurveyUser(surveyUserByToken);
         QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
         Long id = surveyUserByToken.getId();
         queryWrapper.eq("uid", id);
@@ -305,9 +305,10 @@ public class SurveyOperatorService {
 
         Map<String, String> uniEquipIdAndType = operatorBaseDataService.getEquipIdAndType();
         JsonNode data =  JsonMapper.parseJSONObject(dataStr);
-        String nickName = data.get("nickName").asText();
+//        String nickName = data.get("nickName").asText();
         String uid = data.get("uid").asText();
 
+        Log.info("森空岛导入V2 {} uid："+uid);
         SurveyUser bindAccount = surveyUserService.getSurveyUserByUid(uid);
 
         if(bindAccount!=null){
@@ -319,7 +320,6 @@ public class SurveyOperatorService {
         }
 
         surveyUser.setUid(uid);
-
         JsonNode chars = data.get("chars");
         JsonNode charInfoMap = data.get("charInfoMap");
 

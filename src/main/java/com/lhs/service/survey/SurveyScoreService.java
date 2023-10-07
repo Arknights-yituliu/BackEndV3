@@ -85,7 +85,7 @@ public class SurveyScoreService {
         if (insertList.size() > 0) surveyScoreMapper.insertBatchSurveyScore(tableName, insertList);  //批量插入
         Date date = new Date();
         surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
-        surveyUserService.updateSurveyUser(surveyUser);
+        surveyUserService.backupSurveyUser(surveyUser);
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 

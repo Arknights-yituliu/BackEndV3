@@ -7,7 +7,7 @@ import java.util.List;
 @Data
 public class CompositeTableDTO {
     private String id;
-    private List<ItemCostDTO> itemCostDTO;
+    private List<ItemCostDTO> itemCost;
 }
 
 

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.entity.Result;
-import com.lhs.entity.dto.survey.EmailDTO;
+import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.SklandDTO;
@@ -48,20 +48,8 @@ public class SurveyUserController {
 
     @Operation(summary ="发送注册邮件验证码")
     @PostMapping("/user/emailCode")
-    public Result<Object> sendEmailCodeForRegister(@RequestBody EmailDTO emailDto) {
-        String mailUsage = emailDto.getMailUsage();
-        if("register".equals(mailUsage)){
-            surveyUserService.sendEmailForRegister(emailDto);
-        }
-
-        if("login".equals(mailUsage)){
-            surveyUserService.sendEmailForLogin(emailDto);
-        }
-
-        if("changeEmail".equals(mailUsage)){
-            surveyUserService.sendEmailForChangeEmail(emailDto);
-        }
-
+    public Result<Object> sendEmailCodeForRegister(@RequestBody EmailRequestDTO emailRequestDto) {
+         surveyUserService.sendEmail(emailRequestDto);
         return Result.success();
     }
 
@@ -69,21 +57,9 @@ public class SurveyUserController {
     @Operation(summary ="更新用户信息")
     @PostMapping("/user/update")
     public Result<UserDataVO> updateEmail(@RequestBody UpdateUserDataDTO updateUserDataDto) {
-        String property = updateUserDataDto.getProperty();
-        UserDataVO response = null;
-        if("email".equals(property)){
-            response =  surveyUserService.updateOrBindEmail(updateUserDataDto);
-        }
 
-        if("passWord".equals(property)){
-            response =  surveyUserService.updatePassWord(updateUserDataDto);
-        }
-
-        if("userName".equals(property)){
-            response = surveyUserService.updateUserName(updateUserDataDto);
-        }
-
-        return Result.success(response);
+        UserDataVO userDataVO = surveyUserService.updateUserData(updateUserDataDto);
+        return Result.success(userDataVO);
     }
 
     @Operation(summary ="通过森空岛CRED直接登录")

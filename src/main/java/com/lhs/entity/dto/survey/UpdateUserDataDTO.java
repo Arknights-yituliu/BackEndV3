@@ -11,4 +11,5 @@ public class UpdateUserDataDTO {
     private String emailCode;
     private String newPassWord;
     private String oldPassWord;
+    private String avatar;
 }

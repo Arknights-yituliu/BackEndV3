@@ -40,7 +40,6 @@ public enum ResultCode {
 	USER_NOT_BIND_UID(20009, "未绑定uid"),
 	USER_INSUFFICIENT_PERMISSIONS  (20010, "权限不足"),
 	REGISTER_TOO_MANY_TIMES(20012, "同ID注册次数过多"),
-
 	USER_PASSWORD_ERROR(20014, "密码错误"),
 	NOT_SET_PASSWORD_OR_BIND_EMAIL(20015,"请先设置密码或绑定邮箱"),
 
@@ -48,10 +47,10 @@ public enum ResultCode {
 	/* 业务错误：30001-39999 */
 	SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001, "业务逻辑出现问题"),
 	CODE_ERROR(30002, "验证码错误"),
-
-	CODE_NOT_EXIST(30003, "验证码不存在"),
+	CODE_NOT_EXIST(30003, "验证码不存在或已过期"),
 	CODE_NOT_SEND(30004, "验证码未发送"),
 	OSS_UPLOAD_ERROR(30005, "OSS上传错误"),
+	EMAIL_SENT_TOO_FREQUENTLY(30006,"邮件发送间隔时间30秒"),
 
 
 	

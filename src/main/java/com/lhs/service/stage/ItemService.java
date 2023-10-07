@@ -141,7 +141,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
             if (rarity < 3) {
                 //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
-                for (ItemCostDTO itemCostDTO : table.getItemCostDTO()) {
+                for (ItemCostDTO itemCostDTO : table.getItemCost()) {
                     itemValueNew = (itemValueMap.get(itemCostDTO.getId()).getItemValueAp() +
                             workShopProductsValue.get("rarity_" + (rarity)) - 0.36 * rarity)
                             / itemCostDTO.getCount();
@@ -149,7 +149,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
             } else {
                 //紫，金色品质是向上合成    蓝材料  + 龙门币 - 副产物 = 紫，金色材料
-                for (ItemCostDTO itemCostDTO : table.getItemCostDTO()) {
+                for (ItemCostDTO itemCostDTO : table.getItemCost()) {
                     itemValueNew += itemValueMap.get(itemCostDTO.getId()).getItemValueAp() * itemCostDTO.getCount();
                 }
                 itemValueNew = itemValueNew + 0.36 * (rarity - 1) - workShopProductsValue.get("rarity_" + (rarity - 1));
