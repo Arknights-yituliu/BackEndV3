@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class OperatorBaseDataService {
 
     private final OperatorTableMapper operatorTableMapper;
-    private final String githubBotResource = "E:\\Idea_Project\\Arknights-Bot-Resource\\";
+    private final String githubBotResource = "E:\\IDEAProject\\Arknights-Bot-Resource\\";
 
     private final RedisTemplate<String, Object> redisTemplate;
 

@@ -49,9 +49,7 @@ public class StageService {
 
 
 
-
-
-    public List<Stage> getStageList(QueryWrapper<Stage> queryWrapper) {
+    public List<Stage> getStageListByWrapper(QueryWrapper<Stage> queryWrapper) {
         QueryWrapper<Stage> stageNewQueryWrapper = new QueryWrapper<>();
         stageNewQueryWrapper.notLike("stage_id", "tough").orderByDesc("stage_id");
         List<Stage> stageList = stageMapper.selectList(stageNewQueryWrapper);

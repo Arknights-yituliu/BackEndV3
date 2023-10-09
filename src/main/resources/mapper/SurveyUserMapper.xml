@@ -5,10 +5,11 @@
 
     <insert id="save">
         INSERT INTO survey_user
-        (`id`,`pass_word`,`uid`,`user_name`,`create_time`,`update_time`,`ip`,`status`,`email`,`avatar`)
+        (`id`,`pass_word`,`uid`,`user_name`,`create_time`,`update_time`,`ip`,`status`,`email`,`avatar`,`delete_flag`)
         VALUES
        (#{item.id},#{item.passWord},#{item.uid},#{item.userName},#{item.createTime},
-        #{item.updateTime},#{item.ip},#{item.status},#{item.email},#{item.avatar})
+        #{item.updateTime},#{item.ip},#{item.status},#{item.email},#{item.avatar},
+        #{item.deleteFlag})
     </insert>
 
     <update id="updateUserById">
@@ -20,7 +21,8 @@
             `update_time` = #{item.updateTime},
             `status`      = #{item.status},
             `email`       = #{item.email},
-            `avatar`      = #{item.avatar}
+            `avatar`      = #{item.avatar},
+            `delete_flag`      = #{item.deleteFlag}
             WHERE
             id = #{item.id}
     </update>

@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@ConditionalOnProperty(prefix = "swagger2", value = {"enable"}, havingValue = "true")
+@ConditionalOnProperty(prefix = "swagger2", value = {"enable"}, havingValue = "dev")
 @Configuration
 public class OpenAPIConfig {
 
@@ -22,8 +22,6 @@ public class OpenAPIConfig {
                                 .name("Apache 2.0")
                                 .url("http://springdoc.org")))
                 .externalDocs(new ExternalDocumentation());
-
-
     }
 
 }

@@ -2,4 +2,3 @@
 spring:
   profiles:
     active: dev
-

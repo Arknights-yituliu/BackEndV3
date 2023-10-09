@@ -22,4 +22,5 @@ public class SurveyUser {
     private String email; //邮箱
     private String avatar; //用户头像
     private String uid; //明日方舟uid
+    private Boolean deleteFlag;
 }

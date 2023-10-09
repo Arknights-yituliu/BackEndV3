@@ -82,7 +82,6 @@ public class StageResult implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 
-
     private Integer stageColor;
 
 }

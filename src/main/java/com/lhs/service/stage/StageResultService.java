@@ -12,6 +12,7 @@ import com.lhs.common.util.Log;
 import com.lhs.common.entity.ResultCode;
 import com.lhs.entity.dto.stage.StageParamDTO;
 import com.lhs.entity.po.stage.Item;
+import com.lhs.entity.po.stage.Stage;
 import com.lhs.entity.po.stage.StageResult;
 import com.lhs.entity.vo.stage.StageResultVO;
 import com.lhs.mapper.StageResultMapper;
@@ -24,42 +25,39 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class StageResultService  {
+public class StageResultService {
 
     private final StageResultMapper stageResultMapper;
     private final ItemService itemService;
     private final OSSService ossService;
     private final StageCalService stageCalService;
+    private final StageService stageService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-
-    private final RedisTemplate<String,Object> redisTemplate;
-
-    public StageResultService(StageResultMapper stageResultMapper,
-                              ItemService itemService,
-                              OSSService ossService,
-                              StageCalService stageCalService,
-                              RedisTemplate<String,Object> redisTemplate) {
+    public StageResultService(StageResultMapper stageResultMapper, ItemService itemService, OSSService ossService, StageCalService stageCalService, StageService stageService, RedisTemplate<String, Object> redisTemplate) {
         this.stageResultMapper = stageResultMapper;
         this.itemService = itemService;
         this.ossService = ossService;
         this.stageCalService = stageCalService;
+        this.stageService = stageService;
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(cron = "0 4/10 * * * ?")
-    public void updateStageResult(){
+    @Scheduled(cron = "0 3/10 * * * ?")
+    public void updateStageResult() {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(0.625);
-        stageParamDTO.setSampleSize(200);
+        stageParamDTO.setSampleSize(100);
         stageParamDTO.setType("public");
 
         List<Item> items = itemService.queryItemList(stageParamDTO);   //找出对应版本的材料价值
 
-        if(items==null||items.size()<1){
+        if (items == null || items.size() < 1) {
             items = itemService.queryBaseItemList();
         }
 
@@ -69,14 +67,14 @@ public class StageResultService  {
     }
 
     @Scheduled(cron = "0 5/10 * * * ?")
-    public void authUpdateStageResult(){
+    public void authUpdateStageResult() {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(0.625);
         stageParamDTO.setSampleSize(10);
         stageParamDTO.setType("auth");
         List<Item> items = itemService.queryItemList(stageParamDTO);   //找出对应版本的材料价值
 
-        if(items==null||items.size()<1){
+        if (items == null || items.size() < 1) {
             items = itemService.queryBaseItemList();
         }
 
@@ -87,7 +85,7 @@ public class StageResultService  {
     }
 
     @Scheduled(cron = "0 5/10 * * * ?")
-    public void backupStageResult(){
+    public void backupStageResult() {
 
         double expCoefficient = 0.625;
         StageParamDTO stageParamDTO = new StageParamDTO();
@@ -123,7 +121,7 @@ public class StageResultService  {
         Map<String, List<StageResult>> collectByStageId = list.stream()
                 .collect(Collectors.groupingBy(StageResult::getStageId));
         //计算关卡的主产物所在材料系每种等级的产出占比
-        for(String stageId : collectByStageId.keySet()){
+        for (String stageId : collectByStageId.keySet()) {
             List<StageResult> stageResults = collectByStageId.get(stageId);
             //排序
             stageResults = stageResults.stream()
@@ -133,7 +131,7 @@ public class StageResultService  {
             //复制关卡结果
             stageResultVo.copy(stageResults.get(0));
             //计算主产物所在材料系每种等级的产出占比
-            calMainItemRatio(stageResultVo,stageResults);
+            calMainItemRatio(stageResultVo, stageResults);
             stageResultVOList.add(stageResultVo);
         }
 
@@ -160,11 +158,10 @@ public class StageResultService  {
     }
 
     /**
-     *
-     * @param stageResultVo  关卡结果展示对象
+     * @param stageResultVo 关卡结果展示对象
      * @param stageResults  关卡每种掉落物品的详细数据
      */
-    private void calMainItemRatio(StageResultVO stageResultVo, List<StageResult> stageResults){
+    private void calMainItemRatio(StageResultVO stageResultVo, List<StageResult> stageResults) {
 
         String itemType = stageResults.get(0).getItemType();  //关卡掉落材料所属类型   比如1-7，4-6这种同属”固源岩组“类
         //获取材料的上下位材料
@@ -179,21 +176,21 @@ public class StageResultService  {
         double rarity4Ratio = 0.0;
 
         //计算该系材料的每种等级材料在关卡中的占比
-        for(StageResult stageResult:stageResults){
+        for (StageResult stageResult : stageResults) {
             String itemName = stageResult.getItemName();
-            if(itemTypeNode.get(itemName)!=null){
+            if (itemTypeNode.get(itemName) != null) {
                 JsonNode item = itemTypeNode.get(itemName);
                 int rarity = item.get("rarity").asInt();
-                if(rarity==1) rarity1Ratio = stageResult.getRatio();
-                if(rarity==2) rarity2Ratio = stageResult.getRatio();
-                if(rarity==3) rarity3Ratio = stageResult.getRatio();
-                if(rarity==4) rarity4Ratio = stageResult.getRatio();
+                if (rarity == 1) rarity1Ratio = stageResult.getRatio();
+                if (rarity == 2) rarity2Ratio = stageResult.getRatio();
+                if (rarity == 3) rarity3Ratio = stageResult.getRatio();
+                if (rarity == 4) rarity4Ratio = stageResult.getRatio();
             }
         }
 
-        stageResultVo.setItemRarityLessThan5Ratio(rarity4Ratio+rarity3Ratio+rarity2Ratio+rarity1Ratio);  //等级1-4的材料占比
-        stageResultVo.setItemRarityLessThan4Ratio(rarity3Ratio+rarity2Ratio+rarity1Ratio); //等级1-3的材料占比
-        stageResultVo.setItemRarityLessThan3Ratio(rarity2Ratio+rarity1Ratio); //等级1-2的材料占比
+        stageResultVo.setItemRarityLessThan5Ratio(rarity4Ratio + rarity3Ratio + rarity2Ratio + rarity1Ratio);  //等级1-4的材料占比
+        stageResultVo.setItemRarityLessThan4Ratio(rarity3Ratio + rarity2Ratio + rarity1Ratio); //等级1-3的材料占比
+        stageResultVo.setItemRarityLessThan3Ratio(rarity2Ratio + rarity1Ratio); //等级1-2的材料占比
     }
 
     public List<StageResultVO> getStageResultDataByZone(String version, String zone) {
@@ -202,18 +199,36 @@ public class StageResultService  {
                 .eq("version", version)
                 .ge("end_time", new Date())
                 .ne("item_type", "empty")
-                .like("stage_code",zone);
+                .like("stage_code", zone);
 
-        List<StageResult> stageResults = stageResultMapper.selectList(queryWrapper);
+
+        List<Stage> stageList = stageService.getStageListByWrapper(
+                new QueryWrapper<Stage>().like("stage_id", "main_" + zone));
+
+        List<StageResult> stageResultList = stageResultMapper.selectList(queryWrapper);
         List<StageResultVO> stageResultVOList = new ArrayList<>();
 
-        stageResults.stream().sorted(Comparator.comparing(StageResult::getStageId).reversed()).forEach(e->{
+        Map<String, StageResult> collectByStageId = stageResultList.stream().collect(Collectors.toMap(StageResult::getStageId, Function.identity()));
+
+        for(Stage stage:stageList){
+            String stageId = stage.getStageId();
+            if(collectByStageId.get(stageId)==null){
+                StageResult build = StageResult.builder()
+                        .stageId(stage.getStageId())
+                        .stageCode(stage.getStageCode())
+                        .sampleSize(0)
+                        .stageEfficiency(0.0)
+                        .updateTime(stageResultList.get(0).getUpdateTime())
+                        .build();
+                stageResultList.add(build);
+            }
+        }
+
+        stageResultList.stream().sorted(Comparator.comparing(StageResult::getStageId)).forEach(e -> {
             StageResultVO stageResultVo = new StageResultVO();
             stageResultVo.copy(e);
             stageResultVOList.add(stageResultVo);
         });
-
-
 
         return stageResultVOList;
     }
@@ -244,11 +259,11 @@ public class StageResultService  {
                             .comparing(StageResult::getApExpect))
                     .limit(8)
                     .collect(Collectors.toList())
-                    .forEach(e->{
-                         StageResultVO stageResultVo = new StageResultVO();
-                         stageResultVo.copy(e);
-                         stageResultVOList.add(stageResultVo);
-                       });
+                    .forEach(e -> {
+                        StageResultVO stageResultVo = new StageResultVO();
+                        stageResultVo.copy(e);
+                        stageResultVOList.add(stageResultVo);
+                    });
             stageResultVoListList.add(stageResultVOList);
         }
         return stageResultVoListList;
@@ -256,6 +271,7 @@ public class StageResultService  {
 
     /**
      * 查询已关闭活动关卡
+     *
      * @param stageParamDTO 版本
      * @return 关卡结果
      */
@@ -265,7 +281,7 @@ public class StageResultService  {
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("ratio_rank", 0)
                 .eq("item_rarity", 3)
-                .eq("stage_type",3)
+                .eq("stage_type", 3)
                 .eq("version", stageParamDTO.getVersion())
                 .le("end_time", new Date())
                 .like("stage_id", "LMD")
@@ -382,7 +398,7 @@ public class StageResultService  {
      */
     public List<StageResult> getStageResultDataDetailByStageId(String stageId) {
         QueryWrapper<StageResult> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("version", "public."+0.625)
+        queryWrapper.eq("version", "public." + 0.625)
                 .eq("stage_id", stageId);
 
         List<StageResult> stageResults = stageResultMapper.selectList(queryWrapper);
@@ -391,16 +407,16 @@ public class StageResultService  {
         return stageResults;
     }
 
-    public String resetCache(){
+    public String resetCache() {
 
-        Boolean delete = redisTemplate.delete("stage.t3.public.0.625");
-        Boolean delete1 = redisTemplate.delete("stage.t2.public.0.625");
-        Boolean delete2 = redisTemplate.delete("stage.orundum.public.0.625");
-        Boolean delete3 = redisTemplate.delete("stage.closed.public.0.625");
+        Boolean delete = redisTemplate.delete("Stage.T3");
+        Boolean delete1 = redisTemplate.delete("Stage.T2");
+        Boolean delete2 = redisTemplate.delete("Stage.Orundum");
+        Boolean delete3 = redisTemplate.delete("Stage.Closed");
 
         String message = "清空失败";
-        if(Boolean.TRUE.equals(delete) && Boolean.TRUE.equals(delete1) &&
-                Boolean.TRUE.equals(delete2) && Boolean.TRUE.equals(delete3)){
+        if (Boolean.TRUE.equals(delete) && Boolean.TRUE.equals(delete1) &&
+                Boolean.TRUE.equals(delete2) && Boolean.TRUE.equals(delete3)) {
             message = "清空缓存";
         }
 

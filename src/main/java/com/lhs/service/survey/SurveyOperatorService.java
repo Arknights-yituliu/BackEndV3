@@ -167,10 +167,7 @@ public class SurveyOperatorService {
                 affectedRows++;  //更新数据条数
                 surveyOperator.setId(lastOperatorData.getId());
                 surveyOperator.setUid(yituliuId);
-                QueryWrapper<SurveyOperator> updateQueryWrapper = new QueryWrapper<>();
-                updateQueryWrapper.eq("uid",lastOperatorData.getId());
                 surveyOperatorMapper.updateByUid(tableName,surveyOperator); //更新数据
-//                System.out.println(surveyOperator);
             }
         }
 

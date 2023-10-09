@@ -138,7 +138,6 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             double itemValueNew = 0.0;
             StringBuilder message = new StringBuilder(itemValueMap.get(table.getId()).getItemName()).append(" = ( ");
 
-
             if (rarity < 3) {
                 //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
                 for (ItemCostDTO itemCostDTO : table.getItemCost()) {
@@ -194,7 +193,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             for(Integer rarity :collect.keySet()){
                 List<Item> list = collect.get(rarity);
                 //副产物期望 = 所有材料的期望价值（材料价值 * 材料出率 /100）之和 * 副产物爆率
-                double expectValue = list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight()/100).sum()* knockRating;
+                double expectValue = list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight()).sum()* knockRating;
                 WorkShopProducts workShopProducts = new WorkShopProducts();
                 workShopProducts.setRank("rarity_" + rarity);  //副产物等级
                 workShopProducts.setId(time++);

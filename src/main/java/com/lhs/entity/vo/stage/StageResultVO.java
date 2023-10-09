@@ -28,6 +28,8 @@ public class StageResultVO {
     private Integer stageType;
     private Integer apCost;
     private Double sampleConfidence;
+
+    private Integer sampleSize;
     private Double spm;
     private String itemType;
     private Integer itemRarity;
@@ -52,9 +54,8 @@ public class StageResultVO {
         this.itemId = stageResult.getItemId();
         this.secondary = stageResult.getSecondary();
         this.secondaryId = stageResult.getSecondaryId();
-        this.stageType = stageResult.getStageType();
-        this.apCost = stageResult.getApCost();
         this.sampleConfidence = stageResult.getSampleConfidence();
+        this.sampleSize = stageResult.getSampleSize();
         this.spm = stageResult.getSpm();
         this.itemType = stageResult.getItemType();
         this.itemRarity = stageResult.getItemRarity();

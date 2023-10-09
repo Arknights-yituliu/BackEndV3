@@ -68,7 +68,7 @@ public class SurveyUserService {
         String passWord = surveyRequestVo.getPassWord().trim();
         String email = surveyRequestVo.getEmail().trim();
 
-        Log.info("注册类型"+accountType+"{}用户名："+userName+email+"{}"+"密码："+passWord+"{}"+"验证码："+surveyRequestVo.getEmailCode());
+        Log.info("注册类型"+accountType+" {} 用户名："+userName+email+" {} "+"密码："+passWord+" {} "+"验证码："+surveyRequestVo.getEmailCode());
 
 
         Date date = new Date();  //当前时间
@@ -188,6 +188,7 @@ public class SurveyUserService {
         response.setToken(token);
         response.setStatus(surveyUser.getStatus());
         response.setEmail(surveyUser.getEmail());
+        response.setAvatar(surveyUser.getAvatar());
 
         return response;
     }
@@ -221,6 +222,7 @@ public class SurveyUserService {
                 throw new ServiceException(ResultCode.USER_LOGIN_ERROR);
             }
         }
+
 
         return surveyUser;
     }

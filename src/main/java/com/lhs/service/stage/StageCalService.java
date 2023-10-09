@@ -83,7 +83,7 @@ public class StageCalService extends ServiceImpl<StageResultMapper, StageResult>
         //将stage的各项信息转为Map <stageId,stage>
         QueryWrapper<Stage> stageQueryWrapper = new QueryWrapper<>();
         stageQueryWrapper.notLike("stage_id", "tough");
-        Map<String, Stage> stageMap = stageService.getStageList(stageQueryWrapper).stream()
+        Map<String, Stage> stageMap = stageService.getStageListByWrapper(stageQueryWrapper).stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
         //置信度表
@@ -160,6 +160,7 @@ public class StageCalService extends ServiceImpl<StageResultMapper, StageResult>
                     .spm(stage.getSpm())
                     .build();
 
+            //类型3是SS关卡，要增加一个计算了商店无限龙门币的关卡效率
             if (stage.getStageType() ==3) {
                 StageResult stageResultCopy = SerializationUtils.clone(stageResult);
                 stageResultCopy.setId(id++);
@@ -173,40 +174,54 @@ public class StageCalService extends ServiceImpl<StageResultMapper, StageResult>
             stageResultList.add(stageResult);
         }
 
-        Map<String, List<StageResult>> resultGroupByStageId = stageResultList.stream()
+        //将上面的计算结果根据关卡id分组
+        Map<String, List<StageResult>> resultCollectByStageId = stageResultList.stream()
                 .collect(Collectors.groupingBy(StageResult::getStageId));
 
-        Map<String, List<StageResult>> resultGroupByItemType = new HashMap<>();
+        //根据材料类型分组
+        Map<String, List<StageResult>> resultCollectByItemType = new HashMap<>();
 
-        for (String stageId : resultGroupByStageId.keySet()) {
-            List<StageResult> stageResults = resultGroupByStageId.get(stageId);
-            double apCost = stageResults.get(0).getApCost();
+        for (String stageId : resultCollectByStageId.keySet()) {
+            List<StageResult> stageResultListByStageId = resultCollectByStageId.get(stageId);
+            //关卡消耗体力
+            double apCost = stageResultListByStageId.get(0).getApCost();
+            //关卡掉落龙门币的价值
             double lmd = 0.0036 * 10 * 1.2 * apCost;
-            double apValueSum = stageResults.stream().mapToDouble(StageResult::getResult).sum() +lmd;
+            //关卡掉落的材料等效价值总和
+            double apValueSum = stageResultListByStageId.stream().mapToDouble(StageResult::getResult).sum() +lmd;
 //            LogUtil.info(stageResultNews.get(0).getStageCode()+"消耗："+apCost+"，理智，产出："+apValueSum+"理智。");
+            //关卡理智效率
             double stageEfficiency = apValueSum / apCost;
+            //如果是计算了无限龙门币的SS关卡额外加0.072效率
             if (stageId.endsWith("_LMD")) stageEfficiency += 0.072;
-            stageResults.sort(Comparator.comparing(StageResult::getResult).reversed());
 
-            String main = stageResults.get(0).getItemName();
+            stageResultListByStageId.sort(Comparator.comparing(StageResult::getResult).reversed());
+            String main = stageResultListByStageId.get(0).getItemName();
+            Integer itemRarity = stageResultListByStageId.get(0).getItemRarity();
             String itemType = "empty";
             if(itemTypeTable.get(main)!=null){
-                itemType = itemTypeTable.get(main).asText();
-            }
-
-            String secondary = "empty";
-            String secondaryId = "empty";
-            if(stageResults.size()>1){
-                double ratio = stageResults.get(1).getResult()/apCost;
-                if(ratio>0.1){
-                    secondary = stageResults.get(1).getItemName();
-                    secondaryId = stageResults.get(1).getItemId();
+                if(itemRarity == 3){
+                    itemType = main;
+                }else {
+                    itemType = itemTypeTable.get(main).asText();
                 }
             }
 
 
-            for (int i = 0; i < stageResults.size(); i++) {
-                StageResult stageResult = stageResults.get(i);
+
+            String secondary = "empty";
+            String secondaryId = "empty";
+            if(stageResultListByStageId.size()>1){
+                double ratio = stageResultListByStageId.get(1).getResult()/apCost;
+                if(ratio>0.1){
+                    secondary = stageResultListByStageId.get(1).getItemName();
+                    secondaryId = stageResultListByStageId.get(1).getItemId();
+                }
+            }
+
+
+            for (int i = 0; i < stageResultListByStageId.size(); i++) {
+                StageResult stageResult = stageResultListByStageId.get(i);
                 double ratio = stageResult.getResult()/apValueSum;
                 stageResult.setStageEfficiency(stageEfficiency);
                 stageResult.setRatio(ratio);
@@ -231,22 +246,22 @@ public class StageCalService extends ServiceImpl<StageResultMapper, StageResult>
 
 
                 List<StageResult> list = new ArrayList<>();
-                if (resultGroupByItemType.get(stageResult.getItemType()) == null) {
+                if (resultCollectByItemType.get(stageResult.getItemType()) == null) {
                     list.add(stageResult);
                 } else {
-                    list = resultGroupByItemType.get(stageResult.getItemType());
+                    list = resultCollectByItemType.get(stageResult.getItemType());
                     list.add(stageResult);
                 }
-                resultGroupByItemType.put(stageResult.getItemType(), list);
+                resultCollectByItemType.put(stageResult.getItemType(), list);
             }
 
-            resultGroupByStageId.put(stageId, stageResults);
+            resultCollectByStageId.put(stageId, stageResultListByStageId);
         }
 
         List<ItemIterationValue> iterationValueList = new ArrayList<>();
         Map<String, Double> itemTypeAndMaxPermStageEfficiency = new HashMap<>();
-        for (String itemType : resultGroupByItemType.keySet()) {
-            List<StageResult> list = resultGroupByItemType.get(itemType);
+        for (String itemType : resultCollectByItemType.keySet()) {
+            List<StageResult> list = resultCollectByItemType.get(itemType);
             list.sort(Comparator.comparing(StageResult::getStageEfficiency).reversed());
             itemTypeAndMaxPermStageEfficiency.put(itemType,list.get(0).getStageEfficiency());
             ItemIterationValue itemIterationValue = new ItemIterationValue();
