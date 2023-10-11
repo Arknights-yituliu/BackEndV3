@@ -6,7 +6,7 @@ import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.entity.po.stage.Stage;
 
-import com.lhs.mapper.StageMapper;
+import com.lhs.mapper.item.StageMapper;
 import com.lhs.service.dev.OSSService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

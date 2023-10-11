@@ -7,10 +7,9 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
-import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.dev.Developer;
 import com.lhs.entity.po.dev.PageVisits;
-import com.lhs.entity.po.dev.Visits;
 import com.lhs.mapper.PageVisitsMapper;
 
 import com.lhs.mapper.VisitsMapper;
@@ -210,20 +209,6 @@ public class UserService {
 
 
 
-    public void updateVisits(String path) {
-        String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        Visits visitResult = visitsMapper.selectOne(new QueryWrapper<Visits>()
-                .eq("date", today));
-        if (visitResult == null) {
-            visitResult = new Visits();
-            visitResult.init();
-            visitResult.update(path);
-            visitsMapper.insert(visitResult);
-        } else {
-            visitResult.update(path);
-            visitsMapper.updateById(visitResult);
-        }
-    }
 
 
     public List<PageVisitsVo> getVisits(VisitsTimeVo visitsTimeVo) {

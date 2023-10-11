@@ -3,7 +3,7 @@ package com.lhs.controller;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.IpUtil;
-import com.lhs.common.entity.Result;
+import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;

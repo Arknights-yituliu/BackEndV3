@@ -9,13 +9,14 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.ResultCode;
 import com.lhs.common.util.JsonMapper;
+import com.lhs.entity.dto.stage.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.stage.StoreAct;
 import com.lhs.mapper.HoneyCakeMapper;
-import com.lhs.mapper.StoreActMapper;
-import com.lhs.mapper.StorePermMapper;
+import com.lhs.mapper.item.StoreActMapper;
+import com.lhs.mapper.item.StorePermMapper;
 import com.lhs.entity.po.stage.Item;
 import com.lhs.entity.po.stage.StorePerm;
 import com.lhs.service.dev.OSSService;
@@ -60,7 +61,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     @Transactional
     public void updateStorePerm() {
         List<StorePerm> storePerms = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.getItemListCache("public."+0.625)
+        Map<String, Item> collect = itemService.getItemList(new StageParamDTO())
                 .stream()
                 .collect(Collectors.toMap(Item::getItemName, Function.identity()));
 
@@ -88,7 +89,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
     public String updateActStoreByActName(StoreActVO storeActVo, Boolean level)  {
-        List<Item> items = itemService.getItemListCache("public."+0.625);
+        List<Item> items = itemService.getItemList(new StageParamDTO());
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItemVO> storeItemVOList = storeActVo.getActStore();
@@ -167,7 +168,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         List<ItemCustomValueDTO> itemCustomValueDTOS = JsonMapper.parseJSONArray(fileStr, new TypeReference<List<ItemCustomValueDTO>>() {
         });
         Map<String, Double> itemMap = itemCustomValueDTOS.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemName, ItemCustomValueDTO::getItemValue));
-        itemService.getItemListCache("public."+0.625).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
+        itemService.getItemList(new StageParamDTO()).forEach(item -> itemMap.put(item.getItemName(), item.getItemValueAp()));
 
         List<String> packList = JsonMapper.parseJSONArray(packStr,new TypeReference<List<String>>(){
         });

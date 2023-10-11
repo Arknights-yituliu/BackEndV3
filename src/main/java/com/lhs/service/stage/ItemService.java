@@ -13,11 +13,11 @@ import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.po.stage.ItemIterationValue;
 import com.lhs.entity.po.stage.WorkShopProducts;
 import com.lhs.entity.dto.stage.StageParamDTO;
-import com.lhs.mapper.ItemIterationValueMapper;
-import com.lhs.mapper.ItemMapper;
+import com.lhs.mapper.item.ItemIterationValueMapper;
+import com.lhs.mapper.item.ItemMapper;
 import com.lhs.entity.po.stage.Item;
 
-import com.lhs.mapper.WorkShopProductsMapper;
+import com.lhs.mapper.item.WorkShopProductsMapper;
 import com.lhs.entity.dto.stage.CompositeTableDTO;
 import com.lhs.entity.dto.stage.ItemCostDTO;
 
@@ -129,6 +129,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
         //在itemValueMap 设置新的材料价值 新材料价值 = 旧材料价值/该材料主线最优关的关卡效率
         for(ItemIterationValue itemIterationValue:itemIterationValueList){
+
             double itemValueNew = itemValueMap.get(itemIterationValue.getItemName()).getItemValueAp() / itemIterationValue.getIterationValue();
             itemValueMap.get(itemIterationValue.getItemName()).setItemValueAp(itemValueNew);
         }
@@ -220,24 +221,24 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
     /**
      * 获取材料信息表
-     * @param version 经验书系数，一般为0.625（还有1.0、0.73和0.0）
+     * @param stageParamDTO 物品价值的版本号
      * @return 材料信息表
      */
     @RedisCacheable(key = "itemValue#version")
-    public List<Item> getItemListCache(String version) {
+    public List<Item> getItemListCache(StageParamDTO stageParamDTO) {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
-        itemQueryWrapper.eq("version", version).orderByDesc("item_value_ap");
+        itemQueryWrapper.eq("version", stageParamDTO.getVersion()).orderByDesc("item_value_ap");
         return itemMapper.selectList(itemQueryWrapper);
     }
 
 
-    public List<Item> queryItemList(StageParamDTO stageParamDTO) {
+    public List<Item> getItemList(StageParamDTO stageParamDTO) {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version", stageParamDTO.getVersion());
         return itemMapper.selectList(itemQueryWrapper);
     }
 
-    public List<Item> queryBaseItemList() {
+    public List<Item> getBaseItemList() {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version","original");
         return itemMapper.selectList(itemQueryWrapper);
@@ -250,7 +251,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             String fileName = URLEncoder.encode("itemValue", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
-            List<Item> list = getItemListCache("public.0.625");
+            List<Item> list = getItemListCache(new StageParamDTO());
             List<ItemVO> itemVOList = new ArrayList<>();
             for (Item item : list) {
                 ItemVO itemVo = new ItemVO();
@@ -265,7 +266,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
     }
 
     public void exportItemJson(HttpServletResponse response) {
-        List<Item> list = getItemListCache(new StageParamDTO().getVersion());
+        List<Item> list = getItemListCache(new StageParamDTO());
         List<ItemVO> itemVOList = new ArrayList<>();
         for (Item item : list) {
             ItemVO itemVo = new ItemVO();

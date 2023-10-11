@@ -4,7 +4,7 @@ package com.lhs.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
-import com.lhs.common.entity.Result;
+import com.lhs.common.util.Result;
 import com.lhs.service.maa.SurveyRecruitService;
 import com.lhs.service.maa.ScheduleService;
 import com.lhs.entity.vo.maa.MaaRecruitVo;

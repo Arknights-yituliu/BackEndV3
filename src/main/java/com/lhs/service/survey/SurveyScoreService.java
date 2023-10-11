@@ -1,7 +1,7 @@
 package com.lhs.service.survey;
 
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.survey.SurveyScore;
 import com.lhs.entity.po.survey.SurveyStatisticsScore;
 import com.lhs.entity.po.survey.SurveyUser;

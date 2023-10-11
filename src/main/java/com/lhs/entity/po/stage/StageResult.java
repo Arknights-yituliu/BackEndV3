@@ -21,7 +21,6 @@ import java.util.Date;
 public class StageResult implements Serializable {
 
     @TableId
-
     private Long id;
 
     private String stageId;  
@@ -52,7 +51,7 @@ public class StageResult implements Serializable {
 
     private Integer itemRarity;
 
-    private String itemType;  
+    private String itemType;
 
     private Integer sampleSize;
 

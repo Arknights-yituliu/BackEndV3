@@ -1,4 +1,4 @@
-package com.lhs.common.entity;
+package com.lhs.common.util;
 
 
 

@@ -1,6 +1,6 @@
 package com.lhs.common.exception;
 
-import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.ResultCode;
 
 /**
  * 自定义service层异常类

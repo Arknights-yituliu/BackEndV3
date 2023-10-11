@@ -9,16 +9,15 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
-import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.ResultCode;
 import com.lhs.entity.dto.stage.StageParamDTO;
 import com.lhs.entity.po.stage.Item;
 import com.lhs.entity.po.stage.Stage;
 import com.lhs.entity.po.stage.StageResult;
 import com.lhs.entity.vo.stage.StageResultVO;
-import com.lhs.mapper.StageResultMapper;
+import com.lhs.mapper.item.StageResultMapper;
 import com.lhs.service.dev.OSSService;
 import com.lhs.entity.vo.stage.OrundumPerApResultVO;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -29,7 +28,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class StageResultService {
 
     private final StageResultMapper stageResultMapper;
@@ -53,12 +51,12 @@ public class StageResultService {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(0.625);
         stageParamDTO.setSampleSize(100);
-        stageParamDTO.setType("public");
+        stageParamDTO.setDisplay("public");
 
-        List<Item> items = itemService.queryItemList(stageParamDTO);   //找出对应版本的材料价值
+        List<Item> items = itemService.getItemList(stageParamDTO);   //找出对应版本的材料价值
 
         if (items == null || items.size() < 1) {
-            items = itemService.queryBaseItemList();
+            items = itemService.getBaseItemList();
         }
 
         items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
@@ -71,11 +69,11 @@ public class StageResultService {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(0.625);
         stageParamDTO.setSampleSize(10);
-        stageParamDTO.setType("auth");
-        List<Item> items = itemService.queryItemList(stageParamDTO);   //找出对应版本的材料价值
+        stageParamDTO.setDisplay("auth");
+        List<Item> items = itemService.getItemList(stageParamDTO);   //找出对应版本的材料价值
 
         if (items == null || items.size() < 1) {
-            items = itemService.queryBaseItemList();
+            items = itemService.getBaseItemList();
         }
 
         items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
@@ -97,13 +95,16 @@ public class StageResultService {
 
         List<List<StageResultVO>> resultData_t3 = getStageResultDataT3V2(stageParamDTO);
         List<List<StageResult>> resultData_closed = getStageResultDataClosedStage(stageParamDTO);
-        List<Item> items = itemService.queryItemList(stageParamDTO);
+        List<Item> items = itemService.getItemList(stageParamDTO);
 
         ossService.upload(JsonMapper.toJSONString(resultData_t3), "backup/stage/" + yyyyMMdd + "/t3—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
         ossService.upload(JsonMapper.toJSONString(resultData_closed), "backup/stage/" + yyyyMMdd + "/closed—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
         ossService.upload(JsonMapper.toJSONString(items), "backup/item/" + yyyyMMdd + "/item—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
 
     }
+
+
+
 
     @RedisCacheable(key = "Stage.T3", timeout = 1200)
     public List<List<StageResultVO>> getStageResultDataT3V2(StageParamDTO stageParamDTO) {
@@ -370,7 +371,7 @@ public class StageResultService {
                     knockRating_30062 = result.getKnockRating();
                     break;
                 default:
-                    log.error("不是搓玉用的材料");
+                    Log.error("不是搓玉用的材料");
             }
         }
 

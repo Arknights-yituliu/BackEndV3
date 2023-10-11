@@ -1,7 +1,7 @@
 package com.lhs.controller;
 
 
-import com.lhs.common.entity.Result;
+import com.lhs.common.util.Result;
 import com.lhs.entity.po.survey.SurveyScore;
 import com.lhs.service.survey.*;
 import com.lhs.entity.vo.survey.SurveyStatisticsScoreVO;

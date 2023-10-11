@@ -8,7 +8,7 @@ import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 
-import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.maa.Schedule;
 import com.lhs.mapper.ScheduleMapper;
 import org.springframework.stereotype.Service;

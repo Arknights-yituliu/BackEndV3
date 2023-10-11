@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.item.StageResultV2Mapper">
+
+    <insert id="insertBatch">
+        INSERT INTO stage_result_v2
+        (`id`,`stage_id`,`item_name`,`item_id`,`knock_rating`,`ap_expect`,`result`,`ratio`,`ratio_rank`,`sample_size`,`sample_confidence`,`version`)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},#{item.stageId},#{item.itemName},#{item.itemId},#{item.knockRating},#{item.apExpect},#{item.result},#{item.ratio},#{item.ratioRank},#{item.sampleSize},#{item.sampleConfidence},#{item.version})
+        </foreach>
+    </insert>
+
+
+</mapper>

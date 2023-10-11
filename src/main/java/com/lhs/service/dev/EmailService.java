@@ -1,8 +1,7 @@
 package com.lhs.service.dev;
 
 import com.lhs.common.annotation.RateLimiter;
-import com.lhs.common.config.ApplicationConfig;
-import com.lhs.common.entity.ResultCode;
+import com.lhs.common.util.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Log;
 import org.apache.commons.lang3.StringUtils;

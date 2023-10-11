@@ -1,7 +1,7 @@
 package com.lhs.controller;
 
 
-import com.lhs.common.entity.Result;
+import com.lhs.common.util.Result;
 import com.lhs.entity.dto.stage.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.stage.Item;
@@ -14,7 +14,6 @@ import com.lhs.entity.vo.stage.OrundumPerApResultVO;
 import com.lhs.entity.vo.stage.StoreActVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +26,6 @@ import java.util.Map;
 @RestController
 @Tag(name ="API—关卡效率、材料价值、商店性价比")
 @CrossOrigin()
-@Slf4j
 public class StageController {
 
 
@@ -59,7 +57,7 @@ public class StageController {
     @Operation(summary ="获取物品价值表")
     @GetMapping("/item/value")
     public Result<List<Item>> getItemValue(@RequestParam Double expCoefficient) {
-        List<Item> items = itemService.getItemListCache("public."+expCoefficient);
+        List<Item> items = itemService.getItemListCache(new StageParamDTO());
         return Result.success(items);
     }
 
@@ -205,7 +203,7 @@ public class StageController {
     public Result<List<List<StageResultVO>>> authQueryStageResult_t3(@RequestParam Double expCoefficient) {
 
         StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setType("auth");
+        stageParamDTO.setDisplay("auth");
         List<List<StageResultVO>> stageResultVoList =
                 stageResultService.getStageResultDataT3V2(stageParamDTO);
 
