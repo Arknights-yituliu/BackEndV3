@@ -3,16 +3,20 @@ package com.lhs.entity.po.survey;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
 
 @Data
 @Builder
 @AllArgsConstructor
-@TableName("survey_character_1")
 @NoArgsConstructor
+@TableName("survey_character_1")
 public class SurveyOperator {
 
     @TableId
+
     private Long id;
 
     private Long uid;
@@ -40,4 +44,6 @@ public class SurveyOperator {
     private Integer modX;
 
     private Integer modY;
+
+    private Integer modD;
 }

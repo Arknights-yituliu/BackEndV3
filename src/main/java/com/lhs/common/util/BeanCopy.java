@@ -1,26 +1,35 @@
 package com.lhs.common.util;
 
-import com.lhs.entity.po.stage.StageResult;
+import com.google.common.base.CaseFormat;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 
 public class BeanCopy {
 
     public static  <T> void copy(T source, T target) {
-        System.out.println(source.getClass().getSimpleName());
-        System.out.println(target.getClass().getSimpleName());
-
         String sourceName = source.getClass().getSimpleName();
         String targetName = target.getClass().getSimpleName();
-        String sourceNamePascalCase = camelCase(sourceName);
-        String targetNamePascalCase = camelCase(targetName);
+        String sourceNameLowerCamel = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, sourceName);
+        String targetNameLowerCamel = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, targetName);
+        System.out.println(sourceNameLowerCamel);
+        System.out.println(targetNameLowerCamel);
 
-        String result = "public void copy("+sourceName+" "+ sourceNamePascalCase+"){\n";
+        String result = "public void copyBy"+sourceName+"("+sourceName+" "+ sourceNameLowerCamel+"){\n";
 
-        Field[] fields = target.getClass().getDeclaredFields();
-        for(Field field:fields){
+        Field[] targetFields = target.getClass().getDeclaredFields();
+        Field[] sourceFields = source.getClass().getDeclaredFields();
+
+        HashMap<String, String>  propertyMap = new HashMap<>();
+        for(Field field:sourceFields){
+            propertyMap.put(field.getName(), CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, field.getName()));
+            System.out.println(field.getName()+"————"+ CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, field.getName()));
+        }
+
+        for(Field field:targetFields){
+            if(propertyMap.get(field.getName())==null) continue;
             result += "  this."+field.getName() + " = " +
-                    sourceNamePascalCase + ".get" + pascalCase(field.getName()) + "();\n";
+                    sourceNameLowerCamel + ".get" + propertyMap.get(field.getName()) + "();\n";
         }
 
         result += "}";

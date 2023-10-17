@@ -14,6 +14,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
@@ -291,6 +292,13 @@ public class OperatorBaseDataService {
                 String subProfessionId = characterData.get("subProfessionId").asText();
 
                 OperatorTable operatorTableSimple = characterTableMap.get(charId);
+                String itemObtainApproach = "常驻干员";
+                long updateTime = System.currentTimeMillis();
+                if(operatorTableSimple!=null){
+                    itemObtainApproach = operatorTableSimple.getObtainApproach();
+                    updateTime = operatorTableSimple.getUpdateTime().getTime();
+                }
+
 
                 if (characterTableMap.get(charId) == null) {
                     OperatorTable operatorTableNew = new OperatorTable();
@@ -305,11 +313,11 @@ public class OperatorBaseDataService {
 
                 character.put("name", name);
                 character.put("rarity", rarity);
-                character.put("itemObtainApproach", operatorTableSimple.getObtainApproach());
+                character.put("itemObtainApproach", itemObtainApproach);
                 character.put("mod", modTable.get(charId));
                 character.put("equip",equipListMap.get(charId));
                 character.put("skill", skillList);
-                character.put("date", characterTableMap.get(charId).getUpdateTime());
+                character.put("date", updateTime);
                 character.put("profession", profession);
                 character.put("subProfessionId", subProfessionId);
                 hashMap.put(charId, character);
@@ -450,7 +458,7 @@ public class OperatorBaseDataService {
 
         }
 
-        FileUtil.save(ApplicationConfig.Item, "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
+//        FileUtil.save(ApplicationConfig.Item, "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
         FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
 
         return null;

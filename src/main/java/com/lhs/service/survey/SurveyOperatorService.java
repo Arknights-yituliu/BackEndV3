@@ -134,6 +134,7 @@ public class SurveyOperatorService {
                 surveyOperator.setSkill3(-1);
                 surveyOperator.setModX(-1);
                 surveyOperator.setModY(-1);
+                surveyOperator.setModD(-1);
             }
 
             if (surveyOperator.getRarity() < 6) {
@@ -148,6 +149,7 @@ public class SurveyOperatorService {
                 surveyOperator.setSkill3(-1);
                 surveyOperator.setModX(-1);
                 surveyOperator.setModY(-1);
+                surveyOperator.setModD(-1);
             }
 
 //            System.out.println(surveyOperator);
@@ -196,41 +198,26 @@ public class SurveyOperatorService {
         //用户之前上传的数据
         QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
         queryWrapper.eq("uid",surveyUser.getId());
-        List<SurveyOperator> list =
+        List<SurveyOperator> surveyOperatorList =
                 surveyOperatorMapper.selectList(queryWrapper);
 
         List<SurveyOperatorExcelVO> listVo = new ArrayList<>();
 
 
-        List<OperatorTable> operatorTableDateTableList = operatorBaseDataService.getOperatorTable();
+        List<OperatorTable> operatorInfo = operatorBaseDataService.getOperatorTable();
 
-        Map<String, SurveyOperator> collect = list.stream()
-                .collect(Collectors.toMap(SurveyOperator::getCharId, Function.identity()));
+        Map<String, OperatorTable> operatorTableMap = operatorInfo.stream()
+                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
-        for(OperatorTable operator: operatorTableDateTableList){
-            String charId = operator.getCharId();
-            String name = operator.getName();
+        for(SurveyOperator surveyOperator: surveyOperatorList){
             SurveyOperatorExcelVO surveyOperatorExcelVo = new SurveyOperatorExcelVO();
-            if(collect.get(charId)!=null){
-                SurveyOperator surveyOperator = collect.get(charId);
-                BeanUtils.copyProperties(surveyOperator, surveyOperatorExcelVo);
-                surveyOperatorExcelVo.setName(name);
-            }else {
-                surveyOperatorExcelVo.setCharId(charId);
-                surveyOperatorExcelVo.setName(name);
-                surveyOperatorExcelVo.setOwn(false);
-                surveyOperatorExcelVo.setRarity(operator.getRarity());
-                surveyOperatorExcelVo.setLevel(-1);
-                surveyOperatorExcelVo.setElite(-1);
-                surveyOperatorExcelVo.setPotential(-1);
-                surveyOperatorExcelVo.setSkill1(-1);
-                surveyOperatorExcelVo.setSkill2(-1);
-                surveyOperatorExcelVo.setSkill3(-1);
-                surveyOperatorExcelVo.setModX(-1);
-                surveyOperatorExcelVo.setModY(-1);
-            }
+            surveyOperatorExcelVo.copy(surveyOperator);
+            String name = operatorTableMap.get(surveyOperator.getCharId())==null?"未录入":operatorTableMap.get(surveyOperator.getCharId()).getName();
+            surveyOperatorExcelVo.setName(name);
             listVo.add(surveyOperatorExcelVo);
         }
+
+
 
         String userName = surveyUser.getUserName();
 
@@ -342,6 +329,7 @@ public class SurveyOperatorService {
             surveyOperator.setSkill3(-1);
             surveyOperator.setModX(-1);
             surveyOperator.setModY(-1);
+            surveyOperator.setModD(-1);
 
             JsonNode skills = chars.get(i).get("skills");
             for (int j = 0; j < skills.size(); j++) {
@@ -366,21 +354,25 @@ public class SurveyOperatorService {
                 if(uniEquipIdAndType.get(id)==null) continue;
                 String type = uniEquipIdAndType.get(id);
                 if (defaultEquipId.equals(id)) {
-
                     if ("X".equals(type)) {
                         surveyOperator.setModX(equipLevel);
                     }
                     if ("Y".equals(type)) {
                         surveyOperator.setModY(equipLevel);
+                    }
+                    if ("D".equals(type)) {
+                        surveyOperator.setModD(equipLevel);
                     }
                 }
                 if (equipLevel > 1) {
-
                     if ("X".equals(type)) {
                         surveyOperator.setModX(equipLevel);
                     }
                     if ("Y".equals(type)) {
                         surveyOperator.setModY(equipLevel);
+                    }
+                    if ("D".equals(type)) {
+                        surveyOperator.setModD(equipLevel);
                     }
                 }
             }

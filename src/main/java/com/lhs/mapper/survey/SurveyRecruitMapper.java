@@ -15,7 +15,7 @@ public interface SurveyRecruitMapper  {
 
     void insertRecruitData(@Param("tableName") String table, @Param("surveyRecruit") SurveyRecruit surveyRecruit);
 
-    List<SurveyRecruit> selectRecruitDataByCreateTime(@Param("tableName") String table, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
+    List<SurveyRecruit> selectRecruitDataByCreateTime(@Param("tableName") String table, @Param("startTime") Long startTime, @Param("endTime") Long endTime);
 
     void insertRecruitStatistics(@Param("statistics") RecruitStatistics statistics);
 

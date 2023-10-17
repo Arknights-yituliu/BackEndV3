@@ -8,12 +8,12 @@
     <insert id="insertBatch">
         INSERT INTO ${tableName}
         (`id`, `uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `main_skill`, `skill1`, `skill2`, `skill3`, `mod_x`,
-        `mod_y`,`own`)
+        `mod_y`,`mod_d`,`own`)
         VALUES
         <foreach collection="list" item="item" separator="," >
             (#{item.id}, #{item.uid}, #{item.charId}, #{item.elite},
             #{item.level},#{item.potential}, #{item.rarity}, #{item.mainSkill}, #{item.skill1},
-            #{item.skill2},#{item.skill3},#{item.modX},#{item.modY},
+            #{item.skill2},#{item.skill3},#{item.modX},#{item.modY},#{item.modD},
             #{item.own})
         </foreach>
     </insert>
@@ -32,7 +32,8 @@
             `skill2` = #{item.skill2},
             `skill3` = #{item.skill3},
             `mod_x` = #{item.modX},
-            `mod_y` = #{item.modY}
+            `mod_y` = #{item.modY},
+            `mod_d` = #{item.modD}
             WHERE
                 id = #{item.id}
     </update>

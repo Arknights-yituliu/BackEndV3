@@ -1,0 +1,26 @@
+[
+  {
+    "expCoefficient": 0.625,
+    "sampleSize": 100
+  },
+  {
+    "expCoefficient": 0.625,
+    "sampleSize": 300
+  },
+  {
+    "expCoefficient": 0.72,
+    "sampleSize": 100
+  },
+  {
+    "expCoefficient": 0.72,
+    "sampleSize": 300
+  },
+  {
+    "expCoefficient": 0.0,
+    "sampleSize": 100
+  },
+  {
+    "expCoefficient": 0.0,
+    "sampleSize": 300
+  }
+]

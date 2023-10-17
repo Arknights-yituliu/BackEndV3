@@ -1,6 +1,7 @@
 package com.lhs.entity.vo.survey;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.lhs.entity.po.survey.SurveyOperator;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,6 +36,23 @@ public class SurveyOperatorExcelVO {
     private Integer modX;
     @ExcelProperty("Y模组")
     private Integer modY;
+    @ExcelProperty("D模组")
+    private Integer modD;
+
+    public void copy(SurveyOperator surveyOperator){
+        this.charId = surveyOperator.getCharId();
+        this.own = surveyOperator.getOwn();
+        this.level = surveyOperator.getLevel();
+        this.elite = surveyOperator.getElite();
+        this.potential = surveyOperator.getPotential();
+        this.rarity = surveyOperator.getRarity();
+        this.skill1 = surveyOperator.getSkill1();
+        this.skill2 = surveyOperator.getSkill2();
+        this.skill3 = surveyOperator.getSkill3();
+        this.modX = surveyOperator.getModX();
+        this.modY = surveyOperator.getModY();
+        this.modD = surveyOperator.getModD();
+    }
 
 
 }

@@ -201,7 +201,9 @@ public class SurveyUserService {
     public SurveyUser loginByPassWord(LoginDataDTO loginDataDto){
         String userName = loginDataDto.getUserName().trim();
         String passWord = loginDataDto.getPassWord().trim();
+
         passWord = AES.encrypt(passWord, ApplicationConfig.Secret); //密码加密
+
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
 
         //判断用户名/邮箱登录

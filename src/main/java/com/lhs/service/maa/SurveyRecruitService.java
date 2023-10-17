@@ -26,17 +26,20 @@ public class SurveyRecruitService {
         this.redisTemplate = redisTemplate;
     }
 
+    private String getDBTableIndex(){
+
+//        Object surveyRecruitTable = redisTemplate.opsForValue().get("SurveyRecruitTable");
+//        if(surveyRecruitTable==null) {
+//            redisTemplate.opsForValue().set("SurveyRecruitTable",3);
+//            surveyRecruitTable = 3;
+//        }
+
+       return  "survey_recruit_4";
+    }
+
     public String saveMaaRecruitDataNew(MaaRecruitVo maaRecruitVo) {
-
-        Date date = new Date();
         Long maaRecruitId = redisTemplate.opsForValue().increment("MaaRecruitId");
-        Object surveyRecruitTable = redisTemplate.opsForValue().get("SurveyRecruitTable");
-        if(surveyRecruitTable==null) {
-            redisTemplate.opsForValue().set("SurveyRecruitTable",3);
-            surveyRecruitTable = 3;
-        }
-        String tableName = "survey_recruit_"+surveyRecruitTable;
-
+        String tableName = getDBTableIndex();
         SurveyRecruit surveyRecruit = SurveyRecruit.builder()
                 .id(maaRecruitId)
                 .uid(maaRecruitVo.getUuid())
@@ -45,7 +48,7 @@ public class SurveyRecruitService {
                 .source(maaRecruitVo.getSource())
                 .tag(JsonMapper.toJSONString(maaRecruitVo.getTags()))
                 .version(maaRecruitVo.getVersion())
-                .createTime(date).build();
+                .createTime(System.currentTimeMillis()).build();
 
         surveyRecruitMapper.insertRecruitData(tableName, surveyRecruit);
 
@@ -63,19 +66,14 @@ public class SurveyRecruitService {
         Date date = new Date();
 
         Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
-        if(lastStatisticsTime==null) lastStatisticsTime = date.getTime();
+        if(lastStatisticsTime==null) lastStatisticsTime = date.getTime()-10000000;
         long lastTime = Long.parseLong(String.valueOf(lastStatisticsTime));
 
 
-        Object surveyRecruitTable = redisTemplate.opsForValue().get("SurveyRecruitTable");
-        if(surveyRecruitTable==null) {
-            redisTemplate.opsForValue().set("SurveyRecruitTable",3);
-            surveyRecruitTable = 3;
-        }
+        String tableName = getDBTableIndex();
 
-        String tableName = "survey_recruit_"+surveyRecruitTable;
+        List<SurveyRecruit> recruit_data_DB = surveyRecruitMapper.selectRecruitDataByCreateTime(tableName, lastTime, date.getTime());
 
-        List<SurveyRecruit> recruit_data_DB = surveyRecruitMapper.selectRecruitDataByCreateTime(tableName, new Date(lastTime), date);
 
         Map<Integer, List<SurveyRecruit>> collect = recruit_data_DB.stream()
                 .collect(Collectors.groupingBy(SurveyRecruit::getLevel));
