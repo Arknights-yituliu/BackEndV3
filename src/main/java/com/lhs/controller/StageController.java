@@ -221,4 +221,15 @@ public class StageController {
         return Result.success(stageResultService.getT2RecommendedStageV1(stageParamDTO));
     }
 
+    @Operation(summary = "获取绿材料推荐关卡按期望倒序")
+    @GetMapping("/stage/closed")
+    public Result<List<ActStageVO>> getStageResultClosedV1(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+                                                                @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setSampleSize(sampleSize);
+        stageParamDTO.setExpCoefficient(expCoefficient);
+
+        return Result.success(stageResultService.getActStage(stageParamDTO));
+    }
+
 }

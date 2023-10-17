@@ -528,6 +528,7 @@ public class StageResultService {
                     stageResultVO.copyByStageResultDetail(detail);
                     stageResultVOList.add(stageResultVO);
                 }
+                stageResultVO.setStageEfficiency(stageResultVO.getStageEfficiency()*100);
                 //超过7个关卡退出，前端显示个数有限
                 if (stageResultVOList.size() > 7) break;
             }
@@ -622,6 +623,7 @@ public class StageResultService {
 
                 stageResultVO.copyByStageResultDetail(detail);
                 stageResultVO.setStageColor(1);
+                stageResultVO.setStageEfficiency(stageResultVO.getStageEfficiency()*100);
                 stageResultVOList.add(stageResultVO);
                 //超过7个关卡退出，前端显示个数有限
                 if (stageResultVOList.size() > 7) break;
