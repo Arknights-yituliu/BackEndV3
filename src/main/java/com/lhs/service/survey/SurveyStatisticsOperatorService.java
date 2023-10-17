@@ -248,13 +248,17 @@ public class SurveyStatisticsOperatorService {
         JsonNode jsonNode = JsonMapper.parseJSONObject(result);
         Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
 
+        hashMap.put("rank1",0.0);
+        hashMap.put("rank2",0.0);
+        hashMap.put("rank3",0.0);
+        double count = 0.0;
         while (fields.hasNext()) {
             String key = fields.next().getKey();
-
             int sum = jsonNode.get(key).intValue();
-
+            if(Integer.parseInt(key)>0) count += ((double) sum / sampleSize);
             hashMap.put("rank" + key, (double) sum / sampleSize);
         }
+        hashMap.put("count",count);
 
         return hashMap;
     }
