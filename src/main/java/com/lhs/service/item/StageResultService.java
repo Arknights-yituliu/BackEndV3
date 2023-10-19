@@ -85,7 +85,9 @@ public class StageResultService {
         Map<String, List<StageResultCommon>> commonMapByItemType = stageResultCommonMapper
                 .selectList(new QueryWrapper<StageResultCommon>()
                         .eq("version", stageParamDTO.getVersion())
-                        .ge("end_time", new Date()))
+                        .ge("end_time", new Date())
+                        .ge("stage_efficiency",0.8))
+
                 .stream()
                 .filter(e -> !"empty".equals(e.getItemType()))
                 .collect(Collectors.groupingBy(StageResultCommon::getItemTypeId));
@@ -121,7 +123,7 @@ public class StageResultService {
                     stageResultVOV2List.add(stageResultVOV2);
                 }
                 //超过7个关卡退出，前端显示个数有限
-                if (stageResultVOV2List.size() > 7) break;
+                if (stageResultVOV2List.size() > 20) break;
             }
 
             RecommendedStageVO recommendedStageVo = new RecommendedStageVO();

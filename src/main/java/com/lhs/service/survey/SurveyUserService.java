@@ -14,11 +14,11 @@ import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.SklandDTO;
-import com.lhs.entity.po.survey.SurveyOperator;
+import com.lhs.entity.po.survey.SurveyOperatorLog;
 import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.entity.po.survey.SurveyStatisticsUser;
 
-import com.lhs.mapper.survey.SurveyOperatorMapper;
+import com.lhs.mapper.survey.SurveyOperatorLogMapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
 import com.lhs.mapper.survey.SurveyStatisticsUserMapper;
 import com.lhs.service.dev.EmailService;
@@ -39,7 +39,7 @@ public class SurveyUserService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    private final SurveyOperatorMapper surveyOperatorMapper;
+    private final SurveyOperatorLogMapper surveyOperatorLogMapper;
 
     private final SurveyStatisticsUserMapper surveyStatisticsUserMapper;
 
@@ -47,15 +47,14 @@ public class SurveyUserService {
 
     private final OSSService ossService;
 
-    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, SurveyOperatorMapper surveyOperatorMapper, SurveyStatisticsUserMapper surveyStatisticsUserMapper, EmailService emailService, OSSService ossService) {
+    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, SurveyOperatorLogMapper surveyOperatorLogMapper, SurveyStatisticsUserMapper surveyStatisticsUserMapper, EmailService emailService, OSSService ossService) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
-        this.surveyOperatorMapper = surveyOperatorMapper;
+        this.surveyOperatorLogMapper = surveyOperatorLogMapper;
         this.surveyStatisticsUserMapper = surveyStatisticsUserMapper;
         this.emailService = emailService;
         this.ossService = ossService;
     }
-
 
     public UserDataVO registerV2(String ipAddress, LoginDataDTO surveyRequestVo) {
         String accountType = surveyRequestVo.getAccountType();
@@ -620,40 +619,18 @@ public class SurveyUserService {
 
 
     //    @Scheduled(cron = "0 0 0/2 * * ?")
-    public void userStatistics() {
+    public void surveyOperatorLog() {
         List<SurveyUser> surveyUserList = surveyUserMapper.selectList(null);
-
-        for (SurveyUser surveyUser : surveyUserList) {
-            long yituliuId = surveyUser.getId(); //一图流id
-
-            QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("uid", yituliuId);
-            Long count = surveyOperatorMapper.selectCount(queryWrapper);
-            if (count < 10) continue;
-
-            //查询是否统计过这个用户
-            QueryWrapper<SurveyStatisticsUser> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("id", yituliuId);
-            SurveyStatisticsUser savedData = surveyStatisticsUserMapper.selectOne(userQueryWrapper);
-
-            SurveyStatisticsUser statistics = SurveyStatisticsUser
-                    .builder()
-                    .id(surveyUser.getId())
-                    .uid(surveyUser.getUid())
-                    .email(surveyUser.getEmail())
-                    .userName(surveyUser.getUserName())
-                    .passWord(surveyUser.getPassWord())
-                    .createTime(surveyUser.getCreateTime())
-                    .operatorCount(count.intValue())
-                    .status(surveyUser.getStatus())
-                    .build();
-
-            if (savedData == null) {
-                surveyStatisticsUserMapper.insert(statistics);
-            } else {
-                surveyStatisticsUserMapper.update(statistics, userQueryWrapper);
-            }
-        }
+        surveyUserList.stream().filter(e->e.getUid()!=null&&(!e.getUid().startsWith("delete"))).forEach(e->{
+            SurveyOperatorLog surveyOperatorLog = new SurveyOperatorLog();
+            surveyOperatorLog.setId(e.getId());
+            surveyOperatorLog.setUserName(e.getUserName());
+            surveyOperatorLog.setUid(e.getUid());
+            surveyOperatorLog.setIp(e.getIp());
+            surveyOperatorLog.setLastTime(e.getUpdateTime().getTime());
+            surveyOperatorLog.setDeleteFlag(false);
+            surveyOperatorLogMapper.insert(surveyOperatorLog);
+        });
     }
 
     /**
@@ -836,8 +813,6 @@ public class SurveyUserService {
      * @param surveyRequestVo 自定义的请求实体类（具体内容看实体类的注释）
      * @return 用户状态信息
      */
-
-
 
 //    public UserDataResponse register(String ipAddress, SurveyRequestVo surveyRequestVo) {
 //        String userName = surveyRequestVo.getUserName();

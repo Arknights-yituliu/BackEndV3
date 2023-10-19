@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
+import com.lhs.entity.po.survey.SurveyOperatorLog;
 import com.lhs.entity.po.survey.SurveyOperatorVo;
+import com.lhs.mapper.survey.SurveyOperatorLogMapper;
 import com.lhs.mapper.survey.SurveyOperatorVoMapper;
 import com.lhs.mapper.survey.SurveyStatisticsOperatorMapper;
 import com.lhs.service.dev.OSSService;
@@ -24,7 +26,7 @@ public class SurveyStatisticsOperatorService {
 
     private final SurveyStatisticsOperatorMapper surveyStatisticsOperatorMapper;
 
-    private final SurveyUserService surveyUserService;
+    private final SurveyOperatorLogMapper surveyOperatorLogMapper;
 
     private final SurveyOperatorVoMapper surveyOperatorVoMapper;
 
@@ -35,9 +37,9 @@ public class SurveyStatisticsOperatorService {
     private final OSSService ossService;
 
 
-    public SurveyStatisticsOperatorService(SurveyStatisticsOperatorMapper surveyStatisticsOperatorMapper, SurveyUserService surveyUserService, SurveyOperatorVoMapper surveyOperatorVoMapper, OperatorBaseDataService operatorBaseDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
+    public SurveyStatisticsOperatorService(SurveyStatisticsOperatorMapper surveyStatisticsOperatorMapper, SurveyOperatorLogMapper surveyOperatorLogMapper, SurveyOperatorVoMapper surveyOperatorVoMapper, OperatorBaseDataService operatorBaseDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
         this.surveyStatisticsOperatorMapper = surveyStatisticsOperatorMapper;
-        this.surveyUserService = surveyUserService;
+        this.surveyOperatorLogMapper = surveyOperatorLogMapper;
         this.surveyOperatorVoMapper = surveyOperatorVoMapper;
         this.operatorBaseDataService = operatorBaseDataService;
         this.redisTemplate = redisTemplate;
@@ -49,7 +51,7 @@ public class SurveyStatisticsOperatorService {
      */
 //    @Scheduled(cron = "0 10 0/2 * * ?")
     public void operatorStatistics() {
-        List<Long> userIds = surveyUserService.selectSurveyUserIds();
+        List<Long> userIds = surveyOperatorLogMapper.selectList(null).stream().map(SurveyOperatorLog::getId).collect(Collectors.toList());
 
 
         List<List<Long>> userIdsGroup = new ArrayList<>();
