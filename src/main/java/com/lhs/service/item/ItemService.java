@@ -222,13 +222,13 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
     /**
      * 获取材料信息表
-     * @param stageParamDTO 物品价值的版本号
+     * @param version 物品价值的版本号
      * @return 材料信息表
      */
-    @RedisCacheable(key = "itemValue")
-    public List<Item> getItemListCache(StageParamDTO stageParamDTO) {
+    @RedisCacheable(key = "itemValue" ,params = "version")
+    public List<Item> getItemListCache(String version) {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
-        itemQueryWrapper.eq("version", stageParamDTO.getVersion()).orderByDesc("item_value_ap");
+        itemQueryWrapper.eq("version", version).orderByDesc("item_value_ap");
         return itemMapper.selectList(itemQueryWrapper);
     }
 
@@ -252,7 +252,8 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             String fileName = URLEncoder.encode("itemValue", "UTF-8");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
-            List<Item> list = getItemListCache(new StageParamDTO());
+            List<Item> list = getItemListCache(new StageParamDTO().getVersion());
+
             List<ItemVO> itemVOList = new ArrayList<>();
             for (Item item : list) {
                 ItemVO itemVo = new ItemVO();
@@ -267,7 +268,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
     }
 
     public void exportItemJson(HttpServletResponse response) {
-        List<Item> list = getItemListCache(new StageParamDTO());
+        List<Item> list = getItemListCache(new StageParamDTO().getVersion());
         List<ItemVO> itemVOList = new ArrayList<>();
         for (Item item : list) {
             ItemVO itemVo = new ItemVO();

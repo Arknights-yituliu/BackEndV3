@@ -8,6 +8,9 @@ import java.util.List;
 public class RecommendedStageVO {
     private String itemType;
     private String itemTypeId;
+    private String itemSeries;
+    private String itemSeriesId;
+    private String version;
     private List<StageResultVOV2> stageResultList;
 }
 

@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface StageResultMapper extends BaseMapper<StageResult> {
-    Integer insertBatch(@Param("list") List<StageResult> list);
+    void insertBatch(@Param("list") List<StageResult> list);
 }

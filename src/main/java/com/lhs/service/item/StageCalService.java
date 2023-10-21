@@ -10,9 +10,8 @@ import com.lhs.entity.dto.item.PenguinMatrixDTO;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.item.*;
 import com.lhs.mapper.item.QuantileMapper;
-import com.lhs.mapper.item.StageResultCommonMapper;
-import com.lhs.mapper.item.StageResultDetailMapper;
 import com.lhs.mapper.item.StageResultMapper;
+import com.lhs.mapper.item.StageResultDetailMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,20 +23,18 @@ import java.util.stream.Collectors;
 public class StageCalService {
 
     private final StageService stageService;
-    private final StageResultMapper stageResultMapper;
     private final QuantileMapper quantileMapper;
     private final ItemService itemService;
-    private final StageResultCommonMapper stageResultCommonMapper;
+    private final StageResultMapper stageResultMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final StageResultDetailMapper stageResultDetailMapper;
 
-    public StageCalService(StageService stageService, StageResultMapper stageResultMapper, QuantileMapper quantileMapper, ItemService itemService, StageResultCommonMapper stageResultCommonMapper, RedisTemplate<String, Object> redisTemplate, StageResultDetailMapper stageResultDetailMapper) {
+    public StageCalService(StageService stageService, QuantileMapper quantileMapper, ItemService itemService, StageResultMapper stageResultMapper, RedisTemplate<String, Object> redisTemplate, StageResultDetailMapper stageResultDetailMapper) {
         this.stageService = stageService;
-        this.stageResultMapper = stageResultMapper;
         this.quantileMapper = quantileMapper;
         this.itemService = itemService;
-        this.stageResultCommonMapper = stageResultCommonMapper;
+        this.stageResultMapper = stageResultMapper;
         this.redisTemplate = redisTemplate;
         this.stageResultDetailMapper = stageResultDetailMapper;
     }
@@ -65,7 +62,7 @@ public class StageCalService {
         List<QuantileTable> quantileTables = quantileMapper.selectList(null);
 
         List<StageResultDetail> detailInsertList = new ArrayList<>();
-        List<StageResultCommon> commonInsertList = new ArrayList<>();
+        List<StageResult> commonInsertList = new ArrayList<>();
 
         HashMap<String, Double> itemIterationValueMap = new HashMap<>();
 
@@ -90,7 +87,7 @@ public class StageCalService {
             stageDropLMD.setTimes(1);
             stageDropList.add(stageDropLMD);
             
-            if(StageType.ACT_REP.equals(stageType)||StageType.ACT.equals(stageType)&&stageId.endsWith("_LMD")){
+            if(stageId.endsWith("_LMD")){
                 PenguinMatrixDTO stageDropStore = new PenguinMatrixDTO();
                 stageDropStore.setStageId(stageId);
                 stageDropStore.setItemId("4001");
@@ -135,8 +132,8 @@ public class StageCalService {
 
             temporaryList.sort(Comparator.comparing(StageResultDetail::getResult).reversed());
             //材料系列
-            String itemTypeName = "empty";
-            String itemTypeId = "empty";
+            String itemSeries = "empty";
+            String itemSeriesId = "empty";
             String secondaryItemName = "empty";
             String secondaryItemId = "empty";
             String mainItemName = "empty";
@@ -150,8 +147,8 @@ public class StageCalService {
                 if(i==0){
                     //找到这个材料所属的材料系列
                     if (itemSeriesTable.get(itemId) != null) {
-                        itemTypeName = itemSeriesTable.get(itemId).get("series").asText();
-                        itemTypeId = itemSeriesTable.get(itemId).get("seriesId").asText();
+                        itemSeries = itemSeriesTable.get(itemId).get("series").asText();
+                        itemSeriesId = itemSeriesTable.get(itemId).get("seriesId").asText();
                         itemRarity = itemMap.get(itemId).getRarity();
                         mainItemName = itemName;
                     }
@@ -169,19 +166,19 @@ public class StageCalService {
             stageEfficiency = dropApValueSum/apCost;
 
             if(StageType.MAIN.equals(stageType)||StageType.ACT_PERM.equals(stageType)){
-                if(!"empty".equals(itemTypeName)) {
-                    Double maxStageEfficiency = itemIterationValueMap.get(itemTypeName);
+                if(!"empty".equals(itemSeries)) {
+                    Double maxStageEfficiency = itemIterationValueMap.get(itemSeries);
                     if(maxStageEfficiency==null){
-                        itemIterationValueMap.put(itemTypeName,stageEfficiency);
+                        itemIterationValueMap.put(itemSeries,stageEfficiency);
                     }else {
                         if(maxStageEfficiency<stageEfficiency){
-                            itemIterationValueMap.put(itemTypeName,stageEfficiency);
+                            itemIterationValueMap.put(itemSeries,stageEfficiency);
                         }
                     }
                 }
             }
 
-            StageResultCommon common = new StageResultCommon();
+            StageResult common = new StageResult();
             common.setId(stageResultId++);
             common.setStageId(stageId);
             common.setStageCode(stage.getStageCode());
@@ -189,8 +186,8 @@ public class StageCalService {
             common.setSecondaryItemId(secondaryItemId);
             common.setEndTime(stage.getEndTime());
             common.setVersion(version);
-            common.setItemType(itemTypeName);
-            common.setItemTypeId(itemTypeId);
+            common.setItemSeries(itemSeries);
+            common.setItemSeriesId(itemSeriesId);
             common.setStageEfficiency(stageEfficiency);
             common.setEndTime(stage.getEndTime());
 
@@ -212,7 +209,7 @@ public class StageCalService {
         });
 
         stageResultDetailMapper.delete(new QueryWrapper<StageResultDetail>().eq("version", version));
-        stageResultCommonMapper.delete(new QueryWrapper<StageResultCommon>().eq("version", version));
+        stageResultMapper.delete(new QueryWrapper<StageResult>().eq("version", version));
         itemService.deleteItemIterationValue(version);
         itemService.saveItemIterationValue(iterationValueList);
 
@@ -230,7 +227,7 @@ public class StageCalService {
         }
 
         Log.info("本次批量插入关卡掉落详细数据条数："+detailInsertList.size());
-        stageResultCommonMapper.insertBatch(commonInsertList);
+        stageResultMapper.insertBatch(commonInsertList);
         Log.info("本次批量插入关卡通用掉落数据条数："+ commonInsertList.size());
 
     }
@@ -239,9 +236,9 @@ public class StageCalService {
      * @param common 关卡部分通用计算结果
      * @param detailList  关卡每种掉落物品的详细数据
      */
-    private void calMainItemRatio(StageResultCommon common, List<StageResultDetail> detailList) {
+    private void calMainItemRatio(StageResult common, List<StageResultDetail> detailList) {
 
-        String itemType = common.getItemType();  //关卡掉落材料所属类型   比如1-7，4-6这种同属”固源岩组“类
+        String itemType = common.getItemSeries();  //关卡掉落材料所属类型   比如1-7，4-6这种同属”固源岩组“类
         if("empty".equals(itemType)){
             common.setLeT5Efficiency(0.0);  //等级1-4的材料占比
             common.setLeT4Efficiency(0.0); //等级1-3的材料占比

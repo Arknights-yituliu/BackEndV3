@@ -8,8 +8,7 @@ import com.lhs.entity.po.item.Stage;
 
 import com.lhs.entity.vo.item.ZoneTableVO;
 import com.lhs.mapper.item.StageMapper;
-import com.lhs.service.dev.OSSService;
-import org.springframework.scheduling.annotation.Scheduled;
+import com.lhs.service.util.OSSService;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Resource;

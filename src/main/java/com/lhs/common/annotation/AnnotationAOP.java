@@ -13,6 +13,7 @@ import org.aspectj.lang.reflect.CodeSignature;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -83,30 +84,29 @@ public class AnnotationAOP {
             argMap.put(argNames[i], args[i]);
         }
 
-        int timeOut = redisCacheable.timeout();
+        StringBuilder redisKey = new StringBuilder(redisCacheable.key());
 
-        String[] key = redisCacheable.key().split("#");
+        String[] params = redisCacheable.params().split(",");
 
-        StringBuilder redisKey = new StringBuilder(key[0]);
-        Object redisValue = "";
-        if (key.length > 1) {
-            for (int i = 1; i < key.length; i++) {
-                redisKey.append(argMap.get(key[i]));
-            }
+        for (String param : params) {
+              if(argMap.get(param)!=null)  redisKey.append(".").append(argMap.get(param));
         }
 
-        redisValue = redisTemplate.opsForValue().get(String.valueOf(redisKey));
+        Object cache = "";
+        cache = redisTemplate.opsForValue().get(String.valueOf(redisKey));
 //        log.info(pjp.getSignature().getName() + "读取缓存内容");
-        if (redisValue != null) return redisValue;
+        if (cache != null) return cache;
 //        log.info("读取数据库内容");
         Object proceed = pjp.proceed();
+
+        int timeOut = redisCacheable.timeout();
         if(timeOut<0){
             redisTemplate.opsForValue().set(String.valueOf(redisKey), proceed);
         }else {
             redisTemplate.opsForValue().set(String.valueOf(redisKey), proceed, timeOut, TimeUnit.SECONDS);
         }
 
-        log.info("存入redis");
+        log.info("数据已缓存，缓存key:"+redisKey);
         return proceed;
     }
 

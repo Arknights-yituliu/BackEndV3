@@ -2,7 +2,6 @@ package com.lhs.entity.vo.item;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lhs.entity.po.item.StageResult;
-import com.lhs.entity.po.item.StageResultCommon;
 import com.lhs.entity.po.item.StageResultDetail;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,40 +44,20 @@ public class StageResultVO {
     private Date updateTime;
     private Integer stageColor;
 
-    public void copy(StageResult stageResult){
+
+
+    public void copyByStageResultCommon(StageResult stageResult){
         this.stageId = stageResult.getStageId();
         this.stageCode = stageResult.getStageCode();
-        this.zoneName = stageResult.getZoneName();
-        this.zoneId = stageResult.getZoneId();
-        this.main = stageResult.getMain();
-        this.itemName = stageResult.getItemName();
-        this.itemId = stageResult.getItemId();
-        this.secondary = stageResult.getSecondary();
-        this.secondaryId = stageResult.getSecondaryId();
-        this.sampleConfidence = stageResult.getSampleConfidence();
-        this.sampleSize = stageResult.getSampleSize();
+        this.stageType = stageResult.getStageType();
         this.spm = stageResult.getSpm();
-        this.itemType = stageResult.getItemType();
-        this.itemRarity = stageResult.getItemRarity();
-        this.knockRating = stageResult.getKnockRating();
-        this.apExpect = stageResult.getApExpect();
+        this.itemType = stageResult.getItemSeries();
+
         this.stageEfficiency = stageResult.getStageEfficiency();
-        this.updateTime = stageResult.getUpdateTime();
-        this.stageColor = stageResult.getStageColor();
-    }
-
-    public void copyByStageResultCommon(StageResultCommon stageResultCommon){
-        this.stageId = stageResultCommon.getStageId();
-        this.stageCode = stageResultCommon.getStageCode();
-        this.stageType = stageResultCommon.getStageType();
-        this.spm = stageResultCommon.getSpm();
-        this.itemType = stageResultCommon.getItemType();
-
-        this.stageEfficiency = stageResultCommon.getStageEfficiency();
-        this.leT5Efficiency = stageResultCommon.getLeT5Efficiency();
-        this.leT4Efficiency = stageResultCommon.getLeT4Efficiency();
-        this.leT3Efficiency = stageResultCommon.getLeT3Efficiency();
-        this.secondaryId = stageResultCommon.getSecondaryItemId();
+        this.leT5Efficiency = stageResult.getLeT5Efficiency();
+        this.leT4Efficiency = stageResult.getLeT4Efficiency();
+        this.leT3Efficiency = stageResult.getLeT3Efficiency();
+        this.secondaryId = stageResult.getSecondaryItemId();
     }
 
     public void copyByStageResultDetail(StageResultDetail stageResultDetail){

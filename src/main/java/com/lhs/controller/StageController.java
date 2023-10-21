@@ -1,5 +1,6 @@
 package com.lhs.controller;
 
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,14 +58,26 @@ public class StageController {
     //    @TakeCount(name = "蓝材料推荐关卡")
     @Operation(summary = "获取蓝材料推荐关卡按效率倒序")
     @GetMapping("/stage/t3/v2")
+
     public Result<List<RecommendedStageVO>> getStageResultT3(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
                                                              @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
-        List<RecommendedStageVO> recommendedStageVOList = stageResultService.getT3RecommendedStageV2(stageParamDTO);
-
+        List<RecommendedStageVO> recommendedStageVOList = stageResultService.getT3RecommendedStageV2(stageParamDTO.getVersion());
         return Result.success(recommendedStageVOList);
+    }
+
+    @Operation(summary = "获取每种材料系列的关卡计算结果")
+    @GetMapping("/stage/result")
+    public Result<Map<String, Object>> getStageResult(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+                                                             @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setSampleSize(sampleSize);
+        stageParamDTO.setExpCoefficient(expCoefficient);
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
+
+        return Result.success(t3RecommendedStageV3);
     }
 
     //    @TakeCount(name = "绿材料推荐关卡")
@@ -74,7 +88,7 @@ public class StageController {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
-        List<RecommendedStageVO> recommendedStageVOList = stageResultService.getT2RecommendedStage(stageParamDTO);
+        List<RecommendedStageVO> recommendedStageVOList = stageResultService.getT2RecommendedStage(stageParamDTO.getVersion());
 
         return Result.success(recommendedStageVOList);
     }
@@ -86,7 +100,7 @@ public class StageController {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageParamDTO);
+        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageParamDTO.getVersion());
         return Result.success(orundumPerApResultVOList);
     }
 
@@ -97,7 +111,7 @@ public class StageController {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        List<ActStageVO> actStageVOList = stageResultService.getActStage(stageParamDTO);
+        List<ActStageVO> actStageVOList = stageResultService.getActStage(stageParamDTO.getVersion());
 
 
         return Result.success(actStageVOList);
@@ -126,14 +140,15 @@ public class StageController {
 
     @Operation(summary = "查询关卡详细信息")
     @GetMapping("/stage/detail")
-    public Result<Map<String, List<StageResultDetailVO>>> getStageResult_detail(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<Map<String, List<StageResultDetailVO>>> getStageResultDetail(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
                                                                                 @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        Map<String, List<StageResultDetailVO>> allStageResult = stageResultService.getAllStageResult(stageParamDTO);
+        Map<String, List<StageResultDetailVO>> allStageResult = stageResultService.getAllStageResult(stageParamDTO.getVersion());
         return Result.success(allStageResult);
     }
+
 
 
     @Operation(summary = "获取物品价值表")
@@ -143,7 +158,7 @@ public class StageController {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        List<Item> items = itemService.getItemListCache(stageParamDTO);
+        List<Item> items = itemService.getItemListCache(stageParamDTO.getVersion());
         return Result.success(items);
     }
 
@@ -199,18 +214,18 @@ public class StageController {
 
 
     //    @TakeCount(name = "蓝材料推荐关卡")
-    @Operation(summary = "获取蓝材料推荐关卡按效率倒序")
+    @Operation(summary = "获取蓝材料推荐关卡按效率倒序v1")
     @GetMapping("/stage/t3")
     public Result<List<List<StageResultVO>>> getStageResultT3V1(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
                                                               @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
-        return Result.success(stageResultService.getT3RecommendedStageV1(stageParamDTO));
+        return Result.success(stageResultService.getT3RecommendedStageV1(stageParamDTO.getVersion()));
     }
 
     //    @TakeCount(name = "绿材料推荐关卡")
-    @Operation(summary = "获取绿材料推荐关卡按期望倒序")
+    @Operation(summary = "获取绿材料推荐关卡按期望倒序v1")
     @GetMapping("/stage/t2")
     public Result<List<List<StageResultVO>>> getStageResultT2V1(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
                                                               @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
@@ -218,10 +233,10 @@ public class StageController {
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
 
-        return Result.success(stageResultService.getT2RecommendedStageV1(stageParamDTO));
+        return Result.success(stageResultService.getT2RecommendedStageV1(stageParamDTO.getVersion()));
     }
 
-    @Operation(summary = "获取绿材料推荐关卡按期望倒序")
+    @Operation(summary = "获取历史活动关卡v1")
     @GetMapping("/stage/closed")
     public Result<List<ActStageVO>> getStageResultClosedV1(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
                                                                 @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
@@ -229,7 +244,7 @@ public class StageController {
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
 
-        return Result.success(stageResultService.getActStage(stageParamDTO));
+        return Result.success(stageResultService.getActStage(stageParamDTO.getVersion()));
     }
 
 }

@@ -1,26 +1,10 @@
 package com.lhs.task;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.config.ApplicationConfig;
-import com.lhs.common.util.*;
-import com.lhs.entity.dto.item.StageParamDTO;
-import com.lhs.entity.po.item.Item;
-import com.lhs.entity.po.item.Stage;
-
-import com.lhs.entity.vo.item.RecommendedStageVO;
-
-import com.lhs.entity.vo.item.StageResultVOV2;
-import com.lhs.mapper.item.StageMapper;
-import com.lhs.service.dev.OSSService;
+import com.lhs.service.util.OSSService;
 import com.lhs.service.item.*;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 
@@ -61,10 +45,12 @@ public class ItemTask {
     /**
      * 根据关卡配置更新关卡计算结果
      */
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @Scheduled(cron = "0 0/19 * * * ?")
     public void updateStageResult() {
        stageResultService.updateStageResultByTaskConfig();
     }
+
+
 
     /**
      * 备份关卡计算结果

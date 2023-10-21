@@ -1,6 +1,6 @@
 package com.lhs.entity.vo.item;
 
-import com.lhs.entity.po.item.StageResultCommon;
+import com.lhs.entity.po.item.StageResult;
 import com.lhs.entity.po.item.StageResultDetail;
 import lombok.Data;
 
@@ -26,20 +26,20 @@ public class StageResultDetailVO {
     private Double sampleConfidence;
 
     //从通用掉落信息中复制
-    public void copyByStageResultCommon(StageResultCommon stageResultCommon){
-        if(stageResultCommon ==null){
+    public void copyByStageResultCommon(StageResult stageResult){
+        if(stageResult ==null){
             return;
         }
-        this.stageId = stageResultCommon.getStageId();
-        this.stageCode = stageResultCommon.getStageCode();
-        this.stageType = stageResultCommon.getStageType();
-        this.secondaryItemId = stageResultCommon.getSecondaryItemId();
-        this.stageEfficiency = stageResultCommon.getStageEfficiency();
-        this.leT5Efficiency = stageResultCommon.getLeT5Efficiency();
-        this.leT4Efficiency = stageResultCommon.getLeT4Efficiency();
-        this.leT3Efficiency = stageResultCommon.getLeT3Efficiency();
+        this.stageId = stageResult.getStageId();
+        this.stageCode = stageResult.getStageCode();
+        this.stageType = stageResult.getStageType();
+        this.secondaryItemId = stageResult.getSecondaryItemId();
+        this.stageEfficiency = stageResult.getStageEfficiency();
+        this.leT5Efficiency = stageResult.getLeT5Efficiency();
+        this.leT4Efficiency = stageResult.getLeT4Efficiency();
+        this.leT3Efficiency = stageResult.getLeT3Efficiency();
 
-        this.spm = stageResultCommon.getSpm();
+        this.spm = stageResult.getSpm();
     }
 
     //从详细掉落信息中复制

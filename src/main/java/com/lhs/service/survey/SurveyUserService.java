@@ -21,8 +21,8 @@ import com.lhs.entity.po.survey.SurveyStatisticsUser;
 import com.lhs.mapper.survey.SurveyOperatorLogMapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
 import com.lhs.mapper.survey.SurveyStatisticsUserMapper;
-import com.lhs.service.dev.EmailService;
-import com.lhs.service.dev.OSSService;
+import com.lhs.service.util.EmailService;
+import com.lhs.service.util.OSSService;
 
 import com.lhs.entity.vo.survey.UserDataVO;
 

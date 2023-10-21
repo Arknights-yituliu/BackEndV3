@@ -9,14 +9,11 @@ import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
 import com.lhs.common.util.StageType;
 import com.lhs.entity.dto.item.StageParamDTO;
-import com.lhs.entity.po.item.Item;
-import com.lhs.entity.po.item.Stage;
-import com.lhs.entity.po.item.StageResultCommon;
-import com.lhs.entity.po.item.StageResultDetail;
+import com.lhs.entity.po.item.*;
 import com.lhs.entity.vo.item.*;
-import com.lhs.mapper.item.StageResultCommonMapper;
+import com.lhs.mapper.item.StageResultMapper;
 import com.lhs.mapper.item.StageResultDetailMapper;
-import com.lhs.service.dev.OSSService;
+import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +26,7 @@ import java.util.stream.Collectors;
 public class StageResultService {
 
     private final StageResultDetailMapper stageResultDetailMapper;
-    private final StageResultCommonMapper stageResultCommonMapper;
+    private final StageResultMapper stageResultMapper;
     private final ItemService itemService;
     private final StageCalService stageCalService;
     private final StageService stageService;
@@ -37,9 +34,9 @@ public class StageResultService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultCommonMapper stageResultCommonMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate) {
+    public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate) {
         this.stageResultDetailMapper = stageResultDetailMapper;
-        this.stageResultCommonMapper = stageResultCommonMapper;
+        this.stageResultMapper = stageResultMapper;
         this.itemService = itemService;
         this.stageCalService = stageCalService;
         this.stageService = stageService;
@@ -77,25 +74,24 @@ public class StageResultService {
         Log.info("V2关卡效率更新成功");
     }
 
-    @RedisCacheable(key = "Stage.T3.V2")
-    public List<RecommendedStageVO> getT3RecommendedStageV2(StageParamDTO stageParamDTO) {
-
+    @RedisCacheable(key = "Stage.T3.V2",params = "version")
+    public List<RecommendedStageVO> getT3RecommendedStageV2(String version) {
 
         //根据itemType将关卡主要掉落信息分组
-        Map<String, List<StageResultCommon>> commonMapByItemType = stageResultCommonMapper
-                .selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion())
+        Map<String, List<StageResult>> commonMapByItemType = stageResultMapper
+                .selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version)
                         .ge("end_time", new Date())
                         .ge("stage_efficiency",0.8))
 
                 .stream()
-                .filter(e -> !"empty".equals(e.getItemType()))
-                .collect(Collectors.groupingBy(StageResultCommon::getItemTypeId));
+                .filter(e -> !"empty".equals(e.getItemSeries()))
+                .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
 
         //查找关卡的详细掉落信息
         Map<String, StageResultDetail> detailMapByStageId = stageResultDetailMapper
                 .selectList(new QueryWrapper<StageResultDetail>()
-                        .eq("version", stageParamDTO.getVersion())
+                        .eq("version", version)
                         .ge("end_time", new Date()))
                 .stream()
                 .filter(e -> e.getRatioRank() == 0)
@@ -105,15 +101,15 @@ public class StageResultService {
         //要返回前端的数据集合
         List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
 
-        for (String itemTypeId : commonMapByItemType.keySet()) {
+        for (String itemSeriesId : commonMapByItemType.keySet()) {
             //每次材料系的推荐关卡的通用掉落信息
-            List<StageResultCommon> commonListByItemId = commonMapByItemType.get(itemTypeId);
-            String itemType = commonListByItemId.get(0).getItemType();
+            List<StageResult> commonListByItemId = commonMapByItemType.get(itemSeriesId);
+            String itemSeries = commonListByItemId.get(0).getItemSeries();
             //将通用掉落信息按效率倒序排列
-            commonListByItemId.sort(Comparator.comparing(StageResultCommon::getStageEfficiency).reversed());
+            commonListByItemId.sort(Comparator.comparing(StageResult::getStageEfficiency).reversed());
 
             List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
-            for (StageResultCommon common : commonListByItemId) {
+            for (StageResult common : commonListByItemId) {
                 StageResultDetail detail = detailMapByStageId.get(common.getStageId());
                 //将通用结果和详细结果复制到返回结果的实体类中
                 StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
@@ -127,11 +123,13 @@ public class StageResultService {
             }
 
             RecommendedStageVO recommendedStageVo = new RecommendedStageVO();
-            recommendedStageVo.setItemTypeId(itemTypeId);
-            recommendedStageVo.setItemType(itemType);
+            recommendedStageVo.setItemSeriesId(itemSeriesId);
+            recommendedStageVo.setItemSeries(itemSeries);
+            recommendedStageVo.setItemType(itemSeries);
+            recommendedStageVo.setItemTypeId(itemSeriesId);
+            recommendedStageVo.setVersion(version);
             recommendedStageVo.setStageResultList(stageResultVOV2List);
             recommendedStageVOList.add(recommendedStageVo);
-
             //给关卡赋予等级颜色
             setStageColor(stageResultVOV2List);
 
@@ -139,6 +137,75 @@ public class StageResultService {
 
 
         return recommendedStageVOList;
+    }
+
+//    @RedisCacheable(key = "Stage.T3.V3",params = "version")
+    public Map<String, Object> getT3RecommendedStageV3(String version) {
+
+        Map<String, String> stageMap = stageService.getStageList(null)
+                .stream()
+                .collect(Collectors.toMap(Stage::getStageId,Stage::getZoneName));
+
+
+        //根据itemType将关卡主要掉落信息分组
+        Map<String, List<StageResult>> commonMapByItemType = stageResultMapper
+                .selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version)
+                        .ge("end_time", new Date())
+                        .ge("stage_efficiency",0.8))
+
+                .stream()
+                .filter(e -> !"empty".equals(e.getItemSeries()))
+                .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
+
+        //查找关卡的详细掉落信息
+        Map<String, StageResultDetail> detailMapByStageId = stageResultDetailMapper
+                .selectList(new QueryWrapper<StageResultDetail>()
+                        .ge("end_time", new Date())
+                        .eq("version", version))
+                .stream()
+                .filter(e -> e.getRatioRank() == 0)
+                .collect(Collectors.toMap((StageResultDetail::getStageId), Function.identity()));
+
+        //要返回前端的数据集合
+        List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
+
+        for (String itemSeriesId : commonMapByItemType.keySet()) {
+            //每次材料系的推荐关卡的通用掉落信息
+            List<StageResult> commonListByItemId = commonMapByItemType.get(itemSeriesId);
+            String itemSeries = commonListByItemId.get(0).getItemSeries();
+            //将通用掉落信息按效率倒序排列
+            commonListByItemId.sort(Comparator.comparing(StageResult::getStageEfficiency).reversed());
+
+            List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
+            for (StageResult common : commonListByItemId) {
+                StageResultDetail detail = detailMapByStageId.get(common.getStageId());
+                //将通用结果和详细结果复制到返回结果的实体类中
+                StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
+                stageResultVOV2.copyByStageResultCommon(common);
+                if (detail != null) {
+                    stageResultVOV2.copyByStageResultDetail(detail);
+                    stageResultVOV2List.add(stageResultVOV2);
+                }
+
+                stageResultVOV2.setZoneName(stageMap.get(common.getStageId().replace("_LMD","")));
+            }
+
+            RecommendedStageVO recommendedStageVo = new RecommendedStageVO();
+            recommendedStageVo.setItemSeriesId(itemSeriesId);
+            recommendedStageVo.setItemSeries(itemSeries);
+            recommendedStageVo.setItemType(itemSeries);
+            recommendedStageVo.setItemTypeId(itemSeriesId);
+            recommendedStageVo.setVersion(version);
+            recommendedStageVo.setStageResultList(stageResultVOV2List);
+            recommendedStageVOList.add(recommendedStageVo);
+
+        }
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("updateTime",new Date());
+        map.put("recommendedStage",recommendedStageVOList);
+        return map;
     }
 
 
@@ -178,25 +245,27 @@ public class StageResultService {
                 e.setApExpect(apExpect);
             }
         });
-
     }
 
-    @RedisCacheable(key = "Stage.T2.V2")
-    public List<RecommendedStageVO> getT2RecommendedStage(StageParamDTO stageParamDTO) {
+
+
+
+    @RedisCacheable(key = "Stage.T2.V2",params = "version")
+    public List<RecommendedStageVO> getT2RecommendedStage(String version) {
 
         List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
 
         //查询关卡通用掉落信息,根据物品id分组
-        Map<String, StageResultCommon> resultSampleMap = stageResultCommonMapper
-                .selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion()))
+        Map<String, StageResult> resultSampleMap = stageResultMapper
+                .selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version))
                 .stream()
-                .collect(Collectors.toMap(StageResultCommon::getStageId, Function.identity()));
+                .collect(Collectors.toMap(StageResult::getStageId, Function.identity()));
 
         //查询详细掉落信息
         Map<String, List<StageResultDetail>> collect = stageResultDetailMapper
                 .selectList(new QueryWrapper<StageResultDetail>()
-                        .eq("version", stageParamDTO.getVersion())
+                        .eq("version", version)
                         .ge("end_time", new Date()))
                 .stream()
                 .filter(e -> e.getItemRarity() == 2&&e.getItemId().startsWith("300"))
@@ -213,7 +282,7 @@ public class StageResultService {
             stageResultDetailListByItemId.sort(Comparator.comparing(StageResultDetail::getApExpect));
             for (StageResultDetail detail : stageResultDetailListByItemId) {
                 StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
-                StageResultCommon common = resultSampleMap.get(detail.getStageId());
+                StageResult common = resultSampleMap.get(detail.getStageId());
                 //将通用结果和详细结果复制到返回结果的实体类中
                 if (common != null) {
                     stageResultVOV2.copyByStageResultCommon(common);
@@ -227,8 +296,10 @@ public class StageResultService {
             }
 
             RecommendedStageVO recommendedStageVo = new RecommendedStageVO();
-            recommendedStageVo.setItemTypeId(itemId);
+            recommendedStageVo.setItemSeriesId(itemId);
+            recommendedStageVo.setItemSeries(itemName);
             recommendedStageVo.setItemType(itemName);
+            recommendedStageVo.setItemTypeId(itemId);
             recommendedStageVo.setStageResultList(stageResultVOV2List);
             recommendedStageVOList.add(recommendedStageVo);
         }
@@ -237,30 +308,30 @@ public class StageResultService {
 
 
     @RedisCacheable(key = "Stage.Orundum.V2")
-    public List<OrundumPerApResultVO> getOrundumRecommendedStage(StageParamDTO stageParamDTO) {
+    public List<OrundumPerApResultVO> getOrundumRecommendedStage(String version) {
         List<OrundumPerApResultVO> orundumPerApResultVOList = new ArrayList<>();
 
         //查询关卡通用掉落信息,根据物品id分组
-        Map<String, StageResultCommon> resultCommonMap = stageResultCommonMapper
-                .selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion()))
-                .stream().collect(Collectors.toMap(StageResultCommon::getStageId, Function.identity()));
+        Map<String, StageResult> resultCommonMap = stageResultMapper
+                .selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version))
+                .stream().collect(Collectors.toMap(StageResult::getStageId, Function.identity()));
 
         //查询关卡信息
         Map<String, Stage> stageMap = stageService.getStageMapKeyIsStageId();
 
         stageResultDetailMapper.selectList(new QueryWrapper<StageResultDetail>()
-                        .eq("version", stageParamDTO.getVersion())
+                        .eq("version", version)
                         .ge("end_time", new Date())).stream()
                 .filter(e -> !(e.getStageId().endsWith("LMD")) && e.getItemRarity() <3)
                 .collect(Collectors.groupingBy(StageResultDetail::getStageId))
                 .forEach((stageId, list) -> {
                     Map<String, Double> calResult = orundumPerApCal(list, stageMap.get(stageId).getApCost());
                     if (calResult.get("orundumPerAp") > 0.2) {
-                        StageResultCommon stageResultCommon = resultCommonMap.get(stageId);
+                        StageResult stageResult = resultCommonMap.get(stageId);
                         OrundumPerApResultVO resultVo = OrundumPerApResultVO.builder()
-                                .stageCode(stageResultCommon.getStageCode())
-                                .stageEfficiency(stageResultCommon.getStageEfficiency())
+                                .stageCode(stageResult.getStageCode())
+                                .stageEfficiency(stageResult.getStageEfficiency())
                                 .orundumPerAp(calResult.get("orundumPerAp"))
                                 .lMDCost(calResult.get("LMDCost"))
                                 .orundumPerApEfficiency(calResult.get("orundumPerAp") / 1.09)
@@ -313,8 +384,11 @@ public class StageResultService {
     }
 
 
-    @RedisCacheable(key = "Stage.ACT.V2")
-    public List<ActStageVO> getActStage(StageParamDTO stageParamDTO) {
+
+
+
+    @RedisCacheable(key = "Stage.ACT.V2", params = "version")
+    public List<ActStageVO> getActStage(String version) {
 
         Map<String, List<Stage>> stageGroupByZoneName = stageService.getStageList(new QueryWrapper<Stage>()
                         .le("end_time", new Date()))
@@ -322,15 +396,15 @@ public class StageResultService {
                 .filter(e -> StageType.ACT.equals(e.getStageType()) || StageType.ACT_REP.equals(e.getStageType()))
                 .collect(Collectors.groupingBy(Stage::getZoneName));
 
-        Map<String, StageResultCommon> resultCommonMap = stageResultCommonMapper.selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion())
+        Map<String, StageResult> resultCommonMap = stageResultMapper.selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version)
                         .le("end_time", new Date()))
                 .stream()
                 .filter(e -> e.getStageId().endsWith("LMD"))
-                .collect(Collectors.toMap(StageResultCommon::getStageId, Function.identity()));
+                .collect(Collectors.toMap(StageResult::getStageId, Function.identity()));
 
         Map<String, StageResultDetail> resultDetailMap = stageResultDetailMapper.selectList(new QueryWrapper<StageResultDetail>()
-                        .eq("version", stageParamDTO.getVersion())
+                        .eq("version", version)
                         .le("end_time", new Date()))
                 .stream()
                 .filter(e -> e.getStageId().endsWith("LMD") && e.getRatioRank() == 0)
@@ -356,7 +430,7 @@ public class StageResultService {
     }
 
     private List<ActStageResultVO> getActStageResultList(List<Stage> stageList,
-                                                         Map<String, StageResultCommon> resultCommonMap,
+                                                         Map<String, StageResult> resultCommonMap,
                                                          Map<String, StageResultDetail> resultDetailMap) {
         stageList.sort(Comparator.comparing(Stage::getStageId).reversed());
 
@@ -365,11 +439,11 @@ public class StageResultService {
             String stageId = stage.getStageId() + "_LMD";
             ActStageResultVO actStageResultVO = new ActStageResultVO();
             if (resultCommonMap.get(stageId) != null && resultDetailMap.get(stageId) != null) {
-                StageResultCommon common = resultCommonMap.get(stageId);
+                StageResult common = resultCommonMap.get(stageId);
                 actStageResultVO.setStageId(common.getStageId());
                 actStageResultVO.setStageCode(common.getStageCode());
-                actStageResultVO.setItemName(common.getItemType());
-                actStageResultVO.setItemId(common.getItemTypeId());
+                actStageResultVO.setItemName(common.getItemSeries());
+                actStageResultVO.setItemId(common.getItemSeriesId());
                 actStageResultVO.setStageEfficiency(common.getStageEfficiency());
                 StageResultDetail detail = resultDetailMap.get(stageId);
                 actStageResultVO.setApExpect(detail.getApExpect());
@@ -391,13 +465,6 @@ public class StageResultService {
 
     public List<StageResultVOV2> getStageByZoneName(StageParamDTO stageParamDTO, String zone) {
 
-        List<StageResultCommon> commonList =
-                stageResultCommonMapper.selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion())
-                        .ge("end_time", new Date())
-                        .ne("item_type", "empty")
-                        .like("stage_id", zone)
-                        .orderByAsc("stage_id"));
 
         Map<String, StageResultDetail> detailMap = stageResultDetailMapper.selectList(new QueryWrapper<StageResultDetail>()
                         .eq("version", stageParamDTO.getVersion())
@@ -409,7 +476,11 @@ public class StageResultService {
 
 
         List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
-        commonList.forEach(e -> {
+        stageResultMapper.selectList(new QueryWrapper<StageResult>()
+                .eq("version", stageParamDTO.getVersion())
+                .ge("end_time", new Date())
+                .like("stage_id", zone)).stream().filter(e->!e.getItemSeries().equals("empty"))
+                .forEach(e -> {
             StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
             stageResultVOV2.copyByStageResultCommon(e);
             if (detailMap.get(e.getStageId()) != null) {
@@ -424,21 +495,27 @@ public class StageResultService {
         return stageResultVOV2List;
     }
 
-    public Map<String, List<StageResultDetailVO>> getAllStageResult(StageParamDTO stageParamDTO) {
-        List<StageResultDetail> stageResultDetailList = stageResultDetailMapper.selectList(new QueryWrapper<StageResultDetail>()
-                .eq("version", stageParamDTO.getVersion()));
 
-        Map<String, StageResultCommon> commonMap = stageResultCommonMapper.selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion()))
+    public Map<String, List<StageResultDetailVO>> getAllStageResult(String version) {
+
+        Map<String, Item> itemMap = itemService.getItemListCache(version)
                 .stream()
-                .collect(Collectors.toMap(StageResultCommon::getStageId, Function.identity()));
+                .collect(Collectors.toMap(Item::getItemId, Function.identity()));
+
+        List<StageResultDetail> stageResultDetailList = stageResultDetailMapper.selectList(new QueryWrapper<StageResultDetail>()
+                .eq("version", version));
+
+        Map<String, StageResult> commonMap = stageResultMapper.selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version))
+                .stream()
+                .collect(Collectors.toMap(StageResult::getStageId, Function.identity()));
 
         List<StageResultDetailVO> detailVOList = new ArrayList<>();
         for (StageResultDetail detail : stageResultDetailList) {
             StageResultDetailVO detailVO = new StageResultDetailVO();
             detailVO.copyByStageResultDetail(detail);
             if (commonMap.get(detail.getStageId()) != null) {
-                StageResultCommon common = commonMap.get(detail.getStageId());
+                StageResult common = commonMap.get(detail.getStageId());
                 detailVO.copyByStageResultCommon(common);
                 detailVOList.add(detailVO);
             }
@@ -449,12 +526,15 @@ public class StageResultService {
 
     }
 
+
+
+
     public void backupStageResult() {
         double expCoefficient = 0.625;
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
-        List<RecommendedStageVO> t3RecommendedStageV2 = getT3RecommendedStageV2(stageParamDTO);
+        List<RecommendedStageVO> t3RecommendedStageV2 = getT3RecommendedStageV2(stageParamDTO.getVersion());
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
 
         List<Item> items = itemService.getItemList(stageParamDTO);
@@ -491,21 +571,21 @@ public class StageResultService {
     //--------------------------------兼容旧接口--------------------------------
 
 
-    @RedisCacheable(key = "Stage.T3.V1")
-    public List<List<StageResultVO>> getT3RecommendedStageV1(StageParamDTO stageParamDTO) {
+    @RedisCacheable(key = "Stage.T3.V1",params = "version")
+    public List<List<StageResultVO>> getT3RecommendedStageV1(String version) {
         //根据itemType将关卡主要掉落信息分组
-        Map<String, List<StageResultCommon>> commonMapByItemType = stageResultCommonMapper
-                .selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion())
+        Map<String, List<StageResult>> commonMapByItemType = stageResultMapper
+                .selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version)
                         .ge("end_time", new Date()))
                 .stream()
-                .filter(e -> !"empty".equals(e.getItemType()))
-                .collect(Collectors.groupingBy(StageResultCommon::getItemTypeId));
+                .filter(e -> !"empty".equals(e.getItemSeries()))
+                .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
 
         //查找关卡的详细掉落信息
         Map<String, StageResultDetail> detailMapByStageId = stageResultDetailMapper
                 .selectList(new QueryWrapper<StageResultDetail>()
-                        .eq("version", stageParamDTO.getVersion())
+                        .eq("version", version)
                         .ge("end_time", new Date()))
                 .stream()
                 .filter(e -> e.getRatioRank() == 0)
@@ -515,13 +595,13 @@ public class StageResultService {
 
         for (String itemTypeId : commonMapByItemType.keySet()) {
             //每次材料系的推荐关卡的通用掉落信息
-            List<StageResultCommon> commonListByItemId = commonMapByItemType.get(itemTypeId);
-            String itemType = commonListByItemId.get(0).getItemType();
+            List<StageResult> commonListByItemId = commonMapByItemType.get(itemTypeId);
+            String itemType = commonListByItemId.get(0).getItemSeries();
             //将通用掉落信息按效率倒序排列
-            commonListByItemId.sort(Comparator.comparing(StageResultCommon::getStageEfficiency).reversed());
+            commonListByItemId.sort(Comparator.comparing(StageResult::getStageEfficiency).reversed());
 
             List<StageResultVO> stageResultVOList = new ArrayList<>();
-            for (StageResultCommon common : commonListByItemId) {
+            for (StageResult common : commonListByItemId) {
                 StageResultDetail detail = detailMapByStageId.get(common.getStageId());
                 //将通用结果和详细结果复制到返回结果的实体类中
                 StageResultVO stageResultVO = new StageResultVO();
@@ -588,20 +668,20 @@ public class StageResultService {
 
 
 
-    @RedisCacheable(key = "Stage.T2.V1")
-    public List<List<StageResultVO>> getT2RecommendedStageV1(StageParamDTO stageParamDTO) {
+    @RedisCacheable(key = "Stage.T2.V1" ,params = "version")
+    public List<List<StageResultVO>> getT2RecommendedStageV1(String version) {
 
         //查询关卡通用掉落信息,根据物品id分组
-        Map<String, StageResultCommon> resultSampleMap = stageResultCommonMapper
-                .selectList(new QueryWrapper<StageResultCommon>()
-                        .eq("version", stageParamDTO.getVersion()))
+        Map<String, StageResult> resultSampleMap = stageResultMapper
+                .selectList(new QueryWrapper<StageResult>()
+                        .eq("version", version))
                 .stream()
-                .collect(Collectors.toMap(StageResultCommon::getStageId, Function.identity()));
+                .collect(Collectors.toMap(StageResult::getStageId, Function.identity()));
 
         //查询详细掉落信息
         Map<String, List<StageResultDetail>> collect = stageResultDetailMapper
                 .selectList(new QueryWrapper<StageResultDetail>()
-                        .eq("version", stageParamDTO.getVersion())
+                        .eq("version",version)
                         .ge("end_time", new Date()))
                 .stream()
                 .filter(e -> e.getItemRarity() == 2&&e.getItemId().startsWith("300"))
@@ -617,7 +697,7 @@ public class StageResultService {
             stageResultDetailListByItemId.sort(Comparator.comparing(StageResultDetail::getApExpect));
             for (StageResultDetail detail : stageResultDetailListByItemId) {
                 StageResultVO stageResultVO = new StageResultVO();
-                StageResultCommon common = resultSampleMap.get(detail.getStageId());
+                StageResult common = resultSampleMap.get(detail.getStageId());
                 //将通用结果和详细结果复制到返回结果的实体类中
                 if (common != null) {
                     stageResultVO.copyByStageResultCommon(common);
@@ -635,5 +715,6 @@ public class StageResultService {
 
         return stageResultVOListList;
     }
+
 
 }

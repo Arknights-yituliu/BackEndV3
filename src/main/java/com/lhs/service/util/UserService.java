@@ -1,4 +1,4 @@
-package com.lhs.service.dev;
+package com.lhs.service.util;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;

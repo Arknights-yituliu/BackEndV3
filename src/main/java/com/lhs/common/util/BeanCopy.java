@@ -12,8 +12,8 @@ public class BeanCopy {
         String targetName = target.getClass().getSimpleName();
         String sourceNameLowerCamel = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, sourceName);
         String targetNameLowerCamel = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, targetName);
-        System.out.println(sourceNameLowerCamel);
-        System.out.println(targetNameLowerCamel);
+//        System.out.println(sourceNameLowerCamel);
+//        System.out.println(targetNameLowerCamel);
 
         String result = "public void copyBy"+sourceName+"("+sourceName+" "+ sourceNameLowerCamel+"){\n";
 
@@ -23,7 +23,7 @@ public class BeanCopy {
         HashMap<String, String>  propertyMap = new HashMap<>();
         for(Field field:sourceFields){
             propertyMap.put(field.getName(), CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, field.getName()));
-            System.out.println(field.getName()+"————"+ CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, field.getName()));
+//            System.out.println(field.getName()+"————"+ CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, field.getName()));
         }
 
         for(Field field:targetFields){

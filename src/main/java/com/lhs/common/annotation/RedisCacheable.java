@@ -11,4 +11,6 @@ public @interface RedisCacheable {
     String key() default "test";     //缓存key
 
     int timeout() default 3600;
+
+    String params() default "";
 }

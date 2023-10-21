@@ -1,4 +1,4 @@
-package com.lhs.service.dev;
+package com.lhs.service.util;
 
 import com.aliyun.oss.ClientException;
 import com.aliyun.oss.OSS;

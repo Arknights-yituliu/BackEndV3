@@ -3,7 +3,6 @@ package com.lhs.service.maa;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.aliyun.oss.OSS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
@@ -12,7 +11,7 @@ import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.maa.Schedule;
 import com.lhs.mapper.ScheduleMapper;
-import com.lhs.service.dev.OSSService;
+import com.lhs.service.util.OSSService;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,7 +32,7 @@ public class ScheduleService {
 
 
     public void saveScheduleJson(String scheduleJson, Long scheduleId) {
-        ossService.upload(scheduleJson,"schedule/"+scheduleId+".json");
+//        ossService.upload(scheduleJson,"schedule/"+scheduleId+".json");
         Schedule schedule = new Schedule();
         schedule.setUid(scheduleId);
         schedule.setScheduleId(scheduleId);

@@ -3,7 +3,7 @@ package com.lhs.interceptor;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Log;
 import com.lhs.common.util.ResultCode;
-import com.lhs.service.dev.UserService;
+import com.lhs.service.util.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
