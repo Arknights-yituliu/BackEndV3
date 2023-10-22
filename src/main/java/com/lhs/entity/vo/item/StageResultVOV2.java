@@ -14,7 +14,6 @@ public class StageResultVOV2 {
     private String itemName;
     private String itemId;
     private String secondaryItemId;
-    private Integer itemRarity;
     private Double apExpect;
     private Double knockRating;
     private Double leT5Efficiency;
@@ -33,7 +32,6 @@ public class StageResultVOV2 {
         }
         this.stageId = stageResult.getStageId();
         this.stageCode = stageResult.getStageCode();
-        this.stageType = stageResult.getStageType();
         this.secondaryItemId = stageResult.getSecondaryItemId();
         this.stageEfficiency = stageResult.getStageEfficiency();
         this.leT5Efficiency = stageResult.getLeT5Efficiency();
@@ -54,7 +52,6 @@ public class StageResultVOV2 {
         this.knockRating = stageResultDetail.getKnockRating();
         this.sampleSize = stageResultDetail.getSampleSize();
         this.sampleConfidence = stageResultDetail.getSampleConfidence();
-        this.itemRarity = stageResultDetail.getItemRarity();
     }
 
 

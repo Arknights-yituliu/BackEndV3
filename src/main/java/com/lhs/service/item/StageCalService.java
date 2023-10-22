@@ -124,7 +124,6 @@ public class StageCalService {
                 detail.setSampleConfidence(sampleConfidence);
                 detail.setEndTime(stage.getEndTime());
                 detail.setVersion(version);
-                detail.setItemRarity(item.getRarity());
                 temporaryList.add(detail);
                 dropApValueSum+=result;
 
@@ -182,7 +181,6 @@ public class StageCalService {
             common.setId(stageResultId++);
             common.setStageId(stageId);
             common.setStageCode(stage.getStageCode());
-            common.setStageType(stage.getStageType());
             common.setSecondaryItemId(secondaryItemId);
             common.setEndTime(stage.getEndTime());
             common.setVersion(version);

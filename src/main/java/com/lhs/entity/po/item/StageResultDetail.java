@@ -16,7 +16,6 @@ public class StageResultDetail {
     private String stageId;
     private String itemName;
     private String itemId;
-    private Integer itemRarity;
     private Double knockRating;
     private Double apExpect;
     private Double result;

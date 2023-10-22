@@ -32,7 +32,6 @@ public class StageResultVO {
     private Integer sampleSize;
     private Double spm;
     private String itemType;
-    private Integer itemRarity;
     private Double knockRating;
     private Double apExpect;
     private Double stageEfficiency;
@@ -49,10 +48,8 @@ public class StageResultVO {
     public void copyByStageResultCommon(StageResult stageResult){
         this.stageId = stageResult.getStageId();
         this.stageCode = stageResult.getStageCode();
-        this.stageType = stageResult.getStageType();
         this.spm = stageResult.getSpm();
         this.itemType = stageResult.getItemSeries();
-
         this.stageEfficiency = stageResult.getStageEfficiency();
         this.leT5Efficiency = stageResult.getLeT5Efficiency();
         this.leT4Efficiency = stageResult.getLeT4Efficiency();
@@ -69,7 +66,6 @@ public class StageResultVO {
         this.sampleSize = stageResultDetail.getSampleSize();
         this.knockRating = stageResultDetail.getKnockRating();
         this.apExpect = stageResultDetail.getApExpect();
-        this.itemRarity = stageResultDetail.getItemRarity();
     }
 
 

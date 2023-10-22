@@ -5,10 +5,10 @@
 
     <insert id="insertBatch">
         INSERT INTO stage_result_detail
-        (`id`,`stage_id`,`item_name`,`item_id`,`item_rarity`,`knock_rating`,`ap_expect`,`result`,`ratio`,`ratio_rank`,`sample_size`,`sample_confidence`,`end_time`,`version`)
+        (`id`,`stage_id`,`item_name`,`item_id`,`knock_rating`,`ap_expect`,`result`,`ratio`,`ratio_rank`,`sample_size`,`sample_confidence`,`end_time`,`version`)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.id},#{item.stageId},#{item.itemName},#{item.itemId},#{item.itemRarity},#{item.knockRating},#{item.apExpect},#{item.result},#{item.ratio},#{item.ratioRank},#{item.sampleSize},#{item.sampleConfidence},#{item.endTime},#{item.version})
+            (#{item.id},#{item.stageId},#{item.itemName},#{item.itemId},#{item.knockRating},#{item.apExpect},#{item.result},#{item.ratio},#{item.ratioRank},#{item.sampleSize},#{item.sampleConfidence},#{item.endTime},#{item.version})
         </foreach>
     </insert>
 

@@ -1,6 +1,5 @@
 package com.lhs.controller;
 
-import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -140,12 +138,12 @@ public class StageController {
 
     @Operation(summary = "查询关卡详细信息")
     @GetMapping("/stage/detail")
-    public Result<Map<String, List<StageResultDetailVO>>> getStageResultDetail(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
-                                                                                @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
+    public Result<Map<String, StageResultDetailVO>> getStageResultDetail(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+                                                                               @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        Map<String, List<StageResultDetailVO>> allStageResult = stageResultService.getAllStageResult(stageParamDTO.getVersion());
+        Map<String, StageResultDetailVO> allStageResult = stageResultService.getAllStageResult(stageParamDTO.getVersion());
         return Result.success(allStageResult);
     }
 

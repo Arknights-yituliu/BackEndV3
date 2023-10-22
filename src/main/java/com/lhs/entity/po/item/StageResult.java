@@ -16,7 +16,6 @@ public class StageResult {
     private Long id;
     private String stageId;
     private String stageCode;
-    private String stageType;
     private String itemSeries;
     private String itemSeriesId;
     private String secondaryItemId;

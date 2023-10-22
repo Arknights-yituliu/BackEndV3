@@ -26,9 +26,6 @@ public class StageService {
     @Resource
     private OSSService ossService;
 
-
-
-
     public List<Stage> getStageList(QueryWrapper<Stage> queryWrapper) {
         return stageMapper.selectList(queryWrapper);
     }

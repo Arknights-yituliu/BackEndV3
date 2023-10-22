@@ -7,7 +7,6 @@ import lombok.Data;
 public class DropDetailVO {
     private String itemName;
     private String itemId;
-    private Integer itemRarity;
     private Double knockRating;
     private Double apExpect;
     private Double result;
@@ -19,7 +18,6 @@ public class DropDetailVO {
     public void copyByStageResultDetail(StageResultDetail stageResultDetail){
         this.itemName = stageResultDetail.getItemName();
         this.itemId = stageResultDetail.getItemId();
-        this.itemRarity = stageResultDetail.getItemRarity();
         this.knockRating = stageResultDetail.getKnockRating();
         this.apExpect = stageResultDetail.getApExpect();
         this.result = stageResultDetail.getResult();
