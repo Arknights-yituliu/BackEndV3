@@ -74,8 +74,12 @@ public class StageResultService {
         Log.info("V2关卡效率更新成功");
     }
 
-    @RedisCacheable(key = "Stage.T3.V2",params = "version")
+    @RedisCacheable(key = "Stage.T3.V2", params = "version")
     public List<RecommendedStageVO> getT3RecommendedStageV2(String version) {
+
+        Map<String, Stage> stageMap = stageService.getStageList(null)
+                .stream()
+                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
         Map<String, Item> itemMap = itemService.getItemListCache(version)
                 .stream()
@@ -86,7 +90,7 @@ public class StageResultService {
                 .selectList(new QueryWrapper<StageResult>()
                         .eq("version", version)
                         .ge("end_time", new Date())
-                        .ge("stage_efficiency",0.8))
+                        .ge("stage_efficiency", 0.6))
 
                 .stream()
                 .filter(e -> !"empty".equals(e.getItemSeries()))
@@ -110,20 +114,31 @@ public class StageResultService {
             List<StageResult> commonListByItemId = commonMapByItemType.get(itemSeriesId);
             String itemSeries = commonListByItemId.get(0).getItemSeries();
             //将通用掉落信息按效率倒序排列
-            commonListByItemId.sort(Comparator.comparing(StageResult::getStageEfficiency).reversed());
+
 
             List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
             for (StageResult common : commonListByItemId) {
                 StageResultDetail detail = detailMapByStageId.get(common.getStageId());
+                if (detail == null) continue;
                 //将通用结果和详细结果复制到返回结果的实体类中
                 StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
                 stageResultVOV2.copyByStageResultCommon(common);
-                if (detail != null) {
-                    stageResultVOV2.copyByStageResultDetail(detail);
-                    stageResultVOV2List.add(stageResultVOV2);
+                stageResultVOV2.copyByStageResultDetail(detail);
+                stageResultVOV2List.add(stageResultVOV2);
+
+                Stage stage = stageMap.get(common.getStageId());
+                if (stage == null) continue;
+                if (StageType.ACT.equals(stage.getStageType()) || StageType.ACT_REP.equals(stage.getStageType())) {
+                    stageResultVOV2.setStageColor(-1);
+                    StageResultVOV2 stageResultVOV2Extra = new StageResultVOV2();
+                    stageResultVOV2Extra.copyByStageResultCommon(common);
+                    stageResultVOV2Extra.copyByStageResultDetail(detail);
+                    stageResultVOV2Extra.setStageEfficiency(stageResultVOV2.getStageEfficiency() - 0.072);
+                    stageResultVOV2List.add(stageResultVOV2Extra);
                 }
+
+
                 //超过7个关卡退出，前端显示个数有限
-                if (stageResultVOV2List.size() > 20) break;
             }
 
             RecommendedStageVO recommendedStageVo = new RecommendedStageVO();
@@ -135,20 +150,55 @@ public class StageResultService {
             recommendedStageVo.setStageResultList(stageResultVOV2List);
             recommendedStageVOList.add(recommendedStageVo);
             //给关卡赋予等级颜色
-            setStageColor(stageResultVOV2List,itemMap);
+            stageResultVOV2List.sort(Comparator.comparing(StageResultVOV2::getStageEfficiency).reversed());
+            setStageColor(stageResultVOV2List, itemMap);
 
         }
-
-
         return recommendedStageVOList;
     }
 
-    @RedisCacheable(key = "Stage.T3.V3",params = "version")
+    private static void setStageColor(List<StageResultVOV2> stageResultVOV2List, Map<String, Item> itemMap) {
+        stageResultVOV2List = stageResultVOV2List.stream()
+                .filter(e -> e.getStageColor()==null)
+                .collect(Collectors.toList());
+
+        stageResultVOV2List.forEach(e -> {
+            e.setStageColor(2);
+            if (itemMap.get(e.getItemId()) != null && itemMap.get(e.getItemId()).getRarity() == 2) {
+                double apExpect = e.getApExpect() * ("30012".equals(e.getItemId())?5:4);
+                e.setApExpect(apExpect);
+            }
+        });
+
+        //拿到效率最高的关卡id
+        String stageIdEffMax = stageResultVOV2List.get(0).getStageId();
+        //效率最高为3
+        stageResultVOV2List.get(0).setStageColor(3);
+        //根据期望理智排序
+        stageResultVOV2List = stageResultVOV2List.stream()
+                .sorted(Comparator.comparing(StageResultVOV2::getApExpect))  //根据期望理智排序
+                .collect(Collectors.toList());  //流转为集合
+        //拿到期望理智最低的关卡id
+        String stageIdExpectMin = stageResultVOV2List.get(0).getStageId();
+
+        //对比俩个id是否一致,一致赋予4，反之赋予1
+        stageResultVOV2List.get(0).setStageColor(stageIdEffMax.equals(stageIdExpectMin) ? 4 : 1);
+
+        stageResultVOV2List.forEach(e -> {
+            if (itemMap.get(e.getItemId()) != null && itemMap.get(e.getItemId()).getRarity() == 2) {
+                double apExpect = e.getApExpect() / ("30012".equals(e.getItemId())?5:4);
+                e.setApExpect(apExpect);
+            }
+        });
+    }
+
+
+    @RedisCacheable(key = "Stage.T3.V3", params = "version")
     public Map<String, Object> getT3RecommendedStageV3(String version) {
 
-        Map<String, String> stageMap = stageService.getStageList(null)
+        Map<String, Stage> stageMap = stageService.getStageList(null)
                 .stream()
-                .collect(Collectors.toMap(Stage::getStageId,Stage::getZoneName));
+                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
 
         //根据itemType将关卡主要掉落信息分组
@@ -156,10 +206,9 @@ public class StageResultService {
                 .selectList(new QueryWrapper<StageResult>()
                         .eq("version", version)
                         .ge("end_time", new Date())
-                        .ge("stage_efficiency",0.5))
-
+                        .ge("stage_efficiency", 0.5)
+                        .ne("item_series", "empty"))
                 .stream()
-                .filter(e -> !"empty".equals(e.getItemSeries()))
                 .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
 
         //查找关卡的详细掉落信息
@@ -184,14 +233,16 @@ public class StageResultService {
             List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
             for (StageResult common : commonListByItemId) {
                 StageResultDetail detail = detailMapByStageId.get(common.getStageId());
+                if (detail == null) continue;
                 //将通用结果和详细结果复制到返回结果的实体类中
                 StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
                 stageResultVOV2.copyByStageResultCommon(common);
-                if (detail != null) {
-                    stageResultVOV2.copyByStageResultDetail(detail);
-                    stageResultVOV2List.add(stageResultVOV2);
-                }
-                stageResultVOV2.setZoneName(stageMap.get(common.getStageId().replace("_LMD","")));
+                stageResultVOV2.copyByStageResultDetail(detail);
+                stageResultVOV2List.add(stageResultVOV2);
+
+                Stage stage = stageMap.get(common.getStageId());
+                if (stage == null) continue;
+                stageResultVOV2.setZoneName(stage.getZoneName());
             }
 
             RecommendedStageVO recommendedStageVo = new RecommendedStageVO();
@@ -206,54 +257,12 @@ public class StageResultService {
         }
 
         HashMap<String, Object> map = new HashMap<>();
-        map.put("updateTime",new Date());
-        map.put("recommendedStage",recommendedStageVOList);
+        map.put("updateTime", new Date());
+        map.put("recommendedStage", recommendedStageVOList);
         return map;
     }
 
-
-    private static void setStageColor(List<StageResultVOV2> stageResultVOV2List,Map<String,Item> itemMap) {
-
-        stageResultVOV2List.forEach(e -> {
-            e.setStageColor(2);
-            if (itemMap.get(e.getItemId())!=null&&itemMap.get(e.getItemId()).getRarity()==2) {
-                double apExpect = e.getApExpect() * 4 + 200 * 0.0036 - 1.17;
-                if ("30012".equals(e.getItemId())) {
-                    apExpect = e.getApExpect() * 5 + 200 * 0.0036 - 1.17;
-                }
-                e.setApExpect(apExpect);
-            }
-        });
-
-        //拿到效率最高的关卡id
-        String stageIdEffMax = stageResultVOV2List.get(0).getStageId();
-        //效率最高为3
-        stageResultVOV2List.get(0).setStageColor(3);
-        //根据期望理智排序
-        stageResultVOV2List = stageResultVOV2List.stream()
-                .sorted(Comparator.comparing(StageResultVOV2::getApExpect))  //根据期望理智排序
-                .collect(Collectors.toList());  //流转为集合
-        //拿到期望理智最低的关卡id
-        String stageIdExpectMin = stageResultVOV2List.get(0).getStageId();
-
-        //对比俩个id是否一致,一致赋予4，反之赋予1
-        stageResultVOV2List.get(0).setStageColor(stageIdEffMax.equals(stageIdExpectMin) ? 4 : 1);
-
-        stageResultVOV2List.forEach(e -> {
-            if (itemMap.get(e.getItemId())!=null&&itemMap.get(e.getItemId()).getRarity()==2) {
-                double apExpect = (e.getApExpect() + 1.17 - 200 * 0.0036) / 4;
-                if ("30012".equals(e.getItemId())) {
-                    apExpect = (e.getApExpect() + 1.17 - 200 * 0.0036) / 5;
-                }
-                e.setApExpect(apExpect);
-            }
-        });
-    }
-
-
-
-
-    @RedisCacheable(key = "Stage.T2.V2",params = "version")
+    @RedisCacheable(key = "Stage.T2.V2", params = "version")
     public List<RecommendedStageVO> getT2RecommendedStage(String version) {
 
         List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
@@ -276,8 +285,8 @@ public class StageResultService {
                         .ge("end_time", new Date()))
                 .stream()
                 .filter(e -> {
-                    if(itemMap.get(e.getItemId())==null) return false;
-                    return itemMap.get(e.getItemId()).getRarity()==2&&e.getItemId().startsWith("300");
+                    if (itemMap.get(e.getItemId()) == null) return false;
+                    return itemMap.get(e.getItemId()).getRarity() == 2 && e.getItemId().startsWith("300");
                 })
                 .collect(Collectors.groupingBy(StageResultDetail::getItemId));
 
@@ -338,8 +347,8 @@ public class StageResultService {
                         .eq("version", version)
                         .ge("end_time", new Date())).stream()
                 .filter(e -> {
-                    if(itemMap.get(e.getItemId())==null) return false;
-                    return itemMap.get(e.getItemId()).getRarity()<3 && !e.getStageId().endsWith("LMD");
+                    if (itemMap.get(e.getItemId()) == null) return false;
+                    return itemMap.get(e.getItemId()).getRarity() < 3;
                 })
                 .collect(Collectors.groupingBy(StageResultDetail::getStageId))
                 .forEach((stageId, list) -> {
@@ -401,9 +410,6 @@ public class StageResultService {
     }
 
 
-
-
-
     @RedisCacheable(key = "Stage.ACT.V2", params = "version")
     public List<ActStageVO> getActStage(String version) {
 
@@ -421,14 +427,13 @@ public class StageResultService {
                         .eq("version", version)
                         .le("end_time", new Date()))
                 .stream()
-                .filter(e -> e.getStageId().endsWith("LMD"))
                 .collect(Collectors.toMap(StageResult::getStageId, Function.identity()));
 
         Map<String, StageResultDetail> resultDetailMap = stageResultDetailMapper.selectList(new QueryWrapper<StageResultDetail>()
                         .eq("version", version)
                         .le("end_time", new Date()))
                 .stream()
-                .filter(e -> e.getStageId().endsWith("LMD") && e.getRatioRank() == 0)
+                .filter(e ->  e.getRatioRank() == 0)
                 .collect(Collectors.toMap(StageResultDetail::getStageId, Function.identity()));
 
         List<ActStageVO> actStageVOList = new ArrayList<>();
@@ -439,7 +444,7 @@ public class StageResultService {
             actStageVo.setZoneName(zoneName);
             actStageVo.setStageType(stage.getStageType());
             actStageVo.setEndTime(stage.getEndTime());
-            actStageVo.setActStageList(getActStageResultList(stageList, resultCommonMap, resultDetailMap,itemMap));
+            actStageVo.setActStageList(getActStageResultList(stageList, resultCommonMap, resultDetailMap, itemMap));
             if (actStageVo.getActStageList().size() > 0) {
                 actStageVOList.add(actStageVo);
             }
@@ -457,12 +462,11 @@ public class StageResultService {
                                                          Map<String, Item> itemMap) {
 
 
-
         stageList.sort(Comparator.comparing(Stage::getStageId).reversed());
 
         List<ActStageResultVO> actStageResultVOList = new ArrayList<>();
         for (Stage stage : stageList) {
-            String stageId = stage.getStageId() + "_LMD";
+            String stageId = stage.getStageId();
             ActStageResultVO actStageResultVO = new ActStageResultVO();
             if (resultCommonMap.get(stageId) != null && resultDetailMap.get(stageId) != null) {
                 StageResult common = resultCommonMap.get(stageId);
@@ -476,8 +480,8 @@ public class StageResultService {
                 actStageResultVO.setKnockRating(detail.getKnockRating());
                 actStageResultVO.setKnockRating(actStageResultVO.getKnockRating());
                 actStageResultVO.setApExpect(actStageResultVO.getApExpect());
-                if (itemMap.get(detail.getItemId())==null) continue;
-                if (itemMap.get(detail.getItemId()).getRarity()<3) continue;
+                if (itemMap.get(detail.getItemId()) == null) continue;
+                if (itemMap.get(detail.getItemId()).getRarity() < 3) continue;
                 actStageResultVOList.add(actStageResultVO);
 
             }
@@ -504,19 +508,19 @@ public class StageResultService {
 
         List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
         stageResultMapper.selectList(new QueryWrapper<StageResult>()
-                .eq("version", stageParamDTO.getVersion())
-                .ge("end_time", new Date())
-                .like("stage_id", zone)).stream().filter(e->!e.getItemSeries().equals("empty"))
+                        .eq("version", stageParamDTO.getVersion())
+                        .ge("end_time", new Date())
+                        .like("stage_id", zone)).stream().filter(e -> !e.getItemSeries().equals("empty"))
                 .forEach(e -> {
-            StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
-            stageResultVOV2.copyByStageResultCommon(e);
-            if (detailMap.get(e.getStageId()) != null) {
-                StageResultDetail detail = detailMap.get(e.getStageId());
-                stageResultVOV2.copyByStageResultDetail(detail);
+                    StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
+                    stageResultVOV2.copyByStageResultCommon(e);
+                    if (detailMap.get(e.getStageId()) != null) {
+                        StageResultDetail detail = detailMap.get(e.getStageId());
+                        stageResultVOV2.copyByStageResultDetail(detail);
 
-            }
-            stageResultVOV2List.add(stageResultVOV2);
-        });
+                    }
+                    stageResultVOV2List.add(stageResultVOV2);
+                });
 
 
         return stageResultVOV2List;
@@ -529,7 +533,8 @@ public class StageResultService {
                 .stream()
                 .collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
-        Map<String, List<StageResultDetail>> detailMap = stageResultDetailMapper.selectList(new QueryWrapper<StageResultDetail>()
+        Map<String, List<StageResultDetail>> detailMap = stageResultDetailMapper
+                .selectList(new QueryWrapper<StageResultDetail>()
                         .eq("version", version))
                 .stream()
                 .collect(Collectors.groupingBy(StageResultDetail::getStageId));
@@ -537,25 +542,24 @@ public class StageResultService {
         Map<String, StageResultDetailVO> detailVOMap = new HashMap<>();
 
         stageResultMapper.selectList(new QueryWrapper<StageResult>()
-                .eq("version", version))
-                .forEach(e->{
+                        .eq("version", version))
+                .forEach(e -> {
                     StageResultDetailVO detailVO = new StageResultDetailVO();
                     detailVO.copyByStageResultCommon(e);
                     List<DropDetailVO> dropDetailVOList = new ArrayList<>();
-                    if(detailMap.get(e.getStageId())!=null) {
-                        detailMap.get(e.getStageId()).forEach(detail->{
+                    if (detailMap.get(e.getStageId()) != null) {
+                        detailMap.get(e.getStageId()).forEach(detail -> {
                             DropDetailVO dropDetailVO = new DropDetailVO();
                             dropDetailVO.copyByStageResultDetail(detail);
                             dropDetailVOList.add(dropDetailVO);
                         });
                     }
                     detailVO.setDropDetailList(dropDetailVOList);
-                    detailVOMap.put(e.getStageId(),detailVO);
+                    detailVOMap.put(e.getStageId(), detailVO);
                 });
 
         return detailVOMap;
     }
-
 
 
     public void backupStageResult() {
@@ -573,35 +577,45 @@ public class StageResultService {
     }
 
 
-
     public List<StageResultVOV2> getStageDetail(String stageId) {
         return null;
     }
 
-    public String resetCache() {
+    public List<String> resetCache() {
 
-        Boolean delete = redisTemplate.delete("Stage.T3");
-        Boolean delete1 = redisTemplate.delete("Stage.T2");
-        Boolean delete2 = redisTemplate.delete("Stage.Orundum");
-        Boolean delete3 = redisTemplate.delete("Stage.Closed");
+        String[] keyList = new String[]{"Stage.ACT.V2.v2-public-0.625-300",
+                "Stage.T2.V2.v2-public-0.625-300",
+                "Stage.Orundum.V2",
+                "Stage.T3.V2.v2-public-0.625-300"};
+        List<String> messageList = new ArrayList<>();
 
-        String message = "清空失败";
-        if (Boolean.TRUE.equals(delete) && Boolean.TRUE.equals(delete1) &&
-                Boolean.TRUE.equals(delete2) && Boolean.TRUE.equals(delete3)) {
-            message = "清空缓存";
+        for (String key : keyList) {
+            messageList.add(deleteCache(key));
         }
 
-        return message;
+
+        return messageList;
     }
 
-
+    private String deleteCache(String key) {
+        if (Boolean.TRUE.equals(redisTemplate.delete(key))) {
+            return key + "删除成功";
+        }
+        return key + "删除失败";
+    }
 
 
     //--------------------------------兼容旧接口--------------------------------
 
 
-    @RedisCacheable(key = "Stage.T3.V1",params = "version")
+    @RedisCacheable(key = "Stage.T3.V1", params = "version")
     public List<List<StageResultVO>> getT3RecommendedStageV1(String version) {
+
+        Map<String, Stage> stageMap = stageService.getStageList(null)
+                .stream()
+                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
+
+
         //根据itemType将关卡主要掉落信息分组
         Map<String, List<StageResult>> commonMapByItemType = stageResultMapper
                 .selectList(new QueryWrapper<StageResult>()
@@ -627,19 +641,28 @@ public class StageResultService {
             List<StageResult> commonListByItemId = commonMapByItemType.get(itemTypeId);
             String itemType = commonListByItemId.get(0).getItemSeries();
             //将通用掉落信息按效率倒序排列
-            commonListByItemId.sort(Comparator.comparing(StageResult::getStageEfficiency).reversed());
 
             List<StageResultVO> stageResultVOList = new ArrayList<>();
             for (StageResult common : commonListByItemId) {
                 StageResultDetail detail = detailMapByStageId.get(common.getStageId());
+                if (detail == null) continue;
                 //将通用结果和详细结果复制到返回结果的实体类中
                 StageResultVO stageResultVO = new StageResultVO();
                 stageResultVO.copyByStageResultCommon(common);
-                if (detail != null) {
+
                     stageResultVO.copyByStageResultDetail(detail);
                     stageResultVOList.add(stageResultVO);
+                Stage stage = stageMap.get(common.getStageId());
+                if (stage == null) continue;
+                if (StageType.ACT.equals(stage.getStageType()) || StageType.ACT_REP.equals(stage.getStageType())) {
+                    stageResultVO.setStageColor(-1);
+                    StageResultVO stageResultVOExtra = new StageResultVO();
+                    stageResultVOExtra.copyByStageResultCommon(common);
+                    stageResultVOExtra.copyByStageResultDetail(detail);
+                    stageResultVOExtra.setStageEfficiency(stageResultVO.getStageEfficiency() - 0.072);
+                    stageResultVOList.add(stageResultVOExtra);
                 }
-                stageResultVO.setStageEfficiency(stageResultVO.getStageEfficiency()*100);
+                stageResultVO.setStageEfficiency(stageResultVO.getStageEfficiency() * 100);
                 //超过7个关卡退出，前端显示个数有限
                 if (stageResultVOList.size() > 7) break;
             }
@@ -696,8 +719,7 @@ public class StageResultService {
     }
 
 
-
-    @RedisCacheable(key = "Stage.T2.V1" ,params = "version")
+    @RedisCacheable(key = "Stage.T2.V1", params = "version")
     public List<List<StageResultVO>> getT2RecommendedStageV1(String version) {
 
         Map<String, Item> itemMap = itemService.getItemListCache(version)
@@ -714,12 +736,12 @@ public class StageResultService {
         //查询详细掉落信息
         Map<String, List<StageResultDetail>> collect = stageResultDetailMapper
                 .selectList(new QueryWrapper<StageResultDetail>()
-                        .eq("version",version)
+                        .eq("version", version)
                         .ge("end_time", new Date()))
                 .stream()
                 .filter(e -> {
-                    if(itemMap.get(e.getItemId())==null) return false;
-                    return itemMap.get(e.getItemId()).getRarity()==2&&e.getItemId().startsWith("300");
+                    if (itemMap.get(e.getItemId()) == null) return false;
+                    return itemMap.get(e.getItemId()).getRarity() == 2 && e.getItemId().startsWith("300");
                 })
                 .collect(Collectors.groupingBy(StageResultDetail::getItemId));
 
@@ -741,7 +763,7 @@ public class StageResultService {
 
                 stageResultVO.copyByStageResultDetail(detail);
                 stageResultVO.setStageColor(1);
-                stageResultVO.setStageEfficiency(stageResultVO.getStageEfficiency()*100);
+                stageResultVO.setStageEfficiency(stageResultVO.getStageEfficiency() * 100);
                 stageResultVOList.add(stageResultVO);
                 //超过7个关卡退出，前端显示个数有限
                 if (stageResultVOList.size() > 7) break;

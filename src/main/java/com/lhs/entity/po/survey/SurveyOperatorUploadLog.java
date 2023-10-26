@@ -12,7 +12,8 @@ import lombok.Data;
 @TableName
 @Table
 @Entity
-public class SurveyOperatorLog {
+public class SurveyOperatorUploadLog {
+
     @Id
     @TableId
     private Long id;

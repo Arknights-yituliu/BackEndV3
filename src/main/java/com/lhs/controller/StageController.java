@@ -202,8 +202,8 @@ public class StageController {
     }
 
     @GetMapping("/stage/resetCache")
-    public Result<String> authResetCache() {
-        String message = stageResultService.resetCache();
+    public Result<List<String>> authResetCache() {
+        List<String> message = stageResultService.resetCache();
         return Result.success(message);
     }
 

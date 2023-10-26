@@ -67,9 +67,9 @@ public class StageCalService {
         HashMap<String, Double> itemIterationValueMap = new HashMap<>();
 
         Long stageResultId = redisTemplate.opsForValue().increment("StageResultId", 100000);
-        if(stageResultId==null) stageResultId = System.currentTimeMillis(); 
+        if(stageResultId==null) stageResultId = System.currentTimeMillis();
         for(String stageId:matrixByStageId.keySet()){
-            Stage stage = stageMap.get(stageId.replace("_LMD",""));
+            Stage stage = stageMap.get(stageId);
 
             List<PenguinMatrixDTO> stageDropList = matrixByStageId.get(stageId);
             //关卡消耗体力
@@ -86,8 +86,8 @@ public class StageCalService {
             stageDropLMD.setQuantity(12 * apCost);
             stageDropLMD.setTimes(1);
             stageDropList.add(stageDropLMD);
-            
-            if(stageId.endsWith("_LMD")){
+
+            if(StageType.ACT_REP.equals(stageType)||StageType.ACT.equals(stageType)){
                 PenguinMatrixDTO stageDropStore = new PenguinMatrixDTO();
                 stageDropStore.setStageId(stageId);
                 stageDropStore.setItemId("4001");
@@ -310,15 +310,15 @@ public class StageCalService {
             if (stageMap.get(element.getStageId()) == null) continue;
             if (element.getItemId().startsWith("ap_supply")) continue;
             if (element.getItemId().startsWith("randomMaterial")) continue;
-            String stageType = stageMap.get(element.getStageId()).getStageType();
-            if(StageType.ACT_REP.equals(stageType)||StageType.ACT.equals(stageType)){
-                PenguinMatrixDTO penguinMatrixDTO = new PenguinMatrixDTO();
-                penguinMatrixDTO.setStageId(stageId+"_LMD");
-                penguinMatrixDTO.setItemId(element.getItemId());
-                penguinMatrixDTO.setQuantity(element.getQuantity());
-                penguinMatrixDTO.setTimes(element.getTimes());
-                mergeList.add(penguinMatrixDTO);
-            }
+//            String stageType = stageMap.get(element.getStageId()).getStageType();
+//            if(StageType.ACT_REP.equals(stageType)||StageType.ACT.equals(stageType)){
+//                PenguinMatrixDTO penguinMatrixDTO = new PenguinMatrixDTO();
+//                penguinMatrixDTO.setStageId(stageId+"_LMD");
+//                penguinMatrixDTO.setItemId(element.getItemId());
+//                penguinMatrixDTO.setQuantity(element.getQuantity());
+//                penguinMatrixDTO.setTimes(element.getTimes());
+//                mergeList.add(penguinMatrixDTO);
+//            }
 
             mergeList.add(element);
 

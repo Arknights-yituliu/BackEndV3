@@ -69,11 +69,6 @@ public class SurveyUserController {
         return surveyUserService.loginByCRED(ipAddress, sklandDto);
     }
 
-    @Operation(summary ="身份验证")
-    @PostMapping("/user/authentication")
-    public Result<UserDataVO> authentication(HttpServletRequest httpServletRequest, @RequestBody SklandDTO sklandDto){
-        return   Result.success(surveyUserService.authentication(sklandDto));
-    }
 
     @Operation(summary ="找回账号")
     @PostMapping("/user/retrieval")
@@ -82,21 +77,6 @@ public class SurveyUserController {
         return surveyUserService.retrievalAccountByCRED(cred);
     }
 
-//    @Operation(summary ="调查用户注册")
-//    @PostMapping("/register")
-//    public Result<UserDataResponse> register(HttpServletRequest httpServletRequest, @RequestBody  RegisterOrLoginDto registerOrLoginDto) {
-//        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-//        UserDataResponse response = surveyUserService.register(ipAddress, registerOrLoginDto);
-//        return Result.success(response);
-//    }
-//
-//    @Operation(summary ="调查用户登录")
-//    @PostMapping("/login")
-//    public Result<UserDataResponse> login(HttpServletRequest httpServletRequest,@RequestBody RegisterOrLoginDto registerOrLoginDto) {
-//        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
-//        UserDataResponse response = surveyUserService.login(ipAddress, registerOrLoginDto);
-//        return Result.success(response);
-//    }
 
 
 }

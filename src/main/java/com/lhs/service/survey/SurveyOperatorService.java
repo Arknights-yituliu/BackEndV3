@@ -12,6 +12,7 @@ import com.lhs.common.util.*;
 import com.lhs.entity.po.survey.*;
 import com.lhs.entity.vo.survey.SurveyOperatorExcelVO;
 import com.lhs.entity.vo.survey.UserDataVO;
+import com.lhs.mapper.survey.SurveyOperatorLogMapper;
 import com.lhs.mapper.survey.SurveyOperatorMapper;
 import com.lhs.mapper.survey.SurveyOperatorVoMapper;
 import com.lhs.service.util.OSSService;
@@ -41,61 +42,19 @@ public class SurveyOperatorService {
 
     private final OSSService ossService;
 
+    private final SurveyOperatorLogMapper surveyOperatorLogMapper;
+
     private final OperatorBaseDataService operatorBaseDataService;
 
-    public SurveyOperatorService(SurveyOperatorMapper surveyOperatorMapper, SurveyOperatorVoMapper surveyOperatorVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, OperatorBaseDataService operatorBaseDataService) {
+    public SurveyOperatorService(SurveyOperatorMapper surveyOperatorMapper, SurveyOperatorVoMapper surveyOperatorVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, SurveyOperatorLogMapper surveyOperatorLogMapper, OperatorBaseDataService operatorBaseDataService) {
         this.surveyOperatorMapper = surveyOperatorMapper;
         this.surveyOperatorVoMapper = surveyOperatorVoMapper;
         this.surveyUserService = surveyUserService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
+        this.surveyOperatorLogMapper = surveyOperatorLogMapper;
         this.operatorBaseDataService = operatorBaseDataService;
     }
-
-
-
-    /**
-     * 上传干员练度调查表
-     *
-     * @param token              token
-     * @param surveyOperatorList 干员练度调查表单
-     * @return 成功消息
-     */
-//    @TakeCount(name = "上传评分")
-    public Map<String, Object> uploadCharForm(String token, List<SurveyOperator> surveyOperatorList) {
-        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        return updateSurveyData(surveyUser, surveyOperatorList);
-    }
-
-    /**
-     * 导入干员练度调查表
-     *
-     * @param file  Excel文件
-     * @param token token
-     * @return 成功消息
-     */
-    public Map<String, Object> importExcel(MultipartFile file, String token) {
-        List<SurveyOperator> list = new ArrayList<>();
-        try {
-            EasyExcel.read(file.getInputStream(), SurveyOperatorExcelVO.class, new AnalysisEventListener<SurveyOperatorExcelVO>() {
-                public void invoke(SurveyOperatorExcelVO surveyOperatorExcelVo, AnalysisContext analysisContext) {
-                    SurveyOperator surveyOperator = new SurveyOperator();
-                    BeanUtils.copyProperties(surveyOperatorExcelVo, surveyOperator);
-                    list.add(surveyOperator);
-                }
-
-                public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-                }
-            }).sheet().doRead();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        return updateSurveyData(surveyUser, list);
-    }
-
 
     /**
      * 通用的上传方法
@@ -103,7 +62,7 @@ public class SurveyOperatorService {
      * @param surveyOperatorList 干员练度调查表
      * @return
      */
-    private Map<String, Object> updateSurveyData(SurveyUser surveyUser, List<SurveyOperator> surveyOperatorList) {
+    private Map<String, Object> saveOperatorData(SurveyUser surveyUser, List<SurveyOperator> surveyOperatorList) {
 
         long yituliuId = surveyUser.getId();
 
@@ -179,6 +138,7 @@ public class SurveyOperatorService {
 
 
         surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
+
         surveyUserService.backupSurveyUser(surveyUser);
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -190,98 +150,24 @@ public class SurveyOperatorService {
         return hashMap;
     }
 
-    public void exportSurveyOperatorForm(HttpServletResponse response, String token) {
-
-        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        //拿到这个用户的干员练度数据存在了哪个表
-
-        //用户之前上传的数据
-        QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
-        queryWrapper.eq("uid",surveyUser.getId());
-        List<SurveyOperator> surveyOperatorList =
-                surveyOperatorMapper.selectList(queryWrapper);
-
-        List<SurveyOperatorExcelVO> listVo = new ArrayList<>();
-
-
-        List<OperatorTable> operatorInfo = operatorBaseDataService.getOperatorTable();
-
-        Map<String, OperatorTable> operatorTableMap = operatorInfo.stream()
-                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
-
-        for(SurveyOperator surveyOperator: surveyOperatorList){
-            SurveyOperatorExcelVO surveyOperatorExcelVo = new SurveyOperatorExcelVO();
-            surveyOperatorExcelVo.copy(surveyOperator);
-            String name = operatorTableMap.get(surveyOperator.getCharId())==null?"未录入":operatorTableMap.get(surveyOperator.getCharId()).getName();
-            surveyOperatorExcelVo.setName(name);
-            listVo.add(surveyOperatorExcelVo);
-        }
-
-
-
-        String userName = surveyUser.getUserName();
-
-        ExcelUtil.exportExcel(response, listVo, SurveyOperatorExcelVO.class, userName);
-    }
-
-
-    public Result<Object> operatorDataReset(String token){
-        SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
-        Long resetId = redisTemplate.opsForValue().increment("resetId");
-        surveyUserByToken.setUid("delete"+resetId);
-        surveyUserService.backupSurveyUser(surveyUserByToken);
-        QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
-        Long id = surveyUserByToken.getId();
-        queryWrapper.eq("uid", id);
-
-        int delete = surveyOperatorMapper.delete(queryWrapper);
-
-        return Result.success("重置了"+delete+"条数据");
-    }
-
-
-
     /**
-     * 找回用户填写的数据
-     *
-     * @param token token
+     * 手动上传干员练度调查表
+     * @param token              token
+     * @param surveyOperatorList 干员练度调查表单
      * @return 成功消息
      */
-    public List<SurveyOperatorVo> getOperatorForm(String token) {
-
+//    @TakeCount(name = "上传评分")
+    public Map<String, Object> manualUploadOperator(String token, List<SurveyOperator> surveyOperatorList) {
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        List<SurveyOperatorVo> surveyOperatorVos = new ArrayList<>();
-        if (surveyUser.getCreateTime().getTime() == surveyUser.getUpdateTime().getTime())
-            return surveyOperatorVos;  //更新时间和注册时间一致直接返回空
-
-        QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
-        queryWrapper.eq("uid",surveyUser.getId());
-
-        List<SurveyOperator> surveyOperatorList = surveyOperatorMapper.selectList(queryWrapper);
-
-        surveyOperatorList.forEach(e -> {
-            SurveyOperatorVo build = SurveyOperatorVo.builder()
-                    .charId(e.getCharId())
-                    .level(e.getLevel())
-                    .own(e.getOwn())
-                    .mainSkill(e.getMainSkill())
-                    .elite(e.getElite())
-                    .potential(e.getPotential())
-                    .rarity(e.getRarity())
-                    .skill1(e.getSkill1())
-                    .skill2(e.getSkill2())
-                    .skill3(e.getSkill3())
-                    .modX(e.getModX())
-                    .modY(e.getModY())
-                    .build();
-            surveyOperatorVos.add(build);
-        });
-
-        return surveyOperatorVos;
+        return saveOperatorData(surveyUser, surveyOperatorList);
     }
 
-
-
+    /**
+     * 导入森空岛干员练度数据
+      * @param token 一图流凭证
+     * @param dataStr 上传的json字符串
+     * @return
+     */
     public Result<Object> importSKLandPlayerInfoV2(String token, String dataStr) {
 
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
@@ -302,6 +188,7 @@ public class SurveyOperatorService {
                 return Result.failure(ResultCode.USER_BIND_UID,response);
             }
         }
+
 
         surveyUser.setUid(uid);
         JsonNode chars = data.get("chars");
@@ -380,44 +267,101 @@ public class SurveyOperatorService {
             surveyOperatorList.add(surveyOperator);
         }
 
+        userBindPlayerUid(surveyUser);
 
-        return Result.success(updateSurveyData(surveyUser, surveyOperatorList));
+        return Result.success(saveOperatorData(surveyUser, surveyOperatorList));
+    }
+
+    /**
+     * 用户通过森空岛导入时绑定uid
+     * @param surveyUser 调查站用户信息
+     */
+    private void userBindPlayerUid(SurveyUser surveyUser){
+        SurveyOperatorUploadLog surveyOperatorUploadLog = new SurveyOperatorUploadLog();
+        surveyOperatorUploadLog.setId(surveyUser.getId());
+        surveyOperatorUploadLog.setUserName(surveyUser.getUserName());
+        surveyOperatorUploadLog.setIp(surveyUser.getIp());
+        surveyOperatorUploadLog.setUid(surveyUser.getUid());
+        surveyOperatorUploadLog.setLastTime(System.currentTimeMillis());
+        surveyOperatorUploadLog.setDeleteFlag(surveyUser.getDeleteFlag());
+        QueryWrapper<SurveyOperatorUploadLog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", surveyUser.getId());
+        SurveyOperatorUploadLog operatorUploadLog = surveyOperatorLogMapper.selectOne(queryWrapper);
+
+        if(operatorUploadLog == null){
+            surveyOperatorLogMapper.insert(surveyOperatorUploadLog);
+        }else {
+            surveyOperatorLogMapper.update(surveyOperatorUploadLog,queryWrapper);
+        }
+
+    }
+
+    /**
+     * 导入干员练度调查表
+     *
+     * @param file  Excel文件
+     * @param token token
+     * @return 成功消息
+     */
+    public Map<String, Object> importExcel(MultipartFile file, String token) {
+        List<SurveyOperator> list = new ArrayList<>();
+        try {
+            EasyExcel.read(file.getInputStream(), SurveyOperatorExcelVO.class, new AnalysisEventListener<SurveyOperatorExcelVO>() {
+                public void invoke(SurveyOperatorExcelVO surveyOperatorExcelVo, AnalysisContext analysisContext) {
+                    SurveyOperator surveyOperator = new SurveyOperator();
+                    BeanUtils.copyProperties(surveyOperatorExcelVo, surveyOperator);
+                    list.add(surveyOperator);
+                }
+
+                public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+                }
+            }).sheet().doRead();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
+        return saveOperatorData(surveyUser, list);
+    }
+
+    /**
+     * 重置个人上传的干员数据
+     * @param token
+     * @return
+     */
+    public Result<Object> operatorDataReset(String token){
+        SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
+        Long resetId = redisTemplate.opsForValue().increment("resetId");
+        surveyUserByToken.setUid("delete"+resetId);
+        surveyUserService.backupSurveyUser(surveyUserByToken);
+        QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
+        Long id = surveyUserByToken.getId();
+        queryWrapper.eq("uid", id);
+
+        int delete = surveyOperatorMapper.delete(queryWrapper);
+
+        return Result.success("重置了"+delete+"条数据");
     }
 
 
     /**
-     * 判断这个干员是否有变更
-     *
-     * @param newData 新数据
-     * @param oldData 旧数据
+     * 找回用户填写的数据
+     * @param token token
      * @return 成功消息
      */
-    private boolean surveyDataCharEquals(SurveyOperator newData, SurveyOperator oldData) {
-        return !Objects.equals(newData.getElite(), oldData.getElite())
-                || !Objects.equals(newData.getPotential(), oldData.getPotential())
-                || !Objects.equals(newData.getSkill1(), oldData.getSkill1())
-                || !Objects.equals(newData.getSkill2(), oldData.getSkill2())
-                || !Objects.equals(newData.getSkill3(), oldData.getSkill3())
-                || !Objects.equals(newData.getModX(), oldData.getModX())
-                || !Objects.equals(newData.getModY(), oldData.getModY())
-                || !Objects.equals(newData.getOwn(), oldData.getOwn());
-    }
+    public List<SurveyOperatorVo> getOperatorForm(String token) {
 
-
-    public List<SurveyOperatorVo> retrievalCharacterForm(String token,String uid) {
-
-        SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
-
-        SurveyStatisticsUser surveyStatisticsUser = surveyOperatorMapper.selectBakId(uid);
-        if(surveyStatisticsUser==null) throw new ServiceException(ResultCode.DATA_NONE);
-        Long id = surveyStatisticsUser.getId();
-
-
-        List<SurveyOperator> surveyOperatorList = surveyOperatorMapper.selectBakOperatorDataById(id);
-        if(surveyOperatorList==null) throw new ServiceException(ResultCode.DATA_NONE);
-        if(surveyOperatorList.size()<1) throw new ServiceException(ResultCode.DATA_NONE);
-
+        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
         List<SurveyOperatorVo> surveyOperatorVos = new ArrayList<>();
+        if (surveyUser.getCreateTime().getTime() == surveyUser.getUpdateTime().getTime())
+            return surveyOperatorVos;  //更新时间和注册时间一致直接返回空
+
+        QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
+        queryWrapper.eq("uid",surveyUser.getId());
+
+        List<SurveyOperator> surveyOperatorList = surveyOperatorMapper.selectList(queryWrapper);
+
         surveyOperatorList.forEach(e -> {
             SurveyOperatorVo build = SurveyOperatorVo.builder()
                     .charId(e.getCharId())
@@ -436,9 +380,46 @@ public class SurveyOperatorService {
             surveyOperatorVos.add(build);
         });
 
-        updateSurveyData(surveyUserByToken,surveyOperatorList);
-
         return surveyOperatorVos;
-
     }
+
+    /**
+     * 导出干员的数据
+     * @param response 返回体
+     * @param token 一图流凭证
+     */
+    public void exportSurveyOperatorForm(HttpServletResponse response, String token) {
+
+        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
+        //拿到这个用户的干员练度数据存在了哪个表
+
+        //用户之前上传的数据
+        QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
+        queryWrapper.eq("uid",surveyUser.getId());
+        List<SurveyOperator> surveyOperatorList =
+                surveyOperatorMapper.selectList(queryWrapper);
+
+        List<SurveyOperatorExcelVO> listVo = new ArrayList<>();
+
+
+        List<OperatorTable> operatorInfo = operatorBaseDataService.getOperatorTable();
+
+        Map<String, OperatorTable> operatorTableMap = operatorInfo.stream()
+                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
+
+        for(SurveyOperator surveyOperator: surveyOperatorList){
+            SurveyOperatorExcelVO surveyOperatorExcelVo = new SurveyOperatorExcelVO();
+            surveyOperatorExcelVo.copy(surveyOperator);
+            String name = operatorTableMap.get(surveyOperator.getCharId())==null?"未录入":operatorTableMap.get(surveyOperator.getCharId()).getName();
+            surveyOperatorExcelVo.setName(name);
+            listVo.add(surveyOperatorExcelVo);
+        }
+
+        String userName = surveyUser.getUserName();
+
+        ExcelUtil.exportExcel(response, listVo, SurveyOperatorExcelVO.class, userName);
+    }
+
+
+
 }

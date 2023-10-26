@@ -45,19 +45,10 @@ public class SurveyOperatorController {
     @Operation(summary ="上传干员练度调查表")
     @PostMapping("/character/upload")
     public Result<Object> uploadCharacterForm(@RequestParam String token, @RequestBody List<SurveyOperator> surveyOperatorList) {
-        Map<String, Object> hashMap = surveyOperatorService.uploadCharForm(token, surveyOperatorList);
+        Map<String, Object> hashMap = surveyOperatorService.manualUploadOperator(token, surveyOperatorList);
         return Result.success(hashMap);
     }
 
-    @Operation(summary ="通过uid找回森空岛练度")
-    @PostMapping("/operator/retrieval/uid")
-    public Result<Object> retrievalCharacterForm(@RequestBody Map<String,String> params) {
-        String token = params.get("token");
-        String uid = params.get("uid");
-        List<SurveyOperatorVo> surveyDataCharList = surveyOperatorService.retrievalCharacterForm(token,uid);
-        surveyDataCharList.sort(Comparator.comparing(SurveyOperatorVo::getRarity).reversed());
-        return Result.success(surveyDataCharList);
-    }
 
     @Operation(summary ="通过森空岛导入干员练度V2")
     @PostMapping("/operator/import/skland/v2")

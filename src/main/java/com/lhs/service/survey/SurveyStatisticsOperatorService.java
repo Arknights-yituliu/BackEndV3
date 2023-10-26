@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
-import com.lhs.entity.po.survey.SurveyOperatorLog;
+import com.lhs.entity.po.survey.SurveyOperatorUploadLog;
 import com.lhs.entity.po.survey.SurveyOperatorVo;
 import com.lhs.mapper.survey.SurveyOperatorLogMapper;
 import com.lhs.mapper.survey.SurveyOperatorVoMapper;
@@ -51,7 +51,7 @@ public class SurveyStatisticsOperatorService {
      */
 //    @Scheduled(cron = "0 10 0/2 * * ?")
     public void operatorStatistics() {
-        List<Long> userIds = surveyOperatorLogMapper.selectList(null).stream().map(SurveyOperatorLog::getId).collect(Collectors.toList());
+        List<Long> userIds = surveyOperatorLogMapper.selectList(null).stream().map(SurveyOperatorUploadLog::getId).collect(Collectors.toList());
 
 
         List<List<Long>> userIdsGroup = new ArrayList<>();

@@ -17,7 +17,5 @@ public interface SurveyOperatorMapper extends BaseMapper<SurveyOperator> {
 
     void updateByUid(@Param("tableName") String tableName, @Param("item") SurveyOperator surveyOperator);
 
-    SurveyStatisticsUser selectBakId(@Param("uid") String uid);
 
-    List<SurveyOperator> selectBakOperatorDataById(@Param("id") Long id);
 }
