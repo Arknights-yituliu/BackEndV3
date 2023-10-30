@@ -69,7 +69,11 @@ public class SurveyUserController {
         return surveyUserService.loginByCRED(ipAddress, sklandDto);
     }
 
-
+    @Operation(summary ="迁移用户上传森空岛练度日志")
+    @GetMapping("/user/migrate")
+    public void migrateLog() {
+        surveyUserService.migrateLog();
+    }
     @Operation(summary ="找回账号")
     @PostMapping("/user/retrieval")
     public Result<UserDataVO> retrievalAccount(@RequestBody Map<String,Object> map) {

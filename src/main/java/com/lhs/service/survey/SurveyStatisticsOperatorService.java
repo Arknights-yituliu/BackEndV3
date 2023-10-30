@@ -6,6 +6,7 @@ import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
 import com.lhs.entity.po.survey.SurveyOperatorUploadLog;
 import com.lhs.entity.po.survey.SurveyOperatorVo;
+import com.lhs.entity.po.survey.SurveyStatisticsOperator;
 import com.lhs.mapper.survey.SurveyOperatorLogMapper;
 import com.lhs.mapper.survey.SurveyOperatorVoMapper;
 import com.lhs.mapper.survey.SurveyStatisticsOperatorMapper;
@@ -46,12 +47,17 @@ public class SurveyStatisticsOperatorService {
         this.ossService = ossService;
     }
 
+
+
     /**
      * 干员练度调查表统计
      */
 //    @Scheduled(cron = "0 10 0/2 * * ?")
     public void operatorStatistics() {
-        List<Long> userIds = surveyOperatorLogMapper.selectList(null).stream().map(SurveyOperatorUploadLog::getId).collect(Collectors.toList());
+        List<Long> userIds = surveyOperatorLogMapper.selectList(null)
+                .stream()
+                .map(SurveyOperatorUploadLog::getId)
+                .collect(Collectors.toList());
 
 
         List<List<Long>> userIdsGroup = new ArrayList<>();
@@ -270,7 +276,7 @@ public class SurveyStatisticsOperatorService {
 
     @Scheduled(cron = "0 0 0/1 * * ? ")
     public void saveOperatorStatisticsData(){
-        List<com.lhs.entity.po.survey.SurveyStatisticsOperator> surveyStatisticsOperators = surveyStatisticsOperatorMapper.selectList(null);
+        List<SurveyStatisticsOperator> surveyStatisticsOperators = surveyStatisticsOperatorMapper.selectList(null);
         String data = JsonMapper.toJSONString(surveyStatisticsOperators);
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHH = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式

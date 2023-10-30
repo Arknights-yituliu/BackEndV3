@@ -277,6 +277,9 @@ public class SurveyOperatorService {
      * @param surveyUser 调查站用户信息
      */
     private void userBindPlayerUid(SurveyUser surveyUser){
+        QueryWrapper<SurveyOperatorUploadLog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", surveyUser.getId());
+        SurveyOperatorUploadLog operatorUploadLog = surveyOperatorLogMapper.selectOne(queryWrapper);
         SurveyOperatorUploadLog surveyOperatorUploadLog = new SurveyOperatorUploadLog();
         surveyOperatorUploadLog.setId(surveyUser.getId());
         surveyOperatorUploadLog.setUserName(surveyUser.getUserName());
@@ -284,15 +287,16 @@ public class SurveyOperatorService {
         surveyOperatorUploadLog.setUid(surveyUser.getUid());
         surveyOperatorUploadLog.setLastTime(System.currentTimeMillis());
         surveyOperatorUploadLog.setDeleteFlag(surveyUser.getDeleteFlag());
-        QueryWrapper<SurveyOperatorUploadLog> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", surveyUser.getId());
-        SurveyOperatorUploadLog operatorUploadLog = surveyOperatorLogMapper.selectOne(queryWrapper);
 
         if(operatorUploadLog == null){
             surveyOperatorLogMapper.insert(surveyOperatorUploadLog);
         }else {
             surveyOperatorLogMapper.update(surveyOperatorUploadLog,queryWrapper);
         }
+
+
+
+
 
     }
 
@@ -327,7 +331,7 @@ public class SurveyOperatorService {
 
     /**
      * 重置个人上传的干员数据
-     * @param token
+     * @param token 一图流凭证
      * @return
      */
     public Result<Object> operatorDataReset(String token){

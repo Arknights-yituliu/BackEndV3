@@ -16,11 +16,9 @@ import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.SklandDTO;
 import com.lhs.entity.po.survey.SurveyOperatorUploadLog;
 import com.lhs.entity.po.survey.SurveyUser;
-import com.lhs.entity.po.survey.SurveyStatisticsUser;
 
 import com.lhs.mapper.survey.SurveyOperatorLogMapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
-import com.lhs.mapper.survey.SurveyStatisticsUserMapper;
 import com.lhs.service.util.EmailService;
 import com.lhs.service.util.OSSService;
 
@@ -30,8 +28,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 public class SurveyUserService {
@@ -41,16 +37,18 @@ public class SurveyUserService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    private final SurveyOperatorLogMapper surveyOperatoUploadrLogMapper;
+    private final SurveyOperatorLogMapper surveyOperatorLogMapper;
 
     private final EmailService emailService;
 
     private final OSSService ossService;
 
-    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, SurveyOperatorLogMapper surveyOperatoUploadrLogMapper, EmailService emailService, OSSService ossService) {
+
+
+    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, SurveyOperatorLogMapper surveyOperatorLogMapper, EmailService emailService, OSSService ossService) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
-        this.surveyOperatoUploadrLogMapper = surveyOperatoUploadrLogMapper;
+        this.surveyOperatorLogMapper = surveyOperatorLogMapper;
         this.emailService = emailService;
         this.ossService = ossService;
     }
@@ -735,6 +733,27 @@ public class SurveyUserService {
         response.setUserName(surveyUser.getUserName());
         return Result.success(response);
     }
-    
 
+
+    public void migrateLog() {
+        List<SurveyUser> surveyUsers = surveyUserMapper.selectList(null);
+        for(SurveyUser surveyUser : surveyUsers){
+            if(surveyUser.getUid()==null)  continue;
+            if(surveyUser.getUid().contains("delete")) continue;
+            SurveyOperatorUploadLog operatorUploadLog = new SurveyOperatorUploadLog();
+            operatorUploadLog.setId(surveyUser.getId());
+            operatorUploadLog.setUserName(surveyUser.getUserName());
+            operatorUploadLog.setUid(surveyUser.getUid());
+            operatorUploadLog.setDeleteFlag(surveyUser.getDeleteFlag());
+            operatorUploadLog.setLastTime(surveyUser.getUpdateTime().getTime());
+            operatorUploadLog.setIp(surveyUser.getIp());
+            QueryWrapper<SurveyOperatorUploadLog> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("id",surveyUser.getId());
+            if(surveyOperatorLogMapper.selectOne(queryWrapper)==null){
+                surveyOperatorLogMapper.insert(operatorUploadLog);
+            }else {
+                surveyOperatorLogMapper.update(operatorUploadLog,queryWrapper);
+            }
+        }
+    }
 }
