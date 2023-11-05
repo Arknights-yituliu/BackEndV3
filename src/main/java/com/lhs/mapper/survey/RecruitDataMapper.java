@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface RecruitDataMapper {
 
-    void insertRecruitData(@Param("tableName") String table, @Param("surveyRecruit") RecruitData recruitData);
+    void insertRecruitData(@Param("tableName") String table, @Param("item") RecruitData recruitData);
 
     List<RecruitData> selectRecruitDataByCreateTime(@Param("tableName") String table, @Param("startTime") Long startTime, @Param("endTime") Long endTime);
 

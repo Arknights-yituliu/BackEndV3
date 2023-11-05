@@ -6,8 +6,8 @@
     <insert id="insertRecruitData">
         INSERT INTO ${tableName}
         (`id`, `create_time`, `level`, `server`, `source`, `tag`, `uid`, `version`)
-        VALUES (#{recruitData.id}, #{recruitData.createTime}, #{recruitData.level}, #{recruitData.server},
-                #{recruitData.source}, #{recruitData.tag}, #{recruitData.uid}, #{recruitData.version})
+        VALUES (#{item.id}, #{item.createTime}, #{item.level}, #{item.server},
+                #{item.source}, #{item.tag}, #{item.uid}, #{item.version})
     </insert>
 
     <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.po.maa.RecruitData">

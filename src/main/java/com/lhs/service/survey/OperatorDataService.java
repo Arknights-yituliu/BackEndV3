@@ -294,9 +294,6 @@ public class OperatorDataService {
         }
 
 
-
-
-
     }
 
     /**

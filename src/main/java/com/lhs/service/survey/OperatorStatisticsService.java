@@ -140,7 +140,7 @@ public class OperatorStatisticsService {
                     mergeLastData(lastData.getModY(),collectByModY);
                     mergeLastData(lastData.getModD(),collectByModD);
                 }
-
+                System.out.println(collectByModD);
                 //存入dto对象进行暂存
                 OperatorStatisticsDTO build = OperatorStatisticsDTO.builder()
                         .charId(charId)
@@ -175,6 +175,7 @@ public class OperatorStatisticsService {
                     .modD(JsonMapper.toJSONString(v.getModD()))
                     .potential(JsonMapper.toJSONString(v.getPotential()))
                     .build();
+
             statisticsOperatorList.add(build);
         });
 

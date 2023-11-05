@@ -41,8 +41,8 @@ public class SurveyRecruitService {
                 .source(maaRecruitVo.getSource())
                 .tag(JsonMapper.toJSONString(maaRecruitVo.getTags()))
                 .version(maaRecruitVo.getVersion())
-                .createTime(System.currentTimeMillis()).build();
-
+                .createTime(System.currentTimeMillis())
+                .build();
         recruitDataMapper.insertRecruitData(tableName, recruitData);
 
         return null;
