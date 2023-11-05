@@ -3,9 +3,9 @@ package com.lhs.service.maa;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.entity.po.maa.SurveyRecruit;
+import com.lhs.entity.po.maa.RecruitData;
 import com.lhs.entity.po.maa.RecruitStatistics;
-import com.lhs.mapper.survey.SurveyRecruitMapper;
+import com.lhs.mapper.survey.RecruitDataMapper;
 import com.lhs.entity.vo.maa.MaaRecruitVo;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -17,30 +17,23 @@ import java.util.stream.Collectors;
 public class SurveyRecruitService {
 
 
-    private final SurveyRecruitMapper surveyRecruitMapper;
+    private final RecruitDataMapper recruitDataMapper;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public SurveyRecruitService(SurveyRecruitMapper surveyRecruitMapper, RedisTemplate<String, Object> redisTemplate) {
-        this.surveyRecruitMapper = surveyRecruitMapper;
+    public SurveyRecruitService(RecruitDataMapper recruitDataMapper, RedisTemplate<String, Object> redisTemplate) {
+        this.recruitDataMapper = recruitDataMapper;
         this.redisTemplate = redisTemplate;
     }
 
     private String getDBTableIndex() {
-
-//        Object surveyRecruitTable = redisTemplate.opsForValue().get("SurveyRecruitTable");
-//        if(surveyRecruitTable==null) {
-//            redisTemplate.opsForValue().set("SurveyRecruitTable",3);
-//            surveyRecruitTable = 3;
-//        }
-
-        return "survey_recruit_4";
+        return "survey_recruit_5";
     }
 
     public String saveMaaRecruitDataNew(MaaRecruitVo maaRecruitVo) {
         Long maaRecruitId = redisTemplate.opsForValue().increment("MaaRecruitId");
         String tableName = getDBTableIndex();
-        SurveyRecruit surveyRecruit = SurveyRecruit.builder()
+        RecruitData recruitData = RecruitData.builder()
                 .id(maaRecruitId)
                 .uid(maaRecruitVo.getUuid())
                 .level(maaRecruitVo.getLevel())
@@ -50,14 +43,14 @@ public class SurveyRecruitService {
                 .version(maaRecruitVo.getVersion())
                 .createTime(System.currentTimeMillis()).build();
 
-        surveyRecruitMapper.insertRecruitData(tableName, surveyRecruit);
+        recruitDataMapper.insertRecruitData(tableName, recruitData);
 
         return null;
     }
 
     public Map<String, Integer> recruitStatistics() {
 
-        List<RecruitStatistics> recruitStatistics = surveyRecruitMapper.selectRecruitStatistics();
+        List<RecruitStatistics> recruitStatistics = recruitDataMapper.selectRecruitStatistics();
 
         //上次统计的结果根据统计项目分类
         Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream()
@@ -72,11 +65,11 @@ public class SurveyRecruitService {
 
         String tableName = getDBTableIndex();
 
-        List<SurveyRecruit> recruit_data_DB = surveyRecruitMapper.selectRecruitDataByCreateTime(tableName, lastTime, date.getTime());
+        List<RecruitData> recruit_data_DB = recruitDataMapper.selectRecruitDataByCreateTime(tableName, lastTime, date.getTime());
 
 
-        Map<Integer, List<SurveyRecruit>> collect = recruit_data_DB.stream()
-                .collect(Collectors.groupingBy(SurveyRecruit::getLevel));
+        Map<Integer, List<RecruitData>> collect = recruit_data_DB.stream()
+                .collect(Collectors.groupingBy(RecruitData::getLevel));
 
         int topOperator = 0;  //高级资深总数
         int seniorOperator = 0; //资深总数
@@ -89,22 +82,22 @@ public class SurveyRecruitService {
         int vulcan = 0;             //火神出现次数
 
 
-        List<SurveyRecruit> topOperatorResult = new ArrayList<>();
+        List<RecruitData> topOperatorResult = new ArrayList<>();
         if (collect.get(6) != null) {
             topOperatorResult = collect.get(6);
         }
 
-        List<SurveyRecruit> seniorOperatorCountResult = new ArrayList<>();
+        List<RecruitData> seniorOperatorCountResult = new ArrayList<>();
         if (collect.get(5) != null) {
             seniorOperatorCountResult = collect.get(5);
         }
 
-        List<SurveyRecruit> rareOperatorCountResult = new ArrayList<>();
+        List<RecruitData> rareOperatorCountResult = new ArrayList<>();
         if (collect.get(4) != null) {
             rareOperatorCountResult = collect.get(4);
         }
 
-        List<SurveyRecruit> commonOperatorCountResult = new ArrayList<>();
+        List<RecruitData> commonOperatorCountResult = new ArrayList<>();
         if (collect.get(3) != null) {
             commonOperatorCountResult = collect.get(3);
         }
@@ -116,8 +109,8 @@ public class SurveyRecruitService {
         commonOperatorCount = commonOperatorCountResult.size(); //三星TAG总数
 
 
-        for (SurveyRecruit surveyRecruit : topOperatorResult) {
-            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+        for (RecruitData recruitData : topOperatorResult) {
+            List<String> tags = JsonMapper.parseJSONArray(recruitData.getTag(), new TypeReference<List<String>>() {
             });
 
 
@@ -148,8 +141,8 @@ public class SurveyRecruitService {
             }
         }
 
-        for (SurveyRecruit surveyRecruit : seniorOperatorCountResult) {
-            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+        for (RecruitData recruitData : seniorOperatorCountResult) {
+            List<String> tags = JsonMapper.parseJSONArray(recruitData.getTag(), new TypeReference<List<String>>() {
             });
 
             boolean vulcanSignMain = false; //火神主标签
@@ -178,8 +171,8 @@ public class SurveyRecruitService {
             }
         }
 
-        for (SurveyRecruit surveyRecruit : seniorOperatorCountResult) {
-            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+        for (RecruitData recruitData : seniorOperatorCountResult) {
+            List<String> tags = JsonMapper.parseJSONArray(recruitData.getTag(), new TypeReference<List<String>>() {
             });
             for (String tag : tags) {
                 if ("支援机械".equals(tag)) {
@@ -189,8 +182,8 @@ public class SurveyRecruitService {
             }
         }
 
-        for (SurveyRecruit surveyRecruit : commonOperatorCountResult) {
-            List<String> tags = JsonMapper.parseJSONArray(surveyRecruit.getTag(), new TypeReference<List<String>>() {
+        for (RecruitData recruitData : commonOperatorCountResult) {
+            List<String> tags = JsonMapper.parseJSONArray(recruitData.getTag(), new TypeReference<List<String>>() {
             });
             for (String tag : tags) {
                 if ("支援机械".equals(tag)) {
@@ -218,16 +211,16 @@ public class SurveyRecruitService {
 
         for (String key : recruitStatisticsMap.keySet()) {
 
-            RecruitStatistics resultByItem = surveyRecruitMapper.selectRecruitStatisticsByItem(key);
+            RecruitStatistics resultByItem = recruitDataMapper.selectRecruitStatisticsByItem(key);
 
             RecruitStatistics build = RecruitStatistics.builder()
                     .statisticalItem(key)
                     .statisticalResult(recruitStatisticsMap.get(key))
                     .build();
             if (resultByItem != null) {
-                surveyRecruitMapper.updateRecruitStatistics(build);
+                recruitDataMapper.updateRecruitStatistics(build);
             } else {
-                surveyRecruitMapper.insertRecruitStatistics(build);
+                recruitDataMapper.insertRecruitStatistics(build);
             }
         }
 
@@ -239,7 +232,7 @@ public class SurveyRecruitService {
 
     public HashMap<String, Object> statisticalResult() {
 
-        List<RecruitStatistics> recruitStatistics = surveyRecruitMapper.selectRecruitStatistics();
+        List<RecruitStatistics> recruitStatistics = recruitDataMapper.selectRecruitStatistics();
         Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream().collect(Collectors.toMap(RecruitStatistics::getStatisticalItem, RecruitStatistics::getStatisticalResult));
         Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
         long lastTime = Long.parseLong(String.valueOf(lastStatisticsTime));

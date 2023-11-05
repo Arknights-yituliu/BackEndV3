@@ -1,7 +1,7 @@
 package com.lhs.entity.vo.survey;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.lhs.entity.po.survey.SurveyOperator;
+import com.lhs.entity.po.survey.OperatorData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyOperatorExcelVO {
+public class OperatorExportExcelVO {
     @ExcelProperty("角色id")
     private String charId;
     @ExcelProperty("角色名称")
@@ -39,19 +39,19 @@ public class SurveyOperatorExcelVO {
     @ExcelProperty("D模组")
     private Integer modD;
 
-    public void copy(SurveyOperator surveyOperator){
-        this.charId = surveyOperator.getCharId();
-        this.own = surveyOperator.getOwn();
-        this.level = surveyOperator.getLevel();
-        this.elite = surveyOperator.getElite();
-        this.potential = surveyOperator.getPotential();
-        this.rarity = surveyOperator.getRarity();
-        this.skill1 = surveyOperator.getSkill1();
-        this.skill2 = surveyOperator.getSkill2();
-        this.skill3 = surveyOperator.getSkill3();
-        this.modX = surveyOperator.getModX();
-        this.modY = surveyOperator.getModY();
-        this.modD = surveyOperator.getModD();
+    public void copy(OperatorData operatorData){
+        this.charId = operatorData.getCharId();
+        this.own = operatorData.getOwn();
+        this.level = operatorData.getLevel();
+        this.elite = operatorData.getElite();
+        this.potential = operatorData.getPotential();
+        this.rarity = operatorData.getRarity();
+        this.skill1 = operatorData.getSkill1();
+        this.skill2 = operatorData.getSkill2();
+        this.skill3 = operatorData.getSkill3();
+        this.modX = operatorData.getModX();
+        this.modY = operatorData.getModY();
+        this.modD = operatorData.getModD();
     }
 
 

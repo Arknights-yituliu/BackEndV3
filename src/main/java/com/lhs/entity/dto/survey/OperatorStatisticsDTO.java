@@ -11,7 +11,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyStatisticsOperatorDTO {
+public class OperatorStatisticsDTO {
     private String  charId;
     private Integer own;
     private Integer rarity;
@@ -21,5 +21,6 @@ public class SurveyStatisticsOperatorDTO {
     private Map<Integer,Long> skill3;
     private Map<Integer,Long> modX;
     private Map<Integer,Long> modY;
+    private Map<Integer,Long> modD;
     private Map<Integer,Long> potential;
 }

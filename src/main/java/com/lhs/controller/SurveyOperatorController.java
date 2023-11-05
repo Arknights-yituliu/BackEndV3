@@ -6,8 +6,8 @@ import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.survey.OperatorPlan;
-import com.lhs.entity.po.survey.SurveyOperator;
-import com.lhs.entity.po.survey.SurveyOperatorVo;
+import com.lhs.entity.po.survey.OperatorData;
+import com.lhs.entity.po.survey.OperatorDataVo;
 import com.lhs.service.survey.*;
 import com.lhs.entity.vo.survey.OperatorPlanVO;
 
@@ -27,25 +27,25 @@ import java.util.Map;
 @RequestMapping(value = "/survey")
 @CrossOrigin()
 public class SurveyOperatorController {
-    private final SurveyOperatorService surveyOperatorService;
+    private final OperatorDataService operatorDataService;
 
     private final OperatorPlanService operatorPlanService;
 
     private final OperatorBaseDataService operatorBaseDataService;
 
-    private final SurveyStatisticsOperatorService surveyStatisticsOperatorService;
+    private final OperatorStatisticsService operatorStatisticsService;
 
-    public SurveyOperatorController(SurveyOperatorService surveyOperatorService, OperatorPlanService operatorPlanService, OperatorBaseDataService operatorBaseDataService, SurveyStatisticsOperatorService surveyStatisticsOperatorService) {
-        this.surveyOperatorService = surveyOperatorService;
+    public SurveyOperatorController(OperatorDataService operatorDataService, OperatorPlanService operatorPlanService, OperatorBaseDataService operatorBaseDataService, OperatorStatisticsService operatorStatisticsService) {
+        this.operatorDataService = operatorDataService;
         this.operatorPlanService = operatorPlanService;
         this.operatorBaseDataService = operatorBaseDataService;
-        this.surveyStatisticsOperatorService = surveyStatisticsOperatorService;
+        this.operatorStatisticsService = operatorStatisticsService;
     }
 
     @Operation(summary ="上传干员练度调查表")
     @PostMapping("/character/upload")
-    public Result<Object> uploadCharacterForm(@RequestParam String token, @RequestBody List<SurveyOperator> surveyOperatorList) {
-        Map<String, Object> hashMap = surveyOperatorService.manualUploadOperator(token, surveyOperatorList);
+    public Result<Object> uploadCharacterForm(@RequestParam String token, @RequestBody List<OperatorData> operatorDataList) {
+        Map<String, Object> hashMap = operatorDataService.manualUploadOperator(token, operatorDataList);
         return Result.success(hashMap);
     }
 
@@ -55,14 +55,14 @@ public class SurveyOperatorController {
     public Result<Object> importSurveyCharacterFormBySKLandV2(@RequestBody Map<String,String> params) {
         String token = params.get("token");
         String data = params.get("data");
-        return surveyOperatorService.importSKLandPlayerInfoV2(token, data);
+        return operatorDataService.importSKLandPlayerInfoV2(token, data);
     }
 
     @Operation(summary ="用户干员练度重置")
     @PostMapping("/operator/reset")
     public Result<Object> operatorDataReset(@RequestBody Map<String,String> params) {
         String token = params.get("token");
-        return surveyOperatorService.operatorDataReset(token);
+        return operatorDataService.operatorDataReset(token);
     }
 
 
@@ -74,7 +74,7 @@ public class SurveyOperatorController {
         if(!checkFileType) throw new ServiceException(ResultCode.FILE_NOT_IN_EXCEL_FORMAT);
         long size = file.getSize();
         if(size/1024>100) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        Map<String, Object> hashMap = surveyOperatorService.importExcel(file, token);
+        Map<String, Object> hashMap = operatorDataService.importExcel(file, token);
         return Result.success(hashMap);
     }
 
@@ -82,22 +82,22 @@ public class SurveyOperatorController {
     @PostMapping("/operator/retrieval")
     public Result<Object> findCharacterForm(@RequestBody Map<String,String> params) {
         String token = params.get("token");
-        List<SurveyOperatorVo> surveyDataCharList = surveyOperatorService.getOperatorForm(token);
-        surveyDataCharList.sort(Comparator.comparing(SurveyOperatorVo::getRarity).reversed());
+        List<OperatorDataVo> surveyDataCharList = operatorDataService.getOperatorForm(token);
+        surveyDataCharList.sort(Comparator.comparing(OperatorDataVo::getRarity).reversed());
         return Result.success(surveyDataCharList);
     }
 
     @Operation(summary ="干员练度调查表统计结果")
     @GetMapping("/operator/result")
     public Result<Object> characterStatisticsResult() {
-        HashMap<Object, Object> hashMap = surveyStatisticsOperatorService.getCharStatisticsResult();
+        HashMap<Object, Object> hashMap = operatorStatisticsService.getCharStatisticsResult();
         return Result.success(hashMap);
     }
 
     @Operation(summary ="导出干员练度调查表")
     @GetMapping("/operator/export")
     public void exportSurveyCharacterForm(HttpServletResponse response, @RequestParam String token) {
-        surveyOperatorService.exportSurveyOperatorForm(response,token);
+        operatorDataService.exportSurveyOperatorForm(response,token);
     }
 
 

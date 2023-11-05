@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SurveyScoreVO {
+public class OperatorScoreVO {
 
     private String  charId;
 

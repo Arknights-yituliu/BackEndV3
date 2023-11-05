@@ -1,16 +1,16 @@
 package com.lhs.mapper.survey;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lhs.entity.po.survey.SurveyStatisticsOperator;
+import com.lhs.entity.po.survey.OperatorStatistics;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface SurveyStatisticsOperatorMapper extends BaseMapper<SurveyStatisticsOperator> {
+public interface OperatorSurveyStatisticsMapper extends BaseMapper<OperatorStatistics> {
 
     void truncate();
 
-    void insertBatch(@Param("list")List<SurveyStatisticsOperator> statisticsOperatorList);
+    void insertBatch(@Param("list")List<OperatorStatistics> statisticsOperatorList);
 }

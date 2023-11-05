@@ -2,9 +2,9 @@ package com.lhs.controller;
 
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.po.survey.SurveyScore;
+import com.lhs.entity.po.survey.OperatorScore;
 import com.lhs.service.survey.*;
-import com.lhs.entity.vo.survey.SurveyStatisticsScoreVO;
+import com.lhs.entity.vo.survey.OperatorScoreStatisticsVO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,25 +22,25 @@ public class SurveyScoreController {
 
     private final OperatorBaseDataService operatorBaseDataService;
 
-    private final SurveyScoreService surveyScoreService;
+    private final OperatorScoreService operatorScoreService;
 
-    public SurveyScoreController(OperatorBaseDataService operatorBaseDataService, SurveyScoreService surveyScoreService) {
+    public SurveyScoreController(OperatorBaseDataService operatorBaseDataService, OperatorScoreService operatorScoreService) {
         this.operatorBaseDataService = operatorBaseDataService;
-        this.surveyScoreService = surveyScoreService;
+        this.operatorScoreService = operatorScoreService;
     }
 
 
     @Operation(summary ="上传干员风评表")
     @PostMapping("/score/upload")
-    public Result<Object> uploadScoreForm(@RequestParam String token, @RequestBody List<SurveyScore> surveyScoreList) {
-        HashMap<Object, Object> hashMap = surveyScoreService.uploadScoreForm(token, surveyScoreList);
+    public Result<Object> uploadScoreForm(@RequestParam String token, @RequestBody List<OperatorScore> operatorScoreList) {
+        HashMap<Object, Object> hashMap = operatorScoreService.uploadScoreForm(token, operatorScoreList);
         return Result.success(hashMap);
     }
 
     @Operation(summary ="干员风评表统计结果")
     @GetMapping("/score/result")
-    public Result<List<SurveyStatisticsScoreVO>> scoreStatisticsResult() {
-        List<SurveyStatisticsScoreVO> surveyScoreServiceScoreStatisticsResult = surveyScoreService.getScoreStatisticsResult();
+    public Result<List<OperatorScoreStatisticsVO>> scoreStatisticsResult() {
+        List<OperatorScoreStatisticsVO> surveyScoreServiceScoreStatisticsResult = operatorScoreService.getScoreStatisticsResult();
         return Result.success(surveyScoreServiceScoreStatisticsResult);
     }
 

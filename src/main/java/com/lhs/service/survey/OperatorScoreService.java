@@ -1,13 +1,11 @@
 package com.lhs.service.survey;
 
-import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.po.survey.SurveyScore;
-import com.lhs.entity.po.survey.SurveyStatisticsScore;
+import com.lhs.entity.po.survey.OperatorScore;
+import com.lhs.entity.po.survey.OperatorScoreStatistics;
 import com.lhs.entity.po.survey.SurveyUser;
-import com.lhs.mapper.survey.SurveyScoreMapper;
-import com.lhs.entity.vo.survey.SurveyScoreVO;
-import com.lhs.entity.vo.survey.SurveyStatisticsScoreVO;
+import com.lhs.mapper.survey.OperatorScoreMapper;
+import com.lhs.entity.vo.survey.OperatorScoreVO;
+import com.lhs.entity.vo.survey.OperatorScoreStatisticsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,15 +20,15 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class SurveyScoreService {
+public class OperatorScoreService {
 
 
-    private SurveyScoreMapper surveyScoreMapper;
+    private OperatorScoreMapper operatorScoreMapper;
     private SurveyUserService surveyUserService;
     private final RedisTemplate<String,Object> redisTemplate;
 
-    public SurveyScoreService(SurveyScoreMapper surveyScoreMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate) {
-        this.surveyScoreMapper = surveyScoreMapper;
+    public OperatorScoreService(OperatorScoreMapper operatorScoreMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate) {
+        this.operatorScoreMapper = operatorScoreMapper;
         this.surveyUserService = surveyUserService;
         this.redisTemplate = redisTemplate;
     }
@@ -39,11 +37,11 @@ public class SurveyScoreService {
      * 上传干员风评表
      *
      * @param token           token
-     * @param surveyScoreList 干员风评表
+     * @param operatorScoreList 干员风评表
      * @return 成功消息
      */
 //    @TakeCount(name = "上传评分")
-    public HashMap<Object, Object> uploadScoreForm(String token, List<SurveyScore> surveyScoreList) {
+    public HashMap<Object, Object> uploadScoreForm(String token, List<OperatorScore> operatorScoreList) {
 
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
         long uid = surveyUser.getId();
@@ -52,37 +50,37 @@ public class SurveyScoreService {
         int affectedRows = 0;
 
         //用户之前上传的数据
-        List<SurveyScore> surveyScores
-                = surveyScoreMapper.selectSurveyScoreByUid(tableName, surveyUser.getId());
+        List<OperatorScore> operatorScores
+                = operatorScoreMapper.selectSurveyScoreByUid(tableName, surveyUser.getId());
 
         //用户之前上传的数据转为map方便对比
-        Map<String, SurveyScore> oldDataCollectById = surveyScores.stream()
-                .collect(Collectors.toMap(SurveyScore::getCharId, Function.identity()));
+        Map<String, OperatorScore> oldDataCollectById = operatorScores.stream()
+                .collect(Collectors.toMap(OperatorScore::getCharId, Function.identity()));
 
         //新增数据
-        List<SurveyScore> insertList = new ArrayList<>();
+        List<OperatorScore> insertList = new ArrayList<>();
 
-        for (SurveyScore surveyScore : surveyScoreList) {
+        for (OperatorScore operatorScore : operatorScoreList) {
 
             //和老数据进行对比
-            SurveyScore savedData = oldDataCollectById.get(surveyScore.getCharId());
+            OperatorScore savedData = oldDataCollectById.get(operatorScore.getCharId());
             //为空则新增
             if (savedData == null) {
                 Long scoreId = redisTemplate.opsForValue().increment("CharacterId");
-                surveyScore.setId(scoreId);
-                surveyScore.setUid(uid);
-                insertList.add(surveyScore);  //加入批量插入集合
+                operatorScore.setId(scoreId);
+                operatorScore.setUid(uid);
+                insertList.add(operatorScore);  //加入批量插入集合
                 affectedRows++;  //新增数据条数
             } else {
                 //如果数据存在,进行更新
                     affectedRows++;  //更新数据条数
-                    surveyScore.setId(savedData.getId());
-                    surveyScore.setUid(uid);
-                    surveyScoreMapper.updateSurveyScoreById(tableName, surveyScore); //更新数据
+                    operatorScore.setId(savedData.getId());
+                    operatorScore.setUid(uid);
+                    operatorScoreMapper.updateSurveyScoreById(tableName, operatorScore); //更新数据
             }
         }
 
-        if (insertList.size() > 0) surveyScoreMapper.insertBatchSurveyScore(tableName, insertList);  //批量插入
+        if (insertList.size() > 0) operatorScoreMapper.insertBatchSurveyScore(tableName, insertList);  //批量插入
         Date date = new Date();
         surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
         surveyUserService.backupSurveyUser(surveyUser);
@@ -116,20 +114,20 @@ public class SurveyScoreService {
             fromIndex += 300;
             toIndex += 300;
         }
-        surveyScoreMapper.truncateScoreStatisticsTable();  //清空统计表
+        operatorScoreMapper.truncateScoreStatisticsTable();  //清空统计表
 
-        HashMap<String, SurveyStatisticsScore> scratchResult = new HashMap<>();
-        List<SurveyStatisticsScore> statisticsResultList = new ArrayList<>();
+        HashMap<String, OperatorScoreStatistics> scratchResult = new HashMap<>();
+        List<OperatorScoreStatistics> statisticsResultList = new ArrayList<>();
 
 
         for (List<Long> longs : userIdsGroup) {
-            List<SurveyScoreVO> surveyScoreVOList_DB =
-                    surveyScoreMapper.selectSurveyScoreVoByUidList("survey_score_1", longs);
+            List<OperatorScoreVO> operatorScoreVOList_DB =
+                    operatorScoreMapper.selectSurveyScoreVoByUidList("survey_score_1", longs);
 
-            log.info("本次统计数量：" + surveyScoreVOList_DB.size());
+            log.info("本次统计数量：" + operatorScoreVOList_DB.size());
 
-            Map<String, List<SurveyScoreVO>> collectByCharId = surveyScoreVOList_DB.stream()
-                    .collect(Collectors.groupingBy(SurveyScoreVO::getCharId));
+            Map<String, List<OperatorScoreVO>> collectByCharId = operatorScoreVOList_DB.stream()
+                    .collect(Collectors.groupingBy(OperatorScoreVO::getCharId));
 
             collectByCharId.forEach((charId, arr) -> {
                 int sampleSizeDaily = 0;
@@ -152,38 +150,38 @@ public class SurveyScoreService {
 
                 int rarity = arr.get(0).getRarity();
 
-                for (SurveyScoreVO surveyScoreVo : arr) {
-                    if (surveyScoreVo.getDaily() > 0) {
+                for (OperatorScoreVO operatorScoreVo : arr) {
+                    if (operatorScoreVo.getDaily() > 0) {
                         sampleSizeDaily++;
-                        daily+=surveyScoreVo.getDaily();
+                        daily+= operatorScoreVo.getDaily();
                     }
-                    if (surveyScoreVo.getRogue() > 0) {
+                    if (operatorScoreVo.getRogue() > 0) {
                         sampleSizeRogue++;
-                        rogue+=surveyScoreVo.getRogue();
+                        rogue+= operatorScoreVo.getRogue();
                     }
-                    if (surveyScoreVo.getSecurityService() > 0) {
+                    if (operatorScoreVo.getSecurityService() > 0) {
                         sampleSizeSecurityService++;
-                        securityService+=surveyScoreVo.getSecurityService();
+                        securityService+= operatorScoreVo.getSecurityService();
                     }
-                    if (surveyScoreVo.getHard() > 0) {
+                    if (operatorScoreVo.getHard() > 0) {
                         sampleSizeHard++;
-                        hard+=surveyScoreVo.getHard();
+                        hard+= operatorScoreVo.getHard();
                     }
-                    if (surveyScoreVo.getUniversal() > 0) {
+                    if (operatorScoreVo.getUniversal() > 0) {
                         sampleSizeUniversal++;
-                        universal+=surveyScoreVo.getUniversal();
+                        universal+= operatorScoreVo.getUniversal();
                     }
-                    if (surveyScoreVo.getCounter() > 0) {
+                    if (operatorScoreVo.getCounter() > 0) {
                         sampleSizeCounter++;
-                        counter+=surveyScoreVo.getCounter();
+                        counter+= operatorScoreVo.getCounter();
                     }
-                    if (surveyScoreVo.getBuilding() > 0) {
+                    if (operatorScoreVo.getBuilding() > 0) {
                         sampleSizeBuilding++;
-                        building+=surveyScoreVo.getBuilding();
+                        building+= operatorScoreVo.getBuilding();
                     }
-                    if (surveyScoreVo.getComprehensive() > 0) {
+                    if (operatorScoreVo.getComprehensive() > 0) {
                         sampleSizeComprehensive++;
-                        comprehensive+=surveyScoreVo.getComprehensive();
+                        comprehensive+= operatorScoreVo.getComprehensive();
                     }
 
                 }
@@ -191,34 +189,34 @@ public class SurveyScoreService {
 
                 //和上次计算结果合并
                 if (scratchResult.get(charId) != null) {
-                    SurveyStatisticsScore surveyStatisticsScore = scratchResult.get(charId);
-                    daily += surveyStatisticsScore.getDaily();
-                    sampleSizeDaily += surveyStatisticsScore.getSampleSizeDaily();
+                    OperatorScoreStatistics operatorScoreStatistics = scratchResult.get(charId);
+                    daily += operatorScoreStatistics.getDaily();
+                    sampleSizeDaily += operatorScoreStatistics.getSampleSizeDaily();
 
-                    rogue += surveyStatisticsScore.getRogue();
-                    sampleSizeRogue += surveyStatisticsScore.getSampleSizeRogue();
+                    rogue += operatorScoreStatistics.getRogue();
+                    sampleSizeRogue += operatorScoreStatistics.getSampleSizeRogue();
 
-                    hard += surveyStatisticsScore.getHard();
-                    sampleSizeHard += surveyStatisticsScore.getSampleSizeHard();
+                    hard += operatorScoreStatistics.getHard();
+                    sampleSizeHard += operatorScoreStatistics.getSampleSizeHard();
 
-                    securityService += surveyStatisticsScore.getSecurityService();
-                    sampleSizeSecurityService += surveyStatisticsScore.getSampleSizeSecurityService();
+                    securityService += operatorScoreStatistics.getSecurityService();
+                    sampleSizeSecurityService += operatorScoreStatistics.getSampleSizeSecurityService();
 
-                    universal += surveyStatisticsScore.getUniversal();
-                    sampleSizeUniversal += surveyStatisticsScore.getSampleSizeUniversal();
+                    universal += operatorScoreStatistics.getUniversal();
+                    sampleSizeUniversal += operatorScoreStatistics.getSampleSizeUniversal();
 
-                    counter += surveyStatisticsScore.getCounter();
-                    sampleSizeCounter += surveyStatisticsScore.getSampleSizeCounter();
+                    counter += operatorScoreStatistics.getCounter();
+                    sampleSizeCounter += operatorScoreStatistics.getSampleSizeCounter();
 
-                    building += surveyStatisticsScore.getBuilding();
-                    sampleSizeBuilding += surveyStatisticsScore.getSampleSizeBuilding();
+                    building += operatorScoreStatistics.getBuilding();
+                    sampleSizeBuilding += operatorScoreStatistics.getSampleSizeBuilding();
 
-                    comprehensive += surveyStatisticsScore.getComprehensive();
-                    sampleSizeComprehensive += surveyStatisticsScore.getSampleSizeComprehensive();
+                    comprehensive += operatorScoreStatistics.getComprehensive();
+                    sampleSizeComprehensive += operatorScoreStatistics.getSampleSizeComprehensive();
                 }
 
                 //存入dto对象进行暂存
-                SurveyStatisticsScore build = SurveyStatisticsScore.builder()
+                OperatorScoreStatistics build = OperatorScoreStatistics.builder()
                         .charId(charId)
                         .rarity(rarity)
                         .daily(daily)
@@ -248,16 +246,16 @@ public class SurveyScoreService {
             statisticsResultList.add(v);
         });
 
-        surveyScoreMapper.insertBatchScoreStatistics(statisticsResultList);
+        operatorScoreMapper.insertBatchScoreStatistics(statisticsResultList);
     }
 
-    public List<SurveyStatisticsScoreVO> getScoreStatisticsResult() {
-        List<SurveyStatisticsScore> surveyStatisticsScores = surveyScoreMapper.selectScoreStatisticsList();
+    public List<OperatorScoreStatisticsVO> getScoreStatisticsResult() {
+        List<OperatorScoreStatistics> operatorScoreStatistics = operatorScoreMapper.selectScoreStatisticsList();
 
-        List<SurveyStatisticsScoreVO> statisticsResult = new ArrayList<>();
+        List<OperatorScoreStatisticsVO> statisticsResult = new ArrayList<>();
 
-        surveyStatisticsScores.forEach(e -> {
-            SurveyStatisticsScoreVO build = SurveyStatisticsScoreVO.builder()
+        operatorScoreStatistics.forEach(e -> {
+            OperatorScoreStatisticsVO build = OperatorScoreStatisticsVO.builder()
                     .charId(e.getCharId())
                     .rarity(e.getRarity())
                     .daily(limitDecimalPoint(e.getDaily(), e.getSampleSizeDaily()))

@@ -14,10 +14,10 @@ import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.SklandDTO;
-import com.lhs.entity.po.survey.SurveyOperatorUploadLog;
+import com.lhs.entity.po.survey.OperatorUploadLog;
 import com.lhs.entity.po.survey.SurveyUser;
 
-import com.lhs.mapper.survey.SurveyOperatorLogMapper;
+import com.lhs.mapper.survey.OperatorUploadLogMapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
 import com.lhs.service.util.EmailService;
 import com.lhs.service.util.OSSService;
@@ -37,7 +37,7 @@ public class SurveyUserService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    private final SurveyOperatorLogMapper surveyOperatorLogMapper;
+    private final OperatorUploadLogMapper operatorUploadLogMapper;
 
     private final EmailService emailService;
 
@@ -45,10 +45,10 @@ public class SurveyUserService {
 
 
 
-    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, SurveyOperatorLogMapper surveyOperatorLogMapper, EmailService emailService, OSSService ossService) {
+    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, OperatorUploadLogMapper operatorUploadLogMapper, EmailService emailService, OSSService ossService) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
-        this.surveyOperatorLogMapper = surveyOperatorLogMapper;
+        this.operatorUploadLogMapper = operatorUploadLogMapper;
         this.emailService = emailService;
         this.ossService = ossService;
     }
@@ -64,7 +64,6 @@ public class SurveyUserService {
         String passWord = surveyRequestVo.getPassWord().trim();
         String email = surveyRequestVo.getEmail().trim();
 
-        Log.info("注册类型"+accountType+" {} 用户名："+userName+email+" {} "+"密码："+passWord+" {} "+"验证码："+surveyRequestVo.getEmailCode());
 
 
         Date date = new Date();  //当前时间
@@ -98,6 +97,8 @@ public class SurveyUserService {
             //给用户信息写入密码
             surveyUserNew.setPassWord(passWord);
 
+            Log.info("账号密码注册——用户名："+userName+"密码："+passWord);
+
         }
 
         if ("emailCode".equals(accountType)) {
@@ -116,10 +117,13 @@ public class SurveyUserService {
             userName = "博士" + date.getTime()/10;
             surveyUserNew.setUserName(userName);
             surveyUserNew.setEmail(email);
+
+            Log.info("账号密码注册——邮箱："+email+"验证码："+inputCode);
         }
 
         //给用户写入状态
         surveyUserNew.setStatus(status);
+        surveyUserNew.setDeleteFlag(false);
 
         int row = surveyUserMapper.save(surveyUserNew);
         if (row < 1) throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
@@ -740,19 +744,19 @@ public class SurveyUserService {
         for(SurveyUser surveyUser : surveyUsers){
             if(surveyUser.getUid()==null)  continue;
             if(surveyUser.getUid().contains("delete")) continue;
-            SurveyOperatorUploadLog operatorUploadLog = new SurveyOperatorUploadLog();
+            OperatorUploadLog operatorUploadLog = new OperatorUploadLog();
             operatorUploadLog.setId(surveyUser.getId());
             operatorUploadLog.setUserName(surveyUser.getUserName());
             operatorUploadLog.setUid(surveyUser.getUid());
             operatorUploadLog.setDeleteFlag(surveyUser.getDeleteFlag());
             operatorUploadLog.setLastTime(surveyUser.getUpdateTime().getTime());
             operatorUploadLog.setIp(surveyUser.getIp());
-            QueryWrapper<SurveyOperatorUploadLog> queryWrapper = new QueryWrapper<>();
+            QueryWrapper<OperatorUploadLog> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("id",surveyUser.getId());
-            if(surveyOperatorLogMapper.selectOne(queryWrapper)==null){
-                surveyOperatorLogMapper.insert(operatorUploadLog);
+            if(operatorUploadLogMapper.selectOne(queryWrapper)==null){
+                operatorUploadLogMapper.insert(operatorUploadLog);
             }else {
-                surveyOperatorLogMapper.update(operatorUploadLog,queryWrapper);
+                operatorUploadLogMapper.update(operatorUploadLog,queryWrapper);
             }
         }
     }

@@ -23,6 +23,6 @@ public class OperatorStatisticsResultVO {
     private Map<String,Double> skill3;
     private Map<String,Double> modX;
     private Map<String,Double> modY;
-
+    private Map<String,Double> modD;
 
 }

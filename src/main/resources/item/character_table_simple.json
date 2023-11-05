@@ -2,9 +2,19 @@
   "char_145_prove": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_145_prove",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ARC",
@@ -28,15 +38,25 @@
     ],
     "name": "普罗旺斯",
     "subProfessionId": "closerange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4039_horn": {
     "date": 1649923200000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4039_horn",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "FOR",
@@ -64,15 +84,25 @@
     ],
     "name": "号角",
     "subProfessionId": "fortress",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_1028_texas2": {
     "date": 1667289600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1028_texas2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "EXE",
@@ -100,13 +130,25 @@
     ],
     "name": "缄默德克萨斯",
     "subProfessionId": "executor",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_271_spikes": {
     "date": 1600934400000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_271_spikes",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -120,15 +162,25 @@
     ],
     "name": "芳汀",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4016_kazema": {
     "date": 1647331200000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4016_kazema",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUM",
@@ -152,15 +204,25 @@
     ],
     "name": "风丸",
     "subProfessionId": "dollkeeper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4055_bgsnow": {
     "date": 1660204800000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4055_bgsnow",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ARC",
@@ -188,15 +250,25 @@
     ],
     "name": "鸿雪",
     "subProfessionId": "closerange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_363_toddi": {
     "date": 1618473600000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_363_toddi",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SIE",
@@ -220,13 +292,25 @@
     ],
     "name": "熔泉",
     "subProfessionId": "siegesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_328_cammou": {
     "date": 1594281600000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_328_cammou",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -240,15 +324,25 @@
     ],
     "name": "卡达",
     "subProfessionId": "funnel",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_433_windft": {
     "date": 1651392000000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_433_windft",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CRA",
@@ -272,15 +366,25 @@
     ],
     "name": "掠风",
     "subProfessionId": "craftsman",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_383_snsant": {
     "date": 1578513600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_383_snsant",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HOK",
@@ -304,15 +408,25 @@
     ],
     "name": "雪雉",
     "subProfessionId": "hookmaster",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_174_slbell": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_174_slbell",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "UMD",
@@ -336,16 +450,25 @@
     ],
     "name": "初雪",
     "subProfessionId": "underminer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_340_shwaz": {
     "date": 1566892800000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_340_shwaz",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ARC",
@@ -382,15 +505,25 @@
     ],
     "name": "黑",
     "subProfessionId": "closerange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_1029_yato2": {
     "date": 1678176000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1029_yato2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "EXE",
@@ -418,15 +551,25 @@
     ],
     "name": "麒麟R夜刀",
     "subProfessionId": "executor",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_325_bison": {
     "date": 1574150400000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_325_bison",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -450,37 +593,71 @@
     ],
     "name": "拜松",
     "subProfessionId": "protector",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_376_therex": {
     "date": 1588320000000,
     "profession": "SPECIAL",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_376_therex",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "THRM-EX",
     "subProfessionId": "executor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 1
   },
   "char_4000_jnight": {
     "date": 1635753600000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4000_jnight",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "正义骑士号",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 1
   },
   "char_135_halo": {
     "date": 1657008000000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_135_halo",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHA",
@@ -504,15 +681,25 @@
     ],
     "name": "星源",
     "subProfessionId": "chain",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4027_heyak": {
     "date": 1682928000000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4027_heyak",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -540,15 +727,25 @@
     ],
     "name": "霍尔海雅",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_345_folnic": {
     "date": 1594281600000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_345_folnic",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -572,15 +769,25 @@
     ],
     "name": "亚叶",
     "subProfessionId": "physician",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_180_amgoat": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_180_amgoat",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -608,13 +815,67 @@
     ],
     "name": "艾雅法拉",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
+  },
+  "char_4109_baslin": {
+    "date": 1698807791098,
+    "profession": "TANK",
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4109_baslin",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": [
+      {
+        "typeName1": "GUA",
+        "typeName2": "Y",
+        "charId": "char_4109_baslin",
+        "uniEquipIcon": "uniequip_002_baslin",
+        "typeIcon": "gua-y",
+        "uniEquipName": "受赐玩物",
+        "uniEquipId": "uniequip_002_baslin"
+      }
+    ],
+    "skill": [
+      {
+        "iconId": "skchr_baslin_1",
+        "name": "急救"
+      },
+      {
+        "iconId": "skchr_baslin_2",
+        "name": "沉音宁神"
+      }
+    ],
+    "name": "深律",
+    "subProfessionId": "guardian",
+    "potential": 0,
+    "rarity": 5
   },
   "char_209_ardign": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_209_ardign",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -624,13 +885,25 @@
     ],
     "name": "卡缇",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_140_whitew": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_140_whitew",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -644,13 +917,25 @@
     ],
     "name": "拉普兰德",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4083_chimes": {
     "date": 1676361600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4083_chimes",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -664,13 +949,25 @@
     ],
     "name": "铎铃",
     "subProfessionId": "crusher",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_283_midn": {
     "date": 1559181600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_283_midn",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -680,15 +977,25 @@
     ],
     "name": "月见夜",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_4004_pudd": {
     "date": 1635753600000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4004_pudd",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHA",
@@ -712,15 +1019,25 @@
     ],
     "name": "布丁",
     "subProfessionId": "chain",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_492_quercu": {
     "date": 1644912000000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_492_quercu",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BLS",
@@ -744,16 +1061,25 @@
     ],
     "name": "夏栎",
     "subProfessionId": "blessing",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_332_archet": {
     "date": 1609833600000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_332_archet",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -790,15 +1116,25 @@
     ],
     "name": "空弦",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_498_inside": {
     "date": 1686211200000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_498_inside",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -822,15 +1158,25 @@
     ],
     "name": "隐现",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_401_elysm": {
     "date": 1588320000000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_401_elysm",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BEA",
@@ -854,13 +1200,25 @@
     ],
     "name": "极境",
     "subProfessionId": "bearer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_274_astesi": {
     "date": 1568102400000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_274_astesi",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -874,14 +1232,36 @@
     ],
     "name": "星极",
     "subProfessionId": "artsfghter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_311_mudrok": {
     "date": 1604217600000,
     "profession": "TANK",
-    "mod": null,
-    "equip": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_311_mudrok",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": [
+      {
+        "typeName1": "UNY",
+        "typeName2": "X",
+        "charId": "char_311_mudrok",
+        "uniEquipIcon": "uniequip_002_mudrok",
+        "typeIcon": "uny-x",
+        "uniEquipName": "土石的根系",
+        "uniEquipId": "uniequip_002_mudrok"
+      }
+    ],
     "skill": [
       {
         "iconId": "skcom_def_up_3_",
@@ -898,15 +1278,25 @@
     ],
     "name": "泥岩",
     "subProfessionId": "unyield",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_190_clour": {
     "date": 1571126400000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_190_clour",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -930,15 +1320,25 @@
     ],
     "name": "红云",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_400_weedy": {
     "date": 1588320000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_400_weedy",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUS",
@@ -966,15 +1366,25 @@
     ],
     "name": "温蒂",
     "subProfessionId": "pusher",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_458_rfrost": {
     "date": 1615276800000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_458_rfrost",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "TRP",
@@ -998,15 +1408,25 @@
     ],
     "name": "霜华",
     "subProfessionId": "traper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_198_blackd": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_198_blackd",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -1030,14 +1450,36 @@
     ],
     "name": "讯使",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4065_judge": {
     "date": 1667289600000,
     "profession": "TANK",
-    "mod": null,
-    "equip": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4065_judge",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": [
+      {
+        "typeName1": "UNY",
+        "typeName2": "X",
+        "charId": "char_4065_judge",
+        "uniEquipIcon": "uniequip_002_judge",
+        "typeIcon": "uny-x",
+        "uniEquipName": "通往未来的荆棘之路",
+        "uniEquipId": "uniequip_002_judge"
+      }
+    ],
     "skill": [
       {
         "iconId": "skchr_judge_1",
@@ -1054,15 +1496,25 @@
     ],
     "name": "斥罪",
     "subProfessionId": "unyield",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_405_absin": {
     "date": 1592467200000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_405_absin",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -1086,15 +1538,25 @@
     ],
     "name": "苦艾",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_402_tuye": {
     "date": 1611043200000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_402_tuye",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -1118,15 +1580,25 @@
     ],
     "name": "图耶",
     "subProfessionId": "physician",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_134_ifrit": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_134_ifrit",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BLA",
@@ -1154,13 +1626,25 @@
     ],
     "name": "伊芙利特",
     "subProfessionId": "blastcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_346_aosta": {
     "date": 1602748800000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_346_aosta",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1174,13 +1658,25 @@
     ],
     "name": "奥斯塔",
     "subProfessionId": "reaperrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_279_excu": {
     "date": 1571126400000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_279_excu",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1194,15 +1690,25 @@
     ],
     "name": "送葬人",
     "subProfessionId": "reaperrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_143_ghost": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_143_ghost",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CEN",
@@ -1226,13 +1732,25 @@
     ],
     "name": "幽灵鲨",
     "subProfessionId": "centurion",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4082_qiubai": {
     "date": 1676361600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4082_qiubai",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1250,16 +1768,25 @@
     ],
     "name": "仇白",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_362_saga": {
     "date": 1612512000000,
     "profession": "PIONEER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_362_saga",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -1296,15 +1823,25 @@
     ],
     "name": "嵯峨",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_1027_greyy2": {
     "date": 1657008000000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1027_greyy2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BOM",
@@ -1328,15 +1865,25 @@
     ],
     "name": "承曦格雷伊",
     "subProfessionId": "bombarder",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_469_indigo": {
     "date": 1622534400000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_469_indigo",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MSC",
@@ -1360,13 +1907,25 @@
     ],
     "name": "深靛",
     "subProfessionId": "mystic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_378_asbest": {
     "date": 1591084800000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_378_asbest",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1380,15 +1939,25 @@
     ],
     "name": "石棉",
     "subProfessionId": "artsprotector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_308_swire": {
     "date": 1562659200000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_308_swire",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "INS",
@@ -1412,15 +1981,25 @@
     ],
     "name": "诗怀雅",
     "subProfessionId": "instructor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4078_bdhkgt": {
     "date": 1673942400000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4078_bdhkgt",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ART",
@@ -1444,15 +2023,25 @@
     ],
     "name": "截云",
     "subProfessionId": "aoesniper",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_242_otter": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_242_otter",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SUM",
@@ -1476,13 +2065,25 @@
     ],
     "name": "梅尔",
     "subProfessionId": "summoner",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_264_f12yin": {
     "date": 1608192000000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_264_f12yin",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1500,15 +2101,25 @@
     ],
     "name": "山",
     "subProfessionId": "fighter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_199_yak": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_199_yak",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -1532,13 +2143,25 @@
     ],
     "name": "角峰",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_157_dagda": {
     "date": 1665475200000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_157_dagda",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1552,13 +2175,25 @@
     ],
     "name": "达格达",
     "subProfessionId": "fighter",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_137_brownb": {
     "date": 1559181600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_137_brownb",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1572,15 +2207,25 @@
     ],
     "name": "猎蜂",
     "subProfessionId": "fighter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_218_cuttle": {
     "date": 1597132800000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_218_cuttle",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEA",
@@ -1604,16 +2249,25 @@
     ],
     "name": "安哲拉",
     "subProfessionId": "longrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_485_pallas": {
     "date": 1625212800000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_485_pallas",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "INS",
@@ -1650,13 +2304,25 @@
     ],
     "name": "帕拉斯",
     "subProfessionId": "instructor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_211_adnach": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_211_adnach",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1666,14 +2332,36 @@
     ],
     "name": "安德切尔",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_163_hpsts": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": null,
-    "equip": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_163_hpsts",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": [
+      {
+        "typeName1": "UNY",
+        "typeName2": "X",
+        "charId": "char_163_hpsts",
+        "uniEquipIcon": "uniequip_002_hpsts",
+        "typeIcon": "uny-x",
+        "uniEquipName": "锻椎者",
+        "uniEquipId": "uniequip_002_hpsts"
+      }
+    ],
     "skill": [
       {
         "iconId": "skchr_hpsts_1",
@@ -1686,16 +2374,25 @@
     ],
     "name": "火神",
     "subProfessionId": "unyield",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1023_ghost2": {
     "date": 1651392000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1023_ghost2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUM",
@@ -1732,13 +2429,25 @@
     ],
     "name": "归溟幽灵鲨",
     "subProfessionId": "dollkeeper",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_122_beagle": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_122_beagle",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1748,15 +2457,25 @@
     ],
     "name": "米格鲁",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_252_bibeak": {
     "date": 1584432000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_252_bibeak",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SWO",
@@ -1780,13 +2499,25 @@
     ],
     "name": "柏喙",
     "subProfessionId": "sword",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_185_frncat": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_185_frncat",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1800,16 +2531,25 @@
     ],
     "name": "慕斯",
     "subProfessionId": "artsfghter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_423_blemsh": {
     "date": 1602748800000,
     "profession": "TANK",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_423_blemsh",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "GUA",
@@ -1846,15 +2586,25 @@
     ],
     "name": "瑕光",
     "subProfessionId": "guardian",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_1030_noirc2": {
     "date": 1678176000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1030_noirc2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MUS",
@@ -1878,13 +2628,25 @@
     ],
     "name": "火龙S黑角",
     "subProfessionId": "musha",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_124_kroos": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_124_kroos",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1894,13 +2656,25 @@
     ],
     "name": "克洛丝",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_4025_aprot2": {
     "date": 1641369600000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4025_aprot2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -1914,15 +2688,25 @@
     ],
     "name": "暮落",
     "subProfessionId": "artsprotector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_411_tomimi": {
     "date": 1598342400000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_411_tomimi",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -1946,15 +2730,25 @@
     ],
     "name": "特米米",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4006_melnte": {
     "date": 1682928000000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4006_melnte",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ARC",
@@ -1978,15 +2772,25 @@
     ],
     "name": "玫拉",
     "subProfessionId": "closerange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_422_aurora": {
     "date": 1640073600000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_422_aurora",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HES",
@@ -2010,15 +2814,25 @@
     ],
     "name": "极光",
     "subProfessionId": "duelist",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_141_nights": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_141_nights",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -2042,13 +2856,25 @@
     ],
     "name": "夜烟",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_497_ctable": {
     "date": 1660204800000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_497_ctable",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2062,15 +2888,71 @@
     ],
     "name": "晓歌",
     "subProfessionId": "agent",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
+  },
+  "char_4011_lessng": {
+    "date": 1698807791119,
+    "profession": "WARRIOR",
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4011_lessng",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": [
+      {
+        "typeName1": "DRE",
+        "typeName2": "X",
+        "charId": "char_4011_lessng",
+        "uniEquipIcon": "uniequip_002_lessng",
+        "typeIcon": "dre-x",
+        "uniEquipName": "沉锋之束",
+        "uniEquipId": "uniequip_002_lessng"
+      }
+    ],
+    "skill": [
+      {
+        "iconId": "skcom_powerstrike_3_",
+        "name": "强力击·γ型"
+      },
+      {
+        "iconId": "skchr_lessng_2",
+        "name": "虔修对决"
+      },
+      {
+        "iconId": "skchr_lessng_3",
+        "name": "苦修破誓"
+      }
+    ],
+    "name": "止颂",
+    "subProfessionId": "fearless",
+    "potential": 0,
+    "rarity": 6
   },
   "char_275_breeze": {
     "date": 1572552000000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_275_breeze",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "RIN",
@@ -2094,15 +2976,25 @@
     ],
     "name": "微风",
     "subProfessionId": "ringhealer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_261_sddrag": {
     "date": 1575964800000,
     "profession": "PIONEER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_261_sddrag",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHG",
@@ -2126,13 +3018,25 @@
     ],
     "name": "苇草",
     "subProfessionId": "charger",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_473_mberry": {
     "date": 1631865600000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_473_mberry",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2146,15 +3050,25 @@
     ],
     "name": "桑葚",
     "subProfessionId": "wandermedic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_103_angel": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_103_angel",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -2182,13 +3096,25 @@
     ],
     "name": "能天使",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_260_durnar": {
     "date": 1569873600000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_260_durnar",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2202,15 +3128,25 @@
     ],
     "name": "坚雷",
     "subProfessionId": "artsprotector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_265_sophia": {
     "date": 1602748800000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_265_sophia",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "INS",
@@ -2234,16 +3170,25 @@
     ],
     "name": "鞭刃",
     "subProfessionId": "instructor",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_437_mizuki": {
     "date": 1627977600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_437_mizuki",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "AMB",
@@ -2280,15 +3225,25 @@
     ],
     "name": "水月",
     "subProfessionId": "stalker",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_301_cutter": {
     "date": 1587456000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_301_cutter",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SWO",
@@ -2312,15 +3267,25 @@
     ],
     "name": "刻刀",
     "subProfessionId": "sword",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_1014_nearl2": {
     "date": 1635753600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1014_nearl2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DRE",
@@ -2330,6 +3295,15 @@
         "typeIcon": "dre-x",
         "uniEquipName": "耀阳锋刃",
         "uniEquipId": "uniequip_002_nearl2"
+      },
+      {
+        "typeName1": "DRE",
+        "typeName2": "Y",
+        "charId": "char_1014_nearl2",
+        "uniEquipIcon": "uniequip_003_nearl2",
+        "typeIcon": "dre-y",
+        "uniEquipName": "“骑士家族”",
+        "uniEquipId": "uniequip_003_nearl2"
       }
     ],
     "skill": [
@@ -2348,13 +3322,25 @@
     ],
     "name": "耀骑士临光",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4088_hodrer": {
     "date": 1696752000000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4088_hodrer",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2372,15 +3358,25 @@
     ],
     "name": "赫德雷",
     "subProfessionId": "crusher",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_365_aprl": {
     "date": 1600934400000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_365_aprl",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -2404,15 +3400,25 @@
     ],
     "name": "四月",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_484_robrta": {
     "date": 1631865600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_484_robrta",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CRA",
@@ -2436,15 +3442,25 @@
     ],
     "name": "罗比菈塔",
     "subProfessionId": "craftsman",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_108_silent": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_108_silent",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -2468,13 +3484,25 @@
     ],
     "name": "赫默",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_212_ansel": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_212_ansel",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2484,15 +3512,25 @@
     ],
     "name": "安赛尔",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_355_ethan": {
     "date": 1572552000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_355_ethan",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "AMB",
@@ -2516,26 +3554,48 @@
     ],
     "name": "伊桑",
     "subProfessionId": "stalker",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_286_cast3": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_286_cast3",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "Castle-3",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 1
   },
   "char_4009_irene": {
     "date": 1651392000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4009_irene",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SWO",
@@ -2563,13 +3623,25 @@
     ],
     "name": "艾丽妮",
     "subProfessionId": "sword",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4067_lolxh": {
     "date": 1663228800000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4067_lolxh",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2583,16 +3655,25 @@
     ],
     "name": "罗小黑",
     "subProfessionId": "lord",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_113_cqbw": {
     "date": 1588320000000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_113_cqbw",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ART",
@@ -2629,13 +3710,25 @@
     ],
     "name": "W",
     "subProfessionId": "aoesniper",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_476_blkngt": {
     "date": 1643097600000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_476_blkngt",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2649,15 +3742,25 @@
     ],
     "name": "夜半",
     "subProfessionId": "tactician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_479_sleach": {
     "date": 1631865600000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_479_sleach",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BEA",
@@ -2685,13 +3788,25 @@
     ],
     "name": "琴柳",
     "subProfessionId": "bearer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_210_stward": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_210_stward",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2701,15 +3816,25 @@
     ],
     "name": "史都华德",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_4048_doroth": {
     "date": 1657008000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4048_doroth",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "TRP",
@@ -2737,15 +3862,25 @@
     ],
     "name": "多萝西",
     "subProfessionId": "traper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_455_nothin": {
     "date": 1612512000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_455_nothin",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MER",
@@ -2769,26 +3904,48 @@
     ],
     "name": "乌有",
     "subProfessionId": "merchant",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_285_medic2": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_285_medic2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "Lancet-2",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 1
   },
   "char_144_red": {
     "date": 1556589600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_144_red",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "EXE",
@@ -2812,15 +3969,25 @@
     ],
     "name": "红",
     "subProfessionId": "executor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_496_wildmn": {
     "date": 1635753600000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_496_wildmn",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHG",
@@ -2844,15 +4011,25 @@
     ],
     "name": "野鬃",
     "subProfessionId": "charger",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_183_skgoat": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_183_skgoat",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEC",
@@ -2876,13 +4053,25 @@
     ],
     "name": "地灵",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4045_heidi": {
     "date": 1649923200000,
     "profession": "SUPPORT",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4045_heidi",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -2896,15 +4085,25 @@
     ],
     "name": "海蒂",
     "subProfessionId": "bard",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_478_kirara": {
     "date": 1622534400000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_478_kirara",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "AMB",
@@ -2928,15 +4127,25 @@
     ],
     "name": "绮良",
     "subProfessionId": "stalker",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_173_slchan": {
     "date": 1556589600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_173_slchan",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HOK",
@@ -2960,15 +4169,25 @@
     ],
     "name": "崖心",
     "subProfessionId": "hookmaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_366_acdrop": {
     "date": 1598342400000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_366_acdrop",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ARC",
@@ -2992,13 +4211,25 @@
     ],
     "name": "酸糖",
     "subProfessionId": "closerange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4054_malist": {
     "date": 1660204800000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4054_malist",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -3012,16 +4243,25 @@
     ],
     "name": "至简",
     "subProfessionId": "funnel",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_248_mgllan": {
     "date": 1571126400000,
     "profession": "SUPPORT",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_248_mgllan",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SUM",
@@ -3058,16 +4298,25 @@
     ],
     "name": "麦哲伦",
     "subProfessionId": "summoner",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_147_shining": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_147_shining",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -3104,13 +4353,25 @@
     ],
     "name": "闪灵",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_192_falco": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_192_falco",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -3120,15 +4381,25 @@
     ],
     "name": "翎羽",
     "subProfessionId": "charger",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_002_amiya": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_002_amiya",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -3156,13 +4427,25 @@
     ],
     "name": "阿米娅",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_284_spot": {
     "date": 1562659200000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_284_spot",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -3172,16 +4455,25 @@
     ],
     "name": "斑点",
     "subProfessionId": "guardian",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_003_kalts": {
     "date": 1619856000000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_003_kalts",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -3218,16 +4510,25 @@
     ],
     "name": "凯尔希",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_291_aglina": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_291_aglina",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEC",
@@ -3264,15 +4565,25 @@
     ],
     "name": "安洁莉娜",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_236_rope": {
     "date": 1556589600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_236_rope",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HOK",
@@ -3296,15 +4607,25 @@
     ],
     "name": "暗索",
     "subProfessionId": "hookmaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_127_estell": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_127_estell",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CEN",
@@ -3328,15 +4649,25 @@
     ],
     "name": "艾丝黛尔",
     "subProfessionId": "centurion",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_341_sntlla": {
     "date": 1688630400000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_341_sntlla",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -3360,15 +4691,25 @@
     ],
     "name": "寒檀",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1026_gvial2": {
     "date": 1660204800000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1026_gvial2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CEN",
@@ -3396,15 +4737,25 @@
     ],
     "name": "百炼嘉维尔",
     "subProfessionId": "centurion",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_197_poca": {
     "date": 1592467200000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_197_poca",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SIE",
@@ -3432,15 +4783,25 @@
     ],
     "name": "早露",
     "subProfessionId": "siegesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_243_waaifu": {
     "date": 1574150400000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_243_waaifu",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "EXE",
@@ -3464,15 +4825,25 @@
     ],
     "name": "槐琥",
     "subProfessionId": "executor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_338_iris": {
     "date": 1609833600000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_338_iris",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MSC",
@@ -3496,15 +4867,25 @@
     ],
     "name": "爱丽丝",
     "subProfessionId": "mystic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_367_swllow": {
     "date": 1577174400000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_367_swllow",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -3528,15 +4909,25 @@
     ],
     "name": "灰喉",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_254_vodfox": {
     "date": 1587456000000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_254_vodfox",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "UMD",
@@ -3560,15 +4951,25 @@
     ],
     "name": "巫恋",
     "subProfessionId": "underminer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_171_bldsk": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_171_bldsk",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -3592,26 +4993,48 @@
     ],
     "name": "华法琳",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4077_palico": {
     "date": 1678176000000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4077_palico",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "泰拉大陆调查团",
     "subProfessionId": "bombarder",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 1
   },
   "char_126_shotst": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_126_shotst",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -3635,15 +5058,25 @@
     ],
     "name": "流星",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_489_serum": {
     "date": 1635753600000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_489_serum",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BLA",
@@ -3667,15 +5100,25 @@
     ],
     "name": "蚀清",
     "subProfessionId": "blastcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_459_tachak": {
     "date": 1615276800000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_459_tachak",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SWO",
@@ -3699,13 +5142,25 @@
     ],
     "name": "战车",
     "subProfessionId": "sword",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4064_mlynar": {
     "date": 1662624000000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4064_mlynar",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -3723,13 +5178,25 @@
     ],
     "name": "玛恩纳",
     "subProfessionId": "librator",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_1016_agoat2": {
     "date": 1690876800000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1016_agoat2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -3747,15 +5214,25 @@
     ],
     "name": "纯烬艾雅法拉",
     "subProfessionId": "wandermedic",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_488_buildr": {
     "date": 1690876800000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_488_buildr",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -3779,16 +5256,25 @@
     ],
     "name": "青枳",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_250_phatom": {
     "date": 1587456000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_250_phatom",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "EXE",
@@ -3825,13 +5311,25 @@
     ],
     "name": "傀影",
     "subProfessionId": "executor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_457_blitz": {
     "date": 1615276800000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_457_blitz",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -3845,15 +5343,25 @@
     ],
     "name": "闪击",
     "subProfessionId": "shotprotector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1011_lava2": {
     "date": 1612512000000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1011_lava2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -3877,26 +5385,48 @@
     ],
     "name": "炎狱炎熔",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_009_12fce": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_009_12fce",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "12F",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 2
   },
   "char_491_humus": {
     "date": 1680768000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_491_humus",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "REA",
@@ -3920,15 +5450,25 @@
     ],
     "name": "休谟斯",
     "subProfessionId": "reaper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_118_yuki": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_118_yuki",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ART",
@@ -3952,26 +5492,48 @@
     ],
     "name": "白雪",
     "subProfessionId": "aoesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_500_noirc": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_500_noirc",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "黑角",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 2
   },
   "char_326_glacus": {
     "date": 1566892800000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_326_glacus",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEC",
@@ -3995,16 +5557,25 @@
     ],
     "name": "格劳克斯",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_420_flamtl": {
     "date": 1635753600000,
     "profession": "PIONEER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_420_flamtl",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -4041,13 +5612,25 @@
     ],
     "name": "焰尾",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4017_puzzle": {
     "date": 1671091200000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4017_puzzle",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4061,15 +5644,25 @@
     ],
     "name": "谜图",
     "subProfessionId": "agent",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_297_hamoni": {
     "date": 1671091200000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_297_hamoni",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MSC",
@@ -4093,13 +5686,25 @@
     ],
     "name": "和弦",
     "subProfessionId": "mystic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_193_frostl": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_193_frostl",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4113,16 +5718,25 @@
     ],
     "name": "霜叶",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_2015_dusk": {
     "date": 1612512000000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_2015_dusk",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -4159,15 +5773,25 @@
     ],
     "name": "夕",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_381_bubble": {
     "date": 1602748800000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_381_bubble",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -4191,15 +5815,25 @@
     ],
     "name": "泡泡",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_369_bena": {
     "date": 1622534400000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_369_bena",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUM",
@@ -4223,15 +5857,25 @@
     ],
     "name": "贝娜",
     "subProfessionId": "dollkeeper",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4043_erato": {
     "date": 1652947200000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4043_erato",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SIE",
@@ -4255,15 +5899,25 @@
     ],
     "name": "埃拉托",
     "subProfessionId": "siegesniper",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_115_headbr": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_115_headbr",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -4287,13 +5941,25 @@
     ],
     "name": "凛冬",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1001_amiya2": {
     "date": "2022-09-08 18:31:57",
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1001_amiya2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4307,15 +5973,25 @@
     ],
     "name": "阿米娅",
     "subProfessionId": "artsfghter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4110_delphn": {
     "date": 1696752000000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4110_delphn",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MSC",
@@ -4339,15 +6015,25 @@
     ],
     "name": "戴菲恩",
     "subProfessionId": "mystic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_348_ceylon": {
     "date": 1566892800000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_348_ceylon",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "WAH",
@@ -4371,13 +6057,25 @@
     ],
     "name": "锡兰",
     "subProfessionId": "healer",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1012_skadi2": {
     "date": 1619856000000,
     "profession": "SUPPORT",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1012_skadi2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4395,13 +6093,25 @@
     ],
     "name": "浊心斯卡蒂",
     "subProfessionId": "bard",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_415_flint": {
     "date": 1598342400000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_415_flint",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4415,13 +6125,25 @@
     ],
     "name": "燧石",
     "subProfessionId": "fighter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1020_reed2": {
     "date": 1671091200000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1020_reed2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4439,15 +6161,25 @@
     ],
     "name": "焰影苇草",
     "subProfessionId": "incantationmedic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_373_lionhd": {
     "date": 1592467200000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_373_lionhd",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -4471,13 +6203,25 @@
     ],
     "name": "莱恩哈特",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_293_thorns": {
     "date": 1597132800000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_293_thorns",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4495,13 +6239,25 @@
     ],
     "name": "棘刺",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_452_bstalk": {
     "date": 1609833600000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_452_bstalk",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4515,15 +6271,25 @@
     ],
     "name": "豆苗",
     "subProfessionId": "tactician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_337_utage": {
     "date": 1584432000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_337_utage",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MUS",
@@ -4547,15 +6313,25 @@
     ],
     "name": "宴",
     "subProfessionId": "musha",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_456_ash": {
     "date": 1615276800000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_456_ash",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -4583,13 +6359,25 @@
     ],
     "name": "灰烬",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_377_gdglow": {
     "date": 1644912000000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_377_gdglow",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4607,15 +6395,25 @@
     ],
     "name": "澄闪",
     "subProfessionId": "funnel",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_131_flameb": {
     "date": 1571126400000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_131_flameb",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DRE",
@@ -4639,13 +6437,25 @@
     ],
     "name": "炎客",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_440_pinecn": {
     "date": 1608192000000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_440_pinecn",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4659,15 +6469,25 @@
     ],
     "name": "松果",
     "subProfessionId": "reaperrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_464_cement": {
     "date": 1680768000000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_464_cement",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HES",
@@ -4691,15 +6511,25 @@
     ],
     "name": "洋灰",
     "subProfessionId": "duelist",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_385_finlpp": {
     "date": 1583179200000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_385_finlpp",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "WAH",
@@ -4723,13 +6553,25 @@
     ],
     "name": "清流",
     "subProfessionId": "healer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_249_mlyss": {
     "date": 1682928000000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_249_mlyss",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4747,15 +6589,25 @@
     ],
     "name": "缪尔赛思",
     "subProfessionId": "tactician",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_187_ccheal": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_187_ccheal",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -4779,26 +6631,48 @@
     ],
     "name": "嘉维尔",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_503_rang": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_503_rang",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "巡林者",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 2
   },
   "char_277_sqrrel": {
     "date": 1556589600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_277_sqrrel",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUS",
@@ -4822,17 +6696,25 @@
     ],
     "name": "阿消",
     "subProfessionId": "pusher",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4046_ebnhlz": {
     "date": 1654761600000,
     "profession": "CASTER",
-    "mod": {
-      "modD": true,
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4046_ebnhlz",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MSC",
@@ -4878,15 +6760,25 @@
     ],
     "name": "黑键",
     "subProfessionId": "mystic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_017_huang": {
     "date": 1577174400000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_017_huang",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CEN",
@@ -4914,13 +6806,25 @@
     ],
     "name": "煌",
     "subProfessionId": "centurion",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4104_coldst": {
     "date": 1693900800000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4104_coldst",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4934,13 +6838,25 @@
     ],
     "name": "冰酿",
     "subProfessionId": "hunter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4087_ines": {
     "date": 1680768000000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4087_ines",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -4958,26 +6874,48 @@
     ],
     "name": "伊内丝",
     "subProfessionId": "agent",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_501_durin": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_501_durin",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "杜林",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 2
   },
   "char_106_franka": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_106_franka",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DRE",
@@ -5001,15 +6939,25 @@
     ],
     "name": "芙兰卡",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_213_mostma": {
     "date": 1574150400000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_213_mostma",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -5037,27 +6985,48 @@
     ],
     "name": "莫斯提马",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4093_frston": {
     "date": 1684742400000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4093_frston",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "Friston-3",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 1
   },
   "char_430_fartth": {
     "date": 1634284800000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_430_fartth",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEA",
@@ -5094,15 +7063,25 @@
     ],
     "name": "远牙",
     "subProfessionId": "longrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_379_sesa": {
     "date": 1584432000000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_379_sesa",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ART",
@@ -5126,15 +7105,25 @@
     ],
     "name": "慑砂",
     "subProfessionId": "aoesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_109_fmout": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_109_fmout",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -5158,16 +7147,25 @@
     ],
     "name": "远山",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_263_skadi": {
     "date": 1559181600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_263_skadi",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DRE",
@@ -5204,13 +7202,57 @@
     ],
     "name": "斯卡蒂",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
+  },
+  "char_499_kaitou": {
+    "date": 1698807791092,
+    "profession": "CASTER",
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_499_kaitou",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": null,
+    "skill": [
+      {
+        "iconId": "skchr_kaitou_1",
+        "name": "镭射穿凿"
+      },
+      {
+        "iconId": "skchr_kaitou_2",
+        "name": "热处理变色"
+      }
+    ],
+    "name": "折光",
+    "subProfessionId": "primcaster",
+    "potential": 0,
+    "rarity": 5
   },
   "char_294_ayer": {
     "date": 1594281600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_294_ayer",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5224,15 +7266,25 @@
     ],
     "name": "断崖",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1032_excu2": {
     "date": 1686211200000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1032_excu2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "REA",
@@ -5260,15 +7312,25 @@
     ],
     "name": "圣约送葬人",
     "subProfessionId": "reaper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_253_greyy": {
     "date": 1562659200000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_253_greyy",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -5292,13 +7354,25 @@
     ],
     "name": "格雷伊",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_333_sidero": {
     "date": 1587456000000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_333_sidero",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5312,15 +7386,25 @@
     ],
     "name": "铸铁",
     "subProfessionId": "artsfghter",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_179_cgbird": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_179_cgbird",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "RIN",
@@ -5348,16 +7432,25 @@
     ],
     "name": "夜莺",
     "subProfessionId": "ringhealer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_2014_nian": {
     "date": 1579161600000,
     "profession": "TANK",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_2014_nian",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -5394,15 +7487,25 @@
     ],
     "name": "年",
     "subProfessionId": "protector",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_436_whispr": {
     "date": 1604217600000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_436_whispr",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "WAH",
@@ -5426,13 +7529,25 @@
     ],
     "name": "絮雨",
     "subProfessionId": "healer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4041_chnut": {
     "date": 1649923200000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4041_chnut",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5446,15 +7561,25 @@
     ],
     "name": "褐果",
     "subProfessionId": "wandermedic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_150_snakek": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_150_snakek",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -5478,15 +7603,25 @@
     ],
     "name": "蛇屠箱",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_241_panda": {
     "date": 1556589600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_241_panda",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUS",
@@ -5510,15 +7645,25 @@
     ],
     "name": "食铁兽",
     "subProfessionId": "pusher",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1031_slent2": {
     "date": 1682928000000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1031_slent2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BLS",
@@ -5546,15 +7691,25 @@
     ],
     "name": "淬羽赫默",
     "subProfessionId": "blessing",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_110_deepcl": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_110_deepcl",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SUM",
@@ -5578,13 +7733,25 @@
     ],
     "name": "深海色",
     "subProfessionId": "summoner",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_1034_jesca2": {
     "date": 1693900800000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1034_jesca2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5602,15 +7769,25 @@
     ],
     "name": "涤火杰西卡",
     "subProfessionId": "shotprotector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4072_ironmn": {
     "date": 1665475200000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4072_ironmn",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CRA",
@@ -5638,13 +7815,25 @@
     ],
     "name": "白铁",
     "subProfessionId": "craftsman",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_208_melan": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_208_melan",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5654,13 +7843,25 @@
     ],
     "name": "玫兰莎",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_282_catap": {
     "date": 1558576800000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_282_catap",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5670,15 +7871,25 @@
     ],
     "name": "空爆",
     "subProfessionId": "aoesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_166_skfire": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_166_skfire",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SPC",
@@ -5702,13 +7913,25 @@
     ],
     "name": "天火",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1024_hbisc2": {
     "date": 1654761600000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1024_hbisc2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5722,15 +7945,25 @@
     ],
     "name": "濯尘芙蓉",
     "subProfessionId": "incantationmedic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_474_glady": {
     "date": 1619856000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_474_glady",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HOK",
@@ -5758,15 +7991,25 @@
     ],
     "name": "歌蕾蒂娅",
     "subProfessionId": "hookmaster",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_133_mm": {
     "date": 1574150400000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_133_mm",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -5790,15 +8033,25 @@
     ],
     "name": "梅",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_306_leizi": {
     "date": 1582617600000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_306_leizi",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHA",
@@ -5822,15 +8075,25 @@
     ],
     "name": "惊蛰",
     "subProfessionId": "chain",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_235_jesica": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_235_jesica",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -5854,13 +8117,25 @@
     ],
     "name": "杰西卡",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4013_kjera": {
     "date": 1640073600000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4013_kjera",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5874,13 +8149,25 @@
     ],
     "name": "耶拉",
     "subProfessionId": "funnel",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4047_pianst": {
     "date": 1654761600000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4047_pianst",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5894,13 +8181,25 @@
     ],
     "name": "车尔尼",
     "subProfessionId": "artsprotector",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_1013_chen2": {
     "date": 1627977600000,
     "profession": "SNIPER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1013_chen2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -5918,15 +8217,25 @@
     ],
     "name": "假日威龙陈",
     "subProfessionId": "reaperrange",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_214_kafka": {
     "date": 1608192000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_214_kafka",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "EXE",
@@ -5950,15 +8259,25 @@
     ],
     "name": "卡夫卡",
     "subProfessionId": "executor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_451_robin": {
     "date": 1608192000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_451_robin",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "TRP",
@@ -5982,16 +8301,25 @@
     ],
     "name": "罗宾",
     "subProfessionId": "traper",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_416_zumama": {
     "date": 1598342400000,
     "profession": "TANK",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_416_zumama",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HES",
@@ -6028,15 +8356,25 @@
     ],
     "name": "森蚺",
     "subProfessionId": "duelist",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_204_platnm": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_204_platnm",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -6060,15 +8398,25 @@
     ],
     "name": "白金",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_237_gravel": {
     "date": 1556589600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_237_gravel",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "EXE",
@@ -6092,15 +8440,25 @@
     ],
     "name": "砾",
     "subProfessionId": "executor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_117_myrrh": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_117_myrrh",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -6124,15 +8482,25 @@
     ],
     "name": "末药",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_2012_typhon": {
     "date": 1688630400000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_2012_typhon",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SIE",
@@ -6160,16 +8528,25 @@
     ],
     "name": "提丰",
     "subProfessionId": "siegesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_136_hsguma": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_136_hsguma",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -6206,13 +8583,25 @@
     ],
     "name": "星熊",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4071_peper": {
     "date": 1665475200000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4071_peper",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -6226,13 +8615,25 @@
     ],
     "name": "明椒",
     "subProfessionId": "chainhealer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_494_vendla": {
     "date": 1696752000000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_494_vendla",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -6246,15 +8647,25 @@
     ],
     "name": "刺玫",
     "subProfessionId": "incantationmedic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_219_meteo": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_219_meteo",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ART",
@@ -6278,15 +8689,25 @@
     ],
     "name": "陨星",
     "subProfessionId": "aoesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_151_myrtle": {
     "date": 1568102400000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_151_myrtle",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BEA",
@@ -6310,15 +8731,25 @@
     ],
     "name": "桃金娘",
     "subProfessionId": "bearer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_475_akafyu": {
     "date": 1619856000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_475_akafyu",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MUS",
@@ -6342,15 +8773,25 @@
     ],
     "name": "赤冬",
     "subProfessionId": "musha",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4105_almond": {
     "date": 1693900800000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4105_almond",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "HOK",
@@ -6374,15 +8815,61 @@
     ],
     "name": "杏仁",
     "subProfessionId": "hookmaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
+  },
+  "char_4098_vvana": {
+    "date": 1698807791112,
+    "profession": "WARRIOR",
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4098_vvana",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": null,
+    "skill": [
+      {
+        "iconId": "skchr_vvana_1",
+        "name": "光影迅捷剑"
+      },
+      {
+        "iconId": "skchr_vvana_2",
+        "name": "烛燃影息"
+      },
+      {
+        "iconId": "skchr_vvana_3",
+        "name": "“明灭”"
+      }
+    ],
+    "name": "薇薇安娜",
+    "subProfessionId": "artsfghter",
+    "potential": 0,
+    "rarity": 6
   },
   "char_159_peacok": {
     "date": 1585728000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_159_peacok",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DRE",
@@ -6406,15 +8893,25 @@
     ],
     "name": "断罪者",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4066_highmo": {
     "date": 1664265600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4066_highmo",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "REA",
@@ -6438,15 +8935,25 @@
     ],
     "name": "海沫",
     "subProfessionId": "reaper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_431_ashlok": {
     "date": 1634284800000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_431_ashlok",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "FOR",
@@ -6470,15 +8977,25 @@
     ],
     "name": "灰毫",
     "subProfessionId": "fortress",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_196_sunbr": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_196_sunbr",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "GUA",
@@ -6502,15 +9019,25 @@
     ],
     "name": "古米",
     "subProfessionId": "guardian",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_302_glaze": {
     "date": 1577174400000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_302_glaze",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEA",
@@ -6534,15 +9061,25 @@
     ],
     "name": "安比尔",
     "subProfessionId": "longrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_1021_kroos2": {
     "date": 1643097600000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1021_kroos2",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -6566,15 +9103,25 @@
     ],
     "name": "寒芒克洛丝",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4107_vrdant": {
     "date": 1696752000000,
     "profession": "SPECIAL",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4107_vrdant",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUM",
@@ -6598,15 +9145,25 @@
     ],
     "name": "维荻",
     "subProfessionId": "dollkeeper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_289_gyuki": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_289_gyuki",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DRE",
@@ -6630,13 +9187,25 @@
     ],
     "name": "缠丸",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_278_orchid": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_278_orchid",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -6646,15 +9215,25 @@
     ],
     "name": "梓兰",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_258_podego": {
     "date": 1592467200000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_258_podego",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEC",
@@ -6678,13 +9257,25 @@
     ],
     "name": "波登可",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_101_sora": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_101_sora",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -6698,15 +9289,25 @@
     ],
     "name": "空",
     "subProfessionId": "bard",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_128_plosis": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_128_plosis",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "RIN",
@@ -6730,24 +9331,48 @@
     ],
     "name": "白面鸮",
     "subProfessionId": "ringhealer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_502_nblade": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_502_nblade",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "夜刀",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 2
   },
   "char_123_fang": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_123_fang",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -6757,15 +9382,25 @@
     ],
     "name": "芬",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_226_hmau": {
     "date": 1579161600000,
     "profession": "TANK",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_226_hmau",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "GUA",
@@ -6789,16 +9424,25 @@
     ],
     "name": "吽",
     "subProfessionId": "guardian",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_2013_cerber": {
     "date": 1582617600000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_2013_cerber",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -6835,15 +9479,25 @@
     ],
     "name": "刻俄柏",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_336_folivo": {
     "date": 1595923200000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_336_folivo",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SUM",
@@ -6867,15 +9521,61 @@
     ],
     "name": "稀音",
     "subProfessionId": "summoner",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
+  },
+  "char_245_cello": {
+    "date": 1698807791105,
+    "profession": "SUPPORT",
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_245_cello",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": null,
+    "skill": [
+      {
+        "iconId": "skchr_cello_1",
+        "name": "“黄金的狂喜”"
+      },
+      {
+        "iconId": "skchr_cello_2",
+        "name": "“安魂的弥撒”"
+      },
+      {
+        "iconId": "skchr_cello_3",
+        "name": "“自由的探戈”"
+      }
+    ],
+    "name": "塑心",
+    "subProfessionId": "ritualist",
+    "potential": 0,
+    "rarity": 6
   },
   "char_181_flower": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_181_flower",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "RIN",
@@ -6899,15 +9599,25 @@
     ],
     "name": "调香师",
     "subProfessionId": "ringhealer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_164_nightm": {
     "date": 1559181600000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_164_nightm",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -6931,15 +9641,25 @@
     ],
     "name": "夜魔",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_298_susuro": {
     "date": 1566892800000,
     "profession": "MEDIC",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_298_susuro",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PHY",
@@ -6963,15 +9683,25 @@
     ],
     "name": "苏苏洛",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_322_lmlee": {
     "date": 1643097600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_322_lmlee",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MER",
@@ -6999,13 +9729,25 @@
     ],
     "name": "老鲤",
     "subProfessionId": "merchant",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_155_tiger": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_155_tiger",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7019,15 +9761,25 @@
     ],
     "name": "因陀罗",
     "subProfessionId": "fighter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4062_totter": {
     "date": 1665475200000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4062_totter",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SIE",
@@ -7051,15 +9803,25 @@
     ],
     "name": "铅踝",
     "subProfessionId": "siegesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_129_bluep": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_129_bluep",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MAR",
@@ -7083,15 +9845,25 @@
     ],
     "name": "蓝毒",
     "subProfessionId": "fastshot",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_154_morgan": {
     "date": 1680768000000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_154_morgan",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DRE",
@@ -7115,13 +9887,25 @@
     ],
     "name": "摩根",
     "subProfessionId": "fearless",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_486_takila": {
     "date": 1627977600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_486_takila",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7135,15 +9919,25 @@
     ],
     "name": "龙舌兰",
     "subProfessionId": "librator",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_215_mantic": {
     "date": 1556589600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_215_mantic",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "AMB",
@@ -7167,15 +9961,25 @@
     ],
     "name": "狮蝎",
     "subProfessionId": "stalker",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_304_zebra": {
     "date": 1618473600000,
     "profession": "TANK",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_304_zebra",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -7199,16 +10003,25 @@
     ],
     "name": "暴雨",
     "subProfessionId": "protector",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_300_phenxi": {
     "date": 1647331200000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_300_phenxi",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "ART",
@@ -7245,15 +10058,25 @@
     ],
     "name": "菲亚梅塔",
     "subProfessionId": "aoesniper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_1033_swire2": {
     "date": 1690876800000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_1033_swire2",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MER",
@@ -7281,13 +10104,25 @@
     ],
     "name": "琳琅诗怀雅",
     "subProfessionId": "merchant",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_107_liskam": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_107_liskam",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7301,15 +10136,25 @@
     ],
     "name": "雷蛇",
     "subProfessionId": "shotprotector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_343_tknogi": {
     "date": 1591084800000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_343_tknogi",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BLS",
@@ -7333,16 +10178,25 @@
     ],
     "name": "月禾",
     "subProfessionId": "blessing",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_188_helage": {
     "date": 1568102400000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_188_helage",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MUS",
@@ -7379,15 +10233,25 @@
     ],
     "name": "赫拉格",
     "subProfessionId": "musha",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4019_ncdeer": {
     "date": 1641801600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4019_ncdeer",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BLS",
@@ -7411,15 +10275,25 @@
     ],
     "name": "九色鹿",
     "subProfessionId": "blessing",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_148_nearl": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_148_nearl",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "GUA",
@@ -7443,13 +10317,25 @@
     ],
     "name": "临光",
     "subProfessionId": "guardian",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_240_wyvern": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_240_wyvern",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7459,15 +10345,25 @@
     ],
     "name": "香草",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_466_qanik": {
     "date": 1667289600000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_466_qanik",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CCR",
@@ -7491,15 +10387,25 @@
     ],
     "name": "雪绒",
     "subProfessionId": "corecaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_195_glassb": {
     "date": 1556589600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_195_glassb",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEC",
@@ -7523,13 +10429,25 @@
     ],
     "name": "真理",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_172_svrash": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_172_svrash",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7547,15 +10465,25 @@
     ],
     "name": "银灰",
     "subProfessionId": "lord",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_220_grani": {
     "date": 1559181600000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_220_grani",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHG",
@@ -7579,15 +10507,25 @@
     ],
     "name": "格拉尼",
     "subProfessionId": "charger",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4015_spuria": {
     "date": 1686211200000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4015_spuria",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "GEE",
@@ -7611,15 +10549,25 @@
     ],
     "name": "空构",
     "subProfessionId": "geek",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_426_billro": {
     "date": 1622534400000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_426_billro",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PLX",
@@ -7647,16 +10595,25 @@
     ],
     "name": "卡涅利安",
     "subProfessionId": "phalanx",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_010_chen": {
     "date": 1562659200000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_010_chen",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SWO",
@@ -7693,15 +10650,25 @@
     ],
     "name": "陈",
     "subProfessionId": "sword",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_222_bpipe": {
     "date": 1584432000000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_222_bpipe",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHG",
@@ -7711,6 +10678,15 @@
         "typeIcon": "chg-x",
         "uniEquipName": "破城矛弹夹",
         "uniEquipId": "uniequip_002_bpipe"
+      },
+      {
+        "typeName1": "CHG",
+        "typeName2": "Y",
+        "charId": "char_222_bpipe",
+        "uniEquipIcon": "uniequip_003_bpipe",
+        "typeIcon": "chg-y",
+        "uniEquipName": "“棍棒与口袋”",
+        "uniEquipId": "uniequip_003_bpipe"
       }
     ],
     "skill": [
@@ -7729,15 +10705,25 @@
     ],
     "name": "风笛",
     "subProfessionId": "charger",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_130_doberm": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_130_doberm",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "INS",
@@ -7761,13 +10747,25 @@
     ],
     "name": "杜宾",
     "subProfessionId": "instructor",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_281_popka": {
     "date": 1562659200000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_281_popka",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7777,13 +10775,25 @@
     ],
     "name": "泡普卡",
     "subProfessionId": "centurion",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_4063_quartz": {
     "date": 1667289600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4063_quartz",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7797,15 +10807,25 @@
     ],
     "name": "石英",
     "subProfessionId": "crusher",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_388_mint": {
     "date": 1600934400000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_388_mint",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PLX",
@@ -7829,15 +10849,25 @@
     ],
     "name": "薄绿",
     "subProfessionId": "phalanx",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4106_bryota": {
     "date": 1690876800000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4106_bryota",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "INS",
@@ -7861,15 +10891,57 @@
     ],
     "name": "苍苔",
     "subProfessionId": "instructor",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
+  },
+  "char_4100_caper": {
+    "date": 1698807791017,
+    "profession": "SNIPER",
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4100_caper",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
+    "equip": null,
+    "skill": [
+      {
+        "iconId": "skcom_powerstrike_2_",
+        "name": "强力击·β型"
+      },
+      {
+        "iconId": "skchr_caper_2",
+        "name": "乐趣加倍"
+      }
+    ],
+    "name": "跃跃",
+    "subProfessionId": "loopshooter",
+    "potential": 0,
+    "rarity": 4
   },
   "char_344_beewax": {
     "date": 1595923200000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_344_beewax",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PLX",
@@ -7893,13 +10965,25 @@
     ],
     "name": "蜜蜡",
     "subProfessionId": "phalanx",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_427_vigil": {
     "date": 1667289600000,
     "profession": "PIONEER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_427_vigil",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -7917,15 +11001,25 @@
     ],
     "name": "伺夜",
     "subProfessionId": "tactician",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_356_broca": {
     "date": 1575964800000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_356_broca",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CEN",
@@ -7949,15 +11043,25 @@
     ],
     "name": "布洛卡",
     "subProfessionId": "centurion",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_358_lisa": {
     "date": 1594281600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_358_lisa",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEC",
@@ -7985,15 +11089,25 @@
     ],
     "name": "铃兰",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_290_vigna": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_290_vigna",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHG",
@@ -8017,15 +11131,25 @@
     ],
     "name": "红豆",
     "subProfessionId": "charger",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_272_strong": {
     "date": 1597132800000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_272_strong",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "MER",
@@ -8049,13 +11173,25 @@
     ],
     "name": "孑",
     "subProfessionId": "merchant",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_350_surtr": {
     "date": 1600934400000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_350_surtr",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8073,15 +11209,25 @@
     ],
     "name": "史尔特尔",
     "subProfessionId": "artsfghter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_206_gnosis": {
     "date": 1640073600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_206_gnosis",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "UMD",
@@ -8109,15 +11255,25 @@
     ],
     "name": "灵知",
     "subProfessionId": "underminer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_225_haak": {
     "date": 1579161600000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_225_haak",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "GEE",
@@ -8145,15 +11301,25 @@
     ],
     "name": "阿",
     "subProfessionId": "geek",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_230_savage": {
     "date": 1556589600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_230_savage",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CEN",
@@ -8177,15 +11343,25 @@
     ],
     "name": "暴行",
     "subProfessionId": "centurion",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_349_chiave": {
     "date": 1595923200000,
     "profession": "PIONEER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_349_chiave",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -8209,15 +11385,25 @@
     ],
     "name": "贾维",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4036_forcer": {
     "date": 1647331200000,
     "profession": "SPECIAL",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4036_forcer",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PUS",
@@ -8241,16 +11427,25 @@
     ],
     "name": "见行者",
     "subProfessionId": "pusher",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_202_demkni": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_202_demkni",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "GUA",
@@ -8287,15 +11482,25 @@
     ],
     "name": "塞雷娅",
     "subProfessionId": "guardian",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_158_milu": {
     "date": 1556589600000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_158_milu",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEA",
@@ -8319,24 +11524,48 @@
     ],
     "name": "守林人",
     "subProfessionId": "longrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4091_ulika": {
     "date": 1680336000000,
     "profession": "SUPPORT",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4091_ulika",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [],
     "name": "U-Official",
     "subProfessionId": "bard",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 1
   },
   "char_449_glider": {
     "date": 1635753600000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_449_glider",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8350,16 +11579,25 @@
     ],
     "name": "蜜莓",
     "subProfessionId": "wandermedic",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_112_siege": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_112_siege",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -8396,13 +11634,25 @@
     ],
     "name": "推进之王",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_120_hibisc": {
     "date": 1556589600000,
     "profession": "MEDIC",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_120_hibisc",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8412,15 +11662,25 @@
     ],
     "name": "芙蓉",
     "subProfessionId": "physician",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_391_rosmon": {
     "date": 1604217600000,
     "profession": "SNIPER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_391_rosmon",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "BOM",
@@ -8448,15 +11708,25 @@
     ],
     "name": "迷迭香",
     "subProfessionId": "bombarder",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_2023_ling": {
     "date": 1643097600000,
     "profession": "SUPPORT",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_2023_ling",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SUM",
@@ -8484,13 +11754,25 @@
     ],
     "name": "令",
     "subProfessionId": "summoner",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_121_lava": {
     "date": 1556589600000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_121_lava",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8500,15 +11782,25 @@
     ],
     "name": "炎熔",
     "subProfessionId": "splashcaster",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 3
   },
   "char_4032_provs": {
     "date": 1662624000000,
     "profession": "SUPPORT",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4032_provs",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEC",
@@ -8532,15 +11824,25 @@
     ],
     "name": "但书",
     "subProfessionId": "slower",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_149_scave": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_149_scave",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -8564,15 +11866,25 @@
     ],
     "name": "清道夫",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_4014_lunacu": {
     "date": 1667289600000,
     "profession": "SNIPER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4014_lunacu",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "DEA",
@@ -8596,15 +11908,25 @@
     ],
     "name": "子月",
     "subProfessionId": "longrange",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4080_lin": {
     "date": 1673942400000,
     "profession": "CASTER",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4080_lin",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PLX",
@@ -8632,13 +11954,25 @@
     ],
     "name": "林",
     "subProfessionId": "phalanx",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_347_jaksel": {
     "date": 1604217600000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_347_jaksel",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8652,13 +11986,25 @@
     ],
     "name": "杰克",
     "subProfessionId": "fighter",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 4
   },
   "char_2024_chyue": {
     "date": 1673942400000,
     "profession": "WARRIOR",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_2024_chyue",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "限定干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8676,15 +12022,25 @@
     ],
     "name": "重岳",
     "subProfessionId": "fighter",
-    "itemObtainApproach": "限定干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_201_moeshd": {
     "date": 1556589600000,
     "profession": "TANK",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_201_moeshd",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "PRO",
@@ -8708,15 +12064,25 @@
     ],
     "name": "可颂",
     "subProfessionId": "protector",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_493_firwhl": {
     "date": 1673942400000,
     "profession": "TANK",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_493_firwhl",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "FOR",
@@ -8740,13 +12106,25 @@
     ],
     "name": "火哨",
     "subProfessionId": "fortress",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4102_threye": {
     "date": 1690876800000,
     "profession": "SUPPORT",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4102_threye",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8760,16 +12138,25 @@
     ],
     "name": "凛视",
     "subProfessionId": "ritualist",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_472_pasngr": {
     "date": 1618473600000,
     "profession": "CASTER",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_472_pasngr",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "CHA",
@@ -8806,15 +12193,25 @@
     ],
     "name": "异客",
     "subProfessionId": "chain",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_102_texas": {
     "date": 1556589600000,
     "profession": "PIONEER",
-    "mod": {
-      "modY": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_102_texas",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "SOL",
@@ -8838,16 +12235,25 @@
     ],
     "name": "德克萨斯",
     "subProfessionId": "pioneer",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_4042_lumen": {
     "date": 1651392000000,
     "profession": "MEDIC",
-    "mod": {
-      "modY": true,
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4042_lumen",
+    "own": false,
+    "show": true,
+    "itemObtainApproach": "赠送干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "WAH",
@@ -8884,13 +12290,25 @@
     ],
     "name": "流明",
     "subProfessionId": "healer",
-    "itemObtainApproach": "赠送干员",
+    "potential": 0,
     "rarity": 6
   },
   "char_4040_rockr": {
     "date": 1649923200000,
     "profession": "CASTER",
-    "mod": null,
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_4040_rockr",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": null,
     "skill": [
       {
@@ -8904,15 +12322,25 @@
     ],
     "name": "洛洛",
     "subProfessionId": "funnel",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   },
   "char_421_crow": {
     "date": 1627977600000,
     "profession": "WARRIOR",
-    "mod": {
-      "modX": true
-    },
+    "mainSkill": 0,
+    "modY": 0,
+    "level": 0,
+    "modX": 0,
+    "charId": "char_421_crow",
+    "own": false,
+    "show": false,
+    "itemObtainApproach": "常驻干员",
+    "skill3": 0,
+    "modD": 0,
+    "elite": 0,
+    "skill1": 0,
+    "skill2": 0,
     "equip": [
       {
         "typeName1": "REA",
@@ -8936,7 +12364,7 @@
     ],
     "name": "羽毛笔",
     "subProfessionId": "reaper",
-    "itemObtainApproach": "常驻干员",
+    "potential": 0,
     "rarity": 5
   }
 }

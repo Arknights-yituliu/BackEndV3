@@ -8,6 +8,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.po.item.Item;
 import com.lhs.entity.po.survey.OperatorTable;
 import com.lhs.mapper.survey.OperatorTableMapper;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,7 +26,9 @@ import java.util.stream.Collectors;
 public class OperatorBaseDataService {
 
     private final OperatorTableMapper operatorTableMapper;
-    private final String githubBotResource = "E:\\IDEAProject\\Arknights-Bot-Resource\\";
+    private final static String githubBotResource = "E:\\IDEAProject\\Arknights-Bot-Resource\\";
+
+    private final static String GAME_DATA = "E:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -107,10 +110,10 @@ public class OperatorBaseDataService {
 
 
     public void getCharacterData() {
-        String character_tableText = FileUtil.read(githubBotResource + "gamedata\\excel\\character_table.json");
-        String uniequip_tableText = FileUtil.read(githubBotResource + "gamedata\\excel\\uniequip_table.json");
-        String skill_tableText = FileUtil.read(githubBotResource + "gamedata\\excel\\skill_table.json");
-        String char_patch_tableText = FileUtil.read(githubBotResource + "gamedata\\excel\\char_patch_table.json");
+        String character_tableText = FileUtil.read(GAME_DATA + "excel/character_table.json");
+        String uniequip_tableText = FileUtil.read(GAME_DATA + "excel/uniequip_table.json");
+        String skill_tableText = FileUtil.read(GAME_DATA + "excel/skill_table.json");
+        String char_patch_tableText = FileUtil.read(GAME_DATA + "excel/char_patch_table.json");
 
         JsonNode characterTable = JsonMapper.parseJSONObject(character_tableText);
         JsonNode uniequip_table = JsonMapper.parseJSONObject(uniequip_tableText);
@@ -119,45 +122,19 @@ public class OperatorBaseDataService {
 
         JsonNode equipDict = uniequip_table.get("equipDict");
 
-        HashMap<String, HashMap<String, Object>> modTable = new HashMap<>();
+
 
         List<OperatorTable> operatorTable = getOperatorTable();
 
         Map<String, OperatorTable> characterTableMap = operatorTable.stream()
                 .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
+
         Iterator<Map.Entry<String, JsonNode>> equipDictElements = equipDict.fields();
+        Map<String, List<Map<String, Object>>> equipListMap = new HashMap<>();
 
         while (equipDictElements.hasNext()) {
             String equipId = equipDictElements.next().getKey();
-            JsonNode equipInfo = equipDict.get(equipId);
-            if (equipInfo == null) continue;
-            if (equipInfo.get("typeName1") == null) continue;
-            String typeName1 = equipInfo.get("typeName1").asText();
-            if (!"ORIGINAL".equals(typeName1)) {
-                String typeName2 = equipInfo.get("typeName2").asText();
-
-                String charId = equipInfo.get("charId").asText();
-                if (modTable.get(charId) != null) {
-                    HashMap<String, Object> hashMap = modTable.get(charId);
-                    hashMap.put("mod" + typeName2, true);
-
-                    modTable.put(charId, hashMap);
-                } else {
-                    HashMap<String, Object> hashMap = new HashMap<>();
-                    hashMap.put("mod" + typeName2, true);
-
-                    modTable.put(charId, hashMap);
-                }
-            }
-        }
-
-
-        Iterator<Map.Entry<String, JsonNode>> equipDictElements1 = equipDict.fields();
-        Map<String, List<Map<String, Object>>> equipListMap = new HashMap<>();
-
-        while (equipDictElements1.hasNext()) {
-            String equipId = equipDictElements1.next().getKey();
             JsonNode equipData = equipDict.get(equipId);
             if (equipId.contains("_001_")) continue;
             if (equipData == null) continue;
@@ -167,7 +144,6 @@ public class OperatorBaseDataService {
             String uniEquipIcon = equipData.get("uniEquipIcon").asText();
             String typeIcon = equipData.get("typeIcon").asText();
             String uniEquipName = equipData.get("uniEquipName").asText();
-
 
             if (equipListMap.get(charId) != null) {
                 List<Map<String, Object>> maps = equipListMap.get(charId);
@@ -213,8 +189,10 @@ public class OperatorBaseDataService {
             }
         }
 
-        HashMap<String, Object> hashMap = new HashMap<>();
+       Map<String, Object> table_simple = new HashMap<>();
 
+
+        //升变干员
         JsonNode patchChars = charPatchTable.get("patchChars");
         Iterator<Map.Entry<String, JsonNode>> patchCharsFields = patchChars.fields();
 
@@ -240,23 +218,33 @@ public class OperatorBaseDataService {
             String name = characterData.get("name").asText();
 
             String profession = characterData.get("profession").asText();
-            int rarity = characterData.get("rarity").intValue() + 1;
+            int rarity = getRarity(characterData.get("rarity").asText());
             String subProfessionId = characterData.get("subProfessionId").asText();
 
             OperatorTable operatorTableSimple = characterTableMap.get(charId);
 
             character.put("name", name);
+            character.put("charId",charId);
             character.put("rarity", rarity);
             character.put("itemObtainApproach", operatorTableSimple.getObtainApproach());
-            character.put("mod", modTable.get(charId));
             character.put("equip",equipListMap.get(charId));
             character.put("skill", skillList);
             character.put("date", characterTableMap.get(charId).getUpdateTime());
             character.put("profession", profession);
             character.put("subProfessionId", subProfessionId);
-            hashMap.put(charId, character);
-
-
+            character.put("own",false);
+            character.put("level",0);
+            character.put("elite",0);
+            character.put("potential",0);
+            character.put("mainSkill",0);
+            character.put("skill1",0);
+            character.put("skill2",0);
+            character.put("skill3",0);
+            character.put("modX",0);
+            character.put("modY",0);
+            character.put("modD",0);
+            character.put("show",rarity==6);
+            table_simple.put(charId, character);
         }
 
         Iterator<Map.Entry<String, JsonNode>> characterTableElements = characterTable.fields();
@@ -288,7 +276,7 @@ public class OperatorBaseDataService {
                 String name = characterData.get("name").asText();
 
                 String profession = characterData.get("profession").asText();
-                int rarity = characterData.get("rarity").intValue() + 1;
+                int rarity = getRarity(characterData.get("rarity").asText());;
                 String subProfessionId = characterData.get("subProfessionId").asText();
 
                 OperatorTable operatorTableSimple = characterTableMap.get(charId);
@@ -312,30 +300,49 @@ public class OperatorBaseDataService {
 
 
                 character.put("name", name);
+                character.put("charId",charId);
                 character.put("rarity", rarity);
                 character.put("itemObtainApproach", itemObtainApproach);
-                character.put("mod", modTable.get(charId));
                 character.put("equip",equipListMap.get(charId));
                 character.put("skill", skillList);
                 character.put("date", updateTime);
                 character.put("profession", profession);
                 character.put("subProfessionId", subProfessionId);
-                hashMap.put(charId, character);
-
+                character.put("own",false);
+                character.put("level",0);
+                character.put("elite",0);
+                character.put("potential",0);
+                character.put("mainSkill",0);
+                character.put("skill1",0);
+                character.put("skill2",0);
+                character.put("skill3",0);
+                character.put("modX",0);
+                character.put("modY",0);
+                character.put("modD",0);
+                character.put("show",rarity==6);
+                table_simple.put(charId, character);
             }
-
         }
 
-        FileUtil.save(ApplicationConfig.Item, "character_table_simple.json", JsonMapper.toJSONString(hashMap));
-        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JsonMapper.toJSONString(hashMap));
+        List<Object> list = new ArrayList<>();
+        for(String id :table_simple.keySet()){
+            list.add(table_simple.get(id));
+        }
 
+        FileUtil.save(ApplicationConfig.Item, "character_table_simple.json", JsonMapper.toJSONString(table_simple));
+        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JsonMapper.toJSONString(table_simple));
+        FileUtil.save(ApplicationConfig.Item, "character_list.json", JsonMapper.toJSONString(list));
+        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_list.json", JsonMapper.toJSONString(list));
     }
 
+    private Integer getRarity(String str){
+        return Integer.parseInt(str.replace("TIER_",""));
+    }
 
     public HashMap<String, Object> getOperatorApCost() {
-        String character_tableText = FileUtil.read(githubBotResource + "gamedata\\excel\\character_table.json");
-        String uniequip_tableText = FileUtil.read(githubBotResource + "gamedata\\excel\\uniequip_table.json");
-        String skill_tableText = FileUtil.read(githubBotResource + "gamedata\\excel\\skill_table.json");
+        String character_tableText = FileUtil.read(GAME_DATA + "excel/character_table.json");
+        String uniequip_tableText = FileUtil.read(GAME_DATA + "excel/uniequip_table.json");
+        String skill_tableText = FileUtil.read(GAME_DATA + "excel/skill_table.json");
 
         JsonNode characterTable = JsonMapper.parseJSONObject(character_tableText);
         JsonNode equipTable = JsonMapper.parseJSONObject(uniequip_tableText);
@@ -456,6 +463,8 @@ public class OperatorBaseDataService {
                 operatorMap.put(charId, operator);
             }
 
+
+
         }
 
 //        FileUtil.save(ApplicationConfig.Item, "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
@@ -496,8 +505,8 @@ public class OperatorBaseDataService {
             String charId = equip.get("charId").asText();
             Integer rarity = charIdAndRarity.get(charId);
 
-            File source = new File("E:\\VCProject\\operatorImage\\mod\\" + uniEquipIcon + ".png");
-            File dest = new File("E:\\VCProject\\operatorImage\\mod-ori-"+rarity+"\\" + uniEquipIcon + ".png");
+            File source = new File("E:\\VCProject\\resources\\mod\\" + uniEquipIcon + ".png");
+            File dest = new File("E:\\VCProject\\resources\\mod-ori-"+rarity+"\\" + uniEquipIcon + ".png");
             copyFile(source,dest);
         }
 
@@ -508,14 +517,14 @@ public class OperatorBaseDataService {
         try {
             // 创建流对象
 
-            String character_tableStr = FileUtil.read(githubBotResource + "gamedata\\excel\\character_table.json");
+            String character_tableStr = FileUtil.read(GAME_DATA + "excel/character_table.json");
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
             String startPath = githubBotResource + "portrait\\";
-            String portrait6 = "E:\\VCProject\\operatorImage\\portrait-ori-6\\";
-            String portrait5 = "E:\\VCProject\\operatorImage\\portrait-ori-5\\";
-            String portrait4 = "E:\\VCProject\\operatorImage\\portrait-ori-4\\";
+            String portrait6 = "E:\\VCProject\\resources\\portrait-ori-6\\";
+            String portrait5 = "E:\\VCProject\\resources\\portrait-ori-5\\";
+            String portrait4 = "E:\\VCProject\\resources\\portrait-ori-4\\";
             String endPath = portrait4;
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
@@ -524,13 +533,13 @@ public class OperatorBaseDataService {
                 String charId = fields.next().getKey();
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
-                int rarity = charData.get("rarity").intValue();
-                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png");
+                int rarity = getRarity(charData.get("rarity").asText());
+                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 "+endPath+ charId + ".png");
                 File source = new File(startPath + charId + "_1.png");
 
-                if (rarity == 5) endPath = portrait6;
-                if (rarity == 4) endPath = portrait5;
-                if (rarity < 4) endPath = portrait4;
+                if (rarity == 6) endPath = portrait6;
+                if (rarity == 5) endPath = portrait5;
+                if (rarity < 5) endPath = portrait4;
 
                 File tmpFile = new File(endPath);//获取文件夹路径
 
@@ -552,15 +561,15 @@ public class OperatorBaseDataService {
         try {
             // 创建流对象
 
-            String character_tableStr = FileUtil.read(githubBotResource + "gamedata\\excel\\character_table.json");
+            String character_tableStr = FileUtil.read(GAME_DATA + "excel/character_table.json");
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
 
             String startPath = githubBotResource + "avatar\\";
-            String avatar6 = "E:\\VCProject\\operatorImage\\avatar-ori-6\\";
-            String avatar5 = "E:\\VCProject\\operatorImage\\avatar-ori-5\\";
-            String avatar4 = "E:\\VCProject\\operatorImage\\avatar-ori-4\\";
+            String avatar6 = "E:\\VCProject\\resources\\avatar-ori-6\\";
+            String avatar5 = "E:\\VCProject\\resources\\avatar-ori-5\\";
+            String avatar4 = "E:\\VCProject\\resources\\avatar-ori-4\\";
             String endPath = avatar4;
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
@@ -569,13 +578,13 @@ public class OperatorBaseDataService {
                 String charId = fields.next().getKey();
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
-                int rarity = charData.get("rarity").intValue();
-                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png");
+                int rarity = getRarity(charData.get("rarity").asText());
+                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 "+endPath+ charId + ".png");
                 File source = new File(startPath + charId + ".png");
 
-                if (rarity == 5) endPath = avatar6;
-                if (rarity == 4) endPath = avatar5;
-                if (rarity < 4) endPath = avatar4;
+                if (rarity == 6) endPath = avatar6;
+                if (rarity == 5) endPath = avatar5;
+                if (rarity < 5) endPath = avatar4;
 
                 File tmpFile = new File(endPath);//获取文件夹路径
 

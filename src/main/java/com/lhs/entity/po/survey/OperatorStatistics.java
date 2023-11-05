@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SurveyStatisticsOperator {
+@TableName("survey_operator_statistics")
+public class OperatorStatistics {
 
     @TableId
     private String  charId;
@@ -24,6 +25,7 @@ public class SurveyStatisticsOperator {
     private String skill3;
     private String modX;
     private String modY;
+    private String modD;
 
 
 }

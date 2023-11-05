@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.survey.SurveyRecruitMapper">
+<mapper namespace="com.lhs.mapper.survey.RecruitDataMapper">
 
     <insert id="insertRecruitData">
         INSERT INTO ${tableName}
         (`id`, `create_time`, `level`, `server`, `source`, `tag`, `uid`, `version`)
-        VALUES (#{surveyRecruit.id}, #{surveyRecruit.createTime}, #{surveyRecruit.level}, #{surveyRecruit.server},
-                #{surveyRecruit.source}, #{surveyRecruit.tag}, #{surveyRecruit.uid}, #{surveyRecruit.version})
+        VALUES (#{recruitData.id}, #{recruitData.createTime}, #{recruitData.level}, #{recruitData.server},
+                #{recruitData.source}, #{recruitData.tag}, #{recruitData.uid}, #{recruitData.version})
     </insert>
 
-    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.po.maa.SurveyRecruit">
+    <select id="selectRecruitDataByCreateTime" resultType="com.lhs.entity.po.maa.RecruitData">
         SELECT *
         FROM  ${tableName}
         WHERE

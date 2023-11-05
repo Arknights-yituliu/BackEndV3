@@ -12,7 +12,7 @@ import lombok.Data;
 @TableName
 @Table
 @Entity
-public class SurveyOperatorUploadLog {
+public class OperatorUploadLog {
 
     @Id
     @TableId

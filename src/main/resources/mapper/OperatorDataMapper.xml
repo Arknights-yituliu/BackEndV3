@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.survey.SurveyOperatorMapper">
+<mapper namespace="com.lhs.mapper.survey.OperatorDataMapper">
 
 
     <!--  批量插入干员练度信息表-->
@@ -38,13 +38,5 @@
                 id = #{item.id}
     </update>
 
-
-    <select id="selectBakId" resultType="com.lhs.entity.po.survey.SurveyStatisticsUser">
-         SELECT * FROM  `survey_statistics_user_bak` WHERE uid = #{uid}
-    </select>
-
-    <select id="selectBakOperatorDataById" resultType="com.lhs.entity.po.survey.SurveyOperator">
-        SELECT * FROM  `survey_character_1_bak` WHERE uid = #{id}
-    </select>
 
 </mapper>

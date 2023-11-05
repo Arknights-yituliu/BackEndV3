@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SurveyScore {
-    private Long id;
-
-    private Long uid;
+public class OperatorScoreStatistics {
 
     private String  charId;
 
@@ -20,17 +17,35 @@ public class SurveyScore {
 
     private Integer daily;
 
+    private Integer sampleSizeDaily;
+
     private Integer rogue;
+
+    private Integer sampleSizeRogue;
 
     private Integer securityService;
 
+    private Integer sampleSizeSecurityService;
+
     private Integer hard;
+
+    private Integer sampleSizeHard;
 
     private Integer universal;
 
+    private Integer sampleSizeUniversal;
+
     private Integer counter;
+
+    private Integer sampleSizeCounter;
 
     private Integer building;
 
+    private Integer sampleSizeBuilding;
+
     private Integer comprehensive;
+
+    private Integer sampleSizeComprehensive;
+
+
 }

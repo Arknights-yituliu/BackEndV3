@@ -7,14 +7,13 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.ResultCode;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.po.survey.*;
-import com.lhs.entity.vo.survey.SurveyOperatorExcelVO;
+import com.lhs.entity.vo.survey.OperatorExportExcelVO;
 import com.lhs.entity.vo.survey.UserDataVO;
-import com.lhs.mapper.survey.SurveyOperatorLogMapper;
-import com.lhs.mapper.survey.SurveyOperatorMapper;
-import com.lhs.mapper.survey.SurveyOperatorVoMapper;
+import com.lhs.mapper.survey.OperatorUploadLogMapper;
+import com.lhs.mapper.survey.OperatorDataMapper;
+import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.service.util.OSSService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,11 +29,11 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class SurveyOperatorService {
+public class OperatorDataService {
 
 
-    private final SurveyOperatorMapper surveyOperatorMapper;
-    private final SurveyOperatorVoMapper surveyOperatorVoMapper;
+    private final OperatorDataMapper operatorDataMapper;
+    private final OperatorDataVoMapper operatorDataVoMapper;
 
     private final SurveyUserService surveyUserService;
 
@@ -42,99 +41,99 @@ public class SurveyOperatorService {
 
     private final OSSService ossService;
 
-    private final SurveyOperatorLogMapper surveyOperatorLogMapper;
+    private final OperatorUploadLogMapper operatorUploadLogMapper;
 
     private final OperatorBaseDataService operatorBaseDataService;
 
-    public SurveyOperatorService(SurveyOperatorMapper surveyOperatorMapper, SurveyOperatorVoMapper surveyOperatorVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, SurveyOperatorLogMapper surveyOperatorLogMapper, OperatorBaseDataService operatorBaseDataService) {
-        this.surveyOperatorMapper = surveyOperatorMapper;
-        this.surveyOperatorVoMapper = surveyOperatorVoMapper;
+    public OperatorDataService(OperatorDataMapper operatorDataMapper, OperatorDataVoMapper operatorDataVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, OperatorUploadLogMapper operatorUploadLogMapper, OperatorBaseDataService operatorBaseDataService) {
+        this.operatorDataMapper = operatorDataMapper;
+        this.operatorDataVoMapper = operatorDataVoMapper;
         this.surveyUserService = surveyUserService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
-        this.surveyOperatorLogMapper = surveyOperatorLogMapper;
+        this.operatorUploadLogMapper = operatorUploadLogMapper;
         this.operatorBaseDataService = operatorBaseDataService;
     }
 
     /**
      * 通用的上传方法
      * @param surveyUser         用户信息
-     * @param surveyOperatorList 干员练度调查表
+     * @param operatorDataList 干员练度调查表
      * @return
      */
-    private Map<String, Object> saveOperatorData(SurveyUser surveyUser, List<SurveyOperator> surveyOperatorList) {
+    private Map<String, Object> saveOperatorData(SurveyUser surveyUser, List<OperatorData> operatorDataList) {
 
         long yituliuId = surveyUser.getId();
 
         Date date = new Date();
-        String tableName = "survey_character_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
+        String tableName = "survey_operator_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
 
         int affectedRows = 0;
 
 
         //用户之前上传的数据
-        QueryWrapper<SurveyOperator> lastQueryWrapper= new QueryWrapper<>();
+        QueryWrapper<OperatorData> lastQueryWrapper= new QueryWrapper<>();
         lastQueryWrapper.eq("uid",yituliuId);
-        List<SurveyOperator> lastOperatorDataList = surveyOperatorMapper.selectList(lastQueryWrapper);
+        List<OperatorData> lastOperatorDataListData = operatorDataMapper.selectList(lastQueryWrapper);
 
-        Map<String, SurveyOperator> lastOperatorDataMap = lastOperatorDataList.stream()
-                .collect(Collectors.toMap(SurveyOperator::getCharId, Function.identity()));
+        Map<String, OperatorData> lastOperatorDataMap = lastOperatorDataListData.stream()
+                .collect(Collectors.toMap(OperatorData::getCharId, Function.identity()));
 
         //新增数据
-        List<SurveyOperator> insertOperatorList = new ArrayList<>();
+        List<OperatorData> insertOperatorListData = new ArrayList<>();
 
 
-        for (SurveyOperator surveyOperator : surveyOperatorList) {
+        for (OperatorData operatorData : operatorDataList) {
 
             //精英化阶段小于2 不能专精和开模组
-            if (surveyOperator.getElite() < 2) {
-                surveyOperator.setSkill1(-1);
-                surveyOperator.setSkill2(-1);
-                surveyOperator.setSkill3(-1);
-                surveyOperator.setModX(-1);
-                surveyOperator.setModY(-1);
-                surveyOperator.setModD(-1);
+            if (operatorData.getElite() < 2) {
+                operatorData.setSkill1(0);
+                operatorData.setSkill2(0);
+                operatorData.setSkill3(0);
+                operatorData.setModX(0);
+                operatorData.setModY(0);
+                operatorData.setModD(0);
             }
 
-            if (surveyOperator.getRarity() < 6) {
-                surveyOperator.setSkill3(-1);
+            if (operatorData.getRarity() < 6) {
+                operatorData.setSkill3(0);
             }
 
-            if (!surveyOperator.getOwn()) {
-                surveyOperator.setMainSkill(-1);
-                surveyOperator.setPotential(-1);
-                surveyOperator.setSkill1(-1);
-                surveyOperator.setSkill2(-1);
-                surveyOperator.setSkill3(-1);
-                surveyOperator.setModX(-1);
-                surveyOperator.setModY(-1);
-                surveyOperator.setModD(-1);
+            if (!operatorData.getOwn()) {
+                operatorData.setMainSkill(0);
+                operatorData.setPotential(0);
+                operatorData.setSkill1(0);
+                operatorData.setSkill2(0);
+                operatorData.setSkill3(0);
+                operatorData.setModX(0);
+                operatorData.setModY(0);
+                operatorData.setModD(0);
             }
 
 //            System.out.println(surveyOperator);
 
             //和老数据进行对比
-            SurveyOperator lastOperatorData = lastOperatorDataMap.get(surveyOperator.getCharId());
+            OperatorData lastOperatorDataData = lastOperatorDataMap.get(operatorData.getCharId());
             //为空则新增
 
-            if (lastOperatorData == null) {
+            if (lastOperatorDataData == null) {
                 Long characterId = redisTemplate.opsForValue().increment("CharacterId");
-                surveyOperator.setId(characterId);
-                surveyOperator.setUid(yituliuId);
-                insertOperatorList.add(surveyOperator);  //加入批量插入集合
+                operatorData.setId(characterId);
+                operatorData.setUid(yituliuId);
+                insertOperatorListData.add(operatorData);  //加入批量插入集合
                 affectedRows++;  //新增数据条数
             } else {
                 //如果数据存在，进行更新
                 affectedRows++;  //更新数据条数
-                surveyOperator.setId(lastOperatorData.getId());
-                surveyOperator.setUid(yituliuId);
-                surveyOperatorMapper.updateByUid(tableName,surveyOperator); //更新数据
+                operatorData.setId(lastOperatorDataData.getId());
+                operatorData.setUid(yituliuId);
+                operatorDataMapper.updateByUid(tableName, operatorData); //更新数据
             }
         }
 
 //        System.out.println(insertOperatorList.size());
 
-        if (insertOperatorList.size() > 0) surveyOperatorMapper.insertBatch(tableName, insertOperatorList);  //批量插入
+        if (insertOperatorListData.size() > 0) operatorDataMapper.insertBatch(tableName, insertOperatorListData);  //批量插入
 
 
         surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
@@ -153,13 +152,13 @@ public class SurveyOperatorService {
     /**
      * 手动上传干员练度调查表
      * @param token              token
-     * @param surveyOperatorList 干员练度调查表单
+     * @param operatorDataList 干员练度调查表单
      * @return 成功消息
      */
 //    @TakeCount(name = "上传评分")
-    public Map<String, Object> manualUploadOperator(String token, List<SurveyOperator> surveyOperatorList) {
+    public Map<String, Object> manualUploadOperator(String token, List<OperatorData> operatorDataList) {
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        return saveOperatorData(surveyUser, surveyOperatorList);
+        return saveOperatorData(surveyUser, operatorDataList);
     }
 
     /**
@@ -171,7 +170,7 @@ public class SurveyOperatorService {
     public Result<Object> importSKLandPlayerInfoV2(String token, String dataStr) {
 
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        List<SurveyOperator> surveyOperatorList = new ArrayList<>();
+        List<OperatorData> operatorDataList = new ArrayList<>();
 
         Map<String, String> uniEquipIdAndType = operatorBaseDataService.getEquipIdAndType();
         JsonNode data =  JsonMapper.parseJSONObject(dataStr);
@@ -197,38 +196,38 @@ public class SurveyOperatorService {
 
         for (int i = 0; i < chars.size(); i++) {
 
-            SurveyOperator surveyOperator = new SurveyOperator();
+            OperatorData operatorData = new OperatorData();
             String charId = chars.get(i).get("charId").asText();
             int level = chars.get(i).get("level").intValue();
             int evolvePhase = chars.get(i).get("evolvePhase").intValue();
             int potentialRank = chars.get(i).get("potentialRank").intValue() + 1;
             int rarity = charInfoMap.get(charId).get("rarity").intValue() + 1;
             int mainSkillLvl = chars.get(i).get("mainSkillLvl").intValue();
-            surveyOperator.setCharId(charId);
-            surveyOperator.setOwn(true);
-            surveyOperator.setLevel(level);
-            surveyOperator.setElite(evolvePhase);
-            surveyOperator.setRarity(rarity);
-            surveyOperator.setMainSkill(mainSkillLvl);
-            surveyOperator.setPotential(potentialRank);
-            surveyOperator.setSkill1(-1);
-            surveyOperator.setSkill2(-1);
-            surveyOperator.setSkill3(-1);
-            surveyOperator.setModX(-1);
-            surveyOperator.setModY(-1);
-            surveyOperator.setModD(-1);
+            operatorData.setCharId(charId);
+            operatorData.setOwn(true);
+            operatorData.setLevel(level);
+            operatorData.setElite(evolvePhase);
+            operatorData.setRarity(rarity);
+            operatorData.setMainSkill(mainSkillLvl);
+            operatorData.setPotential(potentialRank);
+            operatorData.setSkill1(0);
+            operatorData.setSkill2(0);
+            operatorData.setSkill3(0);
+            operatorData.setModX(0);
+            operatorData.setModY(0);
+            operatorData.setModD(0);
 
             JsonNode skills = chars.get(i).get("skills");
             for (int j = 0; j < skills.size(); j++) {
                 int specializeLevel = skills.get(j).get("specializeLevel").intValue();
                 if (j == 0) {
-                    surveyOperator.setSkill1(specializeLevel);
+                    operatorData.setSkill1(specializeLevel);
                 }
                 if (j == 1) {
-                    surveyOperator.setSkill2(specializeLevel);
+                    operatorData.setSkill2(specializeLevel);
                 }
                 if (j == 2) {
-                    surveyOperator.setSkill3(specializeLevel);
+                    operatorData.setSkill3(specializeLevel);
                 }
             }
 
@@ -242,34 +241,34 @@ public class SurveyOperatorService {
                 String type = uniEquipIdAndType.get(id);
                 if (defaultEquipId.equals(id)) {
                     if ("X".equals(type)) {
-                        surveyOperator.setModX(equipLevel);
+                        operatorData.setModX(equipLevel);
                     }
                     if ("Y".equals(type)) {
-                        surveyOperator.setModY(equipLevel);
+                        operatorData.setModY(equipLevel);
                     }
                     if ("D".equals(type)) {
-                        surveyOperator.setModD(equipLevel);
+                        operatorData.setModD(equipLevel);
                     }
                 }
                 if (equipLevel > 1) {
                     if ("X".equals(type)) {
-                        surveyOperator.setModX(equipLevel);
+                        operatorData.setModX(equipLevel);
                     }
                     if ("Y".equals(type)) {
-                        surveyOperator.setModY(equipLevel);
+                        operatorData.setModY(equipLevel);
                     }
                     if ("D".equals(type)) {
-                        surveyOperator.setModD(equipLevel);
+                        operatorData.setModD(equipLevel);
                     }
                 }
             }
 //            System.out.println(surveyOperator);
-            surveyOperatorList.add(surveyOperator);
+            operatorDataList.add(operatorData);
         }
 
         userBindPlayerUid(surveyUser);
 
-        return Result.success(saveOperatorData(surveyUser, surveyOperatorList));
+        return Result.success(saveOperatorData(surveyUser, operatorDataList));
     }
 
     /**
@@ -277,10 +276,10 @@ public class SurveyOperatorService {
      * @param surveyUser 调查站用户信息
      */
     private void userBindPlayerUid(SurveyUser surveyUser){
-        QueryWrapper<SurveyOperatorUploadLog> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<OperatorUploadLog> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", surveyUser.getId());
-        SurveyOperatorUploadLog operatorUploadLog = surveyOperatorLogMapper.selectOne(queryWrapper);
-        SurveyOperatorUploadLog surveyOperatorUploadLog = new SurveyOperatorUploadLog();
+        OperatorUploadLog operatorUploadLog = operatorUploadLogMapper.selectOne(queryWrapper);
+        OperatorUploadLog surveyOperatorUploadLog = new OperatorUploadLog();
         surveyOperatorUploadLog.setId(surveyUser.getId());
         surveyOperatorUploadLog.setUserName(surveyUser.getUserName());
         surveyOperatorUploadLog.setIp(surveyUser.getIp());
@@ -289,9 +288,9 @@ public class SurveyOperatorService {
         surveyOperatorUploadLog.setDeleteFlag(surveyUser.getDeleteFlag());
 
         if(operatorUploadLog == null){
-            surveyOperatorLogMapper.insert(surveyOperatorUploadLog);
+            operatorUploadLogMapper.insert(surveyOperatorUploadLog);
         }else {
-            surveyOperatorLogMapper.update(surveyOperatorUploadLog,queryWrapper);
+            operatorUploadLogMapper.update(surveyOperatorUploadLog,queryWrapper);
         }
 
 
@@ -308,13 +307,13 @@ public class SurveyOperatorService {
      * @return 成功消息
      */
     public Map<String, Object> importExcel(MultipartFile file, String token) {
-        List<SurveyOperator> list = new ArrayList<>();
+        List<OperatorData> list = new ArrayList<>();
         try {
-            EasyExcel.read(file.getInputStream(), SurveyOperatorExcelVO.class, new AnalysisEventListener<SurveyOperatorExcelVO>() {
-                public void invoke(SurveyOperatorExcelVO surveyOperatorExcelVo, AnalysisContext analysisContext) {
-                    SurveyOperator surveyOperator = new SurveyOperator();
-                    BeanUtils.copyProperties(surveyOperatorExcelVo, surveyOperator);
-                    list.add(surveyOperator);
+            EasyExcel.read(file.getInputStream(), OperatorExportExcelVO.class, new AnalysisEventListener<OperatorExportExcelVO>() {
+                public void invoke(OperatorExportExcelVO operatorExportExcelVo, AnalysisContext analysisContext) {
+                    OperatorData operatorData = new OperatorData();
+                    BeanUtils.copyProperties(operatorExportExcelVo, operatorData);
+                    list.add(operatorData);
                 }
 
                 public void doAfterAllAnalysed(AnalysisContext analysisContext) {
@@ -339,11 +338,11 @@ public class SurveyOperatorService {
         Long resetId = redisTemplate.opsForValue().increment("resetId");
         surveyUserByToken.setUid("delete"+resetId);
         surveyUserService.backupSurveyUser(surveyUserByToken);
-        QueryWrapper<SurveyOperator> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<OperatorData> queryWrapper = new QueryWrapper<>();
         Long id = surveyUserByToken.getId();
         queryWrapper.eq("uid", id);
 
-        int delete = surveyOperatorMapper.delete(queryWrapper);
+        int delete = operatorDataMapper.delete(queryWrapper);
 
         return Result.success("重置了"+delete+"条数据");
     }
@@ -354,20 +353,20 @@ public class SurveyOperatorService {
      * @param token token
      * @return 成功消息
      */
-    public List<SurveyOperatorVo> getOperatorForm(String token) {
+    public List<OperatorDataVo> getOperatorForm(String token) {
 
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        List<SurveyOperatorVo> surveyOperatorVos = new ArrayList<>();
+        List<OperatorDataVo> operatorDataVos = new ArrayList<>();
         if (surveyUser.getCreateTime().getTime() == surveyUser.getUpdateTime().getTime())
-            return surveyOperatorVos;  //更新时间和注册时间一致直接返回空
+            return operatorDataVos;  //更新时间和注册时间一致直接返回空
 
-        QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
+        QueryWrapper<OperatorData> queryWrapper= new QueryWrapper<>();
         queryWrapper.eq("uid",surveyUser.getId());
 
-        List<SurveyOperator> surveyOperatorList = surveyOperatorMapper.selectList(queryWrapper);
+        List<OperatorData> operatorDataList = operatorDataMapper.selectList(queryWrapper);
 
-        surveyOperatorList.forEach(e -> {
-            SurveyOperatorVo build = SurveyOperatorVo.builder()
+        operatorDataList.forEach(e -> {
+            OperatorDataVo build = OperatorDataVo.builder()
                     .charId(e.getCharId())
                     .level(e.getLevel())
                     .own(e.getOwn())
@@ -380,11 +379,12 @@ public class SurveyOperatorService {
                     .skill3(e.getSkill3())
                     .modX(e.getModX())
                     .modY(e.getModY())
+                    .modD(e.getModD())
                     .build();
-            surveyOperatorVos.add(build);
+            operatorDataVos.add(build);
         });
 
-        return surveyOperatorVos;
+        return operatorDataVos;
     }
 
     /**
@@ -398,12 +398,12 @@ public class SurveyOperatorService {
         //拿到这个用户的干员练度数据存在了哪个表
 
         //用户之前上传的数据
-        QueryWrapper<SurveyOperator> queryWrapper= new QueryWrapper<>();
+        QueryWrapper<OperatorData> queryWrapper= new QueryWrapper<>();
         queryWrapper.eq("uid",surveyUser.getId());
-        List<SurveyOperator> surveyOperatorList =
-                surveyOperatorMapper.selectList(queryWrapper);
+        List<OperatorData> operatorDataList =
+                operatorDataMapper.selectList(queryWrapper);
 
-        List<SurveyOperatorExcelVO> listVo = new ArrayList<>();
+        List<OperatorExportExcelVO> listVo = new ArrayList<>();
 
 
         List<OperatorTable> operatorInfo = operatorBaseDataService.getOperatorTable();
@@ -411,17 +411,17 @@ public class SurveyOperatorService {
         Map<String, OperatorTable> operatorTableMap = operatorInfo.stream()
                 .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
-        for(SurveyOperator surveyOperator: surveyOperatorList){
-            SurveyOperatorExcelVO surveyOperatorExcelVo = new SurveyOperatorExcelVO();
-            surveyOperatorExcelVo.copy(surveyOperator);
-            String name = operatorTableMap.get(surveyOperator.getCharId())==null?"未录入":operatorTableMap.get(surveyOperator.getCharId()).getName();
-            surveyOperatorExcelVo.setName(name);
-            listVo.add(surveyOperatorExcelVo);
+        for(OperatorData operatorData : operatorDataList){
+            OperatorExportExcelVO operatorExportExcelVo = new OperatorExportExcelVO();
+            operatorExportExcelVo.copy(operatorData);
+            String name = operatorTableMap.get(operatorData.getCharId())==null?"未录入":operatorTableMap.get(operatorData.getCharId()).getName();
+            operatorExportExcelVo.setName(name);
+            listVo.add(operatorExportExcelVo);
         }
 
         String userName = surveyUser.getUserName();
 
-        ExcelUtil.exportExcel(response, listVo, SurveyOperatorExcelVO.class, userName);
+        ExcelUtil.exportExcel(response, listVo, OperatorExportExcelVO.class, userName);
     }
 
 

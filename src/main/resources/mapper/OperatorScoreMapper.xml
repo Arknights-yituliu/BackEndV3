@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.survey.SurveyScoreMapper">
+<mapper namespace="com.lhs.mapper.survey.OperatorScoreMapper">
 
     <!-- 干员练度信息表，批量插入-->
     <insert id="insertBatchSurveyScore">
@@ -35,7 +35,7 @@
     </update>
 
     <!-- 干员练度信息表，根据多个uid查询-->
-    <select id="selectSurveyScoreVoByUidList" resultType="com.lhs.entity.vo.survey.SurveyScoreVO">
+    <select id="selectSurveyScoreVoByUidList" resultType="com.lhs.entity.vo.survey.OperatorScoreVO">
         SELECT `char_id`,`rarity`, `daily`, `rogue`,`security_service` , `hard`,
                `universal`, `counter`,`building`, `comprehensive`
         FROM ${tableName}
@@ -46,7 +46,7 @@
     </select>
 
     <!-- 干员练度信息表，根据单个uid查询-->
-    <select id="selectSurveyScoreByUid" resultType="com.lhs.entity.po.survey.SurveyScore">
+    <select id="selectSurveyScoreByUid" resultType="com.lhs.entity.po.survey.OperatorScore">
         SELECT *
         FROM ${tableName}
         WHERE `uid` = #{uid}
@@ -91,7 +91,7 @@
     </delete>
 
     <!--   查询所有干员练度统计表结果-->
-    <select id="selectScoreStatisticsList" resultType="com.lhs.entity.po.survey.SurveyStatisticsScore">
+    <select id="selectScoreStatisticsList" resultType="com.lhs.entity.po.survey.OperatorScoreStatistics">
         Select *
         FROM `survey_statistics_score`
     </select>
