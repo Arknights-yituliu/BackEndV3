@@ -42,7 +42,7 @@ public class OperatorBaseDataService {
      * 返回一个集合 key:模组id,value:模组分支
      * @return  Map<模组id,模组分支>
      */
-    @RedisCacheable(key = "EquipIdAndType", timeout = 86400)
+    @RedisCacheable(key = "Survey:EquipIdAndType", timeout = 86400)
     public Map<String, String> getEquipIdAndType() {
         String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
         if(read==null) throw new ServiceException(ResultCode.FILE_NOT_EXIST);
@@ -74,7 +74,7 @@ public class OperatorBaseDataService {
      * 返回一个集合 key:干员id_模组分支,value:模组分支
      * @return  Map<干员id_模组分支,模组分支>
      */
-    @RedisCacheable(key = "HasEquipTable", timeout = 86400)
+    @RedisCacheable(key = "Survey:HasEquipTable", timeout = 86400)
     public Map<String, String> getHasEquipTable() {
         String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
         JsonNode jsonNode = JsonMapper.parseJSONObject(read);
@@ -100,11 +100,10 @@ public class OperatorBaseDataService {
      * 返回一个干员信息的集合 里面主要用到干员的获取方式和实装时间
      * @return
      */
-    @RedisCacheable(key = "OperatorUpdateTable",timeout = 3000)
+    @RedisCacheable(key = "Survey:OperatorUpdateTable",timeout = 3000)
     public List<OperatorTable> getOperatorTable(){
-
         List<OperatorTable> operatorTableList = operatorTableMapper.selectList(null);
-
+        if(operatorTableList==null) throw new ServiceException(ResultCode.DATA_NONE);
         return operatorTableList;
     }
 
@@ -121,8 +120,6 @@ public class OperatorBaseDataService {
         JsonNode charPatchTable = JsonMapper.parseJSONObject(char_patch_tableText);
 
         JsonNode equipDict = uniequip_table.get("equipDict");
-
-
 
         List<OperatorTable> operatorTable = getOperatorTable();
 
@@ -142,7 +139,7 @@ public class OperatorBaseDataService {
             String typeName1 = equipData.get("typeName1").asText();
             String typeName2 = equipData.get("typeName2").asText();
             String uniEquipIcon = equipData.get("uniEquipIcon").asText();
-            String typeIcon = equipData.get("typeIcon").asText();
+            String typeIcon = equipData.get("typeIcon").asText().toLowerCase();
             String uniEquipName = equipData.get("uniEquipName").asText();
 
             if (equipListMap.get(charId) != null) {
@@ -331,6 +328,7 @@ public class OperatorBaseDataService {
 
         FileUtil.save(ApplicationConfig.Item, "character_table_simple.json", JsonMapper.toJSONString(table_simple));
         FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JsonMapper.toJSONString(table_simple));
+
         FileUtil.save(ApplicationConfig.Item, "character_list.json", JsonMapper.toJSONString(list));
         FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_list.json", JsonMapper.toJSONString(list));
     }

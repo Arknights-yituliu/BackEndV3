@@ -77,7 +77,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
     }
 
 
-    @RedisCacheable(key = "StorePerm",timeout=86400)
+    @RedisCacheable(key = "Item:StorePerm",timeout=86400)
     public Map<String, List<StorePerm>> getStorePerm(){
         List<StorePerm> storePerms = storePermMapper.selectList(null);
         Map<String, List<StorePerm>> resultMap = storePerms.stream().collect(Collectors.groupingBy(StorePerm::getStoreType));
@@ -130,7 +130,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         return message;
     }
 
-    @RedisCacheable(key = "StoreAct",timeout=86400)
+    @RedisCacheable(key = "Item:StoreAct",timeout=86400)
     public List<StoreActVO> getStoreAct(){
         List<StoreAct> storeActs = storeActMapper.selectList(null);
         List<StoreActVO> storeActVOList = new ArrayList<>();

@@ -2,15 +2,16 @@ package com.lhs.service.item;
 
 import com.alibaba.excel.EasyExcel;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 
 import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.item.ItemIterationValue;
 import com.lhs.entity.po.item.WorkShopProducts;
 import com.lhs.entity.dto.item.StageParamDTO;
@@ -29,10 +30,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -50,7 +51,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
 
     public ItemService(ItemMapper itemMapper,
                        ItemIterationValueMapper itemIterationValueMapper,
-                       WorkShopProductsMapper workShopProductsMapper){
+                       WorkShopProductsMapper workShopProductsMapper) {
         this.itemMapper = itemMapper;
         this.itemIterationValueMapper = itemIterationValueMapper;
         this.workShopProductsMapper = workShopProductsMapper;
@@ -60,191 +61,228 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
     /**
      * //根据蓝材料对应的常驻最高关卡效率En和旧蓝材料价值Vn计算新的蓝材料价值Vn+1  ，  Vn+1= Vn*1/En
      *
-     * @param items               材料信息表Vn
+     * @param items 材料信息表Vn
      * @return 新的材料信息表Vn+1
      */
     @Transactional
     public List<Item> ItemValueCal(List<Item> items, StageParamDTO stageParamDTO) {
 
-        double expCoefficient =  stageParamDTO.getExpCoefficient();
+        Double expCoefficient = stageParamDTO.getExpCoefficient();
+        Double lmdCoefficient = stageParamDTO.getLmdCoefficient();
         String version = stageParamDTO.getVersion();
 
-        //读取上次迭代计算出的副产物价值
-        QueryWrapper<ItemIterationValue> iterationValueQueryWrapper = new QueryWrapper<>();
-        iterationValueQueryWrapper.eq("version",version);
-        List<ItemIterationValue> itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
+        //上次迭代计算出的副产物价值
+        Map<String, Double> itemIterationValue = getItemIterationValue(version).stream()
+                .collect(Collectors.toMap(ItemIterationValue::getItemId, ItemIterationValue::getIterationValue));
+        
 
-        //找不到读基础版本
-        if(itemIterationValueList.size()<1){
-            iterationValueQueryWrapper.clear();
-            iterationValueQueryWrapper.eq("version","original");
-            itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
-        }
-
-        //读取上次关卡效率计算的结果中蓝材料对应的常驻最高关卡效率
-        QueryWrapper<WorkShopProducts> workShopProductsQueryWrapper = new QueryWrapper<>();
-        workShopProductsQueryWrapper.eq("version",version);
-        List<WorkShopProducts> workShopProductsList = workShopProductsMapper.selectList(workShopProductsQueryWrapper);
-
-        //找不到读基础版本
-        if(workShopProductsList.size()<1){
-            workShopProductsQueryWrapper.clear();
-            workShopProductsQueryWrapper.eq("version","original");
-            workShopProductsList = workShopProductsMapper.selectList(workShopProductsQueryWrapper);
-        }
+        //读取每级材料的加工副产物价值
+        List<WorkShopProducts> workShopProductsList = getWorkShopProductsValue(version);
 
         //加工站副产物价值
-        Map<String, Double> workShopProductsValue =
-                workShopProductsList.stream().collect(Collectors.toMap(WorkShopProducts::getRank, WorkShopProducts::getExpectValue));
+        Map<String, Double> workShopProductsValue =workShopProductsList.stream()
+                        .collect(Collectors.toMap(WorkShopProducts::getRank, WorkShopProducts::getExpectValue));
 
-        String compositeTableText = FileUtil.read(ApplicationConfig.Item + "compositeTable.json");
-        //读取加工站材料合成表
-        List<CompositeTableDTO> compositeTableDTO = JsonMapper.parseJSONArray(compositeTableText, new TypeReference<List<CompositeTableDTO>>() {
-        });
+        //加工站材料合成表
+        List<CompositeTableDTO> compositeTableDTO = getCompositeTable();
+        
+       
+        long tableId = System.currentTimeMillis();
 
-        Date date = new Date();
-        long tableId = date.getTime();
-
-        for (Item item :items) {
-            item.setVersion(version); //经验书系数
+        Map<String, Item> itemValueMap = new HashMap<>();
+        for (Item item : items) {
+            item.setVersion(version);
             item.setId(tableId++);
+            if(item.getCardNum()>8){
+                item.setItemValue(item.getItemValueAp()*1.25);
+                continue;
+            }
+            String itemId = item.getItemId();
             //设置经验书系数，经验书价值 = 龙门币价值 * 经验书系数
-            if (item.getItemId().equals("2004")) {
-                item.setItemValueAp(0.0036*2000 * expCoefficient);
+            if (itemId.equals("2004")) {
+                item.setItemValueAp(0.0036 * 2000 * expCoefficient);
             }
-            if (item.getItemId().equals("2003")) {
-                item.setItemValueAp(0.0036*1000 * expCoefficient);
+            if (itemId.equals("2003")) {
+                item.setItemValueAp(0.0036 * 1000 * expCoefficient);
             }
-            if (item.getItemId().equals("2002")) {
-                item.setItemValueAp(0.0036*400 * expCoefficient);
+            if (itemId.equals("2002")) {
+                item.setItemValueAp(0.0036 * 400 * expCoefficient);
             }
-            if (item.getItemId().equals("2001")) {
-                item.setItemValueAp(0.0036*200 * expCoefficient);
+            if (itemId.equals("2001")) {
+                item.setItemValueAp(0.0036 * 200 * expCoefficient);
             }
-
+            if(itemId.equals("4001")){
+                item.setItemValueAp(0.0036*lmdCoefficient);
+            }
+            //在itemValueMap 设置新的材料价值 新材料价值 = 旧材料价值/该材料主线最优关的关卡效率
+            if(itemIterationValue.get(itemId)!=null){
+                item.setItemValueAp(item.getItemValueAp() / itemIterationValue.get(itemId));
+            }
+            itemValueMap.put(itemId, item);
         }
-
-        // Map<材料id,材料信息类>
-        Map<String, Item> itemValueMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
-
-
-        //在itemValueMap 设置新的材料价值 新材料价值 = 旧材料价值/该材料主线最优关的关卡效率
-        for(ItemIterationValue itemIterationValue:itemIterationValueList){
-
-            double itemValueNew = itemValueMap.get(itemIterationValue.getItemName()).getItemValueAp() / itemIterationValue.getIterationValue();
-            itemValueMap.get(itemIterationValue.getItemName()).setItemValueAp(itemValueNew);
-        }
-
+        
         compositeTableDTO.forEach(table -> {     //根据加工站合成表计算新价值
-            Integer rarity = itemValueMap.get(table.getId()).getRarity();
+            Item item = itemValueMap.get(table.getId());
+            Integer rarity = item.getRarity();
             double itemValueNew = 0.0;
-            StringBuilder message = new StringBuilder(itemValueMap.get(table.getId()).getItemName()).append(" = ( ");
-
-            if (rarity < 3) {
-                //灰，绿色品质是向下拆解   灰，绿色材料 = 蓝材料 + 副产物 - 龙门币
-                for (ItemCostDTO itemCostDTO : table.getItemCost()) {
+            if (table.getResolve()) {
+                //灰，绿色品质是向下拆解   灰，绿色材料 = （蓝材料价值 + 副产物 - 龙门币）/合成蓝材料的所需灰绿材料数量
+                for (ItemCostDTO itemCostDTO : table.getPathway()) {
                     itemValueNew = (itemValueMap.get(itemCostDTO.getId()).getItemValueAp() +
-                            workShopProductsValue.get("rarity_" + (rarity)) - 0.36 * rarity)
-                            / itemCostDTO.getCount();
+                            workShopProductsValue.get("rarity_" + (rarity)) - 0.36 * rarity) / itemCostDTO.getCount();
                 }
-
             } else {
-                //紫，金色品质是向上合成    蓝材料  + 龙门币 - 副产物 = 紫，金色材料
-                for (ItemCostDTO itemCostDTO : table.getItemCost()) {
+                //紫，金色品质是向上合成    紫，金色材料 =  合成所需蓝材料价值之和  + 龙门币 - 副产物
+                for (ItemCostDTO itemCostDTO : table.getPathway()) {
                     itemValueNew += itemValueMap.get(itemCostDTO.getId()).getItemValueAp() * itemCostDTO.getCount();
                 }
                 itemValueNew = itemValueNew + 0.36 * (rarity - 1) - workShopProductsValue.get("rarity_" + (rarity - 1));
             }
 
-            itemValueMap.get(table.getId()).setItemValueAp(itemValueNew);  //存入新材料价值
+            item.setItemValueAp(itemValueNew);  //存入新材料价值
         });
 
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version", version);
         int delete = itemMapper.delete(itemQueryWrapper);
 
-
-        itemValueMap.forEach((k, item) ->{
-                item.setItemValue(item.getItemValueAp() * 1.25);
-        });
-        saveByProductValue(items,version);  //保存Vn+1的加工站副产物平均产出价值
+        itemValueMap.forEach((k, item) -> item.setItemValue(item.getItemValueAp() * 1.25));
+        saveByProductValue(items, version);  //保存新的材料价值表的加工站副产物平均产出价值
         saveBatch(items);  //更新材料表
 
         return items;
     }
 
+    private List<ItemIterationValue> getItemIterationValue(String version){
+        //读取上次迭代计算出的副产物价值
+        QueryWrapper<ItemIterationValue> iterationValueQueryWrapper = new QueryWrapper<>();
+        iterationValueQueryWrapper.eq("version", version);
+        List<ItemIterationValue> itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
+
+        //找不到读基础版本
+        if (itemIterationValueList.size() < 1) {
+            iterationValueQueryWrapper.clear();
+            iterationValueQueryWrapper.eq("version", "original");
+            itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
+        }
+
+        return itemIterationValueList;
+    }
+
+    private List<WorkShopProducts> getWorkShopProductsValue(String version){
+        QueryWrapper<WorkShopProducts> workShopProductsQueryWrapper = new QueryWrapper<>();
+        workShopProductsQueryWrapper.eq("version", version);
+        List<WorkShopProducts> workShopProductsList = workShopProductsMapper.selectList(workShopProductsQueryWrapper);
+        //找不到读基础版本
+        if (workShopProductsList==null||workShopProductsList.size()<1) {
+            workShopProductsQueryWrapper.clear();
+            workShopProductsQueryWrapper.eq("version", "original");
+            workShopProductsList = workShopProductsMapper.selectList(workShopProductsQueryWrapper);
+        }
+        return workShopProductsList;
+    }
+
+    private List<CompositeTableDTO> getCompositeTable(){
+        String compositeTableText = FileUtil.read(ApplicationConfig.Item + "composite_table.v2.json");
+        //读取加工站材料合成表
+        if(compositeTableText==null) throw new ServiceException(ResultCode.DATA_NONE);
+
+        return JsonMapper.parseJSONArray(compositeTableText, new TypeReference<List<CompositeTableDTO>>() {
+        });
+    }
+
     /**
      * 保存加工站副产品期望价值
-     *
-     * @param items 新材料信息表Vn+1
+     * @param items   新材料信息表Vn+1
      * @param version 版本
      */
-    public void saveByProductValue(List<Item> items,String version) {
+    private void saveByProductValue(List<Item> items, String version) {
         double knockRating = 0.2; //副产物爆率
 
         QueryWrapper<WorkShopProducts> workShopProductsQueryWrapper = new QueryWrapper<>();
-        workShopProductsQueryWrapper.eq("version",version);
+        workShopProductsQueryWrapper.eq("version", version);
         int delete = workShopProductsMapper.delete(workShopProductsQueryWrapper);
 
-            Map<Integer, List<Item>> collect = items.stream()
-                    .filter(item -> item.getWeight() > 0)
-                    .collect(Collectors.groupingBy(Item::getRarity));
+        Map<Integer, List<Item>> collect = items.stream()
+                .filter(item -> item.getWeight() > 0)
+                .collect(Collectors.groupingBy(Item::getRarity));
 
-            long time = new Date().getTime();
+        long time = new Date().getTime();
 
-            for(Integer rarity :collect.keySet()){
-                List<Item> list = collect.get(rarity);
-                //副产物期望 = 所有材料的期望价值（材料价值 * 材料出率 /100）之和 * 副产物爆率
-                double expectValue = list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight()).sum()* knockRating;
-                WorkShopProducts workShopProducts = new WorkShopProducts();
-                workShopProducts.setRank("rarity_" + rarity);  //副产物等级
-                workShopProducts.setId(time++);
-                workShopProducts.setVersion(version); //版本号
-                workShopProducts.setExpectValue(expectValue); //副产物期望价值
-                workShopProductsMapper.insert(workShopProducts); //存入表
-            }
+        for (Integer rarity : collect.keySet()) {
+            List<Item> list = collect.get(rarity);
+            //副产物期望 = 所有材料的期望价值（材料价值 * 材料出率 /100）之和 * 副产物爆率
+            double expectValue = list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight()).sum() * knockRating;
+            log.info(rarity + "级材料副产物期望：" + expectValue / knockRating);
+            WorkShopProducts workShopProducts = new WorkShopProducts();
+            workShopProducts.setRank("rarity_" + rarity);  //副产物等级
+            workShopProducts.setId(time++);
+            workShopProducts.setVersion(version); //版本号
+            workShopProducts.setExpectValue(expectValue); //副产物期望价值
+            workShopProductsMapper.insert(workShopProducts); //存入表
+        }
     }
 
-
-    public void saveItemIterationValue(List<ItemIterationValue> iterationValueList){
+    /**
+     * 保存材料价值迭代系数
+     * @param iterationValueList 材料价值迭代系数
+     */
+    public void saveItemIterationValue(List<ItemIterationValue> iterationValueList) {
         long time = new Date().getTime();
-        for(ItemIterationValue iterationValue:iterationValueList){
+        for (ItemIterationValue iterationValue : iterationValueList) {
             iterationValue.setId(time++);
             itemIterationValueMapper.insert(iterationValue);
         }
     }
 
-    public Integer deleteItemIterationValue(String version){
+    /**
+     * 删除材料价值迭代系数
+     * @param version 材料价值版本
+     * @return 删除条数
+     */
+    public Integer deleteItemIterationValue(String version) {
         QueryWrapper<ItemIterationValue> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("version",version);
+        queryWrapper.eq("version", version);
         return itemIterationValueMapper.delete(queryWrapper);
     }
 
     /**
-     * 获取材料信息表
+     * 获取材料表（外部API用，有缓存）
      * @param version 物品价值的版本号
      * @return 材料信息表
      */
-    @RedisCacheable(key = "itemValue" ,params = "version")
+    @RedisCacheable(key = "Item:itemValue", params = "version")
     public List<Item> getItemListCache(String version) {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version", version).orderByDesc("item_value_ap");
         return itemMapper.selectList(itemQueryWrapper);
     }
 
-
+    /**
+     * 获取材料信息表
+     * @param stageParamDTO 关卡计算参数
+     * @return  材料信息表
+     */
     public List<Item> getItemList(StageParamDTO stageParamDTO) {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version", stageParamDTO.getVersion());
         return itemMapper.selectList(itemQueryWrapper);
     }
 
+    /**
+     * 获取基础材料价值表
+     * @return  基础材料价值表
+     */
     public List<Item> getBaseItemList() {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
-        itemQueryWrapper.eq("version","original");
+        itemQueryWrapper.eq("version", "original");
         return itemMapper.selectList(itemQueryWrapper);
     }
 
+    /**
+     * 导出材料价值表
+     * @param response 响应体
+     */
     public void exportItemExcel(HttpServletResponse response) {
         try {
             response.setContentType("application/vnd.ms-excel");
@@ -267,6 +305,10 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         }
     }
 
+    /**
+     * 导出材料json
+     * @param response 响应体
+     */
     public void exportItemJson(HttpServletResponse response) {
         List<Item> list = getItemListCache(new StageParamDTO().getVersion());
         List<ItemVO> itemVOList = new ArrayList<>();
@@ -276,7 +318,6 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             itemVOList.add(itemVo);
         }
         String jsonForMat = JsonMapper.toJSONString(itemVOList);
-
         FileUtil.save(response, ApplicationConfig.Item, "ItemValue.json", jsonForMat);
     }
 

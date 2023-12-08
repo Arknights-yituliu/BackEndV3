@@ -127,12 +127,15 @@ public class StageService {
                     ||stageId.startsWith("gacha")) continue;
 
 
+            int isReproduction = 1;
+
             String zoneId = jsonNode.get("zoneId").asText();
             String stageCode = jsonNode.get("code").asText();
             int apCost = jsonNode.get("apCost").asInt();
             String stageType = StageType.MAIN;
             if(stageId.contains("act")){
                 stageType = StageType.ACT;
+                isReproduction = 0;
             }
             if(stageId.contains("perm")){
                 stageType = StageType.ACT_PERM;
@@ -164,11 +167,13 @@ public class StageService {
             stage.setStageId(stageId);
             stage.setStageCode(stageCode);
             stage.setZoneId(zoneId);
+            stage.setZoneName("新活动关卡");
             stage.setApCost(apCost);
             stage.setStageType(stageType);
             stage.setStartTime(openTime);
             stage.setEndTime(endTime);
             stage.setSpm(spm);
+            stage.setIsReproduction(isReproduction);
             stage.setMinClearTime(minClearTime);
 
             Log.info("本次拉取更新的关卡是："+stageId);

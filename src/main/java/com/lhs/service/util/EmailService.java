@@ -65,8 +65,8 @@ public class EmailService {
 
     public Integer CreateVerificationCode(String emailAddress,Integer maxCodeNum){
 
-        int random = new Random().nextInt(9999);
-        String code = String.format("%04d",random);
+        int random = new Random().nextInt(8999) + 1000;
+        String code = String.valueOf(random);
         redisTemplate.opsForValue().set("CODE:CODE." + emailAddress, code, 300, TimeUnit.SECONDS);
         return random;
     }

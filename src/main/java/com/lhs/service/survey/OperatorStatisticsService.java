@@ -122,9 +122,8 @@ public class OperatorStatisticsService {
                     collectBySkill3.merge(operatorDataVo.getSkill3(),1L,Long::sum);
                     collectByModX.merge(operatorDataVo.getModX(),1L,Long::sum);
                     collectByModY.merge(operatorDataVo.getModY(),1L,Long::sum);
-                    collectByModX.merge(operatorDataVo.getModD(),1L,Long::sum);
+                    collectByModD.merge(operatorDataVo.getModD(),1L,Long::sum);
                 }
-
 
 
                 //和上一组用户id的数据合并
@@ -140,7 +139,7 @@ public class OperatorStatisticsService {
                     mergeLastData(lastData.getModY(),collectByModY);
                     mergeLastData(lastData.getModD(),collectByModD);
                 }
-                System.out.println(collectByModD);
+
                 //存入dto对象进行暂存
                 OperatorStatisticsDTO build = OperatorStatisticsDTO.builder()
                         .charId(charId)
@@ -175,7 +174,6 @@ public class OperatorStatisticsService {
                     .modD(JsonMapper.toJSONString(v.getModD()))
                     .potential(JsonMapper.toJSONString(v.getPotential()))
                     .build();
-
             statisticsOperatorList.add(build);
         });
 
@@ -188,7 +186,6 @@ public class OperatorStatisticsService {
         for (Integer key:resource.keySet()){
              target.merge(key,resource.get(key),Long::sum);
         }
-
     }
 
     /**

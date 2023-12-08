@@ -21,8 +21,7 @@ public class HttpRequestUtil {
     public static String get(String url, Map<String,String> header) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
-//        httpGet.setHeader("Content-type", "application/json");
-//        httpGet.setHeader("DataEncoding", "UTF-8");
+
         if(header.size()>0) header.forEach(httpGet::setHeader);
 
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(35000).setConnectionRequestTimeout(35000).setSocketTimeout(60000).build();
@@ -67,15 +66,19 @@ public class HttpRequestUtil {
     public static String post(String url, HashMap<String,String> header , String data) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(35000).setConnectionRequestTimeout(35000).setSocketTimeout(60000).build();
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(35000)
+                .setConnectionRequestTimeout(35000)
+                .setSocketTimeout(60000).build();
         httpPost.setConfig(requestConfig);
         httpPost.setHeader("Content-type", "application/json");
-        httpPost.setHeader("DataEncoding", "UTF-8");
+
         if(header.size()>0) header.forEach(httpPost::setHeader);
 
         CloseableHttpResponse httpResponse = null;
         try {
-            httpPost.setEntity(new StringEntity(data));
+            httpPost.setEntity(new StringEntity(data,"utf-8"));
+
             httpResponse = httpClient.execute(httpPost);
             if(httpResponse.getStatusLine().getStatusCode() != 200){
                 return null;

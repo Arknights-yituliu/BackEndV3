@@ -51,10 +51,10 @@ public enum ResultCode {
 	CODE_NOT_SEND(30004, "验证码未发送"),
 	OSS_UPLOAD_ERROR(30005, "OSS上传错误"),
 	EMAIL_SENT_TOO_FREQUENTLY(30006,"邮件发送间隔时间30秒"),
+	OPERATION_INTERVAL_TOO_SHORT(30007,"操作间隔过短,10s仅可上传一次"),
 
 
-	
-	/* 系统错误：40001-49999 */
+		/* 系统错误：40001-49999 */
 	SYSTEM_INNER_ERROR(40001, "系统内部错误，请稍后重试"),
 	SYSTEM_TIME_ERROR(40002, "系统时间错误，请稍后重试"),
 	

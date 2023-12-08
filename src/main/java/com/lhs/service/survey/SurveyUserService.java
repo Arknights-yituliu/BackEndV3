@@ -67,13 +67,13 @@ public class SurveyUserService {
 
 
         Date date = new Date();  //当前时间
-        long yituliuId = Long.parseLong(date.getTime() + randomEnd4_id());   //一图流id 当前时间戳加随机4位数字
+        long userId = Long.parseLong(date.getTime() + randomEnd4_id());   //一图流id 当前时间戳加随机4位数字
         int status = 1;
 
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
 
         SurveyUser surveyUserNew = SurveyUser.builder()  //新用户信息
-                .id(yituliuId)
+                .id(userId)
                 .ip(ipAddress)
                 .createTime(date)
                 .updateTime(date)
@@ -96,7 +96,6 @@ public class SurveyUserService {
             status =  UserStatus.addPermission(status, UserStatusCode.HAS_PASSWORD);
             //给用户信息写入密码
             surveyUserNew.setPassWord(passWord);
-
             Log.info("账号密码注册——用户名："+userName+"密码："+passWord);
 
         }
@@ -106,7 +105,6 @@ public class SurveyUserService {
             queryWrapper.eq("email", email);
             SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
             if (surveyUser != null) throw new ServiceException(ResultCode.USER_EXISTED);
-
             //用户输入的验证码
             String inputCode = surveyRequestVo.getEmailCode();
             //检查验证码
@@ -117,7 +115,6 @@ public class SurveyUserService {
             userName = "博士" + date.getTime()/10;
             surveyUserNew.setUserName(userName);
             surveyUserNew.setEmail(email);
-
             Log.info("账号密码注册——邮箱："+email+"验证码："+inputCode);
         }
 
@@ -135,7 +132,7 @@ public class SurveyUserService {
         Map<Object, Object> hashMap = new HashMap<>();
         hashMap.put("userName", surveyUserNew.getUserName());
         String header = JsonMapper.toJSONString(hashMap);
-        String token = AES.encrypt(header + "." + yituliuId + "." + timeStamp, ApplicationConfig.Secret);
+        String token = AES.encrypt(header + "." + userId + "." + timeStamp, ApplicationConfig.Secret);
 
         UserDataVO response = new UserDataVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
         response.setUserName(surveyUserNew.getUserName());
@@ -145,6 +142,8 @@ public class SurveyUserService {
 
         return response;
     }
+
+
 
     
 
@@ -253,14 +252,15 @@ public class SurveyUserService {
 
     public void sendEmail(EmailRequestDTO emailRequestDto){
         String mailUsage = emailRequestDto.getMailUsage();
+        //注册
         if("register".equals(mailUsage)){
            sendEmailForRegister(emailRequestDto);
         }
-
+        //登录
         if("login".equals(mailUsage)){
             sendEmailForLogin(emailRequestDto);
         }
-
+        //修改邮箱
         if("changeEmail".equals(mailUsage)){
            sendEmailForChangeEmail(emailRequestDto);
         }
@@ -759,5 +759,10 @@ public class SurveyUserService {
                 operatorUploadLogMapper.update(operatorUploadLog,queryWrapper);
             }
         }
+    }
+
+
+    public List<SurveyUser> getAllUserData(){
+        return surveyUserMapper.selectList(null);
     }
 }

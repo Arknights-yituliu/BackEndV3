@@ -38,6 +38,8 @@ public class Stage {
 
     private String stageType;
 
+    private Integer isReproduction;
+
     @ExcelProperty("活动开启时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

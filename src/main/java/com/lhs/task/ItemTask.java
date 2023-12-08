@@ -1,5 +1,6 @@
 package com.lhs.task;
 
+import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.service.util.OSSService;
 import com.lhs.service.item.*;
 
@@ -50,7 +51,13 @@ public class ItemTask {
        stageResultService.updateStageResultByTaskConfig();
     }
 
-
+    @Scheduled(cron = "0 0/17 * * * ?")
+    public void updateStageResultApi() {
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(0.625);
+        stageParamDTO.setSampleSize(300);
+        stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
+    }
 
     /**
      * 备份关卡计算结果

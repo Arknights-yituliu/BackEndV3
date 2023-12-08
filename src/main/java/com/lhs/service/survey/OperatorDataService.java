@@ -5,6 +5,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.ResultCode;
 import com.lhs.common.util.*;
@@ -24,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -76,8 +78,21 @@ public class OperatorDataService {
         lastQueryWrapper.eq("uid",yituliuId);
         List<OperatorData> lastOperatorDataListData = operatorDataMapper.selectList(lastQueryWrapper);
 
-        Map<String, OperatorData> lastOperatorDataMap = lastOperatorDataListData.stream()
-                .collect(Collectors.toMap(OperatorData::getCharId, Function.identity()));
+        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInterval:"+surveyUser.getId(), "done", 10, TimeUnit.SECONDS);
+        if(Boolean.FALSE.equals(done)){
+            throw new ServiceException(ResultCode.OPERATION_INTERVAL_TOO_SHORT);
+        }
+
+
+        Map<String, OperatorData> lastOperatorDataMap = new HashMap<>();
+        for(OperatorData operatorData:lastOperatorDataListData){
+            if(lastOperatorDataMap.get(operatorData.getCharId())!=null){
+                operatorDataMapper.delete(new QueryWrapper<OperatorData>().eq("id",operatorData.getId()));
+            }else {
+                lastOperatorDataMap.put(operatorData.getCharId(),operatorData);
+            }
+        }
+
 
         //新增数据
         List<OperatorData> insertOperatorListData = new ArrayList<>();
@@ -110,12 +125,10 @@ public class OperatorDataService {
                 operatorData.setModD(0);
             }
 
-//            System.out.println(surveyOperator);
-
             //和老数据进行对比
             OperatorData lastOperatorDataData = lastOperatorDataMap.get(operatorData.getCharId());
             //为空则新增
-
+            checkData(operatorData);
             if (lastOperatorDataData == null) {
                 Long characterId = redisTemplate.opsForValue().increment("CharacterId");
                 operatorData.setId(characterId);
@@ -133,7 +146,12 @@ public class OperatorDataService {
 
 //        System.out.println(insertOperatorList.size());
 
-        if (insertOperatorListData.size() > 0) operatorDataMapper.insertBatch(tableName, insertOperatorListData);  //批量插入
+        try {
+            if (insertOperatorListData.size() > 0) operatorDataMapper.insertBatch(tableName, insertOperatorListData);  //批量插入
+        } catch (Exception e) {
+            redisTemplate.delete("SurveyOperatorInterval:"+surveyUser.getId());
+            throw new RuntimeException(e);
+        }
 
 
         surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
@@ -148,6 +166,15 @@ public class OperatorDataService {
         hashMap.put("registered",false);
         return hashMap;
     }
+
+    private Boolean checkData(OperatorData operatorData){
+
+        if(operatorData.getMainSkill()==null)operatorData.setMainSkill(0);
+        if(operatorData.getModD()==null)operatorData.setModD(0);
+
+        return true;
+    }
+
 
     /**
      * 手动上传干员练度调查表
@@ -422,5 +449,36 @@ public class OperatorDataService {
     }
 
 
+
+
+    public List<Map<String,Object>> operatorDataDuplicateDistinct() {
+        List<SurveyUser> surveyUserList = surveyUserService.getAllUserData();
+
+        List<Map<String,Object>> resultList = new ArrayList<>();
+        for (SurveyUser surveyUser : surveyUserList) {
+            if (surveyUser.getUid() != null && !(surveyUser.getUid().startsWith("delete"))) {
+
+                List<OperatorData> operatorDataList = operatorDataMapper.selectList(new QueryWrapper<OperatorData>().eq("uid", surveyUser.getId()));
+
+                int count = 0;
+                boolean distinctFlag = false;
+                Map<String, OperatorData> hashMap = new HashMap<>();
+                for (OperatorData operatorData : operatorDataList) {
+                    if (hashMap.get(operatorData.getCharId()) != null) {
+                        distinctFlag = true;
+                        count += operatorDataMapper.delete(new QueryWrapper<OperatorData>().eq("id", operatorData.getId()));
+                    } else {
+                        hashMap.put(operatorData.getCharId(), operatorData);
+                    }
+                }
+                Map<String, Object> result = new HashMap<>();
+                result.put("userName",surveyUser.getUserName());
+                result.put("distinct",+ count + "条");
+                resultList.add(result);
+            }
+        }
+
+        return resultList;
+    }
 
 }

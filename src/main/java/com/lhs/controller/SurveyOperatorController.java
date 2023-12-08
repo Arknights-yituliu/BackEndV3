@@ -100,7 +100,12 @@ public class SurveyOperatorController {
         operatorDataService.exportSurveyOperatorForm(response,token);
     }
 
-
+    @Operation(summary ="用户数据去重")
+    @GetMapping("/operator/DuplicateDistinct")
+    public Result<List<Map<String, Object>>> DuplicateDistinct(){
+        List<Map<String, Object>> list = operatorDataService.operatorDataDuplicateDistinct();
+        return Result.success(list);
+    }
 
     @Operation(summary ="上传训练干员计划")
     @PostMapping("/operator/plan/save")

@@ -14,11 +14,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,17 +51,39 @@ public class StageController {
         return Result.success();
     }
 
+
+
     //    @TakeCount(name = "蓝材料推荐关卡")
     @Operation(summary = "获取蓝材料推荐关卡按效率倒序")
     @GetMapping("/stage/t3/v2")
-
-    public Result<List<RecommendedStageVO>> getStageResultT3(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<Map<String, Object>> getStageResultT3(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
                                                              @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
-        List<RecommendedStageVO> recommendedStageVOList = stageResultService.getT3RecommendedStageV2(stageParamDTO.getVersion());
-        return Result.success(recommendedStageVOList);
+        Map<String, Object> hashMap = stageResultService.getT3RecommendedStageV2(stageParamDTO.getVersion());
+        return Result.success(hashMap);
+    }
+
+    @Operation(summary = "获取每种材料系列的关卡计算结果")
+    @GetMapping("/stage/V3")
+    public Result<Map<String, Object>> getStageResultT3V3(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+                                                      @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setSampleSize(sampleSize);
+        stageParamDTO.setExpCoefficient(expCoefficient);
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
+
+        return Result.success(t3RecommendedStageV3);
+    }
+
+    @Operation(summary = "自定义材料价值计算")
+    @GetMapping("/item/custom")
+    public Result<Map<String, Object>> customStageResult(@RequestBody StageParamDTO stageParamDTO) {
+
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
+
+        return Result.success(t3RecommendedStageV3);
     }
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")

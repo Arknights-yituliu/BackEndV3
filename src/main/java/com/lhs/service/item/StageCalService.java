@@ -15,6 +15,7 @@ import com.lhs.mapper.item.StageResultDetailMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,7 +67,7 @@ public class StageCalService {
 
         HashMap<String, Double> itemIterationValueMap = new HashMap<>();
 
-        Long stageResultId = redisTemplate.opsForValue().increment("StageResultId", 100000);
+        Long stageResultId = redisTemplate.opsForValue().increment("Item:StageResultId", 100000);
         if(stageResultId==null) stageResultId = System.currentTimeMillis();
         for(String stageId:matrixByStageId.keySet()){
             Stage stage = stageMap.get(stageId);
@@ -165,13 +166,13 @@ public class StageCalService {
             stageEfficiency = dropApValueSum/apCost;
 
             if(StageType.MAIN.equals(stageType)||StageType.ACT_PERM.equals(stageType)){
-                if(!"empty".equals(itemSeries)) {
-                    Double maxStageEfficiency = itemIterationValueMap.get(itemSeries);
+                if(!"empty".equals(itemSeriesId)) {
+                    Double maxStageEfficiency = itemIterationValueMap.get(itemSeriesId);
                     if(maxStageEfficiency==null){
-                        itemIterationValueMap.put(itemSeries,stageEfficiency);
+                        itemIterationValueMap.put(itemSeriesId,stageEfficiency);
                     }else {
                         if(maxStageEfficiency<stageEfficiency){
-                            itemIterationValueMap.put(itemSeries,stageEfficiency);
+                            itemIterationValueMap.put(itemSeriesId,stageEfficiency);
                         }
                     }
                 }
@@ -197,13 +198,15 @@ public class StageCalService {
 
 
         List<ItemIterationValue> iterationValueList = new ArrayList<>();
-        itemIterationValueMap.forEach((itemTypeName,iterationValue)->{
+        itemIterationValueMap.forEach((itemTypeId,iterationValue)->{
             ItemIterationValue itemIterationValue = new ItemIterationValue();
-            itemIterationValue.setItemName(itemTypeName);
+            String itemName = itemMap.get(itemTypeId).getItemName();
+            itemIterationValue.setItemName(itemName);
             itemIterationValue.setIterationValue(iterationValue);
             itemIterationValue.setVersion(version);
+            itemIterationValue.setItemId(itemTypeId);
             iterationValueList.add(itemIterationValue);
-            Log.info(String.format("%-8s", itemTypeName)+ "的迭代系数是：" + 1 / iterationValue);
+            Log.info(String.format("%-8s", itemName)+ "的迭代系数是：" + 1 / iterationValue);
         });
 
         stageResultDetailMapper.delete(new QueryWrapper<StageResultDetail>().eq("version", version));
@@ -223,6 +226,8 @@ public class StageCalService {
         if(insertList.size()>0) {
             stageResultDetailMapper.insertBatch(insertList);
         }
+
+        redisTemplate.opsForValue().set("Item:updateTime",new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
 
         Log.info("本次批量插入关卡掉落详细数据条数："+detailInsertList.size());
         stageResultMapper.insertBatch(commonInsertList);
