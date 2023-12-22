@@ -1,6 +1,7 @@
 package com.lhs.entity.vo.item;
 
 
+import com.lhs.common.util.StageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,5 +23,7 @@ public class OrundumPerApResultVO {
     private Double lMDCost;
 
     private Double orundumPerApEfficiency;
+
+    private String stageType;
 
 }

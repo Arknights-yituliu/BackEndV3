@@ -15,9 +15,9 @@ public class StageResultDetailVO {
     private String itemSeries;
     private String itemSeriesId;
     private String secondaryItemId;
-    private Double leT5Efficiency;
     private Double leT4Efficiency;
     private Double leT3Efficiency;
+    private Double leT2Efficiency;
     private Double stageEfficiency;
     private Long endTime;
     private Integer zoneName;
@@ -29,9 +29,9 @@ public class StageResultDetailVO {
         this.spm = stageResult.getSpm();
         this.itemSeriesId = stageResult.getItemSeriesId();
         this.secondaryItemId = stageResult.getSecondaryItemId();
-        this.leT5Efficiency = stageResult.getLeT5Efficiency();
         this.leT4Efficiency = stageResult.getLeT4Efficiency();
         this.leT3Efficiency = stageResult.getLeT3Efficiency();
+        this.leT2Efficiency = stageResult.getLeT2Efficiency();
         this.stageEfficiency = stageResult.getStageEfficiency();
         this.itemSeries = stageResult.getItemSeries();
         this.endTime = stageResult.getEndTime().getTime();

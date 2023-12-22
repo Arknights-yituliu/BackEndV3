@@ -11,8 +11,7 @@ public class RecommendedStageVO {
     private String itemSeries;
     private String itemSeriesId;
     private String version;
-    private ActNameAndDateVO lastUp;
-    private ActNameAndDateVO nextUp;
+
 
     private List<StageResultVOV2> stageResultList;
 }

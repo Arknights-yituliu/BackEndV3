@@ -329,7 +329,6 @@ public class OperatorBaseDataService {
         FileUtil.save(ApplicationConfig.Item, "character_table_simple.json", JsonMapper.toJSONString(table_simple));
         FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JsonMapper.toJSONString(table_simple));
 
-        FileUtil.save(ApplicationConfig.Item, "character_list.json", JsonMapper.toJSONString(list));
         FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_list.json", JsonMapper.toJSONString(list));
     }
 

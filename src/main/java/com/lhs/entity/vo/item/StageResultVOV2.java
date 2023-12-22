@@ -16,9 +16,9 @@ public class StageResultVOV2 {
     private String secondaryItemId;
     private Double apExpect;
     private Double knockRating;
-    private Double leT5Efficiency;
     private Double leT4Efficiency;
     private Double leT3Efficiency;
+    private Double leT2Efficiency;
     private Double stageEfficiency;
     private Integer sampleSize;
     private Double sampleConfidence;
@@ -34,9 +34,9 @@ public class StageResultVOV2 {
         this.stageCode = stageResult.getStageCode();
         this.secondaryItemId = stageResult.getSecondaryItemId();
         this.stageEfficiency = stageResult.getStageEfficiency();
-        this.leT5Efficiency = stageResult.getLeT5Efficiency();
         this.leT4Efficiency = stageResult.getLeT4Efficiency();
         this.leT3Efficiency = stageResult.getLeT3Efficiency();
+        this.leT2Efficiency = stageResult.getLeT2Efficiency();
 
         this.spm = stageResult.getSpm();
     }

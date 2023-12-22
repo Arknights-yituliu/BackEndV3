@@ -140,7 +140,7 @@ public class StageCalService {
             Integer itemRarity = null;
             for (int i = 0; i < temporaryList.size(); i++) {
                 StageResultDetail detail = temporaryList.get(i);
-                detail.setRatio(detail.getResult()/apCost);
+                detail.setRatio(detail.getResult()/dropApValueSum);
                 detail.setRatioRank(i);
                 String itemId = detail.getItemId();
                 String itemName = detail.getItemName();
@@ -191,7 +191,7 @@ public class StageCalService {
             common.setEndTime(stage.getEndTime());
 
             common.setSpm(stage.getSpm());
-            calMainItemRatio(common,temporaryList);
+            calMainItemRatio(common,apCost,temporaryList);
 //            Log.info(stage.getStageCode()+" {} 主产物:"+mainItemName+" {} 副产物："+secondaryItemName+" {} 关卡效率："+stageEfficiency);
             commonInsertList.add(common);
         }
@@ -239,15 +239,18 @@ public class StageCalService {
      * @param common 关卡部分通用计算结果
      * @param detailList  关卡每种掉落物品的详细数据
      */
-    private void calMainItemRatio(StageResult common, List<StageResultDetail> detailList) {
+    private void calMainItemRatio(StageResult common,Integer apCost, List<StageResultDetail> detailList) {
 
         String itemType = common.getItemSeries();  //关卡掉落材料所属类型   比如1-7，4-6这种同属”固源岩组“类
         if("empty".equals(itemType)){
-            common.setLeT5Efficiency(0.0);  //等级1-4的材料占比
-            common.setLeT4Efficiency(0.0); //等级1-3的材料占比
-            common.setLeT3Efficiency(0.0); //等级1-2的材料占比
+            common.setLeT4Efficiency(0.0);  //等级1-4的材料占比
+            common.setLeT3Efficiency(0.0); //等级1-3的材料占比
+            common.setLeT2Efficiency(0.0); //等级1-2的材料占比
             return;
         }
+
+
+
         //获取材料的上下位材料
         JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ApplicationConfig.Item + "item_type_table.json"));
         JsonNode itemTypeNode = itemTypeTable.get(itemType);
@@ -264,16 +267,16 @@ public class StageCalService {
             if (itemTypeNode.get(stageResultDetail.getItemName()) != null) {
                 JsonNode item = itemTypeNode.get(stageResultDetail.getItemName());
                 int rarity = item.get("rarity").asInt();
-                if (rarity == 1) rarity1Ratio = stageResultDetail.getRatio();
-                if (rarity == 2) rarity2Ratio = stageResultDetail.getRatio();
-                if (rarity == 3) rarity3Ratio = stageResultDetail.getRatio();
-                if (rarity == 4) rarity4Ratio = stageResultDetail.getRatio();
+                if (rarity == 1) rarity1Ratio = stageResultDetail.getResult()/apCost;
+                if (rarity == 2) rarity2Ratio = stageResultDetail.getResult()/apCost;
+                if (rarity == 3) rarity3Ratio = stageResultDetail.getResult()/apCost;
+                if (rarity == 4) rarity4Ratio = stageResultDetail.getResult()/apCost;
             }
         }
 
-        common.setLeT5Efficiency(rarity4Ratio + rarity3Ratio + rarity2Ratio + rarity1Ratio);  //等级1-4的材料占比
-        common.setLeT4Efficiency(rarity3Ratio + rarity2Ratio + rarity1Ratio); //等级1-3的材料占比
-        common.setLeT3Efficiency(rarity2Ratio + rarity1Ratio); //等级1-2的材料占比
+        common.setLeT4Efficiency(rarity4Ratio + rarity3Ratio + rarity2Ratio + rarity1Ratio);  //等级1-4的材料占比
+        common.setLeT3Efficiency(rarity3Ratio + rarity2Ratio + rarity1Ratio); //等级1-3的材料占比
+        common.setLeT2Efficiency(rarity2Ratio + rarity1Ratio); //等级1-2的材料占比
     }
 
     /**

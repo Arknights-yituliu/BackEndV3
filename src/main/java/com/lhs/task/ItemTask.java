@@ -32,7 +32,7 @@ public class ItemTask {
      */
     @Scheduled(cron = "0 0/10 * * * ?")
     public void savePenguinData() {
-        stageService.savePenguinData();
+//        stageService.savePenguinData();
     }
 
     /**

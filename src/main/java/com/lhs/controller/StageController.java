@@ -16,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +128,7 @@ public class StageController {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        List<ActStageVO> actStageVOList = stageResultService.getActStage(stageParamDTO.getVersion());
+        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageParamDTO.getVersion());
 
 
         return Result.success(actStageVOList);
@@ -262,7 +261,7 @@ public class StageController {
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
 
-        return Result.success(stageResultService.getActStage(stageParamDTO.getVersion()));
+        return Result.success(stageResultService.getHistoryActStage(stageParamDTO.getVersion()));
     }
 
 }

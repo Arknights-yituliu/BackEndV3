@@ -35,9 +35,9 @@ public class StageResultVO {
     private Double knockRating;
     private Double apExpect;
     private Double stageEfficiency;
-    private Double leT5Efficiency;
     private Double leT4Efficiency;
     private Double leT3Efficiency;
+    private Double leT2Efficiency;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
@@ -51,9 +51,9 @@ public class StageResultVO {
         this.spm = stageResult.getSpm();
         this.itemType = stageResult.getItemSeries();
         this.stageEfficiency = stageResult.getStageEfficiency();
-        this.leT5Efficiency = stageResult.getLeT5Efficiency();
         this.leT4Efficiency = stageResult.getLeT4Efficiency();
         this.leT3Efficiency = stageResult.getLeT3Efficiency();
+        this.leT2Efficiency = stageResult.getLeT2Efficiency();
         this.secondaryId = stageResult.getSecondaryItemId();
     }
 

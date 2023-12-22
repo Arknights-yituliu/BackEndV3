@@ -27,7 +27,7 @@ public class SurveyRecruitService {
     }
 
     private String getDBTableIndex() {
-        return "survey_recruit_5";
+        return "survey_recruit_6";
     }
 
     public String saveMaaRecruitDataNew(MaaRecruitVo maaRecruitVo) {

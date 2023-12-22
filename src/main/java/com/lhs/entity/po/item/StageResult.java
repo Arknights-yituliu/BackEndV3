@@ -20,12 +20,12 @@ public class StageResult {
     private String itemSeriesId;
     private String secondaryItemId;
     private Double stageEfficiency;
-    @TableField(value = "le_t5_efficiency")
-    private Double leT5Efficiency;
     @TableField(value = "le_t4_efficiency")
     private Double leT4Efficiency;
     @TableField(value = "le_t3_efficiency")
     private Double leT3Efficiency;
+    @TableField(value = "le_t2_efficiency")
+    private Double leT2Efficiency;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date endTime;

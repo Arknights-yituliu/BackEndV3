@@ -68,12 +68,12 @@ public class OperatorStatisticsService {
         // 计算用户id按500个用户一组可以分成多少组
         int num = length / 200 + 1;
         int fromIndex = 0;   // id分组开始
-        int toIndex = 200;   //id分组结束
+        int toIndex = 300;   //id分组结束
         for (int i = 0; i < num; i++) {
             toIndex = Math.min(toIndex, userIds.size());
             userIdsGroup.add(userIds.subList(fromIndex, toIndex));
-            fromIndex += 200;
-            toIndex += 200;
+            fromIndex += 300;
+            toIndex += 300;
         }
 
         operatorSurveyStatisticsMapper.truncate(); //清空统计表
