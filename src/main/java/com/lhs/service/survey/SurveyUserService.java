@@ -14,12 +14,13 @@ import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.SklandDTO;
-import com.lhs.entity.po.survey.OperatorUploadLog;
+import com.lhs.entity.dto.util.EmailFormDTO;
+import com.lhs.entity.po.survey.AkPlayerBindInfo;
 import com.lhs.entity.po.survey.SurveyUser;
 
-import com.lhs.mapper.survey.OperatorUploadLogMapper;
+import com.lhs.mapper.survey.AkPlayerBindInfoMapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
-import com.lhs.service.util.EmailService;
+import com.lhs.service.util.Email163Service;
 import com.lhs.service.util.OSSService;
 
 import com.lhs.entity.vo.survey.UserDataVO;
@@ -37,48 +38,58 @@ public class SurveyUserService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    private final OperatorUploadLogMapper operatorUploadLogMapper;
+    private final Email163Service email163Service;
 
-    private final EmailService emailService;
+    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
+
 
     private final OSSService ossService;
 
-
-
-    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, OperatorUploadLogMapper operatorUploadLogMapper, EmailService emailService, OSSService ossService) {
+    public SurveyUserService(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, Email163Service email163Service, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OSSService ossService) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
-        this.operatorUploadLogMapper = operatorUploadLogMapper;
-        this.emailService = emailService;
+        this.email163Service = email163Service;
+        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         this.ossService = ossService;
     }
 
-    public UserDataVO registerV2(String ipAddress, LoginDataDTO surveyRequestVo) {
-        String accountType = surveyRequestVo.getAccountType();
+    /**
+     * 调查站用户注册
+     * @param ipAddress 用户ip
+     * @param loginDataDTO 注册信息
+     * @return
+     */
+    public UserDataVO registerV2(String ipAddress, LoginDataDTO loginDataDTO) {
+        //注册类型
+        String accountType = loginDataDTO.getAccountType();
 
+        //注册类型不能为空或未知
         if (accountType == null || "undefined".equals(accountType) || "null".equals(accountType)) {
             throw new ServiceException(ResultCode.PARAM_IS_BLANK);
         }
 
-        String userName = surveyRequestVo.getUserName().trim();
-        String passWord = surveyRequestVo.getPassWord().trim();
-        String email = surveyRequestVo.getEmail().trim();
+        //获取用户名，密码，邮箱
+        String userName = loginDataDTO.getUserName().trim();
+        String passWord = loginDataDTO.getPassWord().trim();
+        String email = loginDataDTO.getEmail().trim();
 
-
-
-        Date date = new Date();  //当前时间
-        long userId = Long.parseLong(date.getTime() + randomEnd4_id());   //一图流id 当前时间戳加随机4位数字
+        //当前时间
+        Date date = new Date();
+        //一图流id 当前时间戳加随机4位数字
+        long userId = Long.parseLong(date.getTime() + randomEnd4_id());
+        //用户初始状态
         int status = 1;
 
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-
-        SurveyUser surveyUserNew = SurveyUser.builder()  //新用户信息
+        //组装新用户信息
+        SurveyUser surveyUserNew = SurveyUser.builder()
                 .id(userId)
                 .ip(ipAddress)
                 .createTime(date)
                 .updateTime(date)
                 .build();
 
+        //账号密码方式注册
         if ("passWord".equals(accountType)) {
             //检查用户名格式
             checkUserName(userName);
@@ -96,7 +107,7 @@ public class SurveyUserService {
             status =  UserStatus.addPermission(status, UserStatusCode.HAS_PASSWORD);
             //给用户信息写入密码
             surveyUserNew.setPassWord(passWord);
-            Log.info("账号密码注册——用户名："+userName+"密码："+passWord);
+//            Log.info("账号密码注册——用户名："+userName+"密码："+passWord);
 
         }
 
@@ -106,25 +117,27 @@ public class SurveyUserService {
             SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
             if (surveyUser != null) throw new ServiceException(ResultCode.USER_EXISTED);
             //用户输入的验证码
-            String inputCode = surveyRequestVo.getEmailCode();
+            String inputCode = loginDataDTO.getEmailCode();
             //检查验证码
-            emailService.compareVerificationCode(inputCode,"CODE:CODE." + email);
+            email163Service.compareVerificationCode(inputCode,"CODE:CODE." + email);
             //更新用户状态为有密码
             status = UserStatus.addPermission(status, UserStatusCode.HAS_EMAIL);
             //给用户设置初始昵称
-            userName = "博士" + date.getTime()/10;
+            userName = "博士" + date.getTime() + randomEnd4_id();
             surveyUserNew.setUserName(userName);
             surveyUserNew.setEmail(email);
-            Log.info("账号密码注册——邮箱："+email+"验证码："+inputCode);
+//            Log.info("账号密码注册——邮箱："+email+"验证码："+inputCode);
         }
 
         //给用户写入状态
         surveyUserNew.setStatus(status);
         surveyUserNew.setDeleteFlag(false);
 
-        int row = surveyUserMapper.save(surveyUserNew);
-        if (row < 1) throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
+        System.out.println(surveyUserNew);
 
+        surveyUserMapper.save(surveyUserNew);
+
+        System.out.println(surveyUserNew);
 
         long timeStamp = date.getTime();
 
@@ -132,7 +145,7 @@ public class SurveyUserService {
         Map<Object, Object> hashMap = new HashMap<>();
         hashMap.put("userName", surveyUserNew.getUserName());
         String header = JsonMapper.toJSONString(hashMap);
-        String token = AES.encrypt(header + "." + userId + "." + timeStamp, ApplicationConfig.Secret);
+        String token = getToken(header,userId,timeStamp);
 
         UserDataVO response = new UserDataVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
         response.setUserName(surveyUserNew.getUserName());
@@ -173,13 +186,13 @@ public class SurveyUserService {
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
 
         long timeStamp = System.currentTimeMillis();
-        Long yituliuId = surveyUser.getId();  //一图流id
+        Long userId = surveyUser.getId();  //一图流id
 
         //用户凭证  由用户部分信息+一图流id+时间戳 加密得到
         Map<Object, Object> hashMap = new HashMap<>();
         hashMap.put("userName", surveyUser.getUserName());
         String header = JsonMapper.toJSONString(hashMap);
-        String token = AES.encrypt(header + "." + yituliuId + "." + timeStamp, ApplicationConfig.Secret);
+        String token = getToken(header,userId,timeStamp);
 
         UserDataVO response = new UserDataVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
         response.setUserName(surveyUser.getUserName());
@@ -189,6 +202,10 @@ public class SurveyUserService {
         response.setAvatar(surveyUser.getAvatar());
 
         return response;
+    }
+
+    private String getToken(String header,Long userId,Long timeStamp){
+        return AES.encrypt(header + "." + userId + "." + timeStamp, ApplicationConfig.Secret);
     }
 
     /**
@@ -245,7 +262,7 @@ public class SurveyUserService {
         if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
 
         //对比输入的验证码和redis中的验证码
-        emailService.compareVerificationCode(emailCode,"CODE:CODE." + email);
+        email163Service.compareVerificationCode(emailCode,"CODE:CODE." + email);
 
         return surveyUser;
     }
@@ -279,11 +296,16 @@ public class SurveyUserService {
         SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
         if (surveyUserByEmail != null) throw new ServiceException(ResultCode.USER_EXISTED);
 
-        Integer code = emailService.CreateVerificationCode(emailAddress, 9999);
+        Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流注册验证码";
         String text = "您本次注册验证码： " + code +",验证码有效时间5分钟";
 
-        emailService.singleSendMail(emailAddress,text,subject);
+        EmailFormDTO emailFormDTO = new EmailFormDTO();
+        emailFormDTO.setFrom("ark_yituliu@163.com");
+        emailFormDTO.setTo(emailAddress);
+        emailFormDTO.setSubject(subject);
+        emailFormDTO.setText(text);
+        email163Service.sendSimpleEmail(emailFormDTO);
     }
 
     /**
@@ -298,10 +320,16 @@ public class SurveyUserService {
         //查询是否有绑定这个邮箱的用户
         SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
         if(surveyUserByEmail == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        Integer code = emailService.CreateVerificationCode(emailAddress, 9999);
+        Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流登录验证码";
         String text = "您本次登录验证码：" + code+",验证码有效时间5分钟";
-        emailService.singleSendMail(emailAddress,text,subject);
+
+        EmailFormDTO emailFormDTO = new EmailFormDTO();
+        emailFormDTO.setFrom("ark_yituliu@163.com");
+        emailFormDTO.setTo(emailAddress);
+        emailFormDTO.setSubject(subject);
+        emailFormDTO.setText(text);
+        email163Service.sendSimpleEmail(emailFormDTO);
     }
 
     /**
@@ -318,10 +346,16 @@ public class SurveyUserService {
             emailAddress = surveyUserByToken.getEmail();
         }
 
-        Integer code = emailService.CreateVerificationCode(emailAddress, 9999);
+        Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流邮箱变更验证码";
         String text = "您本次变更邮箱验证码：" + code +",验证码有效时间5分钟";
-        emailService.singleSendMail(emailAddress,text,subject);
+
+        EmailFormDTO emailFormDTO = new EmailFormDTO();
+        emailFormDTO.setFrom("ark_yituliu@163.com");
+        emailFormDTO.setTo(emailAddress);
+        emailFormDTO.setSubject(subject);
+        emailFormDTO.setText(text);
+        email163Service.sendSimpleEmail(emailFormDTO);
     }
 
     public UserDataVO updateUserData(UpdateUserDataDTO updateUserDataDto){
@@ -361,7 +395,7 @@ public class SurveyUserService {
         String emailCode = updateUserDataDto.getEmailCode().trim();
 
         //对比用户输入的验证码和后台的验证码
-        emailService.compareVerificationCode(emailCode,"CODE:CODE." + email);
+        email163Service.compareVerificationCode(emailCode,"CODE:CODE." + email);
         //设置用户邮箱
         surveyUserByToken.setEmail(email);
         if (!UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
@@ -489,7 +523,7 @@ public class SurveyUserService {
      */
     public SurveyUser getSurveyUserByUid(String uid) {
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid", uid);
+        queryWrapper.eq("ak_uid", uid);
         return surveyUserMapper.selectOne(queryWrapper);
     }
 
@@ -698,7 +732,7 @@ public class SurveyUserService {
         surveyUser.setId(id);
         surveyUser.setIp(ipAddress);
         surveyUser.setUserName(userName);
-        surveyUser.setUid(uid);
+        surveyUser.setAkUid(uid);
         surveyUser.setStatus(1);
         surveyUser.setCreateTime(date);
         surveyUser.setUpdateTime(new Date(timeStamp + 3600));
@@ -742,21 +776,21 @@ public class SurveyUserService {
     public void migrateLog() {
         List<SurveyUser> surveyUsers = surveyUserMapper.selectList(null);
         for(SurveyUser surveyUser : surveyUsers){
-            if(surveyUser.getUid()==null)  continue;
-            if(surveyUser.getUid().contains("delete")) continue;
-            OperatorUploadLog operatorUploadLog = new OperatorUploadLog();
-            operatorUploadLog.setId(surveyUser.getId());
-            operatorUploadLog.setUserName(surveyUser.getUserName());
-            operatorUploadLog.setUid(surveyUser.getUid());
-            operatorUploadLog.setDeleteFlag(surveyUser.getDeleteFlag());
-            operatorUploadLog.setLastTime(surveyUser.getUpdateTime().getTime());
-            operatorUploadLog.setIp(surveyUser.getIp());
-            QueryWrapper<OperatorUploadLog> queryWrapper = new QueryWrapper<>();
+            if(surveyUser.getAkUid()==null)  continue;
+            if(surveyUser.getAkUid().contains("delete")) continue;
+            AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
+            akPlayerBindInfo.setId(surveyUser.getId());
+            akPlayerBindInfo.setUserName(surveyUser.getUserName());
+            akPlayerBindInfo.setUid(surveyUser.getAkUid());
+            akPlayerBindInfo.setDeleteFlag(surveyUser.getDeleteFlag());
+            akPlayerBindInfo.setLastTime(surveyUser.getUpdateTime().getTime());
+            akPlayerBindInfo.setIp(surveyUser.getIp());
+            QueryWrapper<AkPlayerBindInfo> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("id",surveyUser.getId());
-            if(operatorUploadLogMapper.selectOne(queryWrapper)==null){
-                operatorUploadLogMapper.insert(operatorUploadLog);
+            if(akPlayerBindInfoMapper.selectOne(queryWrapper)==null){
+                akPlayerBindInfoMapper.insert(akPlayerBindInfo);
             }else {
-                operatorUploadLogMapper.update(operatorUploadLog,queryWrapper);
+                akPlayerBindInfoMapper.update(akPlayerBindInfo,queryWrapper);
             }
         }
     }

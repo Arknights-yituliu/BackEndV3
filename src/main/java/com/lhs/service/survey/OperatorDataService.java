@@ -11,8 +11,7 @@ import com.lhs.common.util.ResultCode;
 import com.lhs.common.util.*;
 import com.lhs.entity.po.survey.*;
 import com.lhs.entity.vo.survey.OperatorExportExcelVO;
-import com.lhs.entity.vo.survey.UserDataVO;
-import com.lhs.mapper.survey.OperatorUploadLogMapper;
+import com.lhs.mapper.survey.AkPlayerBindInfoMapper;
 import com.lhs.mapper.survey.OperatorDataMapper;
 import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.service.util.OSSService;
@@ -43,17 +42,17 @@ public class OperatorDataService {
 
     private final OSSService ossService;
 
-    private final OperatorUploadLogMapper operatorUploadLogMapper;
+    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
 
     private final OperatorBaseDataService operatorBaseDataService;
 
-    public OperatorDataService(OperatorDataMapper operatorDataMapper, OperatorDataVoMapper operatorDataVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, OperatorUploadLogMapper operatorUploadLogMapper, OperatorBaseDataService operatorBaseDataService) {
+    public OperatorDataService(OperatorDataMapper operatorDataMapper, OperatorDataVoMapper operatorDataVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OperatorBaseDataService operatorBaseDataService) {
         this.operatorDataMapper = operatorDataMapper;
         this.operatorDataVoMapper = operatorDataVoMapper;
         this.surveyUserService = surveyUserService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
-        this.operatorUploadLogMapper = operatorUploadLogMapper;
+        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         this.operatorBaseDataService = operatorBaseDataService;
     }
 
@@ -202,21 +201,21 @@ public class OperatorDataService {
         Map<String, String> uniEquipIdAndType = operatorBaseDataService.getEquipIdAndType();
         JsonNode data =  JsonMapper.parseJSONObject(dataStr);
 //        String nickName = data.get("nickName").asText();
-        String uid = data.get("uid").asText();
+        String akUid = data.get("uid").asText();
 
-        Log.info("森空岛导入V2 {} uid："+uid);
-        SurveyUser bindAccount = surveyUserService.getSurveyUserByUid(uid);
+        Log.info("森空岛导入V2 {} uid："+akUid);
+//        SurveyUser bindAccount = surveyUserService.getSurveyUserByUid(akUid);
 
-        if(bindAccount!=null){
-            if(!Objects.equals(bindAccount.getId(), surveyUser.getId())){
-                UserDataVO response = new UserDataVO();
-                response.setUserName(bindAccount.getUserName());
-                return Result.failure(ResultCode.USER_BIND_UID,response);
-            }
-        }
+//        if(bindAccount!=null){
+//            if(!Objects.equals(bindAccount.getId(), surveyUser.getId())){
+//                UserDataVO response = new UserDataVO();
+//                response.setUserName(bindAccount.getUserName());
+//                return Result.failure(ResultCode.USER_BIND_UID,response);
+//            }
+//        }
 
 
-        surveyUser.setUid(uid);
+        surveyUser.setAkUid(akUid);
         JsonNode chars = data.get("chars");
         JsonNode charInfoMap = data.get("charInfoMap");
 
@@ -303,24 +302,22 @@ public class OperatorDataService {
      * @param surveyUser 调查站用户信息
      */
     private void userBindPlayerUid(SurveyUser surveyUser){
-        QueryWrapper<OperatorUploadLog> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<AkPlayerBindInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", surveyUser.getId());
-        OperatorUploadLog operatorUploadLog = operatorUploadLogMapper.selectOne(queryWrapper);
-        OperatorUploadLog surveyOperatorUploadLog = new OperatorUploadLog();
-        surveyOperatorUploadLog.setId(surveyUser.getId());
-        surveyOperatorUploadLog.setUserName(surveyUser.getUserName());
-        surveyOperatorUploadLog.setIp(surveyUser.getIp());
-        surveyOperatorUploadLog.setUid(surveyUser.getUid());
-        surveyOperatorUploadLog.setLastTime(System.currentTimeMillis());
-        surveyOperatorUploadLog.setDeleteFlag(surveyUser.getDeleteFlag());
+        AkPlayerBindInfo akPlayerBindInfo = akPlayerBindInfoMapper.selectOne(queryWrapper);
+        AkPlayerBindInfo surveyAkPlayerBindInfo = new AkPlayerBindInfo();
+        surveyAkPlayerBindInfo.setId(surveyUser.getId());
+        surveyAkPlayerBindInfo.setUserName(surveyUser.getUserName());
+        surveyAkPlayerBindInfo.setIp(surveyUser.getIp());
+        surveyAkPlayerBindInfo.setUid(surveyUser.getAkUid());
+        surveyAkPlayerBindInfo.setLastTime(System.currentTimeMillis());
+        surveyAkPlayerBindInfo.setDeleteFlag(surveyUser.getDeleteFlag());
 
-        if(operatorUploadLog == null){
-            operatorUploadLogMapper.insert(surveyOperatorUploadLog);
+        if(akPlayerBindInfo == null){
+            akPlayerBindInfoMapper.insert(surveyAkPlayerBindInfo);
         }else {
-            operatorUploadLogMapper.update(surveyOperatorUploadLog,queryWrapper);
+            akPlayerBindInfoMapper.update(surveyAkPlayerBindInfo,queryWrapper);
         }
-
-
     }
 
     /**
@@ -360,7 +357,7 @@ public class OperatorDataService {
     public Result<Object> operatorDataReset(String token){
         SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
         Long resetId = redisTemplate.opsForValue().increment("resetId");
-        surveyUserByToken.setUid("delete"+resetId);
+        surveyUserByToken.setAkUid("delete"+resetId);
         surveyUserService.backupSurveyUser(surveyUserByToken);
         QueryWrapper<OperatorData> queryWrapper = new QueryWrapper<>();
         Long id = surveyUserByToken.getId();
@@ -456,7 +453,7 @@ public class OperatorDataService {
 
         List<Map<String,Object>> resultList = new ArrayList<>();
         for (SurveyUser surveyUser : surveyUserList) {
-            if (surveyUser.getUid() != null && !(surveyUser.getUid().startsWith("delete"))) {
+            if (surveyUser.getAkUid() != null && !(surveyUser.getAkUid().startsWith("delete"))) {
 
                 List<OperatorData> operatorDataList = operatorDataMapper.selectList(new QueryWrapper<OperatorData>().eq("uid", surveyUser.getId()));
 

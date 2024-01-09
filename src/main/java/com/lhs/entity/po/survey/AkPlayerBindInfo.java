@@ -12,7 +12,7 @@ import lombok.Data;
 @TableName
 @Table
 @Entity
-public class OperatorUploadLog {
+public class AkPlayerBindInfo {
 
     @Id
     @TableId

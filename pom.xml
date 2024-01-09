@@ -132,7 +132,7 @@
     </dependencies>
 
     <build>
-        <finalName>BackEnd.V3.5.0</finalName>
+        <finalName>BackEnd.V3.6.0</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

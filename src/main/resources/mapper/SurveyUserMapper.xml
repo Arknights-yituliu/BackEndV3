@@ -5,9 +5,9 @@
 
     <insert id="save">
         INSERT INTO survey_user
-        (`id`,`pass_word`,`uid`,`user_name`,`create_time`,`update_time`,`ip`,`status`,`email`,`avatar`,`delete_flag`)
+        (`id`,`pass_word`,`ak_uid`,`user_name`,`create_time`,`update_time`,`ip`,`status`,`email`,`avatar`,`delete_flag`)
         VALUES
-       (#{item.id},#{item.passWord},#{item.uid},#{item.userName},#{item.createTime},
+       (#{item.id},#{item.passWord},#{item.akUid},#{item.userName},#{item.createTime},
         #{item.updateTime},#{item.ip},#{item.status},#{item.email},#{item.avatar},
         #{item.deleteFlag})
     </insert>
@@ -16,7 +16,7 @@
         UPDATE survey_user
         SET
             `pass_word`   = #{item.passWord},
-            `uid`         = #{item.uid},
+            `ak_uid`         = #{item.akUid},
             `user_name`   = #{item.userName},
             `update_time` = #{item.updateTime},
             `status`      = #{item.status},

@@ -8,6 +8,7 @@ import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.dev.Developer;
 import com.lhs.entity.po.dev.PageVisits;
 import com.lhs.mapper.PageVisitsMapper;
@@ -43,18 +44,15 @@ public class UserService {
 
     private final PageVisitsMapper pageVisitsMapper;
 
-    private EmailService emailService;
+    private final Email163Service email163Service;
 
-
-    public UserService(RedisTemplate<String, Object> redisTemplate, DeveloperMapper developerMapper, VisitsMapper visitsMapper, PageVisitsMapper pageVisitsMapper, EmailService emailService) {
+    public UserService(RedisTemplate<String, Object> redisTemplate, DeveloperMapper developerMapper, VisitsMapper visitsMapper, PageVisitsMapper pageVisitsMapper, Email163Service email163Service) {
         this.redisTemplate = redisTemplate;
         this.developerMapper = developerMapper;
         this.visitsMapper = visitsMapper;
         this.pageVisitsMapper = pageVisitsMapper;
-        this.emailService = emailService;
+        this.email163Service = email163Service;
     }
-
-
 
     public Boolean developerLevel(HttpServletRequest request) {
         String token = request.getHeader("token");
@@ -77,7 +75,14 @@ public class UserService {
         redisTemplate.opsForValue().set("CODE:" + developer.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
         String text =  "本次登录验证码："+ code;
         String subject = "开发者登录";
-        emailService.singleSendMail(email,text,subject);
+
+
+        EmailFormDTO emailFormDTO = new EmailFormDTO();
+        emailFormDTO.setFrom("ark_yituliu@163.com");
+        emailFormDTO.setTo(email);
+        emailFormDTO.setSubject(subject);
+        emailFormDTO.setText(text);
+        email163Service.sendSimpleEmail(emailFormDTO);
     }
 
 
@@ -112,19 +117,14 @@ public class UserService {
 
     public Boolean loginAndCheckToken(String token) {
 
-//        log.info("开发者token：" + token);
-        //        类似jwt
-//        String headerStr =  new String(Base64.getDecoder().decode(token.split("\\.")[0].getBytes()), StandardCharsets.UTF_8);
-//        String sign = token.split("\\.")[1];
-//        String newSign = AES.encrypt(headerStr+ConfigUtil.SignKey, ConfigUtil.Secret);
-//        if(!sign.equals(newSign)) {
-//            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-//        }
+
         String developerBase64 = token.split("\\.")[0];
 
         if (redisTemplate.opsForValue().get("TOKEN:" + developerBase64) == null) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
+
+
 
         String decode = new String(Base64.getDecoder().decode(developerBase64), StandardCharsets.UTF_8);
 
@@ -135,6 +135,7 @@ public class UserService {
 
         redisTemplate.opsForValue().set("TOKEN:" + developerBase64, redisToken, 30, TimeUnit.DAYS);
 
+        Log.info("开发者验证通过");
         return true;
     }
 

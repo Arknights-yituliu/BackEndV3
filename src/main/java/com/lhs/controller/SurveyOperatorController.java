@@ -25,7 +25,6 @@ import java.util.Map;
 @RestController
 @Tag(name ="干员练度调查")
 @RequestMapping(value = "/survey")
-@CrossOrigin()
 public class SurveyOperatorController {
     private final OperatorDataService operatorDataService;
 

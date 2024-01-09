@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Log;
-import com.lhs.entity.po.survey.OperatorUploadLog;
+import com.lhs.entity.po.survey.AkPlayerBindInfo;
 import com.lhs.entity.po.survey.OperatorDataVo;
 import com.lhs.entity.po.survey.OperatorStatistics;
-import com.lhs.mapper.survey.OperatorUploadLogMapper;
+import com.lhs.mapper.survey.AkPlayerBindInfoMapper;
 import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.mapper.survey.OperatorSurveyStatisticsMapper;
 import com.lhs.service.util.OSSService;
@@ -27,7 +27,7 @@ public class OperatorStatisticsService {
 
     private final OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper;
 
-    private final OperatorUploadLogMapper operatorUploadLogMapper;
+    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
 
     private final OperatorDataVoMapper operatorDataVoMapper;
 
@@ -38,9 +38,9 @@ public class OperatorStatisticsService {
     private final OSSService ossService;
 
 
-    public OperatorStatisticsService(OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper, OperatorUploadLogMapper operatorUploadLogMapper, OperatorDataVoMapper operatorDataVoMapper, OperatorBaseDataService operatorBaseDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
+    public OperatorStatisticsService(OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OperatorDataVoMapper operatorDataVoMapper, OperatorBaseDataService operatorBaseDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
         this.operatorSurveyStatisticsMapper = operatorSurveyStatisticsMapper;
-        this.operatorUploadLogMapper = operatorUploadLogMapper;
+        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         this.operatorDataVoMapper = operatorDataVoMapper;
         this.operatorBaseDataService = operatorBaseDataService;
         this.redisTemplate = redisTemplate;
@@ -54,112 +54,39 @@ public class OperatorStatisticsService {
      */
 //    @Scheduled(cron = "0 10 0/2 * * ?")
     public void operatorStatistics() {
-        List<Long> userIds = operatorUploadLogMapper.selectList(null)
+        List<Long> userIds = akPlayerBindInfoMapper.selectList(null)
                 .stream()
-                .map(OperatorUploadLog::getId)
+                .map(AkPlayerBindInfo::getId)
                 .collect(Collectors.toList());
-        List<List<Long>> userIdsGroup = new ArrayList<>();
+
+
+
         String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         redisTemplate.opsForHash().put("Survey", "UpdateTime.Operator", updateTime);
         redisTemplate.opsForHash().put("Survey", "UserCount.Operator", userIds.size());
 
-        int length = userIds.size();
-
         // 计算用户id按500个用户一组可以分成多少组
-        int num = length / 200 + 1;
-        int fromIndex = 0;   // id分组开始
-        int toIndex = 300;   //id分组结束
-        for (int i = 0; i < num; i++) {
-            toIndex = Math.min(toIndex, userIds.size());
-            userIdsGroup.add(userIds.subList(fromIndex, toIndex));
-            fromIndex += 300;
-            toIndex += 300;
+        operatorSurveyStatisticsMapper.truncate(); //清空统计表
+        HashMap<String, OperatorStatisticsDTO> tmpResult = new HashMap<>();  //结果暂存对象
+
+        List<Long> tmpIds = new ArrayList<>();
+        for(Long id : userIds){
+            tmpIds.add(id);
+            if(tmpIds.size()>500){
+                operatorStatistics(tmpIds,tmpResult);
+                tmpIds.clear();
+            }
         }
 
-        operatorSurveyStatisticsMapper.truncate(); //清空统计表
-
-        HashMap<String, OperatorStatisticsDTO> hashMap = new HashMap<>();  //结果暂存对象
+        if(tmpIds.size()>0){
+            operatorStatistics(tmpIds,tmpResult);
+        }
 
         List<OperatorStatistics> statisticsOperatorList = new ArrayList<>();  //最终结果
 
 
-        for (List<Long> ids : userIdsGroup) {
-            if (ids.size() == 0) continue;
-
-            QueryWrapper<OperatorDataVo> queryWrapper = new QueryWrapper<>();
-            queryWrapper.in("uid",ids);
-            List<OperatorDataVo> operatorDataVoByBindUser = operatorDataVoMapper.selectList(queryWrapper);
-
-            Log.info("本次统计数量：" + operatorDataVoByBindUser.size());
-
-            //根据干员id分组
-            Map<String, List<OperatorDataVo>> collectByCharId = operatorDataVoByBindUser.stream()
-                    .collect(Collectors.groupingBy(OperatorDataVo::getCharId));
-
-            //计算结果
-            collectByCharId.forEach((charId, list) -> {
-                list = list.stream()
-                        .filter(OperatorDataVo::getOwn)
-                        .collect(Collectors.toList());
-
-                int own = list.size();  //持有人数
-                int rarity = list.get(0).getRarity();  //星级
-
-                Map<Integer, Long> collectByElite = new HashMap<>();
-                Map<Integer, Long> collectByPotential = new HashMap<>();
-                Map<Integer, Long> collectBySkill1 = new HashMap<>();
-                Map<Integer, Long> collectBySkill2 = new HashMap<>();
-                Map<Integer, Long> collectBySkill3 = new HashMap<>();
-                Map<Integer, Long> collectByModX = new HashMap<>();
-                Map<Integer, Long> collectByModY = new HashMap<>();
-                Map<Integer, Long> collectByModD = new HashMap<>();
-
-                for (OperatorDataVo operatorDataVo :list){
-                    collectByElite.merge(operatorDataVo.getElite(),1L,Long::sum);
-                    collectByPotential.merge(operatorDataVo.getPotential(),1L,Long::sum);
-                    collectBySkill1.merge(operatorDataVo.getSkill1(),1L,Long::sum);
-                    collectBySkill2.merge(operatorDataVo.getSkill2(),1L,Long::sum);
-                    collectBySkill3.merge(operatorDataVo.getSkill3(),1L,Long::sum);
-                    collectByModX.merge(operatorDataVo.getModX(),1L,Long::sum);
-                    collectByModY.merge(operatorDataVo.getModY(),1L,Long::sum);
-                    collectByModD.merge(operatorDataVo.getModD(),1L,Long::sum);
-                }
-
-
-                //和上一组用户id的数据合并
-                if (hashMap.get(charId) != null) {
-                    OperatorStatisticsDTO lastData = hashMap.get(charId);
-                    own += lastData.getOwn();
-                    mergeLastData(lastData.getElite(),collectByElite);
-                    mergeLastData(lastData.getPotential(),collectByPotential);
-                    mergeLastData(lastData.getSkill1(),collectBySkill1);
-                    mergeLastData(lastData.getSkill2(),collectBySkill2);
-                    mergeLastData(lastData.getSkill3(),collectBySkill3);
-                    mergeLastData(lastData.getModX(),collectByModX);
-                    mergeLastData(lastData.getModY(),collectByModY);
-                    mergeLastData(lastData.getModD(),collectByModD);
-                }
-
-                //存入dto对象进行暂存
-                OperatorStatisticsDTO build = OperatorStatisticsDTO.builder()
-                        .charId(charId)
-                        .own(own)
-                        .elite(collectByElite)
-                        .rarity(rarity)
-                        .skill1(collectBySkill1)
-                        .skill2(collectBySkill2)
-                        .skill3(collectBySkill3)
-                        .potential(collectByPotential)
-                        .modX(collectByModX)
-                        .modY(collectByModY)
-                        .modD(collectByModD)
-                        .build();
-                hashMap.put(charId, build);
-            });
-        }
-
         //将dto对象转为数据库对象
-        hashMap.forEach((k, v) -> {
+        tmpResult.forEach((k, v) -> {
 
             OperatorStatistics build = OperatorStatistics.builder()
                     .charId(v.getCharId())
@@ -181,6 +108,79 @@ public class OperatorStatisticsService {
 
     }
 
+    private void operatorStatistics(List<Long> ids,HashMap<String, OperatorStatisticsDTO> tmpResult){
+
+        QueryWrapper<OperatorDataVo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("uid",ids);
+        List<OperatorDataVo> operatorDataVoByBindUser = operatorDataVoMapper.selectList(queryWrapper);
+
+        Log.info("本次统计数量：" + operatorDataVoByBindUser.size());
+
+        //根据干员id分组
+        Map<String, List<OperatorDataVo>> collectByCharId = operatorDataVoByBindUser.stream()
+                .collect(Collectors.groupingBy(OperatorDataVo::getCharId));
+
+        //计算结果
+        collectByCharId.forEach((charId, list) -> {
+            list = list.stream()
+                    .filter(OperatorDataVo::getOwn)
+                    .collect(Collectors.toList());
+
+            int own = list.size();  //持有人数
+            int rarity = list.get(0).getRarity();  //星级
+
+            Map<Integer, Long> collectByElite = new HashMap<>();
+            Map<Integer, Long> collectByPotential = new HashMap<>();
+            Map<Integer, Long> collectBySkill1 = new HashMap<>();
+            Map<Integer, Long> collectBySkill2 = new HashMap<>();
+            Map<Integer, Long> collectBySkill3 = new HashMap<>();
+            Map<Integer, Long> collectByModX = new HashMap<>();
+            Map<Integer, Long> collectByModY = new HashMap<>();
+            Map<Integer, Long> collectByModD = new HashMap<>();
+
+            for (OperatorDataVo operatorDataVo :list){
+                collectByElite.merge(operatorDataVo.getElite(),1L,Long::sum);
+                collectByPotential.merge(operatorDataVo.getPotential(),1L,Long::sum);
+                collectBySkill1.merge(operatorDataVo.getSkill1(),1L,Long::sum);
+                collectBySkill2.merge(operatorDataVo.getSkill2(),1L,Long::sum);
+                collectBySkill3.merge(operatorDataVo.getSkill3(),1L,Long::sum);
+                collectByModX.merge(operatorDataVo.getModX(),1L,Long::sum);
+                collectByModY.merge(operatorDataVo.getModY(),1L,Long::sum);
+                collectByModD.merge(operatorDataVo.getModD(),1L,Long::sum);
+            }
+
+
+            //和上一组用户id的数据合并
+            if (tmpResult.get(charId) != null) {
+                OperatorStatisticsDTO lastData = tmpResult.get(charId);
+                own += lastData.getOwn();
+                mergeLastData(lastData.getElite(),collectByElite);
+                mergeLastData(lastData.getPotential(),collectByPotential);
+                mergeLastData(lastData.getSkill1(),collectBySkill1);
+                mergeLastData(lastData.getSkill2(),collectBySkill2);
+                mergeLastData(lastData.getSkill3(),collectBySkill3);
+                mergeLastData(lastData.getModX(),collectByModX);
+                mergeLastData(lastData.getModY(),collectByModY);
+                mergeLastData(lastData.getModD(),collectByModD);
+            }
+
+            //存入dto对象进行暂存
+            OperatorStatisticsDTO build = OperatorStatisticsDTO.builder()
+                    .charId(charId)
+                    .own(own)
+                    .elite(collectByElite)
+                    .rarity(rarity)
+                    .skill1(collectBySkill1)
+                    .skill2(collectBySkill2)
+                    .skill3(collectBySkill3)
+                    .potential(collectByPotential)
+                    .modX(collectByModX)
+                    .modY(collectByModY)
+                    .modD(collectByModD)
+                    .build();
+            tmpResult.put(charId, build);
+        });
+    }
 
     private  void mergeLastData(Map<Integer,Long> resource,Map<Integer,Long> target){
         for (Integer key:resource.keySet()){

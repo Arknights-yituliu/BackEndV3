@@ -16,7 +16,6 @@ import java.util.List;
 @RestController
 @Tag(name ="干员调查站API")
 @RequestMapping(value = "/survey")
-@CrossOrigin(maxAge = 86400)
 public class SurveyScoreController {
 
 

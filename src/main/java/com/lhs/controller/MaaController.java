@@ -19,7 +19,6 @@ import java.util.*;
 @RestController
 @Tag(name ="MaaAPI—新")
 @RequestMapping(value = "/maa")
-@CrossOrigin(maxAge = 86400)
 public class MaaController {
 
     private final ScheduleService scheduleService;

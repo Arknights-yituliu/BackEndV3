@@ -22,7 +22,7 @@ import java.util.Map;
 @RestController
 @Tag(name ="一图流用户系统")
 @RequestMapping(value = "/survey")
-@CrossOrigin()
+
 public class SurveyUserController {
 
     private final SurveyUserService surveyUserService;
