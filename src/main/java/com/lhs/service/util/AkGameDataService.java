@@ -1,4 +1,4 @@
-package com.lhs.service.survey;
+package com.lhs.service.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,14 +8,13 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.ResultCode;
-import com.lhs.entity.po.item.Item;
+import com.lhs.entity.dto.maa.BuildingData;
 import com.lhs.entity.po.survey.OperatorTable;
 import com.lhs.mapper.survey.OperatorTableMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
@@ -23,48 +22,44 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class OperatorBaseDataService {
+public class AkGameDataService {
 
     private final OperatorTableMapper operatorTableMapper;
-    private final static String githubBotResource = "E:\\IDEAProject\\Arknights-Bot-Resource\\";
+    private final static String githubBotResource = "C:/IDEAProject/Arknights-Bot-Resource/";
 
-    private final static String GAME_DATA = "E:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
+    private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public OperatorBaseDataService(OperatorTableMapper operatorTableMapper, RedisTemplate<String, Object> redisTemplate) {
+    public AkGameDataService(OperatorTableMapper operatorTableMapper, RedisTemplate<String, Object> redisTemplate) {
         this.operatorTableMapper = operatorTableMapper;
         this.redisTemplate = redisTemplate;
     }
 
     /**
      * 返回一个集合 key:模组id,value:模组分支
-     * @return  Map<模组id,模组分支>
+     *
+     * @return Map<模组id, 模组分支>
      */
     @RedisCacheable(key = "Survey:EquipIdAndType", timeout = 86400)
     public Map<String, String> getEquipIdAndType() {
         String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
-        if(read==null) throw new ServiceException(ResultCode.FILE_NOT_EXIST);
+        if (read == null) throw new ServiceException(ResultCode.FILE_NOT_EXIST);
         JsonNode characterTableSimple = JsonMapper.parseJSONObject(read);
         Map<String, String> uniEquipIdAndType = new HashMap<>();
         Iterator<Map.Entry<String, JsonNode>> characterTableSimpleFields = characterTableSimple.fields();
-        while (characterTableSimpleFields.hasNext()){
+        while (characterTableSimpleFields.hasNext()) {
             String charId = characterTableSimpleFields.next().getKey();
             JsonNode operatorData = characterTableSimple.get(charId);
-            if(operatorData.get("equip")==null) continue;
+            if (operatorData.get("equip") == null) continue;
             JsonNode equip = operatorData.get("equip");
-            for(JsonNode equipData :equip){
+            for (JsonNode equipData : equip) {
                 String uniEquipId = equipData.get("uniEquipId").asText();
                 String typeName2 = equipData.get("typeName2").asText();
-                uniEquipIdAndType.put(uniEquipId,typeName2);
+                uniEquipIdAndType.put(uniEquipId, typeName2);
             }
         }
-
-
-//        for(String key: uniEquipIdAndType.keySet()){
-//            System.out.println(key);
-//        }
 
         return uniEquipIdAndType;
 
@@ -72,7 +67,8 @@ public class OperatorBaseDataService {
 
     /**
      * 返回一个集合 key:干员id_模组分支,value:模组分支
-     * @return  Map<干员id_模组分支,模组分支>
+     *
+     * @return Map<干员id_模组分支, 模组分支>
      */
     @RedisCacheable(key = "Survey:HasEquipTable", timeout = 86400)
     public Map<String, String> getHasEquipTable() {
@@ -98,12 +94,13 @@ public class OperatorBaseDataService {
 
     /**
      * 返回一个干员信息的集合 里面主要用到干员的获取方式和实装时间
+     *
      * @return
      */
-    @RedisCacheable(key = "Survey:OperatorUpdateTable",timeout = 3000)
-    public List<OperatorTable> getOperatorTable(){
+    @RedisCacheable(key = "Survey:OperatorUpdateTable", timeout = 3000)
+    public List<OperatorTable> getOperatorTable() {
         List<OperatorTable> operatorTableList = operatorTableMapper.selectList(null);
-        if(operatorTableList==null) throw new ServiceException(ResultCode.DATA_NONE);
+        if (operatorTableList == null) throw new ServiceException(ResultCode.DATA_NONE);
         return operatorTableList;
     }
 
@@ -145,27 +142,27 @@ public class OperatorBaseDataService {
             if (equipListMap.get(charId) != null) {
                 List<Map<String, Object>> maps = equipListMap.get(charId);
                 Map<String, Object> tempMap = new HashMap<>();
-                tempMap.put("charId",charId);
-                tempMap.put("uniEquipId",equipId);
-                tempMap.put("typeName1",typeName1);
-                tempMap.put("typeName2",typeName2);
-                tempMap.put("uniEquipIcon",uniEquipIcon);
-                tempMap.put("typeIcon",typeIcon);
-                tempMap.put("uniEquipName",uniEquipName);
+                tempMap.put("charId", charId);
+                tempMap.put("uniEquipId", equipId);
+                tempMap.put("typeName1", typeName1);
+                tempMap.put("typeName2", typeName2);
+                tempMap.put("uniEquipIcon", uniEquipIcon);
+                tempMap.put("typeIcon", typeIcon);
+                tempMap.put("uniEquipName", uniEquipName);
                 maps.add(tempMap);
-                equipListMap.put(charId,maps);
+                equipListMap.put(charId, maps);
             } else {
                 List<Map<String, Object>> maps = new ArrayList<>();
                 Map<String, Object> tempMap = new HashMap<>();
-                tempMap.put("charId",charId);
-                tempMap.put("uniEquipId",equipId);
-                tempMap.put("typeName1",typeName1);
-                tempMap.put("typeName2",typeName2);
-                tempMap.put("uniEquipIcon",uniEquipIcon);
-                tempMap.put("typeIcon",typeIcon);
-                tempMap.put("uniEquipName",uniEquipName);
+                tempMap.put("charId", charId);
+                tempMap.put("uniEquipId", equipId);
+                tempMap.put("typeName1", typeName1);
+                tempMap.put("typeName2", typeName2);
+                tempMap.put("uniEquipIcon", uniEquipIcon);
+                tempMap.put("typeIcon", typeIcon);
+                tempMap.put("uniEquipName", uniEquipName);
                 maps.add(tempMap);
-                equipListMap.put(charId,maps);
+                equipListMap.put(charId, maps);
             }
 
         }
@@ -186,14 +183,14 @@ public class OperatorBaseDataService {
             }
         }
 
-       Map<String, Object> table_simple = new HashMap<>();
+        Map<String, Object> table_simple = new HashMap<>();
 
 
         //升变干员
         JsonNode patchChars = charPatchTable.get("patchChars");
         Iterator<Map.Entry<String, JsonNode>> patchCharsFields = patchChars.fields();
 
-        while (patchCharsFields.hasNext()){
+        while (patchCharsFields.hasNext()) {
             String charId = patchCharsFields.next().getKey();
             JsonNode characterData = patchChars.get(charId);
             Map<Object, Object> character = new HashMap<>();
@@ -221,26 +218,26 @@ public class OperatorBaseDataService {
             OperatorTable operatorTableSimple = characterTableMap.get(charId);
 
             character.put("name", name);
-            character.put("charId",charId);
+            character.put("charId", charId);
             character.put("rarity", rarity);
             character.put("itemObtainApproach", operatorTableSimple.getObtainApproach());
-            character.put("equip",equipListMap.get(charId));
+            character.put("equip", equipListMap.get(charId));
             character.put("skill", skillList);
-            character.put("date", characterTableMap.get(charId).getUpdateTime());
+            character.put("date", characterTableMap.get(charId).getUpdateTime().getTime());
             character.put("profession", profession);
             character.put("subProfessionId", subProfessionId);
-            character.put("own",false);
-            character.put("level",0);
-            character.put("elite",0);
-            character.put("potential",0);
-            character.put("mainSkill",0);
-            character.put("skill1",0);
-            character.put("skill2",0);
-            character.put("skill3",0);
-            character.put("modX",0);
-            character.put("modY",0);
-            character.put("modD",0);
-            character.put("show",rarity==6);
+            character.put("own", false);
+            character.put("level", 0);
+            character.put("elite", 0);
+            character.put("potential", 0);
+            character.put("mainSkill", 0);
+            character.put("skill1", 0);
+            character.put("skill2", 0);
+            character.put("skill3", 0);
+            character.put("modX", 0);
+            character.put("modY", 0);
+            character.put("modD", 0);
+            character.put("show", rarity == 6);
             table_simple.put(charId, character);
         }
 
@@ -273,13 +270,14 @@ public class OperatorBaseDataService {
                 String name = characterData.get("name").asText();
 
                 String profession = characterData.get("profession").asText();
-                int rarity = getRarity(characterData.get("rarity").asText());;
+                int rarity = getRarity(characterData.get("rarity").asText());
+                ;
                 String subProfessionId = characterData.get("subProfessionId").asText();
 
                 OperatorTable operatorTableSimple = characterTableMap.get(charId);
                 String itemObtainApproach = "常驻干员";
                 long updateTime = System.currentTimeMillis();
-                if(operatorTableSimple!=null){
+                if (operatorTableSimple != null) {
                     itemObtainApproach = operatorTableSimple.getObtainApproach();
                     updateTime = operatorTableSimple.getUpdateTime().getTime();
                 }
@@ -297,43 +295,45 @@ public class OperatorBaseDataService {
 
 
                 character.put("name", name);
-                character.put("charId",charId);
+                character.put("charId", charId);
                 character.put("rarity", rarity);
                 character.put("itemObtainApproach", itemObtainApproach);
-                character.put("equip",equipListMap.get(charId));
+                character.put("equip", equipListMap.get(charId));
                 character.put("skill", skillList);
                 character.put("date", updateTime);
                 character.put("profession", profession);
                 character.put("subProfessionId", subProfessionId);
-                character.put("own",false);
-                character.put("level",0);
-                character.put("elite",0);
-                character.put("potential",0);
-                character.put("mainSkill",0);
-                character.put("skill1",0);
-                character.put("skill2",0);
-                character.put("skill3",0);
-                character.put("modX",0);
-                character.put("modY",0);
-                character.put("modD",0);
-                character.put("show",rarity==6);
+                character.put("own", false);
+                character.put("level", 0);
+                character.put("elite", 0);
+                character.put("potential", 0);
+                character.put("mainSkill", 0);
+                character.put("skill1", 0);
+                character.put("skill2", 0);
+                character.put("skill3", 0);
+                character.put("modX", 0);
+                character.put("modY", 0);
+                character.put("modD", 0);
+                character.put("show", rarity == 6);
+                System.out.println(name + "{ }" + operatorTableSimple.getUpdateTime() + "{ }" + operatorTableSimple.getUpdateTime().getTime());
+
                 table_simple.put(charId, character);
             }
         }
 
         List<Object> list = new ArrayList<>();
-        for(String id :table_simple.keySet()){
+        for (String id : table_simple.keySet()) {
             list.add(table_simple.get(id));
         }
 
         FileUtil.save(ApplicationConfig.Item, "character_table_simple.json", JsonMapper.toJSONString(table_simple));
-        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JsonMapper.toJSONString(table_simple));
+        FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JsonMapper.toJSONString(table_simple));
 
-        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_list.json", JsonMapper.toJSONString(list));
+        FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_list.json", JsonMapper.toJSONString(list));
     }
 
-    private Integer getRarity(String str){
-        return Integer.parseInt(str.replace("TIER_",""));
+    private Integer getRarity(String str) {
+        return Integer.parseInt(str.replace("TIER_", ""));
     }
 
     public HashMap<String, Object> getOperatorApCost() {
@@ -461,7 +461,6 @@ public class OperatorBaseDataService {
             }
 
 
-
         }
 
 //        FileUtil.save(ApplicationConfig.Item, "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
@@ -471,42 +470,70 @@ public class OperatorBaseDataService {
     }
 
 
+    public void getBuildingTable() {
+        String read = FileUtil.read(GAME_DATA + "excel/building_data.json");
+        String read1 = FileUtil.read(GAME_DATA + "excel/character_table.json");
 
-    public  void classifyModImageByRarity(){
-        String uniequip_table_text = FileUtil.read(githubBotResource + "gamedata\\excel\\uniequip_table.json");
-        String character_table_text = FileUtil.read(githubBotResource + "gamedata\\excel\\character_table.json");
 
-        JsonNode uniEquipTable = JsonMapper.parseJSONObject(uniequip_table_text);
-        JsonNode equipDict = uniEquipTable.get("equipDict");
-        Iterator<Map.Entry<String, JsonNode>> fields = equipDict.fields();
+        List<OperatorTable> operatorTable = getOperatorTable();
 
-        JsonNode characterTable = JsonMapper.parseJSONObject(character_table_text);
-        Iterator<Map.Entry<String, JsonNode>> characterTableFields = characterTable.fields();
+        Map<String, OperatorTable> characterTableMap = operatorTable.stream()
+                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
-        Map<String,Integer> charIdAndRarity = new HashMap<>();
+        JsonNode building = JsonMapper.parseJSONObject(read);
+        JsonNode characters = JsonMapper.parseJSONObject(read1);
+        JsonNode buffs = building.get("buffs");
+        JsonNode chars = building.get("chars");
+        List<BuildingData> buildingDataList = new ArrayList<>();
+        for (JsonNode jsonNode : chars) {
+            String charId = jsonNode.get("charId").asText();
+            JsonNode character = characters.get(charId);
+            String name = character.get("name").asText();
+            JsonNode buffChar = jsonNode.get("buffChar");
+            for (JsonNode buffCharElement : buffChar) {
+                JsonNode buffData = buffCharElement.get("buffData");
+                for (JsonNode buffDataElement : buffData) {
+                    String buffId = buffDataElement.get("buffId").asText();
+                    JsonNode cond = buffDataElement.get("cond");
+                    BuildingData buildingData = new BuildingData();
+                    buildingData.setCharId(charId);
+                    buildingData.setLevel(cond.get("level").asInt());
+                    buildingData.setPhase(getPhase(cond.get("phase").asText()));
+                    JsonNode buff = buffs.get(buffId);
+                    if (buff == null) continue;
 
-        while(characterTableFields.hasNext()){
-            String charId = characterTableFields.next().getKey();
-            JsonNode charData = characterTable.get(charId);
-            int rarity = charData.get("rarity").asInt()+1;
-            charIdAndRarity.put(charId,rarity);
+
+                    String buffName = buff.get("buffName").asText();
+                    String buffColor = buff.get("buffColor").asText();
+                    String textColor = buff.get("textColor").asText();
+                    String description = buff.get("description").asText();
+                    String roomType = buff.get("buffIcon").asText();
+                    buildingData.setBuffName(buffName);
+                    buildingData.setBuffColor(buffColor);
+                    buildingData.setTextColor(textColor);
+                    if (name.equals("假日威龙陈")) {
+                        System.out.println(description);
+                    }
+                    buildingData.setTimestamp(characterTableMap.get(charId).getUpdateTime().getTime());
+                    buildingData.setDescription(replaceDescription(description));
+                    buildingData.setRoomType(roomType);
+                    buildingData.setName(name);
+                    buildingDataList.add(buildingData);
+
+                }
+            }
         }
 
-        while (fields.hasNext()) {
 
-            String key = fields.next().getKey();
-            if (key.contains("_001_")) continue;
-            JsonNode equip = equipDict.get(key);
-            String uniEquipName = equip.get("uniEquipName").asText();
-            String uniEquipIcon = equip.get("uniEquipIcon").asText();
-            String charId = equip.get("charId").asText();
-            Integer rarity = charIdAndRarity.get(charId);
+//        Map<String, List<BuildingData>> collect = buildingDataList.stream()
+//                .collect(Collectors.groupingBy(BuildingData::getRoomType));
+         buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
+        FileUtil.save("C:/VCProject/frontend-v2-plus/src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
 
-            File source = new File("E:\\VCProject\\resources\\mod\\" + uniEquipIcon + ".png");
-            File dest = new File("E:\\VCProject\\resources\\mod-ori-"+rarity+"\\" + uniEquipIcon + ".png");
-            copyFile(source,dest);
-        }
+    }
 
+    private Integer getPhase(String text) {
+        return Integer.parseInt(text.replace("PHASE_", ""));
     }
 
 
@@ -531,7 +558,7 @@ public class OperatorBaseDataService {
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
                 int rarity = getRarity(charData.get("rarity").asText());
-                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 "+endPath+ charId + ".png");
+                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 " + endPath + charId + ".png");
                 File source = new File(startPath + charId + "_1.png");
 
                 if (rarity == 6) endPath = portrait6;
@@ -576,7 +603,7 @@ public class OperatorBaseDataService {
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
                 int rarity = getRarity(charData.get("rarity").asText());
-                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 "+endPath+ charId + ".png");
+                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 " + endPath + charId + ".png");
                 File source = new File(startPath + charId + ".png");
 
                 if (rarity == 6) endPath = avatar6;
@@ -616,4 +643,92 @@ public class OperatorBaseDataService {
         }
     }
 
+
+    private String replaceDescription(String str) {
+        Map<String, String> classMap = new HashMap<String, String>();
+
+        Map<String, String> spliceClassMap = new HashMap<>();
+        spliceClassMap.put("<@cc.vup>", "<span class='cc-vup'>");
+        spliceClassMap.put("<@cc.kw>", "<span class='cc-kw'>");
+        spliceClassMap.put("<@cc.vdown>", "<span class='cc-vdown'>");
+        spliceClassMap.put("<@cc.rem>", "<span class='cc-rem'>");
+        spliceClassMap.put("</>", "</span>");
+
+        classMap.put("<$cc.tag.durin>", "<span class='cc-tag-durin'>");
+        classMap.put("<$cc.tag.op>", "<span class='cc-tag-op'>"); //作业平台
+        classMap.put("<$cc.tag.mh>", "<span class='cc-tag-mh'>");
+        classMap.put("<$cc.tag.knight>", "<span class='cc-tag-knight'>"); //骑士
+
+        classMap.put("<$cc.bd_b1>", "<span class='cc-bd-b1'>"); //人间烟火
+        classMap.put("<$cc.bd_a1>", "<span class='cc-bd-a1'>"); //感知信息
+        classMap.put("<$cc.bd_A>", "<span class='cc-bd-A'>"); //感知信息
+        classMap.put("<$cc.bd_C>", "<span class='cc-bd-C'>"); //巫术结晶
+        classMap.put("<$cc.bd_B>", "<span class='cc-bd-B'>"); //人间烟火
+        classMap.put("<$cc.bd_malist>", "<span class='cc-bd-malist'>"); //工程机器人
+        classMap.put("<$cc.bd_a1_a1>", "<span class='cc-bd-a1-a1'>");  //记忆碎片
+        classMap.put("<$cc.bd_a1_a2>", "<span class='cc-bd-a1-a2'>");  //梦境
+        classMap.put("<$cc.bd_a1_a3>", "<span class='cc-bd-a1-a3'>");  //小节
+        classMap.put("<$cc.bd_ash>", "<span class='cc-bd-ash'>"); //彩六
+        classMap.put("<$cc.bd_tachanka>", "<span class='cc-bd-tachanka'>");  //彩六
+        classMap.put("<$cc.bd_felyne>", "<span class='cc-bd-felyne'>");  //彩六
+
+
+        classMap.put("<$cc.t.strong2>", "<span class='cc-t-strong2'>"); //强调
+        classMap.put("<$cc.t.flow_gold>", "<span class='cc-t-flow-gold'>");//赤金线
+
+        classMap.put("<$cc.c.room3>", "<span class='cc-c-room3'>");
+        classMap.put("<$cc.c.room1>", "<span class='cc-c-room1'>");
+        classMap.put("<$cc.c.room2>", "<span class='cc-c-room2'>");
+        classMap.put("<$cc.c.skill>", "<span class='cc-c-skill'>");
+        classMap.put("<$cc.c.abyssal2_3>", "<span class='cc-c-abyssal2_3'>");
+        classMap.put("<$cc.c.abyssal2_1>", "<span class='cc-c-abyssal2_1'>"); //深海猎人
+        classMap.put("<$cc.c.abyssal2_2>", "<span class='cc-c-abyssal2_2'>"); //深海猎人
+        classMap.put("<$cc.c.sui2_1>", "<span class='cc-c-sui2_1'>"); //深海猎人
+        classMap.put("<$cc.c.sui2_2>", "<span class='cc-c-sui2_2'>"); //深海猎人
+
+        classMap.put("<$cc.m.var1>", "<span class='cc-m-var1'>");
+
+
+        classMap.put("<$cc.sk.manu1>", "<span class='cc-sk-manu1'>"); //标准化类技能
+        classMap.put("<$cc.sk.manu2>", "<span class='cc-sk-manu2'>"); //莱茵科技类技能
+        classMap.put("<$cc.sk.manu3>", "<span class='cc-sk-manu3'>"); //红松骑士团类
+        classMap.put("<$cc.sk.manu4>", "<span class='cc-sk-manu4'>"); //金属工艺类技能
+
+
+        classMap.put("<$cc.w.ncdeer1>", "<span class='cc-bd-ncdeer1'>");  //九色鹿
+        classMap.put("<$cc.w.ncdeer2>", "<span class='cc-bd-ncdeer2'>");  //九色鹿
+
+        classMap.put("<$cc.g.glasgow>", "<span class='cc-g-glasgow'>"); //格拉斯哥帮
+        classMap.put("<$cc.g.bs>", "<span class='cc-g-bs'>"); //黑钢
+        classMap.put("<$cc.g.sm>", "<span class='cc-g-sm'>"); //萨米
+        classMap.put("<$cc.g.lgd>", "<span class='cc-g-lgd'>"); //近卫局
+        classMap.put("<$cc.g.lda>", "<span class='cc-g-lda'>"); //鲤氏
+        classMap.put("<$cc.g.sp>", "<span class='cc-g-sp'>"); //异格
+        classMap.put("<$cc.g.R6>", "<span class='cc-g-R6'>"); //彩六
+        classMap.put("<$cc.g.ussg>", "<span class='cc-g-ussg'>"); //彩六
+        classMap.put("<$cc.g.abyssal>", "<span class='cc-g-abyssal'>"); //深海猎人
+        classMap.put("<$cc.g.knight>", "<span class='cc-g-lda'>"); //骑士
+        classMap.put("<$cc.g.mh>", "<span class='cc-g-mh'>"); //怪物猎人
+        classMap.put("<$cc.g.op>", "<span class='cc-g-op'>"); //异格
+        classMap.put("<$cc.g.rh>", "<span class='cc-g-rh'>"); //彩六
+        classMap.put("<$cc.g.psk>", "<span class='cc-g-psk'>"); //怪物猎人
+        classMap.put("<$cc.g.karlan>", "<span class='cc-g-karlan'>"); //喀兰
+        classMap.put("<$cc.g.sui>", "<span class='cc-g-sui'>"); //岁
+
+        classMap.put("<$cc.gvial>", "<span class='cc-g-gvial'>"); //彩六
+
+
+        classMap.put("<$cc.bd.costdrop>", "<span class='cc-bd-costdrop'>"); //心情落差
+
+
+        for (String key : spliceClassMap.keySet()) {
+            str = str.replace(key, spliceClassMap.get(key));
+        }
+
+        for (String key : classMap.keySet()) {
+            str = str.replace(key, "<span class='cc-base'>");
+        }
+
+        return str;
+    }
 }

@@ -9,13 +9,13 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.Log;
+import com.lhs.common.util.LogUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.item.StoreAct;
-import com.lhs.mapper.HoneyCakeMapper;
+import com.lhs.mapper.dev.HoneyCakeMapper;
 import com.lhs.mapper.item.StoreActMapper;
 import com.lhs.mapper.item.StorePermMapper;
 import com.lhs.entity.po.item.Item;
@@ -73,7 +73,7 @@ public class StoreService extends ServiceImpl<StorePermMapper, StorePerm> {
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
         ossService.upload(JsonMapper.toJSONString(storePerms), "backup/store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
-        Log.info("常驻商店更新成功");
+        LogUtil.info("常驻商店更新成功");
     }
 
 

@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @Tag(name = "材料相关API-v3")
-public class ItemController {
+public class MaterialControllerV3 {
 
     private final ItemService itemService;
 
@@ -34,7 +34,7 @@ public class ItemController {
 
     private final StageResultService stageResultService;
 
-    public ItemController(ItemService itemService, StageService stageService, StoreService storeService, ItemTask itemTask, StageResultService stageResultService) {
+    public MaterialControllerV3(ItemService itemService, StageService stageService, StoreService storeService, ItemTask itemTask, StageResultService stageResultService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;

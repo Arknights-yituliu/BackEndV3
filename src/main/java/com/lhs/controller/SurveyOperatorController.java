@@ -11,6 +11,7 @@ import com.lhs.entity.po.survey.OperatorDataVo;
 import com.lhs.service.survey.*;
 import com.lhs.entity.vo.survey.OperatorPlanVO;
 
+import com.lhs.service.util.AkGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -30,14 +31,14 @@ public class SurveyOperatorController {
 
     private final OperatorPlanService operatorPlanService;
 
-    private final OperatorBaseDataService operatorBaseDataService;
+    private final AkGameDataService akGameDataService;
 
     private final OperatorStatisticsService operatorStatisticsService;
 
-    public SurveyOperatorController(OperatorDataService operatorDataService, OperatorPlanService operatorPlanService, OperatorBaseDataService operatorBaseDataService, OperatorStatisticsService operatorStatisticsService) {
+    public SurveyOperatorController(OperatorDataService operatorDataService, OperatorPlanService operatorPlanService, AkGameDataService akGameDataService, OperatorStatisticsService operatorStatisticsService) {
         this.operatorDataService = operatorDataService;
         this.operatorPlanService = operatorPlanService;
-        this.operatorBaseDataService = operatorBaseDataService;
+        this.akGameDataService = akGameDataService;
         this.operatorStatisticsService = operatorStatisticsService;
     }
 
@@ -54,7 +55,7 @@ public class SurveyOperatorController {
     public Result<Object> importSurveyCharacterFormBySKLandV2(@RequestBody Map<String,String> params) {
         String token = params.get("token");
         String data = params.get("data");
-        return operatorDataService.importSKLandPlayerInfoV2(token, data);
+        return Result.success(operatorDataService.importSKLandPlayerInfoV2(token, data));
     }
 
     @Operation(summary ="用户干员练度重置")

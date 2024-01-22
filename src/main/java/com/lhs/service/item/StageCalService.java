@@ -206,7 +206,7 @@ public class StageCalService {
             itemIterationValue.setVersion(version);
             itemIterationValue.setItemId(itemTypeId);
             iterationValueList.add(itemIterationValue);
-            Log.info(String.format("%-8s", itemName)+ "的迭代系数是：" + 1 / iterationValue);
+            LogUtil.info(String.format("%-8s", itemName)+ "的迭代系数是：" + 1 / iterationValue);
         });
 
         stageResultDetailMapper.delete(new QueryWrapper<StageResultDetail>().eq("version", version));
@@ -229,9 +229,9 @@ public class StageCalService {
 
         redisTemplate.opsForValue().set("Item:updateTime",new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
 
-        Log.info("本次批量插入关卡掉落详细数据条数："+detailInsertList.size());
+        LogUtil.info("本次批量插入关卡掉落详细数据条数："+detailInsertList.size());
         stageResultMapper.insertBatch(commonInsertList);
-        Log.info("本次批量插入关卡通用掉落数据条数："+ commonInsertList.size());
+        LogUtil.info("本次批量插入关卡通用掉落数据条数："+ commonInsertList.size());
 
     }
 

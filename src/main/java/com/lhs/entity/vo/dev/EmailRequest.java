@@ -1,4 +1,4 @@
-package com.lhs.entity.vo.user;
+package com.lhs.entity.vo.dev;
 
 import lombok.Data;
 

@@ -6,6 +6,7 @@ import com.lhs.entity.po.survey.OperatorScore;
 import com.lhs.service.survey.*;
 import com.lhs.entity.vo.survey.OperatorScoreStatisticsVO;
 
+import com.lhs.service.util.AkGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +20,12 @@ import java.util.List;
 public class SurveyScoreController {
 
 
-    private final OperatorBaseDataService operatorBaseDataService;
+    private final AkGameDataService akGameDataService;
 
     private final OperatorScoreService operatorScoreService;
 
-    public SurveyScoreController(OperatorBaseDataService operatorBaseDataService, OperatorScoreService operatorScoreService) {
-        this.operatorBaseDataService = operatorBaseDataService;
+    public SurveyScoreController(AkGameDataService akGameDataService, OperatorScoreService operatorScoreService) {
+        this.akGameDataService = akGameDataService;
         this.operatorScoreService = operatorScoreService;
     }
 

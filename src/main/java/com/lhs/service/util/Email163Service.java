@@ -1,7 +1,7 @@
 package com.lhs.service.util;
 
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Log;
+import com.lhs.common.util.LogUtil;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import jakarta.annotation.Resource;
@@ -44,7 +44,7 @@ public class Email163Service {
 
     public Boolean compareVerificationCode(String inputCode,String emailAddress){
         Object code = redisTemplate.opsForValue().get(emailAddress);
-        Log.info("输入的验证码："+inputCode+"---------服务端验证码："+code);
+        LogUtil.info("输入的验证码："+inputCode+"---------服务端验证码："+code);
         if(inputCode==null) throw new ServiceException(ResultCode.CODE_ERROR);
 
         if(code==null)throw new ServiceException(ResultCode.CODE_NOT_EXIST);

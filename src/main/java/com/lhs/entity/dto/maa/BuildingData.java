@@ -13,4 +13,5 @@ public class BuildingData {
     private String textColor;
     private Integer phase;
     private Integer level;
+    private Long timestamp;
 }

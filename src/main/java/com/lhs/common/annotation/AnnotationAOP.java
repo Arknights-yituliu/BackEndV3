@@ -2,7 +2,7 @@ package com.lhs.common.annotation;
 
 import com.lhs.common.util.ResultCode;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Log;
+import com.lhs.common.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -13,7 +13,6 @@ import org.aspectj.lang.reflect.CodeSignature;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -42,9 +41,9 @@ public class AnnotationAOP {
     public void takeCountAfter(TakeCount takeCount) {
             long timeCost = (System.currentTimeMillis() - startTime.get());
             if (timeCost < 1000) {
-                Log.info("执行方法："+takeCount.name() + "  耗时：" + timeCost + "ms");
+                LogUtil.info("执行方法："+takeCount.name() + "  耗时：" + timeCost + "ms");
             } else {
-                Log.info("执行方法："+takeCount.name() + "  耗时：" + (timeCost / 1000) + "s");
+                LogUtil.info("执行方法："+takeCount.name() + "  耗时：" + (timeCost / 1000) + "s");
             }
 
         startTime.remove();

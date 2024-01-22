@@ -33,7 +33,7 @@ public class HttpRequestUtil {
             httpResponse = httpClient.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             if(httpResponse.getStatusLine().getStatusCode() != 200){
-                Log.info(EntityUtils.toString(entity));
+                LogUtil.info(EntityUtils.toString(entity));
                 return null;
             }
             return EntityUtils.toString(entity);

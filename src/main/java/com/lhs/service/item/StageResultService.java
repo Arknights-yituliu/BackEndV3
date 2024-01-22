@@ -6,7 +6,7 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Log;
+import com.lhs.common.util.LogUtil;
 import com.lhs.common.util.StageType;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.item.*;
@@ -48,7 +48,7 @@ public class StageResultService {
     public void updateStageResultByTaskConfig() {
         String read = FileUtil.read(ApplicationConfig.Item + "stage_task_config.json");
         if (read == null) {
-            Log.error("更新关卡配置文件为空");
+            LogUtil.error("更新关卡配置文件为空");
             return;
         }
 
@@ -60,7 +60,7 @@ public class StageResultService {
             stageParamDTO.setSampleSize(sampleSize);
             stageParamDTO.setExpCoefficient(expCoefficient);
             updateStageResult(stageParamDTO);
-            Log.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
+            LogUtil.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
         }
     }
 
@@ -71,7 +71,7 @@ public class StageResultService {
         }
         items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
         stageCalService.stageResultCal(items, stageParamDTO);      //用新材料价值计算新关卡效率
-        Log.info("V2关卡效率更新成功");
+        LogUtil.info("V2关卡效率更新成功");
     }
 
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
@@ -424,7 +424,7 @@ public class StageResultService {
     }
 
 
-    @RedisCacheable(key = "Item:Stage.ACT.V2", params = "version")
+//    @RedisCacheable(key = "Item:Stage.ACT.V2", params = "version")
     public List<ActStageVO> getHistoryActStage(String version) {
 
         Map<String, Item> itemMap = itemService.getItemListCache(version)
@@ -456,7 +456,7 @@ public class StageResultService {
             actStageVo.setStageType(stage.getStageType());
             actStageVo.setEndTime(stage.getEndTime().getTime());
             actStageVo.setActStageList(getActStageResultList(stageList, resultCommonMap, resultDetailMap, itemMap));
-            if (actStageVo.getActStageList().size() > 0) {
+            if (!actStageVo.getActStageList().isEmpty()) {
                 actStageVOList.add(actStageVo);
             }
         }

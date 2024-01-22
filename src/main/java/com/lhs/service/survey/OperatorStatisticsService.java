@@ -3,13 +3,14 @@ package com.lhs.service.survey;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Log;
+import com.lhs.common.util.LogUtil;
 import com.lhs.entity.po.survey.AkPlayerBindInfo;
 import com.lhs.entity.po.survey.OperatorDataVo;
 import com.lhs.entity.po.survey.OperatorStatistics;
 import com.lhs.mapper.survey.AkPlayerBindInfoMapper;
 import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.mapper.survey.OperatorSurveyStatisticsMapper;
+import com.lhs.service.util.AkGameDataService;
 import com.lhs.service.util.OSSService;
 import com.lhs.entity.vo.survey.OperatorStatisticsResultVO;
 import com.lhs.entity.dto.survey.OperatorStatisticsDTO;
@@ -31,18 +32,18 @@ public class OperatorStatisticsService {
 
     private final OperatorDataVoMapper operatorDataVoMapper;
 
-    private final OperatorBaseDataService operatorBaseDataService;
+    private final AkGameDataService akGameDataService;
 
     private final RedisTemplate<String,Object> redisTemplate;
 
     private final OSSService ossService;
 
 
-    public OperatorStatisticsService(OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OperatorDataVoMapper operatorDataVoMapper, OperatorBaseDataService operatorBaseDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
+    public OperatorStatisticsService(OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OperatorDataVoMapper operatorDataVoMapper, AkGameDataService akGameDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
         this.operatorSurveyStatisticsMapper = operatorSurveyStatisticsMapper;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         this.operatorDataVoMapper = operatorDataVoMapper;
-        this.operatorBaseDataService = operatorBaseDataService;
+        this.akGameDataService = akGameDataService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
     }
@@ -114,7 +115,7 @@ public class OperatorStatisticsService {
         queryWrapper.in("uid",ids);
         List<OperatorDataVo> operatorDataVoByBindUser = operatorDataVoMapper.selectList(queryWrapper);
 
-        Log.info("本次统计数量：" + operatorDataVoByBindUser.size());
+        LogUtil.info("本次统计数量：" + operatorDataVoByBindUser.size());
 
         //根据干员id分组
         Map<String, List<OperatorDataVo>> collectByCharId = operatorDataVoByBindUser.stream()

@@ -3,7 +3,7 @@ package com.lhs.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Log;
+import com.lhs.common.util.LogUtil;
 import com.lhs.common.util.Result;
 import com.lhs.service.maa.SurveyRecruitService;
 import com.lhs.service.maa.ScheduleService;
@@ -69,7 +69,7 @@ public class MaaController {
     @Operation(summary ="导出基建排班协议文件")
     @GetMapping("/schedule/export")
     public void exportMaaScheduleJson(HttpServletResponse response, @RequestParam Long schedule_id) {
-        Log.info("导出的排班id是："+schedule_id);
+        LogUtil.info("导出的排班id是："+schedule_id);
         scheduleService.exportScheduleFile(response, schedule_id);
     }
 

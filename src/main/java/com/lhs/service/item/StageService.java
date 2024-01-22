@@ -176,7 +176,7 @@ public class StageService {
             stage.setIsReproduction(isReproduction);
             stage.setMinClearTime(minClearTime);
 
-            Log.info("本次拉取更新的关卡是："+stageId);
+            LogUtil.info("本次拉取更新的关卡是："+stageId);
             stageMapper.insert(stage);
         }
 

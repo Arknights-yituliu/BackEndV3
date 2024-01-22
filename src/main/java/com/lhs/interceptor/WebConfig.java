@@ -1,6 +1,6 @@
 package com.lhs.interceptor;
 
-import com.lhs.service.util.UserService;
+import com.lhs.service.dev.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
