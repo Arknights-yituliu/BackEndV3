@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @Tag(name = "材料相关API-v3")
-public class MaterialControllerV3 {
+public class ItemControllerV3 {
 
     private final ItemService itemService;
 
@@ -34,7 +34,7 @@ public class MaterialControllerV3 {
 
     private final StageResultService stageResultService;
 
-    public MaterialControllerV3(ItemService itemService, StageService stageService, StoreService storeService, ItemTask itemTask, StageResultService stageResultService) {
+    public ItemControllerV3(ItemService itemService, StageService stageService, StoreService storeService, ItemTask itemTask, StageResultService stageResultService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;
@@ -147,11 +147,26 @@ public class MaterialControllerV3 {
         return Result.success(storePerm);
     }
 
+    @Operation(summary = "活动商店历史数据")
+    @GetMapping("/store/act/history")
+    public Result<List<StoreActVO>> selectActStoreHistory() {
+
+        List<StoreActVO> list =   storeService.selectActStoreHistory();
+        return Result.success(list);
+    }
+
     //    @TakeCount(name = "活动商店性价比")
     @Operation(summary = "获取活动商店性价比")
     @GetMapping("/store/act")
     public Result<List<StoreActVO>> getStoreActData() {
         List<StoreActVO> storeActVOList = storeService.getStoreAct();
         return Result.success(storeActVOList);
+    }
+
+    @Operation(summary = "获取礼包商店性价比")
+    @GetMapping("/store/pack")
+    public Result<List<PackPromotionRatioVO>> getPackPromotionRatioList(){
+        List<PackPromotionRatioVO> list =  storeService.getPackPromotionRatioList();
+        return Result.success(list);
     }
 }
