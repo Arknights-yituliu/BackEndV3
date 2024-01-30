@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
-import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtil;
-import com.lhs.common.util.StageType;
+import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.item.*;
 import com.lhs.entity.vo.item.*;
@@ -34,6 +31,7 @@ public class StageResultService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
+
     public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate) {
         this.stageResultDetailMapper = stageResultDetailMapper;
         this.stageResultMapper = stageResultMapper;
@@ -42,6 +40,7 @@ public class StageResultService {
         this.stageService = stageService;
         this.ossService = ossService;
         this.redisTemplate = redisTemplate;
+
     }
 
 
@@ -73,6 +72,8 @@ public class StageResultService {
         stageCalService.stageResultCal(items, stageParamDTO);      //用新材料价值计算新关卡效率
         LogUtil.info("V2关卡效率更新成功");
     }
+
+
 
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
     public Map<String, Object> getT3RecommendedStageV2(String version) {

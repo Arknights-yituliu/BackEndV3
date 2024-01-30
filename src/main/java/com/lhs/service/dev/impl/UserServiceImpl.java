@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
         if (developer == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         String code = String.valueOf(redisTemplate.opsForValue().get("CODE:" + developer.getEmail() + "CODE"));
         //检查邮件验证码
-        if (!loginVo.getCode().equals(code)) {
+        if (!loginVo.getVerificationCode().equals(code)) {
             throw new ServiceException(ResultCode.CODE_ERROR);
         }
 

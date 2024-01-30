@@ -44,7 +44,7 @@ public interface OperatorDataService  {
      * 导入森空岛干员练度数据
      * @param token 一图流凭证
      * @param dataStr 上传的json字符串
-     * @return
+     * @return 返回成功信息
      */
     Map<String, Object> importSKLandPlayerInfoV2(String token, String dataStr);
 

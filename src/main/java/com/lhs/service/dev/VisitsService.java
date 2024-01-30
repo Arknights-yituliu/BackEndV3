@@ -10,7 +10,7 @@ public interface VisitsService {
 
     void updatePageVisits(String path);
 
-    @Scheduled(cron = "0 0/17 * * * ?")
+
     void savePageVisits();
 
     List<PageVisitsVo> getVisits(VisitsTimeVo visitsTimeVo);

@@ -30,6 +30,8 @@ public class StageCalService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final StageResultDetailMapper stageResultDetailMapper;
+    private final IdGenerator idGenerator;
+
 
     public StageCalService(StageService stageService, QuantileMapper quantileMapper, ItemService itemService, StageResultMapper stageResultMapper, RedisTemplate<String, Object> redisTemplate, StageResultDetailMapper stageResultDetailMapper) {
         this.stageService = stageService;
@@ -38,6 +40,7 @@ public class StageCalService {
         this.stageResultMapper = stageResultMapper;
         this.redisTemplate = redisTemplate;
         this.stageResultDetailMapper = stageResultDetailMapper;
+        idGenerator = new IdGenerator(1L);
     }
 
     public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO) {
@@ -67,8 +70,10 @@ public class StageCalService {
 
         HashMap<String, Double> itemIterationValueMap = new HashMap<>();
 
-        Long stageResultId = redisTemplate.opsForValue().increment("Item:StageResultId", 100000);
-        if(stageResultId==null) stageResultId = System.currentTimeMillis();
+        long stageResultId = System.currentTimeMillis();
+        long stageResultDeatilId = System.currentTimeMillis();
+
+
         for(String stageId:matrixByStageId.keySet()){
             Stage stage = stageMap.get(stageId);
 
@@ -114,7 +119,7 @@ public class StageCalService {
                 double result = item.getItemValueAp() * knockRating;
                 //期望理智
                 double apExpect = stage.getApCost() / knockRating;
-                detail.setId(stageResultId++);
+                detail.setId(idGenerator.nextId());
                 detail.setStageId(stageId);
                 detail.setItemId(item.getItemId());
                 detail.setItemName(item.getItemName());
@@ -179,7 +184,7 @@ public class StageCalService {
             }
 
             StageResult common = new StageResult();
-            common.setId(stageResultId++);
+            common.setId(idGenerator.nextId());
             common.setStageId(stageId);
             common.setStageCode(stage.getStageCode());
             common.setSecondaryItemId(secondaryItemId);

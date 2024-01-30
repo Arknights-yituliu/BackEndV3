@@ -8,6 +8,7 @@ import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.mapper.dev.PageVisitsMapper;
 import com.lhs.service.dev.VisitsService;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -39,6 +40,7 @@ public class VisitsServiceImpl implements VisitsService {
         redisTemplate.opsForHash().increment("visits", redisKey, 1);
     }
 
+    @Scheduled(cron = "0 0/17 * * * ?")
     @Override
     public void savePageVisits() {
         Date todayDate = new Date();
