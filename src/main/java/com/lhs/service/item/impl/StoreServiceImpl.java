@@ -3,6 +3,7 @@ package com.lhs.service.item.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
+import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.LogUtil;
@@ -10,20 +11,23 @@ import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.item.*;
 import com.lhs.entity.vo.item.PackContentVO;
-import com.lhs.entity.vo.item.PackPromotionRatioVO;
+import com.lhs.entity.vo.item.PackInfoVO;
 import com.lhs.entity.vo.item.StoreActVO;
 import com.lhs.entity.vo.item.StoreItemVO;
 import com.lhs.mapper.dev.HoneyCakeMapper;
 import com.lhs.mapper.item.*;
 import com.lhs.mapper.item.service.PackContentMapperService;
-import com.lhs.mapper.item.service.PackPromotionRatioMapperService;
+import com.lhs.mapper.item.service.PackInfoMapperService;
 import com.lhs.mapper.item.service.StorePermMapperService;
 import com.lhs.service.item.ItemService;
 import com.lhs.service.item.StoreService;
 import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -48,8 +52,8 @@ public class StoreServiceImpl implements StoreService {
 
     private final StorePermMapperService storePermMapperService;
 
-    private final PackPromotionRatioMapper packPromotionRatioMapper;
-    private final PackPromotionRatioMapperService packPromotionRatioMapperService;
+    private final PackInfoMapper packInfoMapper;
+    private final PackInfoMapperService packInfoMapperService;
     private final PackContentMapper packContentMapper;
     private final PackContentMapperService packContentMapperService;
 
@@ -58,7 +62,12 @@ public class StoreServiceImpl implements StoreService {
     private final PackItemMapper packItemMapper;
 
 
-    public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService, HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate, OSSService ossService, StorePermMapperService storePermMapperService, PackPromotionRatioMapper packPromotionRatioMapper, PackPromotionRatioMapperService packPromotionRatioMapperService, PackContentMapper packContentMapper, PackContentMapperService packContentMapperService, PackItemMapper packItemMapper) {
+    public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
+                            HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
+                            OSSService ossService, StorePermMapperService storePermMapperService,
+                            PackInfoMapper packInfoMapper, PackInfoMapperService packInfoMapperService,
+                            PackContentMapper packContentMapper, PackContentMapperService packContentMapperService,
+                            PackItemMapper packItemMapper) {
         this.storePermMapper = storePermMapper;
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
@@ -66,8 +75,8 @@ public class StoreServiceImpl implements StoreService {
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
         this.storePermMapperService = storePermMapperService;
-        this.packPromotionRatioMapper = packPromotionRatioMapper;
-        this.packPromotionRatioMapperService = packPromotionRatioMapperService;
+        this.packInfoMapper = packInfoMapper;
+        this.packInfoMapperService = packInfoMapperService;
         this.packContentMapper = packContentMapper;
         this.packContentMapperService = packContentMapperService;
         this.idGenerator = new IdGenerator(1L);
@@ -215,44 +224,44 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public PackPromotionRatioVO updateStorePackById(PackPromotionRatioVO packPromotionRatioVO) {
+    public PackInfoVO updateStorePackById(PackInfoVO packInfoVO) {
         //创建一个po对象存储数据
-        PackPromotionRatio packPromotionRatio = new PackPromotionRatio();
+        PackInfo packInfo = new PackInfo();
         //将VO类的数据传递给po
-        packPromotionRatio.copy(packPromotionRatioVO);
+        packInfo.copy(packInfoVO);
         //id生成器
 
 
         //判断是新礼包还是旧礼包
-        if (packPromotionRatioVO.getNewPack()) {
+        if (packInfoVO.getNewPack()) {
             //新礼包直接生成一个id保存到数据库
-            packPromotionRatio.setId(idGenerator.nextId());
-            packPromotionRatioMapper.insert(packPromotionRatio);
+            packInfo.setId(idGenerator.nextId());
+            packInfoMapper.insert(packInfo);
         } else {
             //旧礼包需要更新,通过id查询旧礼包的信息
-            QueryWrapper<PackPromotionRatio> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("id", packPromotionRatio.getId());
-            PackPromotionRatio packPromotionRatioById = packPromotionRatioMapper.selectOne(queryWrapper);
-            if (packPromotionRatioById == null) {
+            QueryWrapper<PackInfo> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("id", packInfo.getId());
+            PackInfo packInfoById = packInfoMapper.selectOne(queryWrapper);
+            if (packInfoById == null) {
                 //如果旧礼包不存在则直接新增
-                packPromotionRatio.setId(idGenerator.nextId());
-                packPromotionRatioMapper.insert(packPromotionRatio);
+                packInfo.setId(idGenerator.nextId());
+                packInfoMapper.insert(packInfo);
             } else {
                 //如果旧礼包存在则根据id更新
-                packPromotionRatioMapper.updateById(packPromotionRatio);
+                packInfoMapper.updateById(packInfo);
             }
         }
 
         //礼包id
-        Long packId = packPromotionRatio.getId();
+        Long packId = packInfo.getId();
 
         //礼包没有除四种抽卡资源之外内容直接返回礼包信息
-        if (packPromotionRatioVO.getPackContent() == null) {
+        if (packInfoVO.getPackContent() == null) {
             return getPackById(packId.toString());
         }
 
         //礼包的额外内容
-        List<PackContentVO> packContentVOList = packPromotionRatioVO.getPackContent();
+        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
         //创建一个礼包额外内容的po类的集合
         List<PackContent> packContentList = new ArrayList<>();
         //将vo类的内容拷贝到po,同时生成礼包id
@@ -278,32 +287,31 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public List<PackPromotionRatioVO> getPackPromotionRatioList() {
-        List<PackPromotionRatio> packPromotionRatioList = packPromotionRatioMapper.selectList(null);
+    public List<PackInfoVO> getPackPromotionRatioList() {
+        List<PackInfo> packInfoList = packInfoMapper.selectList(null);
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
         packContentQueryWrapper.eq("archived", false);
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
         Map<Long, List<PackContent>> collect = packContentList.stream().collect(Collectors.groupingBy(PackContent::getPackId));
         Map<String, Double> itemValueMap = packItemMapper.selectList(null).stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
-        List<PackPromotionRatioVO> VOList = new ArrayList<>();
-        for (PackPromotionRatio packPromotionRatio : packPromotionRatioList) {
-            PackPromotionRatioVO packPromotionRatioVO = getPackVO(packPromotionRatio, collect.get(packPromotionRatio.getId()));
-            VOList.add(packPromotionRatioVO);
-            packPromotionRatioCalc(packPromotionRatioVO,itemValueMap);
+        List<PackInfoVO> VOList = new ArrayList<>();
+        for (PackInfo packInfo : packInfoList) {
+            PackInfoVO packInfoVO = getPackInfoVO(packInfo, collect.get(packInfo.getId()));
+            VOList.add(packInfoVO);
+            packPromotionRatioCalc(packInfoVO, itemValueMap);
         }
         return VOList;
     }
 
 
-
     @Override
-    public PackPromotionRatioVO getPackById(String idStr) {
+    public PackInfoVO getPackById(String idStr) {
         long id = Long.parseLong(idStr);
-        PackPromotionRatio packPromotionRatio = packPromotionRatioMapper.selectOne(new QueryWrapper<PackPromotionRatio>().eq("id", id));
+        PackInfo packInfo = packInfoMapper.selectOne(new QueryWrapper<PackInfo>().eq("id", id));
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
         packContentQueryWrapper.eq("pack_id", id).eq("archived", false);
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
-        return getPackVO(packPromotionRatio, packContentList);
+        return getPackInfoVO(packInfo, packContentList);
     }
 
     @Override
@@ -315,13 +323,13 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public PackItem saveOrUpdatePackItem(PackItem newPackItem) {
         QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id",newPackItem.getId());
+        queryWrapper.eq("id", newPackItem.getId());
         PackItem packItem = packItemMapper.selectOne(queryWrapper);
-        if(packItem==null){
+        if (packItem == null) {
             newPackItem.setId(String.valueOf(idGenerator.nextId()));
             packItemMapper.insert(newPackItem);
-        }else {
-            packItemMapper.update(newPackItem,queryWrapper);
+        } else {
+            packItemMapper.update(newPackItem, queryWrapper);
         }
         return newPackItem;
     }
@@ -329,79 +337,103 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public void deletePackItemById(String id) {
         QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id",id);
+        queryWrapper.eq("id", id);
         packItemMapper.delete(queryWrapper);
     }
 
     @Override
     public void updatePackState(String id, Integer state) {
-        UpdateWrapper<PackPromotionRatio> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("state",state);
-        updateWrapper.eq("id",id);
-        packPromotionRatioMapper.update(null,updateWrapper);
+        UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("state", state);
+        updateWrapper.eq("id", id);
+        int update = packInfoMapper.update(null, updateWrapper);
+    }
+
+    @Override
+    public void uploadImage(MultipartFile file) {
+
+
+        String filePath =  ApplicationConfig.Resources+"image/test/"+file.getOriginalFilename();
+        File saveFile = new File(filePath);
+        System.out.println(filePath);
+        try {
+            file.transferTo(saveFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        ossService.uploadFileInputStream(file, "image/store/" + file.getName());
+
     }
 
 
-    private PackPromotionRatioVO getPackVO(PackPromotionRatio packPromotionRatio, List<PackContent> packContentList) {
-        PackPromotionRatioVO packPromotionRatioVO = new PackPromotionRatioVO();
-        packPromotionRatioVO.copy(packPromotionRatio);
+    private PackInfoVO getPackInfoVO(PackInfo packInfo, List<PackContent> packContentList) {
+        PackInfoVO packInfoVO = new PackInfoVO();
+        packInfoVO.copy(packInfo);
+        packInfoVO.setNewPack(false);
         if (packContentList != null) {
             List<PackContentVO> packContentVOList = new ArrayList<>();
             for (PackContent packContent : packContentList) {
                 PackContentVO packContentVO = new PackContentVO();
                 packContentVO.copy(packContent);
                 packContentVOList.add(packContentVO);
-                packPromotionRatioVO.setPackContent(packContentVOList);
+                packInfoVO.setPackContent(packContentVOList);
             }
         }
 
-        return packPromotionRatioVO;
+        return packInfoVO;
     }
 
-    private void packPromotionRatioCalc(PackPromotionRatioVO packPromotionRatioVO,Map<String,Double> itemValue) {
-        double eachDrawPrice = 0.0 ; //每一抽价格
-        double eachOriginiumPrice= 0.0 ; //每源石（折算物资后）价格
-        double promotionRatioForMoney= 0.0 ; //氪金性价比
-        double promotionRatioForComprehensive= 0.0 ; //综合性价比
+    private void packPromotionRatioCalc(PackInfoVO packInfoVO, Map<String, Double> itemValue) {
+        double eachDrawPrice = 0.0; //每一抽价格
+        double eachOriginiumPrice = 0.0; //每源石（折算物资后）价格
+        double promotionRatioForMoney = 0.0; //氪金性价比
+        double promotionRatioForComprehensive = 0.0; //综合性价比
         double equivalentOriginium = 0.0;
         double drawCount = 0.0;
 
-        double totalOfOrundum = packPromotionRatioVO.getOrundum()+packPromotionRatioVO.getOriginium() * 180
-                +packPromotionRatioVO.getTicketGacha()*600+ packPromotionRatioVO.getTicketGacha10()*6000;
+        double totalOfOrundum = packInfoVO.getOrundum() + packInfoVO.getOriginium() * 180
+                + packInfoVO.getTicketGacha() * 600 + packInfoVO.getTicketGacha10() * 6000;
 
-        double eachOriginalOriginiumPrice = 648/185.0;
-        double eachOriginalDrawPrice = 648.0/185/0.3;
+        double eachOriginalOriginiumPrice = 648 / 185.0;
+        double eachOriginalDrawPrice = 648.0 / 185 / 0.3;
 
-        if(totalOfOrundum>0){
-            eachDrawPrice = packPromotionRatioVO.getPrice()/(totalOfOrundum/600);
-            equivalentOriginium += totalOfOrundum/180;
-            promotionRatioForMoney = eachOriginalDrawPrice/eachDrawPrice;
-            drawCount = totalOfOrundum/600;
+        if (totalOfOrundum > 0) {
+            //计算共计多少抽
+            drawCount = totalOfOrundum / 600;
+            //计算等效多少源石 1源石 = 180合成玉
+            equivalentOriginium += totalOfOrundum / 180;
+            //计算每一抽的价格
+            eachDrawPrice = packInfoVO.getPrice() / drawCount;
+            //计算抽卡性价比
+            promotionRatioForMoney = eachOriginalDrawPrice / eachDrawPrice;
+            //计算每个源石的价格
+            eachOriginiumPrice = packInfoVO.getPrice() / equivalentOriginium;
+            //计算综合性价比
+            promotionRatioForComprehensive = eachOriginalOriginiumPrice / eachOriginiumPrice;
         }
 
-        List<PackContentVO> packContentVOList = packPromotionRatioVO.getPackContent();
-
-
-        if(packContentVOList!=null){
+        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
+        //当这个礼包的物品不为空时
+        if (packContentVOList != null) {
             double apCount = 0.0;
-            for(PackContentVO packContentVO : packContentVOList){
-               if(itemValue.get(packContentVO.getItemId())!=null){
-                   apCount+=itemValue.get(packContentVO.getItemId())*packContentVO.getQuantity();
-               }
+            for (PackContentVO packContentVO : packContentVOList) {
+                if (itemValue.get(packContentVO.getItemId()) != null) {
+                    apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
+                }
             }
-            equivalentOriginium += apCount/135;
-
-            if(equivalentOriginium>0){
-                eachOriginiumPrice = packPromotionRatioVO.getPrice()/equivalentOriginium;
-                promotionRatioForComprehensive = eachOriginalOriginiumPrice/eachOriginiumPrice;
+            equivalentOriginium += apCount / 135;
+            if (equivalentOriginium > 0) {
+                eachOriginiumPrice = packInfoVO.getPrice() / equivalentOriginium;
+                promotionRatioForComprehensive = eachOriginalOriginiumPrice / eachOriginiumPrice;
             }
         }
 
-        packPromotionRatioVO.setDrawCount(drawCount);
-        packPromotionRatioVO.setEachDrawPrice(eachDrawPrice);
-        packPromotionRatioVO.setEachOriginiumPrice(eachOriginiumPrice);
-        packPromotionRatioVO.setPromotionRatioForMoney(promotionRatioForMoney);
-        packPromotionRatioVO.setEquivalentOriginium(equivalentOriginium);
-        packPromotionRatioVO.setPromotionRatioForComprehensive(promotionRatioForComprehensive);
+        packInfoVO.setDrawCount(drawCount);
+        packInfoVO.setEachDrawPrice(eachDrawPrice);
+        packInfoVO.setEachOriginiumPrice(eachOriginiumPrice);
+        packInfoVO.setPromotionRatioForMoney(promotionRatioForMoney);
+        packInfoVO.setEquivalentOriginium(equivalentOriginium);
+        packInfoVO.setPromotionRatioForComprehensive(promotionRatioForComprehensive);
     }
 }

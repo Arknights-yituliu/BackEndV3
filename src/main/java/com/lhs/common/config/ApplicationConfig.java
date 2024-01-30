@@ -12,8 +12,7 @@ public class ApplicationConfig implements InitializingBean {
     private String penguin;  //    企鹅物流数据文件路径
     @Value("${resourcesPath.item}")
     private String item;  //    材料相关数据文件路径
-    @Value("${resourcesPath.backup}")
-    private String backup;  //    备份文件路径
+
     @Value("${resourcesPath.schedule}")
     private String schedule;  //    排班文件路径
 
@@ -22,6 +21,8 @@ public class ApplicationConfig implements InitializingBean {
     @Value("${encryption.signKey}")
     private String signKey;
 
+    @Value("${resourcesPath.resources}")
+    private String resources;
 
     @Value("${penguin.auto}")
     private String penguinAuto;
@@ -36,7 +37,7 @@ public class ApplicationConfig implements InitializingBean {
 
     public static String Penguin;
     public static String Item;
-    public static String Backup;
+
     public static String Schedule;
 
     public static String Secret;
@@ -48,13 +49,15 @@ public class ApplicationConfig implements InitializingBean {
     public static String SKLandPlayerBindingAPI;
     public static String SKLandPlayerInfoAPI;
 
+    public static String Resources;
 
     @Override
     public void afterPropertiesSet() {
         Penguin = penguin;
         Item = item;
+        Resources = resources;
 
-        Backup = backup;
+
         Schedule = schedule;
         Secret = secret;
         SignKey = signKey;
@@ -64,6 +67,8 @@ public class ApplicationConfig implements InitializingBean {
 
         SKLandPlayerBindingAPI = sklandPlayerBindingAPI;
         SKLandPlayerInfoAPI = sklandPlayerInfoAPI;
+
+
 
     }
 }

@@ -4,9 +4,10 @@ package com.lhs.service.item;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.item.PackItem;
-import com.lhs.entity.vo.item.PackPromotionRatioVO;
+import com.lhs.entity.vo.item.PackInfoVO;
 import com.lhs.entity.po.item.StorePerm;
 import com.lhs.entity.vo.item.StoreActVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -30,11 +31,11 @@ public interface StoreService {
 
     List<HoneyCake> getHoneyCakeList();
 
-    PackPromotionRatioVO updateStorePackById(PackPromotionRatioVO packPromotionRatioVO);
+    PackInfoVO updateStorePackById(PackInfoVO packInfoVO);
 
-    List<PackPromotionRatioVO> getPackPromotionRatioList();
+    List<PackInfoVO> getPackPromotionRatioList();
 
-    PackPromotionRatioVO getPackById(String idStr);
+    PackInfoVO getPackById(String idStr);
 
    List<PackItem> getItemList();
 
@@ -45,4 +46,5 @@ public interface StoreService {
     void updatePackState(String id, Integer state);
 
 
+    void uploadImage(MultipartFile file);
 }

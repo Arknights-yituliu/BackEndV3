@@ -165,8 +165,8 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
-    public Result<List<PackPromotionRatioVO>> getPackPromotionRatioList(){
-        List<PackPromotionRatioVO> list =  storeService.getPackPromotionRatioList();
+    public Result<List<PackInfoVO>> getPackPromotionRatioList(){
+        List<PackInfoVO> list =  storeService.getPackPromotionRatioList();
         return Result.success(list);
     }
 }

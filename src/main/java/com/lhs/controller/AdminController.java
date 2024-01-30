@@ -2,10 +2,9 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.po.item.PackItem;
-import com.lhs.entity.po.item.Stage;
 import com.lhs.entity.vo.dev.PageVisitsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
-import com.lhs.entity.vo.item.PackPromotionRatioVO;
+import com.lhs.entity.vo.item.PackInfoVO;
 import com.lhs.entity.vo.item.StoreActVO;
 import com.lhs.service.dev.UserService;
 import com.lhs.service.dev.VisitsService;
@@ -14,9 +13,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Tag(name = "一图流后台")
@@ -37,15 +36,22 @@ public class AdminController {
 
     @Operation(summary = "更新商店礼包")
     @PostMapping("/admin/store/pack/update")
-    public Result<PackPromotionRatioVO> updateStageResult(@RequestBody PackPromotionRatioVO packPromotionRatioVO) {
-        PackPromotionRatioVO pack = storeService.updateStorePackById(packPromotionRatioVO);
+    public Result<PackInfoVO> updateStageResult(@RequestBody PackInfoVO packInfoVO) {
+        PackInfoVO pack = storeService.updateStorePackById(packInfoVO);
         return Result.success(pack);
+    }
+
+    @Operation(summary = "上传礼包图片")
+    @PostMapping("/admin/store/pack/upload/image")
+    public Result<Object> uploadImage(@RequestParam("file") MultipartFile file) {
+        storeService.uploadImage(file);
+        return Result.success();
     }
 
     @Operation(summary = "根据id获取礼包")
     @GetMapping("/admin/store/pack")
-    public Result<PackPromotionRatioVO> updateStageResult(@RequestParam(required = false, defaultValue = "1") String id) {
-        PackPromotionRatioVO pack = storeService.getPackById(id);
+    public Result<PackInfoVO> updateStageResult(@RequestParam(required = false, defaultValue = "1") String id) {
+        PackInfoVO pack = storeService.getPackById(id);
         return Result.success(pack);
     }
 
@@ -77,6 +83,8 @@ public class AdminController {
         return Result.success();
     }
 
+
+
     @PostMapping("/admin/statistics")
     public Result<List<PageVisitsVo>> queryVisits(@RequestBody VisitsTimeVo visitsTimeVo) {
         List<PageVisitsVo> pageVisitsVos = visitsService.getVisits(visitsTimeVo);
@@ -91,4 +99,6 @@ public class AdminController {
         String message = storeService.updateActStoreByActName(storeActVo, level);
         return Result.success(message);
     }
+
+
 }
