@@ -17,6 +17,7 @@ public enum ResultCode {
 	PARAM_INVALID(10005, "含有非法参数，请检查上传内容"),
 	FILE_TYPE_INVALID(10006, "文件格式不正确"),
 	FILE_SIZE_LARGE(10007, "文件过大"),
+	FILE_IS_NULL(10008,"文件为空"),
 	FILE_NOT_IN_EXCEL_FORMAT(10008, "文件格式必须为.xlsx"),
 	USER_NAME_LENGTH_TOO_SHORT(10009, "用户名长度必须大于2个字符"),
 	USER_NAME_LENGTH_TOO_LONG(10010, "用户名长度不得超过20个字符"),

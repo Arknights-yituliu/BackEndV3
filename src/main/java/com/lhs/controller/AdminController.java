@@ -43,8 +43,8 @@ public class AdminController {
 
     @Operation(summary = "上传礼包图片")
     @PostMapping("/admin/store/pack/upload/image")
-    public Result<Object> uploadImage(@RequestParam("file") MultipartFile file) {
-        storeService.uploadImage(file);
+    public Result<Object> uploadImage(@RequestParam("file") MultipartFile file,@RequestParam("id") Long id) {
+        storeService.uploadImage(file,id);
         return Result.success();
     }
 

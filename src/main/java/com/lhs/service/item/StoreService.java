@@ -46,5 +46,5 @@ public interface StoreService {
     void updatePackState(String id, Integer state);
 
 
-    void uploadImage(MultipartFile file);
+    void uploadImage(MultipartFile file,Long id);
 }

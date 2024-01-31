@@ -23,6 +23,7 @@ public class PackInfo {
     private double price;
     private Integer state;
     private String type;
+    private String fileName;
     private Integer ticketGacha;
     private Integer ticketGacha10;
     private Integer originium;
@@ -38,6 +39,7 @@ public class PackInfo {
         this.price = packInfoVO.getPrice();
         this.state = packInfoVO.getState();
         this.type = packInfoVO.getType();
+        this.fileName = packInfoVO.getFileName();
         this.ticketGacha = packInfoVO.getTicketGacha();
         this.ticketGacha10 = packInfoVO.getTicketGacha10();
         this.originium = packInfoVO.getOriginium();

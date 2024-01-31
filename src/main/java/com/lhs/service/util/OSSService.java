@@ -65,7 +65,7 @@ public class OSSService {
         return true;
     }
 
-    public Boolean uploadFileInputStream(MultipartFile multipartFile,String objectName){
+    public Boolean uploadFileInputStream(InputStream inputStream,String objectName){
         String endpoint = "https://oss-cn-shanghai.aliyuncs.com";
         String accessKeyId = AccessKeyId;
         String accessKeySecret = AccessKeySecret;
@@ -74,12 +74,6 @@ public class OSSService {
 
         // 创建OSSClient实例。
         OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
-        InputStream inputStream ;
-        try {
-            inputStream =  multipartFile.getInputStream();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         try {
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, inputStream);

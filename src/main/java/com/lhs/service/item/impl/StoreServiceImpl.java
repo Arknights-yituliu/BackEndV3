@@ -4,9 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ApplicationConfig;
-import com.lhs.common.util.IdGenerator;
-import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtil;
+import com.lhs.common.exception.ServiceException;
+import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.item.*;
@@ -26,8 +25,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -98,7 +96,6 @@ public class StoreServiceImpl implements StoreService {
             if ("grey".equals(storePerm.getStoreType())) storePerm.setCostPer(storePerm.getCostPer() * 100);
             storePerm.setRarity(collect.get(storePerm.getItemName()).getRarity());
             storePerm.setItemId(collect.get(storePerm.getItemName()).getItemId());
-
         }
 
         storePermMapperService.updateBatchById(storePermList);
@@ -350,19 +347,45 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public void uploadImage(MultipartFile file) {
+    public void uploadImage(MultipartFile file, Long id) {
 
-
-        String filePath =  ApplicationConfig.Resources+"image/test/"+file.getOriginalFilename();
-        File saveFile = new File(filePath);
-        System.out.println(filePath);
-        try {
-            file.transferTo(saveFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (file.isEmpty()) {
+            throw new ServiceException(ResultCode.FILE_IS_NULL);
         }
 
-        ossService.uploadFileInputStream(file, "image/store/" + file.getName());
+        QueryWrapper<PackInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", id);
+        PackInfo packInfo = packInfoMapper.selectOne(queryWrapper);
+
+        if (packInfo == null) {
+            throw new ServiceException(ResultCode.DATA_NONE);
+        }
+
+        String fileName = null;
+        if (file.getOriginalFilename() != null) {
+            String[] split = file.getOriginalFilename().split("\\.");
+            fileName = packInfo.getName() + "." + split[1];
+        }
+
+
+        String filePath = ApplicationConfig.Resources + "image/store/" + fileName;
+        File saveFile = new File(filePath);
+
+        try {
+            file.transferTo(saveFile);
+        } catch (IOException exception) {
+            LogUtil.error(exception.getMessage());
+        }
+
+        UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("file_name",fileName).eq("id",id);
+        packInfoMapper.update(null,updateWrapper);
+
+        try {
+            ossService.uploadFileInputStream(new FileInputStream(saveFile), "image/store/" + fileName);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
