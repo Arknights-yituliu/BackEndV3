@@ -4,14 +4,16 @@ package com.lhs.service.dev;
 import com.lhs.entity.vo.dev.LoginVo;
 import jakarta.servlet.http.HttpServletRequest;
 
-public interface UserService {
+import java.util.Map;
+
+public interface AdminService {
 
     Boolean developerLevel(HttpServletRequest request);
 
     void emailSendCode(LoginVo loginVo);
 
-    String login(LoginVo loginVo);
+    Map<String,Object> login(LoginVo loginVo);
 
-    Boolean loginAndCheckToken(String token);
+    Boolean checkToken(String token);
 
 }

@@ -18,11 +18,11 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for developer
+-- Table structure for admin
 -- ----------------------------
-DROP TABLE IF EXISTS `developer`;
-CREATE TABLE `developer`  (
-  `developer` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+DROP TABLE IF EXISTS `admin`;
+CREATE TABLE `admin`  (
+  `admin` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `email` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `level` int(11) NOT NULL,
   PRIMARY KEY (`email`) USING BTREE

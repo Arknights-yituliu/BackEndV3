@@ -3,6 +3,7 @@ package com.lhs.controller;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.item.Item;
+import com.lhs.entity.po.item.PackItem;
 import com.lhs.entity.po.item.Stage;
 import com.lhs.entity.po.item.StorePerm;
 import com.lhs.entity.vo.item.*;
@@ -168,5 +169,12 @@ public class ItemControllerV3 {
     public Result<List<PackInfoVO>> getPackPromotionRatioList(){
         List<PackInfoVO> list =  storeService.getPackPromotionRatioList();
         return Result.success(list);
+    }
+
+    @Operation(summary = "获取礼包自定义材料表")
+    @GetMapping("/store/pack/item/list")
+    public Result<List<PackItem>> getItemList() {
+        List<PackItem> packItemList = storeService.getItemList();
+        return Result.success(packItemList);
     }
 }

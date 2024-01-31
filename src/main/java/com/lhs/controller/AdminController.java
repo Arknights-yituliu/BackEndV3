@@ -6,7 +6,7 @@ import com.lhs.entity.vo.dev.PageVisitsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.entity.vo.item.PackInfoVO;
 import com.lhs.entity.vo.item.StoreActVO;
-import com.lhs.service.dev.UserService;
+import com.lhs.service.dev.AdminService;
 import com.lhs.service.dev.VisitsService;
 import com.lhs.service.item.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,13 +24,13 @@ public class AdminController {
 
     private final StoreService storeService;
 
-    private final UserService userService;
+    private final AdminService adminService;
 
     private final VisitsService visitsService;
 
-    public AdminController(StoreService storeService, UserService userService, VisitsService visitsService) {
+    public AdminController(StoreService storeService, AdminService adminService, VisitsService visitsService) {
         this.storeService = storeService;
-        this.userService = userService;
+        this.adminService = adminService;
         this.visitsService = visitsService;
     }
 
@@ -55,12 +55,7 @@ public class AdminController {
         return Result.success(pack);
     }
 
-    @Operation(summary = "获取礼包材料表")
-    @GetMapping("/item/list")
-    public Result<List<PackItem>> getItemList() {
-        List<PackItem> packItemList = storeService.getItemList();
-        return Result.success(packItemList);
-    }
+
 
     @Operation(summary = "更新礼包材料表")
     @PostMapping("/admin/item/update")
@@ -95,7 +90,7 @@ public class AdminController {
     @Operation(summary = "更新活动商店性价比(新")
     @PostMapping("/admin/act/update")
     public Result<Object> updateActStoreByActName(HttpServletRequest request, @RequestBody StoreActVO storeActVo) {
-        Boolean level = userService.developerLevel(request);
+        Boolean level = adminService.developerLevel(request);
         String message = storeService.updateActStoreByActName(storeActVo, level);
         return Result.success(message);
     }

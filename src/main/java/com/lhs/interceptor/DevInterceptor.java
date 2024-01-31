@@ -3,7 +3,7 @@ package com.lhs.interceptor;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.LogUtil;
 import com.lhs.common.util.ResultCode;
-import com.lhs.service.dev.UserService;
+import com.lhs.service.dev.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -20,20 +20,20 @@ public class DevInterceptor implements HandlerInterceptor {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final UserService userService;
-    public DevInterceptor(RedisTemplate<String, Object> redisTemplate,UserService userService){
+    private final AdminService adminService;
+    public DevInterceptor(RedisTemplate<String, Object> redisTemplate, AdminService adminService){
             this.redisTemplate =redisTemplate;
-        this.userService =userService;
+        this.adminService = adminService;
     }
 
 
     /**
      * 目标方法执行之前
      * 登录检查写在这里，如果没有登录，就不执行目标方法
-     * @param request
-     * @param response
-     * @param handler
-     * @return
+     * @param request 请求
+     * @param response 响应
+     * @param handler 操作
+     * @return 登录状态
      * @throws Exception
      */
     @Override
@@ -49,7 +49,7 @@ public class DevInterceptor implements HandlerInterceptor {
         if(token ==null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         //  检查开发者Token
 
-        return userService.loginAndCheckToken(token);
+        return adminService.checkToken(token);
     }
 
     /**
