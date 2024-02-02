@@ -228,7 +228,7 @@ public class StageCalService {
             }
         }
 
-        if(insertList.size()>0) {
+        if(!insertList.isEmpty()) {
             stageResultDetailMapper.insertBatch(insertList);
         }
 
@@ -253,8 +253,6 @@ public class StageCalService {
             common.setLeT2Efficiency(0.0); //等级1-2的材料占比
             return;
         }
-
-
 
         //获取材料的上下位材料
         JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ApplicationConfig.Item + "item_type_table.json"));
@@ -323,15 +321,6 @@ public class StageCalService {
             if (stageMap.get(element.getStageId()) == null) continue;
             if (element.getItemId().startsWith("ap_supply")) continue;
             if (element.getItemId().startsWith("randomMaterial")) continue;
-//            String stageType = stageMap.get(element.getStageId()).getStageType();
-//            if(StageType.ACT_REP.equals(stageType)||StageType.ACT.equals(stageType)){
-//                PenguinMatrixDTO penguinMatrixDTO = new PenguinMatrixDTO();
-//                penguinMatrixDTO.setStageId(stageId+"_LMD");
-//                penguinMatrixDTO.setItemId(element.getItemId());
-//                penguinMatrixDTO.setQuantity(element.getQuantity());
-//                penguinMatrixDTO.setTimes(element.getTimes());
-//                mergeList.add(penguinMatrixDTO);
-//            }
 
             mergeList.add(element);
 
@@ -343,7 +332,7 @@ public class StageCalService {
         double quantileValue = 0.03 * apCost / itemValue / Math.sqrt(1 * probability * (1 - probability) / (penguinDataTimes - 1));
         if (quantileValue >= 3.09023 || Double.isNaN(quantileValue)) return 99.9;
         List<QuantileTable> collect = quantileTables.stream()
-                .filter(quantileTable -> quantileTable.getValue() <= quantileValue).collect(Collectors.toList());
+                .filter(quantileTable -> quantileTable.getValue() <= quantileValue).toList();
         return (collect.get(collect.size() - 1).getSection() * 2 - 1) * 100;
     }
 

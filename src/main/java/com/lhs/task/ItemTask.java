@@ -48,16 +48,16 @@ public class ItemTask {
      */
     @Scheduled(cron = "0 0/19 * * * ?")
     public void updateStageResult() {
-       stageResultService.updateStageResultByTaskConfig();
+        stageResultService.updateStageResultByTaskConfig();
     }
 
-    @Scheduled(cron = "0 0/17 * * * ?")
-    public void updateStageResultApi() {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(0.625);
-        stageParamDTO.setSampleSize(300);
-        stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
-    }
+//    @Scheduled(cron = "0 0/17 * * * ?")
+//    public void updateStageResultApi() {
+//        StageParamDTO stageParamDTO = new StageParamDTO();
+//        stageParamDTO.setExpCoefficient(0.625);
+//        stageParamDTO.setSampleSize(300);
+//        stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
+//    }
 
     /**
      * 备份关卡计算结果

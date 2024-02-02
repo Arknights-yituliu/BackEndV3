@@ -65,7 +65,7 @@ public class StageResultService {
 
     public void updateStageResult(StageParamDTO stageParamDTO) {
         List<Item> items = itemService.getItemList(stageParamDTO);   //找出对应版本的材料价值
-        if (items == null || items.size() < 1) {
+        if (items == null || items.isEmpty()) {
             items = itemService.getBaseItemList();
         }
         items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
