@@ -14,7 +14,7 @@ import com.lhs.mapper.survey.OperatorDataMapper;
 import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.SurveyUserService;
-import com.lhs.service.util.AkGameDataService;
+import com.lhs.service.util.ArknightsGameDataService;
 import com.lhs.service.util.OSSService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.BeanUtils;
@@ -43,16 +43,16 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
 
-    private final AkGameDataService akGameDataService;
+    private final ArknightsGameDataService arknightsGameDataService;
 
-    public OperatorDataServiceImpl(OperatorDataMapper operatorDataMapper, OperatorDataVoMapper operatorDataVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, AkPlayerBindInfoMapper akPlayerBindInfoMapper, AkGameDataService akGameDataService) {
+    public OperatorDataServiceImpl(OperatorDataMapper operatorDataMapper, OperatorDataVoMapper operatorDataVoMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, AkPlayerBindInfoMapper akPlayerBindInfoMapper, ArknightsGameDataService arknightsGameDataService) {
         this.operatorDataMapper = operatorDataMapper;
         this.operatorDataVoMapper = operatorDataVoMapper;
         this.surveyUserService = surveyUserService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
-        this.akGameDataService = akGameDataService;
+        this.arknightsGameDataService = arknightsGameDataService;
     }
 
 
@@ -75,7 +75,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
         List<OperatorData> operatorDataList = new ArrayList<>();
 
-        Map<String, String> uniEquipIdAndType = akGameDataService.getEquipIdAndType();
+        Map<String, String> uniEquipIdAndType = arknightsGameDataService.getEquipIdAndType();
         JsonNode data =  JsonMapper.parseJSONObject(dataStr);
 //        String nickName = data.get("nickName").asText();
         String akUid = data.get("uid").asText();
@@ -407,7 +407,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         List<OperatorExportExcelVO> listVo = new ArrayList<>();
 
 
-        List<OperatorTable> operatorInfo = akGameDataService.getOperatorTable();
+        List<OperatorTable> operatorInfo = arknightsGameDataService.getOperatorTable();
 
         Map<String, OperatorTable> operatorTableMap = operatorInfo.stream()
                 .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));

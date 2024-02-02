@@ -19,10 +19,12 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-public class AkGameDataService {
+public class ArknightsGameDataService {
 
     private final OperatorTableMapper operatorTableMapper;
     private final static String githubBotResource = "C:/IDEAProject/Arknights-Bot-Resource/";
@@ -32,7 +34,7 @@ public class AkGameDataService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public AkGameDataService(OperatorTableMapper operatorTableMapper, RedisTemplate<String, Object> redisTemplate) {
+    public ArknightsGameDataService(OperatorTableMapper operatorTableMapper, RedisTemplate<String, Object> redisTemplate) {
         this.operatorTableMapper = operatorTableMapper;
         this.redisTemplate = redisTemplate;
     }
@@ -315,7 +317,7 @@ public class AkGameDataService {
                 character.put("modY", 0);
                 character.put("modD", 0);
                 character.put("show", rarity == 6);
-                System.out.println(name + "{ }" + operatorTableSimple.getUpdateTime() + "{ }" + operatorTableSimple.getUpdateTime().getTime());
+//                System.out.println(name + "{ }" + operatorTableSimple.getUpdateTime() + "{ }" + operatorTableSimple.getUpdateTime().getTime());
 
                 table_simple.put(charId, character);
             }
@@ -464,7 +466,7 @@ public class AkGameDataService {
         }
 
 //        FileUtil.save(ApplicationConfig.Item, "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
-        FileUtil.save("E:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
+        FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "operator_item_cost_table.json", JsonMapper.toJSONString(operatorMap));
 
         return null;
     }
@@ -546,9 +548,9 @@ public class AkGameDataService {
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
             String startPath = githubBotResource + "portrait\\";
-            String portrait6 = "E:\\VCProject\\resources\\portrait-ori-6\\";
-            String portrait5 = "E:\\VCProject\\resources\\portrait-ori-5\\";
-            String portrait4 = "E:\\VCProject\\resources\\portrait-ori-4\\";
+            String portrait6 = "C:\\VCProject\\resources\\portrait-ori-6\\";
+            String portrait5 = "C:\\VCProject\\resources\\portrait-ori-5\\";
+            String portrait4 = "C:\\VCProject\\resources\\portrait-ori-4\\";
             String endPath = portrait4;
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
@@ -591,9 +593,9 @@ public class AkGameDataService {
 
 
             String startPath = githubBotResource + "avatar\\";
-            String avatar6 = "E:\\VCProject\\resources\\avatar-ori-6\\";
-            String avatar5 = "E:\\VCProject\\resources\\avatar-ori-5\\";
-            String avatar4 = "E:\\VCProject\\resources\\avatar-ori-4\\";
+            String avatar6 = "C:\\VCProject\\resources\\avatar-ori-6\\";
+            String avatar5 = "C:\\VCProject\\resources\\avatar-ori-5\\";
+            String avatar4 = "C:\\VCProject\\resources\\avatar-ori-4\\";
             String endPath = avatar4;
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
@@ -715,7 +717,8 @@ public class AkGameDataService {
         classMap.put("<$cc.g.karlan>", "<span class='cc-g-karlan'>"); //喀兰
         classMap.put("<$cc.g.sui>", "<span class='cc-g-sui'>"); //岁
 
-        classMap.put("<$cc.gvial>", "<span class='cc-g-gvial'>"); //彩六
+        classMap.put("<$cc.gvial>", "<span class='cc-gvial'>"); //彩六
+        classMap.put("<$cc.t.accmuguard1>","<span class='cc-t-accmuguard1'>");
 
 
         classMap.put("<$cc.bd.costdrop>", "<span class='cc-bd-costdrop'>"); //心情落差
@@ -725,9 +728,16 @@ public class AkGameDataService {
             str = str.replace(key, spliceClassMap.get(key));
         }
 
-        for (String key : classMap.keySet()) {
-            str = str.replace(key, "<span class='cc-base'>");
-        }
+//        for (String key : classMap.keySet()) {
+//            str = str.replace(key, "<span class='cc-base'>");
+//        }
+
+        String pattern = "<\\$cc[^>]+>";
+        String replacement = "<span class='cc-base'>";
+        Pattern compile = Pattern.compile(pattern);
+        Matcher matcher = compile.matcher(str);
+        str = matcher.replaceAll(replacement);
+        System.out.println(str);
 
         return str;
     }

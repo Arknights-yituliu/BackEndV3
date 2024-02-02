@@ -1,7 +1,10 @@
 package com.lhs.controller;
 
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Result;
+import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.item.PackItem;
+import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.entity.vo.dev.PageVisitsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.entity.vo.item.PackInfoVO;
@@ -16,10 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Tag(name = "一图流后台")
-
 public class AdminController {
 
     private final StoreService storeService;
@@ -32,6 +35,42 @@ public class AdminController {
         this.storeService = storeService;
         this.adminService = adminService;
         this.visitsService = visitsService;
+    }
+
+
+    @GetMapping("/visits/page")
+    public Result<Object> updatePageVisits(@RequestParam String path) {
+        visitsService.updatePageVisits(path);
+        return Result.success();
+    }
+
+    @GetMapping("/visits/save")
+    public Result<Object> savePageVisits() {
+        visitsService.savePageVisits();
+        return Result.success();
+    }
+
+    @Operation(summary = "管理登录发送验证码")
+    @PostMapping("/email/code")
+    public Result<Object> emailSendCode(@RequestBody LoginVo loginVo) {
+        adminService.emailSendCode(loginVo);
+        return Result.success("已发送验证码到您的邮箱,5分钟过期");
+    }
+
+    @Operation(summary = "管理者登录")
+    @PostMapping("/login")
+    public Result<Map<String,Object>> loginAndToken(@RequestBody LoginVo loginVo) {
+
+        return Result.success(adminService.login(loginVo));
+    }
+
+    @Operation(summary = "检查管理者登录状态")
+    @GetMapping("/login/checkToken")
+    public Result<Boolean> loginAndCheckToken(HttpServletRequest request) {
+        String token = request.getHeader("token");
+        if(token ==null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        Boolean status  =  adminService.checkToken(token);
+        return Result.success(status);
     }
 
     @Operation(summary = "更新商店礼包")
@@ -56,6 +95,11 @@ public class AdminController {
     }
 
 
+    @Operation(summary = "获取全部礼包")
+    @GetMapping("/dev/store/pack")
+    public Result<List<PackInfoVO>> getPackList(){
+        return Result.success(storeService.getPackPromotionRatioList());
+    }
 
     @Operation(summary = "更新礼包材料表")
     @PostMapping("/admin/item/update")
@@ -88,7 +132,7 @@ public class AdminController {
 
 
     @Operation(summary = "更新活动商店性价比(新")
-    @PostMapping("/admin/act/update")
+    @PostMapping("/admin/store/act/update")
     public Result<Object> updateActStoreByActName(HttpServletRequest request, @RequestBody StoreActVO storeActVo) {
         Boolean level = adminService.developerLevel(request);
         String message = storeService.updateActStoreByActName(storeActVo, level);

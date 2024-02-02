@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class StoreServiceImpl implements StoreService {
@@ -283,13 +284,44 @@ public class StoreServiceImpl implements StoreService {
         return getPackById(packId.toString());
     }
 
+    @RedisCacheable(key = "Item:PackList")
+    @Override
+    public List<PackInfoVO> getPackPromotionRatioList(Integer state) {
+        QueryWrapper<PackInfo> packInfoQueryWrapper = new QueryWrapper<>();
+        packInfoQueryWrapper.ge("end",new Date());
+
+        if(state!=null){
+            packInfoQueryWrapper.eq("state",state);
+        }
+        List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
+        List<Long> packIdList = packInfoList.stream().map(PackInfo::getId).collect(Collectors.toList());
+        QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
+        packContentQueryWrapper.eq("archived", false);
+        packContentQueryWrapper.in("pack_id",packIdList);
+
+        List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
+
+        Map<Long, List<PackContent>> collect = packContentList.stream().collect(Collectors.groupingBy(PackContent::getPackId));
+        Map<String, Double> itemValueMap = packItemMapper.selectList(null)
+                .stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
+
+        List<PackInfoVO> VOList = new ArrayList<>();
+        for (PackInfo packInfo : packInfoList) {
+            PackInfoVO packInfoVO = getPackInfoVO(packInfo, collect.get(packInfo.getId()));
+            VOList.add(packInfoVO);
+            packPromotionRatioCalc(packInfoVO, itemValueMap);
+        }
+        return VOList;
+    }
+
     @Override
     public List<PackInfoVO> getPackPromotionRatioList() {
         List<PackInfo> packInfoList = packInfoMapper.selectList(null);
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
         packContentQueryWrapper.eq("archived", false);
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
-        Map<Long, List<PackContent>> collect = packContentList.stream().collect(Collectors.groupingBy(PackContent::getPackId));
+        Map<Long, List<PackContent>> collect = packContentList.stream()
+                .collect(Collectors.groupingBy(PackContent::getPackId));
         Map<String, Double> itemValueMap = packItemMapper.selectList(null).stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
         List<PackInfoVO> VOList = new ArrayList<>();
         for (PackInfo packInfo : packInfoList) {
@@ -364,7 +396,7 @@ public class StoreServiceImpl implements StoreService {
         String fileName = null;
         if (file.getOriginalFilename() != null) {
             String[] split = file.getOriginalFilename().split("\\.");
-            fileName = packInfo.getName() + "." + split[1];
+            fileName = packInfo.getName() +"." + idGenerator.nextId() + "." + split[1];
         }
 
 

@@ -33,6 +33,8 @@ public interface StoreService {
 
     PackInfoVO updateStorePackById(PackInfoVO packInfoVO);
 
+    List<PackInfoVO> getPackPromotionRatioList(Integer state);
+
     List<PackInfoVO> getPackPromotionRatioList();
 
     PackInfoVO getPackById(String idStr);

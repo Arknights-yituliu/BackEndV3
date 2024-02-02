@@ -25,6 +25,7 @@ public class GlobalExceptionHandler {
 		}
 		else {
 			LogUtil.error(e.getMessage());
+//			e.printStackTrace();
             result = Result.failure(500, "服务器意外错误,请联系开发人员");
 		}
 		return result;

@@ -39,4 +39,6 @@ public class DevelopServiceImpl implements DevelopService {
         developLog.setUpdateTime(new Date());
         developLogMapper.update(developLog,new QueryWrapper<DevelopLog>().eq("id",developLog.getId()));
     }
+
+
 }

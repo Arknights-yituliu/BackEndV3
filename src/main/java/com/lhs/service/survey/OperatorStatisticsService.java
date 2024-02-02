@@ -10,7 +10,7 @@ import com.lhs.entity.po.survey.OperatorStatistics;
 import com.lhs.mapper.survey.AkPlayerBindInfoMapper;
 import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.mapper.survey.OperatorSurveyStatisticsMapper;
-import com.lhs.service.util.AkGameDataService;
+import com.lhs.service.util.ArknightsGameDataService;
 import com.lhs.service.util.OSSService;
 import com.lhs.entity.vo.survey.OperatorStatisticsResultVO;
 import com.lhs.entity.dto.survey.OperatorStatisticsDTO;
@@ -32,18 +32,18 @@ public class OperatorStatisticsService {
 
     private final OperatorDataVoMapper operatorDataVoMapper;
 
-    private final AkGameDataService akGameDataService;
+    private final ArknightsGameDataService arknightsGameDataService;
 
     private final RedisTemplate<String,Object> redisTemplate;
 
     private final OSSService ossService;
 
 
-    public OperatorStatisticsService(OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OperatorDataVoMapper operatorDataVoMapper, AkGameDataService akGameDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
+    public OperatorStatisticsService(OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OperatorDataVoMapper operatorDataVoMapper, ArknightsGameDataService arknightsGameDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService) {
         this.operatorSurveyStatisticsMapper = operatorSurveyStatisticsMapper;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         this.operatorDataVoMapper = operatorDataVoMapper;
-        this.akGameDataService = akGameDataService;
+        this.arknightsGameDataService = arknightsGameDataService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
     }
@@ -55,12 +55,13 @@ public class OperatorStatisticsService {
      */
 //    @Scheduled(cron = "0 10 0/2 * * ?")
     public void operatorStatistics() {
+        QueryWrapper<AkPlayerBindInfo> playerBindInfoQueryWrapper = new QueryWrapper<>();
+        playerBindInfoQueryWrapper.ge("last_time",new Date(System.currentTimeMillis()-60*60*24*1000*30L));
+        System.out.println(System.currentTimeMillis()-60*60*24*1000*30L);
         List<Long> userIds = akPlayerBindInfoMapper.selectList(null)
                 .stream()
                 .map(AkPlayerBindInfo::getId)
-                .collect(Collectors.toList());
-
-
+                .toList();
 
         String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         redisTemplate.opsForHash().put("Survey", "UpdateTime.Operator", updateTime);
@@ -73,13 +74,13 @@ public class OperatorStatisticsService {
         List<Long> tmpIds = new ArrayList<>();
         for(Long id : userIds){
             tmpIds.add(id);
-            if(tmpIds.size()>500){
+            if(tmpIds.size()>300){
                 operatorStatistics(tmpIds,tmpResult);
                 tmpIds.clear();
             }
         }
 
-        if(tmpIds.size()>0){
+        if(!tmpIds.isEmpty()){
             operatorStatistics(tmpIds,tmpResult);
         }
 

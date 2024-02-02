@@ -8,19 +8,19 @@ import java.util.List;
 
 @Data
 public class PackInfoVO {
-    private Long id;
-    private Long sortId;
-    private String name;
-    private String displayName;
-    private double price;
-    private Integer state;
-    private String type;
-    private String fileName;
-    private Integer ticketGacha;
-    private Integer ticketGacha10;
-    private Integer originium;
-    private Integer orundum;
-    private Double drawCount;
+    private Long id;  //数据库索引，类雪花算法生成
+    private Long sortId;  //排序id
+    private String name;  //礼包官方名称
+    private String displayName;  //前端展示名称
+    private double price;  //价格
+    private Integer state;  //售卖状态
+    private String type;  //礼包类型
+    private String fileName;  //礼包图片名称
+    private Integer ticketGacha;  //单抽券数量
+    private Integer ticketGacha10; //十连券数量
+    private Integer originium; //源石数量
+    private Integer orundum; //合成玉数量
+    private Double drawCount;  //总抽数
     private Double eachDrawPrice; //每一抽价格
     private Double eachOriginiumPrice; //每源石（折算物资后）价格
     private Double promotionRatioForMoney; //氪金性价比
@@ -28,7 +28,7 @@ public class PackInfoVO {
     private Double promotionRatioForComprehensive; //综合性价比
     private Long start;
     private Long end;
-    private List<PackContentVO> packContent;
+    private List<PackContentVO> packContent;  //礼包非抽卡道具内容
     private Boolean newPack;
 
     public void copy(PackInfo packInfo){

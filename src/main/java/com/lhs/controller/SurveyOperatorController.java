@@ -11,7 +11,7 @@ import com.lhs.entity.po.survey.OperatorDataVo;
 import com.lhs.service.survey.*;
 import com.lhs.entity.vo.survey.OperatorPlanVO;
 
-import com.lhs.service.util.AkGameDataService;
+import com.lhs.service.util.ArknightsGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -31,14 +31,14 @@ public class SurveyOperatorController {
 
     private final OperatorPlanService operatorPlanService;
 
-    private final AkGameDataService akGameDataService;
+    private final ArknightsGameDataService arknightsGameDataService;
 
     private final OperatorStatisticsService operatorStatisticsService;
 
-    public SurveyOperatorController(OperatorDataService operatorDataService, OperatorPlanService operatorPlanService, AkGameDataService akGameDataService, OperatorStatisticsService operatorStatisticsService) {
+    public SurveyOperatorController(OperatorDataService operatorDataService, OperatorPlanService operatorPlanService, ArknightsGameDataService arknightsGameDataService, OperatorStatisticsService operatorStatisticsService) {
         this.operatorDataService = operatorDataService;
         this.operatorPlanService = operatorPlanService;
-        this.akGameDataService = akGameDataService;
+        this.arknightsGameDataService = arknightsGameDataService;
         this.operatorStatisticsService = operatorStatisticsService;
     }
 

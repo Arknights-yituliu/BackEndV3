@@ -46,9 +46,8 @@ public class DevInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         LogUtil.info("拦截路径："+requestURI);
         String token = request.getHeader("token");
-        if(token ==null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        if(token == null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         //  检查开发者Token
-
         return adminService.checkToken(token);
     }
 

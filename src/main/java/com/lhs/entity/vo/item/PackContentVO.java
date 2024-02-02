@@ -9,10 +9,10 @@ import lombok.Data;
 
 @Data
 public class PackContentVO {
-    private Long id;
-    private String itemName;
-    private String itemId;
-    private Integer quantity;
+    private Long id;  //数据库id
+    private String itemName;  //物品名称
+    private String itemId;  //物品id
+    private Integer quantity; //物品数量
 
     public void copy(PackContent packContent){
         this.id = packContent.getId();

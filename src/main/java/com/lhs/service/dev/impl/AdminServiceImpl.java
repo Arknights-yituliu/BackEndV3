@@ -48,16 +48,7 @@ public class AdminServiceImpl implements AdminService {
         this.email163Service = email163Service;
     }
 
-    @Override
-    public Boolean developerLevel(HttpServletRequest request) {
-        String token = request.getHeader("token");
-        String developerBase64 = token.split("\\.")[0];
-        String decode = new String(Base64.getDecoder().decode(developerBase64), StandardCharsets.UTF_8);
-        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("developer", decode);
-        Admin admin = adminMapper.selectOne(queryWrapper);
-        return admin.getLevel() == 0;
-    }
+
 
     @Override
     public void emailSendCode(LoginVo loginVo) {
@@ -124,6 +115,24 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Boolean checkToken(String token) {
 
+        Admin admin = getAdminInfoByToken(token);
+
+        if (System.currentTimeMillis() < admin.getExpire().getTime()) {
+            LogUtil.info("开发者验证通过");
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public Boolean developerLevel(HttpServletRequest request) {
+        String token = request.getHeader("token");
+        Admin admin = getAdminInfoByToken(token);
+        return admin.getLevel() == 0;
+    }
+
+    private Admin getAdminInfoByToken(String token){
         if (token == null) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
@@ -132,7 +141,6 @@ public class AdminServiceImpl implements AdminService {
         String headerText = new String(Base64.getDecoder().decode(headerBase64), StandardCharsets.UTF_8);
         JsonNode header = JsonMapper.parseJSONObject(headerText);
         long id = header.get("id").asLong();
-        System.out.println(id);
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id",id);
         Admin admin = adminMapper.selectOne(queryWrapper);
@@ -140,14 +148,7 @@ public class AdminServiceImpl implements AdminService {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
 
-        if (System.currentTimeMillis() < admin.getExpire().getTime()) {
-            LogUtil.info("开发者验证通过");
-            return true;
-        }
-
-
-        return false;
+        return admin;
     }
-
 
 }
