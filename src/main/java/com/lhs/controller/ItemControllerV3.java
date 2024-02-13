@@ -15,7 +15,6 @@ import com.lhs.task.ItemTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -168,7 +167,7 @@ public class ItemControllerV3 {
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
     public Result<List<PackInfoVO>> getPackPromotionRatioList(@RequestParam(value = "state",required = false) Integer state){
-        List<PackInfoVO> list =  storeService.getPackPromotionRatioList(state);
+        List<PackInfoVO> list =  storeService.getPackInfoListCache(state);
         return Result.success(list);
     }
 

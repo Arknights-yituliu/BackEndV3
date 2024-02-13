@@ -17,31 +17,29 @@ public class PackInfo {
     @TableId
     @Id
     private Long id;
-    private Long sortId;
-    private String name;
+    private String officialName;
     private String displayName;
     private double price;
-    private Integer state;
-    private String type;
-    private String fileName;
-    private Integer ticketGacha;
-    private Integer ticketGacha10;
+    private Integer saleStatus;
+    private String saleType;
+    private String imageName;
     private Integer originium;
     private Integer orundum;
+    private Integer gachaTicket;
+    private Integer tenGachaTicket;
     private Date start;
     private Date end;
 
     public void copy(PackInfoVO packInfoVO){
         this.id = packInfoVO.getId();
-        this.sortId = packInfoVO.getSortId();
-        this.name = packInfoVO.getName();
+        this.officialName = packInfoVO.getOfficialName();
         this.displayName = packInfoVO.getDisplayName();
         this.price = packInfoVO.getPrice();
-        this.state = packInfoVO.getState();
-        this.type = packInfoVO.getType();
-        this.fileName = packInfoVO.getFileName();
-        this.ticketGacha = packInfoVO.getTicketGacha();
-        this.ticketGacha10 = packInfoVO.getTicketGacha10();
+        this.saleStatus = packInfoVO.getSaleStatus();
+        this.saleType = packInfoVO.getSaleType();
+        this.imageName = packInfoVO.getImageName();
+        this.gachaTicket = packInfoVO.getGachaTicket();
+        this.tenGachaTicket = packInfoVO.getTenGachaTicket();
         this.originium = packInfoVO.getOriginium();
         this.orundum = packInfoVO.getOrundum();
         this.start = new Date(packInfoVO.getStart());

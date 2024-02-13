@@ -33,9 +33,10 @@ public interface StoreService {
 
     PackInfoVO updateStorePackById(PackInfoVO packInfoVO);
 
-    List<PackInfoVO> getPackPromotionRatioList(Integer state);
+    List<PackInfoVO> getPackInfoListCache(Integer state);
 
-    List<PackInfoVO> getPackPromotionRatioList();
+
+    List<PackInfoVO> getPackInfoList();
 
     PackInfoVO getPackById(String idStr);
 
@@ -49,4 +50,6 @@ public interface StoreService {
 
 
     void uploadImage(MultipartFile file,Long id);
+
+    String clearPackCache();
 }

@@ -74,6 +74,7 @@ public enum ResultCode {
 	INTERFACE_REQUEST_TIMEOUT(60005, "接口请求超时"),
 	INTERFACE_TOO_MANY_EMAIL_SENT(60006,"发送邮件次数过多，请稍后重试"),
 	INTERFACE_DAILY_SENDING_LIMIT(60007,"邮件推送服务次数达到上线，无法发送"),
+	REDIS_CLEAR_CACHE_ERROR(60008,"缓存清除失败"),
 	
 	/* 权限错误：70001-79999 */
 	PERMISSION_NO_ACCESS(70001, "无访问权限");

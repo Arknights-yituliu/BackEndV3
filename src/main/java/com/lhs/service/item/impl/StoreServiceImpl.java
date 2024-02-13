@@ -9,10 +9,7 @@ import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.dev.HoneyCake;
 import com.lhs.entity.po.item.*;
-import com.lhs.entity.vo.item.PackContentVO;
-import com.lhs.entity.vo.item.PackInfoVO;
-import com.lhs.entity.vo.item.StoreActVO;
-import com.lhs.entity.vo.item.StoreItemVO;
+import com.lhs.entity.vo.item.*;
 import com.lhs.mapper.dev.HoneyCakeMapper;
 import com.lhs.mapper.item.*;
 import com.lhs.mapper.item.service.PackContentMapperService;
@@ -31,7 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class StoreServiceImpl implements StoreService {
@@ -284,14 +280,14 @@ public class StoreServiceImpl implements StoreService {
         return getPackById(packId.toString());
     }
 
-    @RedisCacheable(key = "Item:PackList")
+    @RedisCacheable(key = "Item:PackData")
     @Override
-    public List<PackInfoVO> getPackPromotionRatioList(Integer state) {
+    public List<PackInfoVO> getPackInfoListCache(Integer state) {
         QueryWrapper<PackInfo> packInfoQueryWrapper = new QueryWrapper<>();
         packInfoQueryWrapper.ge("end",new Date());
 
         if(state!=null){
-            packInfoQueryWrapper.eq("state",state);
+            packInfoQueryWrapper.eq("sale_status",state);
         }
         List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
         List<Long> packIdList = packInfoList.stream().map(PackInfo::getId).collect(Collectors.toList());
@@ -314,8 +310,10 @@ public class StoreServiceImpl implements StoreService {
         return VOList;
     }
 
+
+
     @Override
-    public List<PackInfoVO> getPackPromotionRatioList() {
+    public List<PackInfoVO> getPackInfoList() {
         List<PackInfo> packInfoList = packInfoMapper.selectList(null);
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
         packContentQueryWrapper.eq("archived", false);
@@ -373,7 +371,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public void updatePackState(String id, Integer state) {
         UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("state", state);
+        updateWrapper.set("sale_status", state);
         updateWrapper.eq("id", id);
         int update = packInfoMapper.update(null, updateWrapper);
     }
@@ -396,7 +394,7 @@ public class StoreServiceImpl implements StoreService {
         String fileName = null;
         if (file.getOriginalFilename() != null) {
             String[] split = file.getOriginalFilename().split("\\.");
-            fileName = packInfo.getName() +"." + idGenerator.nextId() + "." + split[1];
+            fileName = packInfo.getOfficialName() +"." + idGenerator.nextId() + "." + split[1];
         }
 
 
@@ -421,6 +419,15 @@ public class StoreServiceImpl implements StoreService {
 
     }
 
+    @Override
+    public String clearPackCache() {
+        Boolean delete = redisTemplate.delete("Item:PackData");
+        if(Boolean.FALSE.equals(delete)){
+            throw new ServiceException(ResultCode.REDIS_CLEAR_CACHE_ERROR);
+        }
+        return "缓存清除成功";
+    }
+
 
     private PackInfoVO getPackInfoVO(PackInfo packInfo, List<PackContent> packContentList) {
         PackInfoVO packInfoVO = new PackInfoVO();
@@ -440,32 +447,32 @@ public class StoreServiceImpl implements StoreService {
     }
 
     private void packPromotionRatioCalc(PackInfoVO packInfoVO, Map<String, Double> itemValue) {
-        double eachDrawPrice = 0.0; //每一抽价格
-        double eachOriginiumPrice = 0.0; //每源石（折算物资后）价格
-        double promotionRatioForMoney = 0.0; //氪金性价比
-        double promotionRatioForComprehensive = 0.0; //综合性价比
-        double equivalentOriginium = 0.0;
-        double drawCount = 0.0;
+        double drawPrice = 0.0; //每一抽价格
+        double packedOriginiumPrice = 0.0; //每源石（折算物资后）价格
+        double drawEfficiency = 0.0; //氪金性价比
+        double packEfficiency = 0.0; //综合性价比
+        double packedOriginium = 0.0;
+        double draws = 0.0;
 
         double totalOfOrundum = packInfoVO.getOrundum() + packInfoVO.getOriginium() * 180
-                + packInfoVO.getTicketGacha() * 600 + packInfoVO.getTicketGacha10() * 6000;
+                + packInfoVO.getGachaTicket() * 600 + packInfoVO.getTenGachaTicket() * 6000;
 
         double eachOriginalOriginiumPrice = 648 / 185.0;
         double eachOriginalDrawPrice = 648.0 / 185 / 0.3;
 
         if (totalOfOrundum > 0) {
             //计算共计多少抽
-            drawCount = totalOfOrundum / 600;
+            draws = totalOfOrundum / 600;
             //计算等效多少源石 1源石 = 180合成玉
-            equivalentOriginium += totalOfOrundum / 180;
+            packedOriginium += totalOfOrundum / 180;
             //计算每一抽的价格
-            eachDrawPrice = packInfoVO.getPrice() / drawCount;
+            drawPrice = packInfoVO.getPrice() / draws;
             //计算抽卡性价比
-            promotionRatioForMoney = eachOriginalDrawPrice / eachDrawPrice;
+            drawEfficiency = eachOriginalDrawPrice / drawPrice;
             //计算每个源石的价格
-            eachOriginiumPrice = packInfoVO.getPrice() / equivalentOriginium;
+            packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
             //计算综合性价比
-            promotionRatioForComprehensive = eachOriginalOriginiumPrice / eachOriginiumPrice;
+            packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
         }
 
         List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
@@ -477,18 +484,18 @@ public class StoreServiceImpl implements StoreService {
                     apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
                 }
             }
-            equivalentOriginium += apCount / 135;
-            if (equivalentOriginium > 0) {
-                eachOriginiumPrice = packInfoVO.getPrice() / equivalentOriginium;
-                promotionRatioForComprehensive = eachOriginalOriginiumPrice / eachOriginiumPrice;
+            packedOriginium += apCount / 135;
+            if (packedOriginium > 0) {
+                packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
+                packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
             }
         }
 
-        packInfoVO.setDrawCount(drawCount);
-        packInfoVO.setEachDrawPrice(eachDrawPrice);
-        packInfoVO.setEachOriginiumPrice(eachOriginiumPrice);
-        packInfoVO.setPromotionRatioForMoney(promotionRatioForMoney);
-        packInfoVO.setEquivalentOriginium(equivalentOriginium);
-        packInfoVO.setPromotionRatioForComprehensive(promotionRatioForComprehensive);
+        packInfoVO.setDraws(draws);
+        packInfoVO.setDrawPrice(drawPrice);
+        packInfoVO.setPackedOriginiumPrice(packedOriginiumPrice);
+        packInfoVO.setDrawEfficiency(drawEfficiency);
+        packInfoVO.setPackedOriginium(packedOriginium);
+        packInfoVO.setPackEfficiency(packEfficiency);
     }
 }

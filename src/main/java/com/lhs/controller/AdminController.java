@@ -98,7 +98,7 @@ public class AdminController {
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
     public Result<List<PackInfoVO>> getPackList(){
-        return Result.success(storeService.getPackPromotionRatioList());
+        return Result.success(storeService.getPackInfoList());
     }
 
     @Operation(summary = "更新礼包材料表")
@@ -113,6 +113,13 @@ public class AdminController {
     public Result<Object> deletePackItem(@RequestParam String id){
         storeService.deletePackItemById(id);
         return Result.success();
+    }
+
+    @Operation(summary = "清除礼包缓存数据")
+    @GetMapping("/admin/pack/clearCache")
+    public Result<Object> clearPackCache(){
+        String message = storeService.clearPackCache();
+        return Result.success(message);
     }
 
     @Operation(summary = "更新材料礼包状态")

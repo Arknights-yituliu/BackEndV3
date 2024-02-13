@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class ArknightsGameDataService {
 
     private final OperatorTableMapper operatorTableMapper;
-    private final static String githubBotResource = "C:/IDEAProject/Arknights-Bot-Resource/";
+    private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
 
     private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
 
@@ -592,7 +592,7 @@ public class ArknightsGameDataService {
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
 
-            String startPath = githubBotResource + "avatar\\";
+            String startPath = githubBotResource + "avatar/";
             String avatar6 = "C:\\VCProject\\resources\\avatar-ori-6\\";
             String avatar5 = "C:\\VCProject\\resources\\avatar-ori-5\\";
             String avatar4 = "C:\\VCProject\\resources\\avatar-ori-4\\";
