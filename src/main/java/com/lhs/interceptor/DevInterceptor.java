@@ -1,7 +1,7 @@
 package com.lhs.interceptor;
 
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.LogUtil;
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.ResultCode;
 import com.lhs.service.dev.AdminService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class DevInterceptor implements HandlerInterceptor {
         }
 
         String requestURI = request.getRequestURI();
-        LogUtil.info("拦截路径："+requestURI);
+        Logger.info("拦截路径："+requestURI);
         String token = request.getHeader("token");
         if(token == null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         //  检查开发者Token

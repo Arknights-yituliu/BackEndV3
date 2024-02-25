@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 @Entity
 @TableName
@@ -19,6 +21,7 @@ public class PackContent {
     private String itemId;
     private Integer quantity;
     private Boolean archived;
+
     public void copy(PackContentVO packContentVO){
         this.id = packContentVO.getId();
         this.itemId = packContentVO.getItemId();

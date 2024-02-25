@@ -7,14 +7,11 @@ import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.PutObjectRequest;
 import com.aliyun.oss.model.PutObjectResult;
-import com.lhs.common.config.ApplicationConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 @Service
 public class OSSService {
@@ -65,7 +62,7 @@ public class OSSService {
         return true;
     }
 
-    public Boolean uploadFileInputStream(InputStream inputStream,String objectName){
+    public void uploadFileInputStream(InputStream inputStream, String objectName){
         String endpoint = "https://oss-cn-shanghai.aliyuncs.com";
         String accessKeyId = AccessKeyId;
         String accessKeySecret = AccessKeySecret;
@@ -97,7 +94,6 @@ public class OSSService {
             }
         }
 
-        return true;
     }
 
 

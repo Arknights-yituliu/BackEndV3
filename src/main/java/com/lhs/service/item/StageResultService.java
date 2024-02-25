@@ -47,7 +47,7 @@ public class StageResultService {
     public void updateStageResultByTaskConfig() {
         String read = FileUtil.read(ApplicationConfig.Item + "stage_task_config.json");
         if (read == null) {
-            LogUtil.error("更新关卡配置文件为空");
+            Logger.error("更新关卡配置文件为空");
             return;
         }
 
@@ -59,7 +59,7 @@ public class StageResultService {
             stageParamDTO.setSampleSize(sampleSize);
             stageParamDTO.setExpCoefficient(expCoefficient);
             updateStageResult(stageParamDTO);
-            LogUtil.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
+            Logger.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
         }
     }
 
@@ -70,7 +70,7 @@ public class StageResultService {
         }
         items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
         stageCalService.stageResultCal(items, stageParamDTO);      //用新材料价值计算新关卡效率
-        LogUtil.info("V2关卡效率更新成功");
+        Logger.info("V2关卡效率更新成功");
     }
 
 

@@ -148,33 +148,25 @@ public class ItemControllerV3 {
         return Result.success(storePerm);
     }
 
-    @Operation(summary = "活动商店历史数据")
-    @GetMapping("/store/act/history")
-    public Result<List<StoreActVO>> selectActStoreHistory() {
-
-        List<StoreActVO> list =   storeService.selectActStoreHistory();
-        return Result.success(list);
-    }
-
     //    @TakeCount(name = "活动商店性价比")
     @Operation(summary = "获取活动商店性价比")
     @GetMapping("/store/act")
-    public Result<List<StoreActVO>> getStoreActData() {
-        List<StoreActVO> storeActVOList = storeService.getStoreAct();
-        return Result.success(storeActVOList);
+    public Result<List<ActivityStoreDataVO>> getStoreActData() {
+        List<ActivityStoreDataVO> activityStoreDataVOList = storeService.getActivityStoreData();
+        return Result.success(activityStoreDataVOList);
     }
 
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
     public Result<List<PackInfoVO>> getPackPromotionRatioList(@RequestParam(value = "state",required = false) Integer state){
-        List<PackInfoVO> list =  storeService.getPackInfoListCache(state);
+        List<PackInfoVO> list =  storeService.listPackInfoBySaleStatus(state);
         return Result.success(list);
     }
 
     @Operation(summary = "获取礼包自定义材料表")
     @GetMapping("/store/pack/item/list")
     public Result<List<PackItem>> getItemList() {
-        List<PackItem> packItemList = storeService.getItemList();
+        List<PackItem> packItemList = storeService.listPackItem();
         return Result.success(packItemList);
     }
 }

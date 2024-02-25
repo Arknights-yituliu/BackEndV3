@@ -1,7 +1,7 @@
 package com.lhs.service.dev.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhs.common.util.LogUtil;
+import com.lhs.common.util.Logger;
 import com.lhs.entity.po.dev.PageVisits;
 import com.lhs.entity.vo.dev.PageVisitsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
@@ -44,7 +44,7 @@ public class VisitsServiceImpl implements VisitsService {
     @Override
     public void savePageVisits() {
         Date todayDate = new Date();
-        LogUtil.info("开始保存访问记录");
+        Logger.info("开始保存访问记录");
 
         String yyyyMMddHH = new SimpleDateFormat("yyyy/MM/dd HH").format(new Date());
 
@@ -62,7 +62,7 @@ public class VisitsServiceImpl implements VisitsService {
 
 
             if (yyyyMMddHH.equals(visitsTime)) {
-                LogUtil.info("当时小时的访问未结束，不保存");
+                Logger.info("当时小时的访问未结束，不保存");
                 continue;
             }
 
@@ -76,7 +76,7 @@ public class VisitsServiceImpl implements VisitsService {
                     updateWrapper.eq("redis_key", savedPageVisits.getRedisKey());
                     savedPageVisits.setVisitsCount(visitsCount);
                     pageVisitsMapper.update(savedPageVisits, updateWrapper);
-                    LogUtil.info("更新记录");
+                    Logger.info("更新记录");
                 }
                 redisTemplate.opsForHash().delete("visits", timeAndURL);
                 continue;
@@ -92,7 +92,7 @@ public class VisitsServiceImpl implements VisitsService {
             pageVisits.setPagePath(pagePath);
             pageVisits.setCreateTime(todayDate);
             pageVisits.setRedisKey(timeAndURL);
-            LogUtil.info(visitsTime + "访问" + pagePath + "共" + visitsCount + "次");
+            Logger.info(visitsTime + "访问" + pagePath + "共" + visitsCount + "次");
             pageVisitsMapper.insert(pageVisits);
         }
 

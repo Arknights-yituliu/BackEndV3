@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ApplicationConfig;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtil;
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.dev.Admin;
@@ -22,7 +22,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -118,7 +117,7 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = getAdminInfoByToken(token);
 
         if (System.currentTimeMillis() < admin.getExpire().getTime()) {
-            LogUtil.info("开发者验证通过");
+            Logger.info("开发者验证通过");
             return true;
         }
 

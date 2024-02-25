@@ -80,7 +80,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 //        String nickName = data.get("nickName").asText();
         String akUid = data.get("uid").asText();
 
-        LogUtil.info("森空岛导入V2 {} uid："+akUid);
+        Logger.info("森空岛导入V2 {} uid："+akUid);
 
         surveyUser.setAkUid(akUid);
         JsonNode chars = data.get("chars");

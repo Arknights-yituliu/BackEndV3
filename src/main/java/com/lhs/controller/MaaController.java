@@ -3,14 +3,17 @@ package com.lhs.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtil;
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
+import com.lhs.entity.dto.item.StageDropDTO;
+import com.lhs.service.maa.MAAUploadService;
 import com.lhs.service.maa.SurveyRecruitService;
 import com.lhs.service.maa.ScheduleService;
 import com.lhs.entity.vo.maa.MaaRecruitVo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,9 +28,14 @@ public class MaaController {
 
     private final SurveyRecruitService surveyRecruitService;
 
-    public MaaController(ScheduleService scheduleService, SurveyRecruitService surveyRecruitService) {
+    private final MAAUploadService maaUploadService;
+
+    public MaaController(ScheduleService scheduleService,
+                         SurveyRecruitService surveyRecruitService,
+                         MAAUploadService maaUploadService) {
         this.scheduleService = scheduleService;
         this.surveyRecruitService = surveyRecruitService;
+        this.maaUploadService = maaUploadService;
     }
 
     @Operation(summary ="MAA公招记录上传")
@@ -54,6 +62,13 @@ public class MaaController {
         return Result.success(result);
     }
 
+    @Operation(summary ="MAA关卡掉落上传")
+    @PostMapping("/upload/stageDrop")
+    public Result<Object> stageDropUpload(HttpServletRequest httpServletRequest, @RequestBody StageDropDTO stageDropDTO) {
+        String string = maaUploadService.saveStageDrop(httpServletRequest,stageDropDTO);
+        return Result.success(string);
+    }
+
     @Operation(summary ="生成基建排班协议文件")
     @PostMapping("/schedule/save")
     public Result<Object> saveMaaScheduleJson( @RequestBody String scheduleJson,@RequestParam Long schedule_id) {
@@ -69,7 +84,7 @@ public class MaaController {
     @Operation(summary ="导出基建排班协议文件")
     @GetMapping("/schedule/export")
     public void exportMaaScheduleJson(HttpServletResponse response, @RequestParam Long schedule_id) {
-        LogUtil.info("导出的排班id是："+schedule_id);
+        Logger.info("导出的排班id是："+schedule_id);
         scheduleService.exportScheduleFile(response, schedule_id);
     }
 
@@ -83,6 +98,8 @@ public class MaaController {
         hashMap.put("message","导入成功");
         return Result.success(hashMap);
     }
+
+
 
 
 //    @Operation(summary ="查询某个材料的最优关卡(会返回理智转化效率在80%以上的至多8个关卡)")

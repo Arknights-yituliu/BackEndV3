@@ -8,7 +8,7 @@ import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.entity.vo.dev.PageVisitsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.entity.vo.item.PackInfoVO;
-import com.lhs.entity.vo.item.StoreActVO;
+import com.lhs.entity.vo.item.ActivityStoreDataVO;
 import com.lhs.service.dev.AdminService;
 import com.lhs.service.dev.VisitsService;
 import com.lhs.service.item.StoreService;
@@ -98,7 +98,7 @@ public class AdminController {
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
     public Result<List<PackInfoVO>> getPackList(){
-        return Result.success(storeService.getPackInfoList());
+        return Result.success(storeService.listAllPackInfoData());
     }
 
     @Operation(summary = "更新礼包材料表")
@@ -140,11 +140,24 @@ public class AdminController {
 
     @Operation(summary = "更新活动商店性价比(新")
     @PostMapping("/admin/store/act/update")
-    public Result<Object> updateActStoreByActName(HttpServletRequest request, @RequestBody StoreActVO storeActVo) {
+    public Result<Object> updateActStoreByActName(HttpServletRequest request, @RequestBody ActivityStoreDataVO activityStoreDataVo) {
         Boolean level = adminService.developerLevel(request);
-        String message = storeService.updateActStoreByActName(storeActVo, level);
+        String message = storeService.updateActivityStoreDataByActivityName(activityStoreDataVo, level);
         return Result.success(message);
     }
 
+    @Operation(summary = "上传商店背景图片")
+    @PostMapping("/admin/store/activity/uploadImage")
+    public Result<String> uploadActivityImage(@RequestParam("file") MultipartFile file) {
+        return Result.success(storeService.uploadActivityBackgroundImage(file));
+    }
+
+
+    @Operation(summary = "活动商店历史数据")
+    @GetMapping("/store/act/history")
+    public Result<List<ActivityStoreDataVO>> selectActStoreHistory() {
+        List<ActivityStoreDataVO> list =   storeService.getActivityStoreHistoryData();
+        return Result.success(list);
+    }
 
 }

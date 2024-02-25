@@ -1,0 +1,16 @@
+package com.lhs.entity.vo.item;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class StageDropVO {
+     private Long id;
+     private Long createTime;
+     private String stageId;
+     private String version;
+     private String  uid;
+     private Integer times;
+     private List<StageDropDetailVO> dropList;
+}

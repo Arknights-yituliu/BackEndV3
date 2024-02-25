@@ -19,11 +19,11 @@ import com.lhs.service.item.ItemService;
 import com.lhs.service.item.StoreService;
 import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -100,7 +100,7 @@ public class StoreServiceImpl implements StoreService {
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
         ossService.upload(JsonMapper.toJSONString(storePermList), "backup/store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
-        LogUtil.info("常驻商店更新成功");
+        Logger.info("常驻商店更新成功");
     }
 
 
@@ -114,20 +114,12 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public String updateActStoreByActName(StoreActVO storeActVo, Boolean level) {
+    public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel) {
         List<Item> items = itemService.getItemListCache(new StageParamDTO().getVersion());
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        List<StoreItemVO> storeItemVOList = storeActVo.getActStore();
-        String actName = storeActVo.getActName();
-        String actEndDate = storeActVo.getActEndDate();
-
-        Date date = new Date();
-        try {
-            date = sdf.parse(actEndDate);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+        List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
+        String actName = activityStoreDataVo.getActName();
 
         storeItemVOList.forEach(a -> {
             a.setItemPPR(itemMap.get(a.getItemName()).getItemValueAp() * a.getItemQuantity() / a.getItemPrice());
@@ -136,8 +128,13 @@ public class StoreServiceImpl implements StoreService {
 
         storeItemVOList.sort(Comparator.comparing(StoreItemVO::getItemPPR).reversed());
 
-        StoreAct act_name = storeActMapper.selectOne(new QueryWrapper<StoreAct>().eq("act_name", actName));
-        StoreAct build = StoreAct.builder().actName(actName).endTime(date).result(JsonMapper.toJSONString(storeActVo)).build();
+        ActivityStoreData act_name = storeActMapper.selectOne(new QueryWrapper<ActivityStoreData>().eq("act_name", actName));
+        ActivityStoreData build = ActivityStoreData.builder()
+                .actName(actName)
+                .imageLink(activityStoreDataVo.getImageLink())
+                .endTime(new Date(activityStoreDataVo.getEndTime()))
+                .result(JsonMapper.toJSONString(activityStoreDataVo))
+                .build();
         if (act_name == null) {
             storeActMapper.insert(build);
         } else {
@@ -146,7 +143,7 @@ public class StoreServiceImpl implements StoreService {
 
         String message = "活动商店已更新";
 
-        if (level) {
+        if (developerLevel) {
             redisTemplate.delete("StoreAct");
             message = "活动商店已更新，并清空缓存";
 
@@ -154,35 +151,65 @@ public class StoreServiceImpl implements StoreService {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-        ossService.upload(JsonMapper.toJSONString(storeActVo), "backup/store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
+        ossService.upload(JsonMapper.toJSONString(activityStoreDataVo), "backup/store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
         return message;
     }
 
     @Override
-    @RedisCacheable(key = "Item:StoreAct", timeout = 86400)
-    public List<StoreActVO> getStoreAct() {
-        List<StoreAct> storeActs = storeActMapper.selectList(null);
-        List<StoreActVO> storeActVOList = new ArrayList<>();
-        storeActs.forEach(l -> {
-            String result = l.getResult();
-            if (l.getEndTime().getTime() > new Date().getTime()) {
-                StoreActVO storeActVo = JsonMapper.parseObject(result, StoreActVO.class);
-                storeActVOList.add(storeActVo);
-            }
-        });
-        return storeActVOList;
+    public String uploadActivityBackgroundImage(MultipartFile file) {
+        if (file == null) {
+            throw new ServiceException(ResultCode.FILE_IS_NULL);
+        }
+        InputStream inputStream = null;
+
+        try {
+            inputStream = file.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        file.getOriginalFilename();
+
+        String fileName = "";
+        if (file.getOriginalFilename() != null) {
+            String[] split = file.getOriginalFilename().split("\\.");
+            fileName = idGenerator.nextId() + "." + split[1];
+        } else {
+            throw new ServiceException(ResultCode.FILE_IS_NULL);
+        }
+
+        ossService.uploadFileInputStream(inputStream, "image/store/" + fileName);
+
+
+        return "https://yituliu.oss-cn-shanghai.aliyuncs.com/image/store/" + fileName;
     }
 
     @Override
-    public List<StoreActVO> selectActStoreHistory() {
-        List<StoreAct> storeActs = storeActMapper.selectList(null);
-        List<StoreActVO> storeActVOList = new ArrayList<>();
-        storeActs.forEach(l -> {
-            String result = l.getResult();
-            StoreActVO storeActVo = JsonMapper.parseObject(result, StoreActVO.class);
-            storeActVOList.add(storeActVo);
+    @RedisCacheable(key = "Item:StoreAct", timeout = 86400)
+    public List<ActivityStoreDataVO> getActivityStoreData() {
+        QueryWrapper<ActivityStoreData> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ge("end_time", new Date());
+        List<ActivityStoreData> activityStoreData = storeActMapper.selectList(queryWrapper);
+        List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
+        activityStoreData.forEach(e -> {
+            String result = e.getResult();
+            ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
+            activityStoreDataVo.setImageLink(e.getImageLink());
+            activityStoreDataVOList.add(activityStoreDataVo);
         });
-        return storeActVOList;
+        return activityStoreDataVOList;
+    }
+
+    @Override
+    public List<ActivityStoreDataVO> getActivityStoreHistoryData() {
+        List<ActivityStoreData> activityStoreData = storeActMapper.selectList(null);
+        List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
+        activityStoreData.forEach(l -> {
+            String result = l.getResult();
+            ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
+            activityStoreDataVOList.add(activityStoreDataVo);
+        });
+        return activityStoreDataVOList;
     }
 
 
@@ -219,11 +246,12 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public PackInfoVO updateStorePackById(PackInfoVO packInfoVO) {
+        Date currentDate = new Date();
         //创建一个po对象存储数据
         PackInfo packInfo = new PackInfo();
         //将VO类的数据传递给po
         packInfo.copy(packInfoVO);
-        //id生成器
+        packInfo.setCreateTime(currentDate);
 
 
         //判断是新礼包还是旧礼包
@@ -268,32 +296,40 @@ public class StoreServiceImpl implements StoreService {
             packContentList.add(packContent);
         }
 
-
-        //构建更新的条件和更新字段
         UpdateWrapper<PackContent> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("pack_id", packId);
-        updateWrapper.set("archived", true);
+        updateWrapper.eq("pack_id", packId)
+                .set("archived", true);
         packContentMapper.update(null, updateWrapper);
+
         //批量保存
         packContentMapperService.saveBatch(packContentList);
+
 
         return getPackById(packId.toString());
     }
 
+    @Scheduled(cron = "0 0 0 1/7 * ?")
+    public void deleteArchivedPackContentData() {
+        QueryWrapper<PackContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("archived", true);
+        int delete = packContentMapper.delete(queryWrapper);
+        Logger.info("删除了" + delete + "条礼包内容归档数据");
+    }
+
     @RedisCacheable(key = "Item:PackData")
     @Override
-    public List<PackInfoVO> getPackInfoListCache(Integer state) {
+    public List<PackInfoVO> listPackInfoBySaleStatus(Integer saleStatus) {
         QueryWrapper<PackInfo> packInfoQueryWrapper = new QueryWrapper<>();
-        packInfoQueryWrapper.ge("end",new Date());
+        packInfoQueryWrapper.ge("end", new Date());
 
-        if(state!=null){
-            packInfoQueryWrapper.eq("sale_status",state);
+        if (saleStatus != null) {
+            packInfoQueryWrapper.eq("sale_status", saleStatus);
         }
         List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
         List<Long> packIdList = packInfoList.stream().map(PackInfo::getId).collect(Collectors.toList());
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
         packContentQueryWrapper.eq("archived", false);
-        packContentQueryWrapper.in("pack_id",packIdList);
+        packContentQueryWrapper.in("pack_id", packIdList);
 
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
 
@@ -311,9 +347,8 @@ public class StoreServiceImpl implements StoreService {
     }
 
 
-
     @Override
-    public List<PackInfoVO> getPackInfoList() {
+    public List<PackInfoVO> listAllPackInfoData() {
         List<PackInfo> packInfoList = packInfoMapper.selectList(null);
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
         packContentQueryWrapper.eq("archived", false);
@@ -342,7 +377,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public List<PackItem> getItemList() {
+    public List<PackItem> listPackItem() {
         return packItemMapper.selectList(null);
 
     }
@@ -394,7 +429,7 @@ public class StoreServiceImpl implements StoreService {
         String fileName = null;
         if (file.getOriginalFilename() != null) {
             String[] split = file.getOriginalFilename().split("\\.");
-            fileName = packInfo.getOfficialName() +"." + idGenerator.nextId() + "." + split[1];
+            fileName = packInfo.getOfficialName() + "." + idGenerator.nextId() + "." + split[1];
         }
 
 
@@ -404,12 +439,12 @@ public class StoreServiceImpl implements StoreService {
         try {
             file.transferTo(saveFile);
         } catch (IOException exception) {
-            LogUtil.error(exception.getMessage());
+            Logger.error(exception.getMessage());
         }
 
         UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("file_name",fileName).eq("id",id);
-        packInfoMapper.update(null,updateWrapper);
+        updateWrapper.set("file_name", fileName).eq("id", id);
+        packInfoMapper.update(null, updateWrapper);
 
         try {
             ossService.uploadFileInputStream(new FileInputStream(saveFile), "image/store/" + fileName);
@@ -422,7 +457,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public String clearPackCache() {
         Boolean delete = redisTemplate.delete("Item:PackData");
-        if(Boolean.FALSE.equals(delete)){
+        if (Boolean.FALSE.equals(delete)) {
             throw new ServiceException(ResultCode.REDIS_CLEAR_CACHE_ERROR);
         }
         return "缓存清除成功";

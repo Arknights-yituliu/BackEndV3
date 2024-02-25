@@ -7,12 +7,15 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class StoreActVO {
-    private String actEndDate;
+public class ActivityStoreDataVO {
+
+    private Long endTime;
 
     private List<ActTagAreaDTO> actTagArea;
 
     private String actImgUrl;
+
+    private String imageLink;
 
     private Double actPPRBase;
 
@@ -21,4 +24,6 @@ public class StoreActVO {
     private String actName;
 
     private List<StoreItemVO> actStore;
+
+
 }

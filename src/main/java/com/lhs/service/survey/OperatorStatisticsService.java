@@ -3,7 +3,7 @@ package com.lhs.service.survey;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtil;
+import com.lhs.common.util.Logger;
 import com.lhs.entity.po.survey.AkPlayerBindInfo;
 import com.lhs.entity.po.survey.OperatorDataVo;
 import com.lhs.entity.po.survey.OperatorStatistics;
@@ -116,7 +116,7 @@ public class OperatorStatisticsService {
         queryWrapper.in("uid",ids);
         List<OperatorDataVo> operatorDataVoByBindUser = operatorDataVoMapper.selectList(queryWrapper);
 
-        LogUtil.info("本次统计数量：" + operatorDataVoByBindUser.size());
+        Logger.info("本次统计数量：" + operatorDataVoByBindUser.size());
 
         //根据干员id分组
         Map<String, List<OperatorDataVo>> collectByCharId = operatorDataVoByBindUser.stream()

@@ -59,6 +59,11 @@ public class ItemTask {
 //        stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
 //    }
 
+
+    public void deleteArchivedPackContentData(){
+        storeService.deleteArchivedPackContentData();
+    }
+
     /**
      * 备份关卡计算结果
      */

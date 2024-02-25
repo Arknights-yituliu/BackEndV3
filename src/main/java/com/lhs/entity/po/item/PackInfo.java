@@ -29,6 +29,7 @@ public class PackInfo {
     private Integer tenGachaTicket;
     private Date start;
     private Date end;
+    private Date createTime;
 
     public void copy(PackInfoVO packInfoVO){
         this.id = packInfoVO.getId();

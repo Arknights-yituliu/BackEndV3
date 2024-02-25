@@ -10,13 +10,14 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 @Data
-@TableName("store_act")
+@TableName("activity_store_data")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class StoreAct {
+public class ActivityStoreData {
     @TableId
     private String actName;
     private Date endTime;
+    private String imageLink;
     private String result;
 }
