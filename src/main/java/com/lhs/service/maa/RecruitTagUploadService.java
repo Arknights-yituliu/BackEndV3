@@ -14,14 +14,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class SurveyRecruitService {
+public class RecruitTagUploadService {
 
 
     private final RecruitDataMapper recruitDataMapper;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public SurveyRecruitService(RecruitDataMapper recruitDataMapper, RedisTemplate<String, Object> redisTemplate) {
+    public RecruitTagUploadService(RecruitDataMapper recruitDataMapper, RedisTemplate<String, Object> redisTemplate) {
         this.recruitDataMapper = recruitDataMapper;
         this.redisTemplate = redisTemplate;
     }

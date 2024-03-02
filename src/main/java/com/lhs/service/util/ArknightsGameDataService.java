@@ -3,7 +3,7 @@ package com.lhs.service.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
@@ -46,7 +46,7 @@ public class ArknightsGameDataService {
      */
     @RedisCacheable(key = "Survey:EquipIdAndType", timeout = 86400)
     public Map<String, String> getEquipIdAndType() {
-        String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
+        String read = FileUtil.read(ConfigUtil.Item + "character_table_simple.json");
         if (read == null) throw new ServiceException(ResultCode.FILE_NOT_EXIST);
         JsonNode characterTableSimple = JsonMapper.parseJSONObject(read);
         Map<String, String> uniEquipIdAndType = new HashMap<>();
@@ -74,7 +74,7 @@ public class ArknightsGameDataService {
      */
     @RedisCacheable(key = "Survey:HasEquipTable", timeout = 86400)
     public Map<String, String> getHasEquipTable() {
-        String read = FileUtil.read(ApplicationConfig.Item + "character_table_simple.json");
+        String read = FileUtil.read(ConfigUtil.Item + "character_table_simple.json");
         JsonNode jsonNode = JsonMapper.parseJSONObject(read);
         Map<String, String> map = new HashMap<>();
         Iterator<Map.Entry<String, JsonNode>> elements = jsonNode.fields();
@@ -328,7 +328,7 @@ public class ArknightsGameDataService {
             list.add(table_simple.get(id));
         }
 
-        FileUtil.save(ApplicationConfig.Item, "character_table_simple.json", JsonMapper.toJSONString(table_simple));
+        FileUtil.save(ConfigUtil.Item, "character_table_simple.json", JsonMapper.toJSONString(table_simple));
         FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_table_simple.json", JsonMapper.toJSONString(table_simple));
 
         FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\", "character_list.json", JsonMapper.toJSONString(list));

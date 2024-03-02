@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 
@@ -52,7 +52,7 @@ public class ScheduleService {
                 SerializerFeature.WriteDateUseDateFormat, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty);
 
-        FileUtil.save(response, ApplicationConfig.Schedule, scheduleId.toString()+".json", jsonForMat);
+        FileUtil.save(response, ConfigUtil.Schedule, scheduleId.toString()+".json", jsonForMat);
     }
 
 
@@ -62,9 +62,9 @@ public class ScheduleService {
 
 
         if(schedule==null){
-            File file = new File(ApplicationConfig.Schedule + scheduleId + ".json");
+            File file = new File(ConfigUtil.Schedule + scheduleId + ".json");
             if(file.exists()){
-                return FileUtil.read(ApplicationConfig.Schedule + scheduleId + ".json");
+                return FileUtil.read(ConfigUtil.Schedule + scheduleId + ".json");
             }
              throw new ServiceException(ResultCode.DATA_NONE);
 

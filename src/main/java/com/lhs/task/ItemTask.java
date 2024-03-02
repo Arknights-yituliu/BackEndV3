@@ -1,6 +1,6 @@
 package com.lhs.task;
 
-import com.lhs.entity.dto.item.StageParamDTO;
+import com.lhs.service.maa.StageDropUploadService;
 import com.lhs.service.util.OSSService;
 import com.lhs.service.item.*;
 
@@ -19,12 +19,20 @@ public class ItemTask {
     private final OSSService ossService;
     private final StageService stageService;
 
-    public ItemTask(ItemService itemService, StoreService storeService, StageResultService stageResultService, OSSService ossService, StageService stageService) {
+    private final StageDropUploadService stageDropUploadService;
+
+    public ItemTask(ItemService itemService,
+                    StoreService storeService,
+                    StageResultService stageResultService,
+                    OSSService ossService,
+                    StageService stageService,
+                    StageDropUploadService stageDropUploadService) {
         this.itemService = itemService;
         this.storeService = storeService;
         this.stageResultService = stageResultService;
         this.ossService = ossService;
         this.stageService = stageService;
+        this.stageDropUploadService = stageDropUploadService;
     }
 
     /**
@@ -39,7 +47,7 @@ public class ItemTask {
      * 拉取企鹅的关卡表
      */
     @Scheduled(cron = "0 0 0/3 * * ? ")
-    public void pullPenguinStagesApi(){
+    public void pullPenguinStagesApi() {
         stageService.pullPenguinStagesApi();
     }
 
@@ -59,8 +67,12 @@ public class ItemTask {
 //        stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
 //    }
 
+    @Scheduled(cron = "0 0/10 * * * ? ")
+    public void exportMAAStageDropData() {
+       stageDropUploadService.exportData();
+    }
 
-    public void deleteArchivedPackContentData(){
+    public void deleteArchivedPackContentData() {
         storeService.deleteArchivedPackContentData();
     }
 
@@ -69,14 +81,14 @@ public class ItemTask {
      */
     @Scheduled(cron = "0 5/10 * * * ?")
     public void backupStageResult() {
-       stageResultService.backupStageResult();
+        stageResultService.backupStageResult();
     }
 
     /**
      * 更新常驻商店性价比
      */
     @Scheduled(cron = "0 0 0/1 * * ?")
-    public void updateStorePerm(){
+    public void updateStorePerm() {
         storeService.updateStorePerm();
     }
 

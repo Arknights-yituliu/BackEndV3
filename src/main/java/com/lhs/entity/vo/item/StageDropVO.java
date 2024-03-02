@@ -9,6 +9,7 @@ public class StageDropVO {
      private Long id;
      private Long createTime;
      private String stageId;
+     private String server;
      private String version;
      private String  uid;
      private Integer times;

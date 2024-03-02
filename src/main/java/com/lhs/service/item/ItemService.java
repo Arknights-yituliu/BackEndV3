@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 
@@ -183,7 +183,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
     }
 
     private List<CompositeTableDTO> getCompositeTable(){
-        String compositeTableText = FileUtil.read(ApplicationConfig.Item + "composite_table.v2.json");
+        String compositeTableText = FileUtil.read(ConfigUtil.Item + "composite_table.v2.json");
         //读取加工站材料合成表
         if(compositeTableText==null) throw new ServiceException(ResultCode.DATA_NONE);
 
@@ -318,7 +318,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             itemVOList.add(itemVo);
         }
         String jsonForMat = JsonMapper.toJSONString(itemVOList);
-        FileUtil.save(response, ApplicationConfig.Item, "ItemValue.json", jsonForMat);
+        FileUtil.save(response, ConfigUtil.Item, "ItemValue.json", jsonForMat);
     }
 
 

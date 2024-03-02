@@ -2,7 +2,7 @@ package com.lhs.interceptor;
 
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.ResultCode;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,7 +26,7 @@ public class SurveyInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(request), ApplicationConfig.Secret);
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(request), ConfigUtil.Secret);
         Object cache = redisTemplate.opsForValue().get("IP:"+ipAddress);
         if(cache==null) {
             redisTemplate.opsForValue().set("IP:"+ipAddress, 1, 5, TimeUnit.MINUTES);

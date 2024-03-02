@@ -40,7 +40,7 @@ public interface SurveyUserService {
 
     /**
      * 发送邮件验证码
-     * @param emailRequestDto
+     * @param emailRequestDto 邮件请求数据
      */
     void sendEmail(EmailRequestDTO emailRequestDto);
 

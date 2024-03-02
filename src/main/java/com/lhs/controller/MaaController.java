@@ -6,8 +6,8 @@ import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.item.StageDropDTO;
-import com.lhs.service.maa.MAAUploadService;
-import com.lhs.service.maa.SurveyRecruitService;
+import com.lhs.service.maa.StageDropUploadService;
+import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.maa.ScheduleService;
 import com.lhs.entity.vo.maa.MaaRecruitVo;
 
@@ -26,22 +26,22 @@ public class MaaController {
 
     private final ScheduleService scheduleService;
 
-    private final SurveyRecruitService surveyRecruitService;
+    private final RecruitTagUploadService recruitTagUploadService;
 
-    private final MAAUploadService maaUploadService;
+    private final StageDropUploadService stageDropUploadService;
 
     public MaaController(ScheduleService scheduleService,
-                         SurveyRecruitService surveyRecruitService,
-                         MAAUploadService maaUploadService) {
+                         RecruitTagUploadService recruitTagUploadService,
+                         StageDropUploadService stageDropUploadService) {
         this.scheduleService = scheduleService;
-        this.surveyRecruitService = surveyRecruitService;
-        this.maaUploadService = maaUploadService;
+        this.recruitTagUploadService = recruitTagUploadService;
+        this.stageDropUploadService = stageDropUploadService;
     }
 
     @Operation(summary ="MAA公招记录上传")
     @PostMapping("/upload/recruit")
     public Result<Object> MaaTagResult(@RequestBody MaaRecruitVo maaTagRequestVo) {
-        String string = surveyRecruitService.saveMaaRecruitDataNew(maaTagRequestVo);
+        String string = recruitTagUploadService.saveMaaRecruitDataNew(maaTagRequestVo);
         return Result.success(string);
     }
 
@@ -49,7 +49,7 @@ public class MaaController {
     @Operation(summary ="公招统计")
     @GetMapping("/recruit/statistics")
     public Result<Object> saveMaaRecruitStatistical() {
-        Map<String, Integer> result = surveyRecruitService.recruitStatistics();
+        Map<String, Integer> result = recruitTagUploadService.recruitStatistics();
         return Result.success(result);
     }
 
@@ -57,7 +57,7 @@ public class MaaController {
     @Operation(summary ="公招统计结果")
     @GetMapping("/recruit/result")
     public Result<Object> queryMaaRecruitStatistical() {
-        HashMap<String, Object> result = surveyRecruitService.statisticalResult();
+        HashMap<String, Object> result = recruitTagUploadService.statisticalResult();
 
         return Result.success(result);
     }
@@ -65,7 +65,7 @@ public class MaaController {
     @Operation(summary ="MAA关卡掉落上传")
     @PostMapping("/upload/stageDrop")
     public Result<Object> stageDropUpload(HttpServletRequest httpServletRequest, @RequestBody StageDropDTO stageDropDTO) {
-        String string = maaUploadService.saveStageDrop(httpServletRequest,stageDropDTO);
+        String string = stageDropUploadService.saveStageDrop(httpServletRequest,stageDropDTO);
         return Result.success(string);
     }
 

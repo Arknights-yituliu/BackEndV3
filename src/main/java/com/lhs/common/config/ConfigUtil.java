@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ApplicationConfig implements InitializingBean {
+public class ConfigUtil implements InitializingBean {
 
     @Value("${resourcesPath.penguin}")
     private String penguin;  //    企鹅物流数据文件路径

@@ -2,7 +2,7 @@ package com.lhs.service.item;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.*;
 import com.lhs.entity.po.item.Stage;
 
@@ -94,17 +94,17 @@ public class StageService {
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
 
 
-        String penguinGlobal = ApplicationConfig.PenguinGlobal;
+        String penguinGlobal = ConfigUtil.PenguinGlobal;
         String responseGlobal = HttpRequestUtil.get(penguinGlobal, new HashMap<>());
         if (responseGlobal == null) return;
-        FileUtil.save(ApplicationConfig.Penguin, "matrix global.json", responseGlobal);
+        FileUtil.save(ConfigUtil.Penguin, "matrix global.json", responseGlobal);
 //        ossService.upload(responseGlobal, "backup/penguin/" + yyyyMMdd + "/matrix global " + yyyyMMddHHmm + ".json");
 
 
-        String penguinAuto = ApplicationConfig.PenguinAuto;
+        String penguinAuto = ConfigUtil.PenguinAuto;
         String responseAuto = HttpRequestUtil.get(penguinAuto, new HashMap<>());
         if (responseAuto == null) return;
-        FileUtil.save(ApplicationConfig.Penguin, "matrix auto.json", responseAuto);
+        FileUtil.save(ConfigUtil.Penguin, "matrix auto.json", responseAuto);
 //        ossService.upload(responseAuto, "backup/penguin/" + yyyyMMdd + "/matrix auto " + yyyyMMddHHmm + ".json");
     }
 

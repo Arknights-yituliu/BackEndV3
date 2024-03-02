@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
@@ -93,7 +93,7 @@ public class AdminServiceImpl implements AdminService {
         //header是登录名+登录时间的map字符串
         String header = JsonMapper.toJSONString(hashMap);
         //签名：header+签名key
-        String sign = AES.encrypt(header + ApplicationConfig.SignKey, ApplicationConfig.Secret);
+        String sign = AES.encrypt(header + ConfigUtil.SignKey, ConfigUtil.Secret);
         //进行base64转换
         String headerBase64 = Base64.getEncoder().encodeToString(header.getBytes());
         //完整token：头信息.签名

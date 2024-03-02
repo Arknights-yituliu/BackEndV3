@@ -1,7 +1,7 @@
 package com.lhs.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.EmailRequestDTO;
@@ -34,14 +34,14 @@ public class SurveyUserController {
     @Operation(summary ="调查用户注册V2")
     @PostMapping("/register/v2")
     public Result<UserDataVO> registerV2(HttpServletRequest httpServletRequest, @RequestBody LoginDataDTO loginDataDto) {
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密
         return  Result.success(surveyUserService.registerV2(ipAddress, loginDataDto));
     }
 
     @Operation(summary ="调查用户登录")
     @PostMapping("/login/v2")
     public Result<UserDataVO> loginV2(HttpServletRequest httpServletRequest, @RequestBody LoginDataDTO loginDataDto) {
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密
         UserDataVO response = surveyUserService.loginV2(ipAddress, loginDataDto);
         return Result.success(response);
     }
@@ -65,7 +65,7 @@ public class SurveyUserController {
     @Operation(summary ="通过森空岛CRED直接登录")
     @PostMapping("/user/login/cred")
     public Result<UserDataVO> loginByCRED(HttpServletRequest httpServletRequest, @RequestBody SklandDTO sklandDto) {
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ApplicationConfig.Secret);  //加密
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);  //加密
         return surveyUserService.loginByCRED(ipAddress, sklandDto);
     }
 

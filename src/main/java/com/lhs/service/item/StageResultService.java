@@ -3,7 +3,7 @@ package com.lhs.service.item;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.item.*;
@@ -45,7 +45,7 @@ public class StageResultService {
 
 
     public void updateStageResultByTaskConfig() {
-        String read = FileUtil.read(ApplicationConfig.Item + "stage_task_config.json");
+        String read = FileUtil.read(ConfigUtil.Item + "stage_task_config.json");
         if (read == null) {
             Logger.error("更新关卡配置文件为空");
             return;

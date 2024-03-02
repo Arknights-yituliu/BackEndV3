@@ -3,7 +3,7 @@ package com.lhs.service.item;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.PenguinMatrixDTO;
@@ -53,7 +53,7 @@ public class StageCalService {
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
-        JsonNode itemSeriesTable = JsonMapper.parseJSONObject(FileUtil.read(ApplicationConfig.Item + "item_series_table.json"));
+        JsonNode itemSeriesTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
 
         Integer sampleSize = stageParamDTO.getSampleSize();
         String version  = stageParamDTO.getVersion();
@@ -255,7 +255,7 @@ public class StageCalService {
         }
 
         //获取材料的上下位材料
-        JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ApplicationConfig.Item + "item_type_table.json"));
+        JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_type_table.json"));
         JsonNode itemTypeNode = itemTypeTable.get(itemType);
 
         //该系材料的每种等级材料在关卡中的占比
@@ -289,7 +289,7 @@ public class StageCalService {
      */
     private List<PenguinMatrixDTO> getPenguinMatrix(Map<String, Item> itemMap, Map<String, Stage> stageMap,Integer sampleSize) {
         //获取企鹅物流关卡矩阵
-        String penguinStageDataText = FileUtil.read(ApplicationConfig.Penguin + "matrix auto.json");
+        String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + "matrix auto.json");
         if (penguinStageDataText == null) throw new ServiceException(ResultCode.DATA_NONE);
         String matrixText = JsonMapper.parseJSONObject(penguinStageDataText).get("matrix").toPrettyString();
         List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<List<PenguinMatrixDTO>>() {

@@ -3,7 +3,7 @@ package com.lhs.service.survey.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.EmailRequestDTO;
@@ -91,7 +91,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             //检查密码格式
             checkPassWord(passWord);
             //密码加密
-            passWord = AES.encrypt(passWord, ApplicationConfig.Secret);
+            passWord = AES.encrypt(passWord, ConfigUtil.Secret);
             // 更新用户状态为有密码
             status = UserStatus.addPermission(status, UserStatusCode.HAS_PASSWORD);
             //给用户信息写入密码
@@ -182,7 +182,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     }
 
     private String getToken(String header, Long userId, Long timeStamp) {
-        return AES.encrypt(header + "." + userId + "." + timeStamp, ApplicationConfig.Secret);
+        return AES.encrypt(header + "." + userId + "." + timeStamp, ConfigUtil.Secret);
     }
 
     @Override
@@ -190,7 +190,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         String userName = loginDataDto.getUserName().trim();
         String passWord = loginDataDto.getPassWord().trim();
 
-        passWord = AES.encrypt(passWord, ApplicationConfig.Secret); //密码加密
+        passWord = AES.encrypt(passWord, ConfigUtil.Secret); //密码加密
 
         QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
 
@@ -253,8 +253,8 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             sendEmailForLogin(emailRequestDto);
         }
         //修改邮箱
-        if ("changeEmail".equals(mailUsage)) {
-            sendEmailForChangeEmail(emailRequestDto);
+        if ("UpdateEmail".equals(mailUsage)) {
+            sendEmailForUpdateEmail(emailRequestDto);
         }
     }
 
@@ -314,15 +314,11 @@ public class SurveyUserServiceImpl implements SurveyUserService {
      *
      * @param emailRequestDto 邮件信息
      */
-    private void sendEmailForChangeEmail(EmailRequestDTO emailRequestDto) {
+    private void sendEmailForUpdateEmail(EmailRequestDTO emailRequestDto) {
         String emailAddress = emailRequestDto.getEmail().trim();
         String token = emailRequestDto.getToken();  //用户凭证
         //变更邮箱
-        SurveyUser surveyUserByToken = getSurveyUserByToken(token);
-        //判断是否绑定过邮箱
-        if (UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
-            emailAddress = surveyUserByToken.getEmail();
-        }
+        getSurveyUserByToken(token);
 
         Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流邮箱变更验证码";
@@ -402,7 +398,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         //检查新密码格式
         checkPassWord(newPassWord);
         //加密新密码
-        newPassWord = AES.encrypt(newPassWord, ApplicationConfig.Secret);
+        newPassWord = AES.encrypt(newPassWord, ConfigUtil.Secret);
         //用户状态
         Integer status = surveyUserByToken.getStatus();
 
@@ -410,7 +406,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             //旧密码
             String oldPassWord = updateUserDataDto.getOldPassWord().trim();
             //加密旧密码
-            oldPassWord = AES.encrypt(oldPassWord, ApplicationConfig.Secret);
+            oldPassWord = AES.encrypt(oldPassWord, ConfigUtil.Secret);
             //检查旧密码是否正确
             if (surveyUserByToken.getPassWord().equals(oldPassWord)) {
                 //更新旧密码为新密码
@@ -520,7 +516,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         CRED = CRED.trim();
         header.put("cred", CRED);
 
-        String SKLandPlayerBindingAPI = ApplicationConfig.SKLandPlayerBindingAPI;
+        String SKLandPlayerBindingAPI = ConfigUtil.SKLandPlayerBindingAPI;
         String SKLandPlayerBinding = HttpRequestUtil.get(SKLandPlayerBindingAPI, header);
         JsonNode SKLandPlayerBindingNode = JsonMapper.parseJSONObject(SKLandPlayerBinding);
         int code = SKLandPlayerBindingNode.get("code").intValue();
@@ -571,7 +567,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
      * @return 一图流id
      */
     private Long decryptToken(String token) {
-        String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ApplicationConfig.Secret);
+        String decrypt = AES.decrypt(token.replaceAll(" +", "+"), ConfigUtil.Secret);
 
         String idText = decrypt.split("\\.")[1];
         return Long.valueOf(idText);
@@ -656,7 +652,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
 
         if (surveyUserByUid != null) {
             response.setUserName(surveyUserByUid.getUserName());
-            String token = AES.encrypt(surveyUserByUid.getUserName() + "." + surveyUserByUid.getId() + "." + timeStamp, ApplicationConfig.Secret);
+            String token = AES.encrypt(surveyUserByUid.getUserName() + "." + surveyUserByUid.getId() + "." + timeStamp, ConfigUtil.Secret);
             response.setToken(token);
             response.setStatus(surveyUserByUid.getStatus());
 
@@ -692,7 +688,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         surveyUser.setCreateTime(date);
         surveyUser.setUpdateTime(new Date(timeStamp + 3600));
 
-        String token = AES.encrypt(userName + "." + id + "." + timeStamp, ApplicationConfig.Secret);
+        String token = AES.encrypt(userName + "." + id + "." + timeStamp, ConfigUtil.Secret);
 
         surveyUserMapper.save(surveyUser);
 

@@ -3,7 +3,7 @@ package com.lhs.service.item.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ApplicationConfig;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
@@ -304,6 +304,7 @@ public class StoreServiceImpl implements StoreService {
         //批量保存
         packContentMapperService.saveBatch(packContentList);
 
+        redisTemplate.delete("Item:PackData");
 
         return getPackById(packId.toString());
     }
@@ -433,7 +434,7 @@ public class StoreServiceImpl implements StoreService {
         }
 
 
-        String filePath = ApplicationConfig.Resources + "image/store/" + fileName;
+        String filePath = ConfigUtil.Resources + "image/store/" + fileName;
         File saveFile = new File(filePath);
 
         try {
@@ -443,7 +444,7 @@ public class StoreServiceImpl implements StoreService {
         }
 
         UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("file_name", fileName).eq("id", id);
+        updateWrapper.set("image_name", fileName).eq("id", id);
         packInfoMapper.update(null, updateWrapper);
 
         try {
