@@ -67,7 +67,9 @@ public class ItemTask {
 //        stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
 //    }
 
-    @Scheduled(cron = "0 0/10 * * * ? ")
+
+//    @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
     public void exportMAAStageDropData() {
        stageDropUploadService.exportData();
     }

@@ -8,8 +8,8 @@ import java.util.Date;
 
 @Data
 public class VisitsTimeVo {
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
-    private Date startTime;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
-    private Date endTime;
+
+    private Long startTime;
+
+    private Long endTime;
 }

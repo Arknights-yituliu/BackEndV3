@@ -13,8 +13,6 @@ public class ActivityStoreDataVO {
 
     private List<ActTagAreaDTO> actTagArea;
 
-    private String actImgUrl;
-
     private String imageLink;
 
     private Double actPPRBase;

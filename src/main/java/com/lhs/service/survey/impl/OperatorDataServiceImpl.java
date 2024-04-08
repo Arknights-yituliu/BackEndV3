@@ -80,7 +80,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 //        String nickName = data.get("nickName").asText();
         String akUid = data.get("uid").asText();
 
-        Logger.info("森空岛导入V2 {} uid："+akUid);
+        Logger.info("森空岛导入.ver2 {} uid："+akUid);
 
         surveyUser.setAkUid(akUid);
         JsonNode chars = data.get("chars");
@@ -201,7 +201,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
      * 通用的上传方法
      * @param surveyUser         用户信息
      * @param operatorDataList 干员练度调查表
-     * @return
+     * @return 成功信息
      */
     private Map<String, Object> saveOperatorData(SurveyUser surveyUser, List<OperatorData> operatorDataList) {
 
@@ -270,7 +270,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             //和老数据进行对比
             OperatorData lastOperatorDataData = lastOperatorDataMap.get(operatorData.getCharId());
             //为空则新增
-            checkData(operatorData);
+
             if (lastOperatorDataData == null) {
                 Long characterId = redisTemplate.opsForValue().increment("CharacterId");
                 operatorData.setId(characterId);
@@ -280,6 +280,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             } else {
                 //如果数据存在，进行更新
                 affectedRows++;  //更新数据条数
+                checkOperatorData(operatorData,lastOperatorDataData);
                 operatorData.setId(lastOperatorDataData.getId());
                 operatorData.setUid(userId);
                 operatorDataMapper.updateByUid(tableName, operatorData); //更新数据
@@ -309,12 +310,40 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return hashMap;
     }
 
-    private Boolean checkData(OperatorData operatorData){
 
-        if(operatorData.getMainSkill()==null)operatorData.setMainSkill(0);
-        if(operatorData.getModD()==null)operatorData.setModD(0);
+    /**
+     * 对新老干员数据进行检查
+     * @param newOperatorData 新干员数据
+     * @param oldOperatorData 旧干员数据
+     */
+    private void checkOperatorData(OperatorData newOperatorData,OperatorData oldOperatorData){
 
-        return true;
+
+        if(newOperatorData.getMainSkill()==null){
+            newOperatorData.setMainSkill(0);
+        }
+
+        if(newOperatorData.getModD()==null){
+            newOperatorData.setModD(0);
+        }
+
+
+        //检查干员旧数据的模组等级大于新导入的模组等级时，保留旧数据的等级
+        if(oldOperatorData.getModX()>newOperatorData.getModX()){
+            newOperatorData.setModX(oldOperatorData.getModX());
+            Logger.info(newOperatorData.getCharId()+"X模组被手动设置等级了");
+        }
+        if(oldOperatorData.getModY()>newOperatorData.getModY()){
+            newOperatorData.setModY(oldOperatorData.getModY());
+            Logger.info(newOperatorData.getCharId()+"Y模组被手动设置等级了");
+        }
+        if(oldOperatorData.getModD()>newOperatorData.getModD()){
+            newOperatorData.setModD(oldOperatorData.getModD());
+            Logger.info(newOperatorData.getCharId()+"D模组被手动设置等级了");
+        }
+
+
+
     }
 
     @Override

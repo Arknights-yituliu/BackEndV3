@@ -5,7 +5,7 @@ import com.lhs.common.util.Result;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.item.PackItem;
 import com.lhs.entity.vo.dev.LoginVo;
-import com.lhs.entity.vo.dev.PageVisitsVo;
+import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.entity.vo.item.PackInfoVO;
 import com.lhs.entity.vo.item.ActivityStoreDataVO;
@@ -124,17 +124,17 @@ public class AdminController {
 
     @Operation(summary = "更新材料礼包状态")
     @GetMapping("/admin/store/pack/update/state")
-    public Result<Object> updatePackState(@RequestParam String id,@RequestParam Integer state){
-        storeService.updatePackState(id,state);
-        return Result.success();
+    public Result<Object> updatePackState(){
+
+        return Result.success(storeService.updatePackState());
     }
 
 
 
-    @PostMapping("/admin/statistics")
-    public Result<List<PageVisitsVo>> queryVisits(@RequestBody VisitsTimeVo visitsTimeVo) {
-        List<PageVisitsVo> pageVisitsVos = visitsService.getVisits(visitsTimeVo);
-        return Result.success(pageVisitsVos);
+    @PostMapping("/admin1/view/statistics")
+    public Result<List<PageViewStatisticsVo>> queryVisits(@RequestBody VisitsTimeVo visitsTimeVo) {
+        List<PageViewStatisticsVo> pageViewStatisticsVos = visitsService.getVisits(visitsTimeVo);
+        return Result.success(pageViewStatisticsVos);
     }
 
 

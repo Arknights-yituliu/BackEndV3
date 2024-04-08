@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
 		else {
 			Logger.error(e.getMessage());
 //			e.printStackTrace();
-            result = Result.failure(500, "服务器意外错误,请联系开发人员");
+            result = Result.failure(500, "服务器内部错误");
 		}
 		return result;
     }

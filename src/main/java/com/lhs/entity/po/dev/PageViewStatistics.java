@@ -1,6 +1,7 @@
 package com.lhs.entity.po.dev;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -13,14 +14,16 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("page_visits")
-public class PageVisits {
+@TableName("page_view_statistics")
+public class PageViewStatistics {
     @TableId
     private String redisKey;
     private String pagePath;
-    private String visitsTime;
-    private Integer visitsCount;
+    private String viewTime;
+    private Integer pageView;
     private Date createTime;
+
+
 
 }
 

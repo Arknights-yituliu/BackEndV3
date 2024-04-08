@@ -15,5 +15,4 @@ public class StageDropDetail {
     private String itemId;
     private String dropType;
     private Integer quantity;
-    private Long createTime;
 }

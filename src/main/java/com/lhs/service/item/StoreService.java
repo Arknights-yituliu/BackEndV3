@@ -60,10 +60,9 @@ public interface StoreService {
 
     /**
      * 获得礼包性价比数据（带缓存
-     * @param saleStatus 礼包售卖状态
      * @return 礼包性价比数据
      */
-    List<PackInfoVO> listPackInfoBySaleStatus(Integer saleStatus);
+    List<PackInfoVO> listPackInfoBySaleStatus();
 
     /**
      * 获得全部礼包性价比数据（不带缓存
@@ -79,14 +78,11 @@ public interface StoreService {
 
     void deletePackItemById(String id);
 
-    void updatePackState(String id, Integer state);
-
+    String updatePackState();
 
     void uploadImage(MultipartFile file,Long id);
 
     String clearPackCache();
-
-
 
     void updateHoneyCake(List<HoneyCake> honeyCakeList);
 

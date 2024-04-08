@@ -2,6 +2,7 @@ package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.entity.po.survey.AkPlayerBindInfo;
@@ -195,6 +196,7 @@ public class OperatorStatisticsService {
      *
      * @return 成功消息
      */
+    @RedisCacheable(key = "Survey:OperatorStatistics")
     public HashMap<Object, Object> getCharStatisticsResult() {
         List<OperatorStatistics> statisticsOperatorList = operatorSurveyStatisticsMapper.selectList(null);
 
@@ -203,6 +205,7 @@ public class OperatorStatisticsService {
         Object survey = redisTemplate.opsForHash().get("Survey", "UserCount.Operator");
         String updateTime = String.valueOf(redisTemplate.opsForHash().get("Survey", "UpdateTime.Operator"));
 
+
         double userCount = Double.parseDouble(survey + ".0");
         List<OperatorStatisticsResultVO> operatorStatisticsResultVOList = new ArrayList<>();
         statisticsOperatorList.forEach(item -> {
@@ -210,17 +213,17 @@ public class OperatorStatisticsService {
                     .charId(item.getCharId())
                     .rarity(item.getRarity())
                     .own((double) item.getOwn() / userCount)
-                    .elite(splitCalculation(item.getElite(), item.getOwn()))
-                    .skill1(splitCalculation(item.getSkill1(), item.getOwn()))
-                    .skill2(splitCalculation(item.getSkill2(), item.getOwn()))
-                    .skill3(splitCalculation(item.getSkill3(), item.getOwn()))
-                    .modX(splitCalculation(item.getModX(), item.getOwn()))
-                    .modY(splitCalculation(item.getModY(),item.getOwn()))
-                    .modD(splitCalculation(item.getModD(),item.getOwn()))
+                    .elite(splitCalculation(item.getElite(), item.getOwn(),"elite"))
+                    .skill1(splitCalculation(item.getSkill1(), item.getOwn(),"skill1"))
+                    .skill2(splitCalculation(item.getSkill2(), item.getOwn(),"skill2"))
+                    .skill3(splitCalculation(item.getSkill3(), item.getOwn(),"skill3"))
+                    .modX(splitCalculation(item.getModX(), item.getOwn(),"modX"))
+                    .modY(splitCalculation(item.getModY(),item.getOwn(),"modY"))
+                    .modD(splitCalculation(item.getModD(),item.getOwn(),"modD"))
                     .build();
-
             operatorStatisticsResultVOList.add(build);
         });
+
 
 
         hashMap.put("userCount", userCount);
@@ -237,14 +240,18 @@ public class OperatorStatisticsService {
      * @param sampleSize 样本
      * @return 计算结果
      */
-    public HashMap<String, Double> splitCalculation(String result, Integer sampleSize) {
+    public HashMap<String, Double> splitCalculation(String result, Integer sampleSize,String property) {
         HashMap<String, Double> hashMap = new HashMap<>();
-        JsonNode jsonNode = JsonMapper.parseJSONObject(result);
-        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-
         hashMap.put("rank1",0.0);
         hashMap.put("rank2",0.0);
         hashMap.put("rank3",0.0);
+        if(result == null){
+            return hashMap;
+        }
+
+        JsonNode jsonNode = JsonMapper.parseJSONObject(result);
+        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+
         double count = 0.0;
         while (fields.hasNext()) {
             String key = fields.next().getKey();
@@ -253,6 +260,7 @@ public class OperatorStatisticsService {
             hashMap.put("rank" + key, (double) sum / sampleSize);
         }
         hashMap.put("count",count);
+
 
         return hashMap;
     }

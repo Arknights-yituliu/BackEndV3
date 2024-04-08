@@ -180,8 +180,7 @@ public class StoreServiceImpl implements StoreService {
 
         ossService.uploadFileInputStream(inputStream, "image/store/" + fileName);
 
-
-        return "https://yituliu.oss-cn-shanghai.aliyuncs.com/image/store/" + fileName;
+        return "https://oss.yituliu.cn/image/store/" + fileName;
     }
 
     @Override
@@ -204,9 +203,10 @@ public class StoreServiceImpl implements StoreService {
     public List<ActivityStoreDataVO> getActivityStoreHistoryData() {
         List<ActivityStoreData> activityStoreData = storeActMapper.selectList(null);
         List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
-        activityStoreData.forEach(l -> {
-            String result = l.getResult();
+        activityStoreData.forEach(activity -> {
+            String result = activity.getResult();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
+            activityStoreDataVo.setImageLink(activity.getImageLink());
             activityStoreDataVOList.add(activityStoreDataVo);
         });
         return activityStoreDataVOList;
@@ -319,13 +319,10 @@ public class StoreServiceImpl implements StoreService {
 
     @RedisCacheable(key = "Item:PackData")
     @Override
-    public List<PackInfoVO> listPackInfoBySaleStatus(Integer saleStatus) {
+    public List<PackInfoVO> listPackInfoBySaleStatus() {
         QueryWrapper<PackInfo> packInfoQueryWrapper = new QueryWrapper<>();
         packInfoQueryWrapper.ge("end", new Date());
 
-        if (saleStatus != null) {
-            packInfoQueryWrapper.eq("sale_status", saleStatus);
-        }
         List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
         List<Long> packIdList = packInfoList.stream().map(PackInfo::getId).collect(Collectors.toList());
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
@@ -348,24 +345,39 @@ public class StoreServiceImpl implements StoreService {
     }
 
 
+
+
     @Override
     public List<PackInfoVO> listAllPackInfoData() {
         List<PackInfo> packInfoList = packInfoMapper.selectList(null);
         QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
         packContentQueryWrapper.eq("archived", false);
+
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
+
         Map<Long, List<PackContent>> collect = packContentList.stream()
                 .collect(Collectors.groupingBy(PackContent::getPackId));
-        Map<String, Double> itemValueMap = packItemMapper.selectList(null).stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
+
+        Map<String, Double> itemValueMap = packItemMapper.selectList(null)
+                .stream()
+                .collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
+
         List<PackInfoVO> VOList = new ArrayList<>();
+
+        long currentTimeStamp = System.currentTimeMillis();
+
         for (PackInfo packInfo : packInfoList) {
             PackInfoVO packInfoVO = getPackInfoVO(packInfo, collect.get(packInfo.getId()));
-            VOList.add(packInfoVO);
+            if(packInfo.getEnd().getTime()<currentTimeStamp){
+                packInfoVO.setSaleStatus(0);
+            }
+
             packPromotionRatioCalc(packInfoVO, itemValueMap);
+            VOList.add(packInfoVO);
         }
+
         return VOList;
     }
-
 
     @Override
     public PackInfoVO getPackById(String idStr) {
@@ -376,6 +388,8 @@ public class StoreServiceImpl implements StoreService {
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
         return getPackInfoVO(packInfo, packContentList);
     }
+
+
 
     @Override
     public List<PackItem> listPackItem() {
@@ -405,11 +419,15 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public void updatePackState(String id, Integer state) {
+    public String updatePackState() {
         UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("sale_status", state);
-        updateWrapper.eq("id", id);
+        updateWrapper.set("sale_status", 0);
+        updateWrapper.le("end", new Date());
         int update = packInfoMapper.update(null, updateWrapper);
+
+        redisTemplate.delete("Item:PackData");
+
+        return "刷新了"+update+"条";
     }
 
     @Override

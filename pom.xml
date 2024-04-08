@@ -128,11 +128,17 @@
             <version>33.0.0-jre</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.15.4</version>
+        </dependency>
+
 
     </dependencies>
 
     <build>
-        <finalName>BackEnd.V3.6.5</finalName>
+        <finalName>BackEnd.V3.6.6</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
