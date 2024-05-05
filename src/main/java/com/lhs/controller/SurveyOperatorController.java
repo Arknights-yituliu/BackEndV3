@@ -78,11 +78,11 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
-    @Operation(summary ="找回干员练度调查表")
-    @PostMapping("/operator/retrieval")
-    public Result<Object> findCharacterForm(@RequestBody Map<String,String> params) {
+    @Operation(summary ="获取干员数据")
+    @PostMapping("/operator/table")
+    public Result<Object> getOperatorTable(@RequestBody Map<String,String> params) {
         String token = params.get("token");
-        List<OperatorDataVo> surveyDataCharList = operatorDataService.getOperatorForm(token);
+        List<OperatorDataVo> surveyDataCharList = operatorDataService.getOperatorTable(token);
         surveyDataCharList.sort(Comparator.comparing(OperatorDataVo::getRarity).reversed());
         return Result.success(surveyDataCharList);
     }
@@ -100,12 +100,7 @@ public class SurveyOperatorController {
         operatorDataService.exportSurveyOperatorForm(response,token);
     }
 
-    @Operation(summary ="用户数据去重")
-    @GetMapping("/operator/DuplicateDistinct")
-    public Result<List<Map<String, Object>>> DuplicateDistinct(){
-        List<Map<String, Object>> list = operatorDataService.operatorDataDuplicateDistinct();
-        return Result.success(list);
-    }
+
 
     @Operation(summary ="上传训练干员计划")
     @PostMapping("/operator/plan/save")
