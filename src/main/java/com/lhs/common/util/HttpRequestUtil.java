@@ -1,5 +1,6 @@
 package com.lhs.common.util;
 
+import com.lhs.common.exception.ServiceException;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -22,7 +23,9 @@ public class HttpRequestUtil {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
 
-        if(header.size()>0) header.forEach(httpGet::setHeader);
+        if(!header.isEmpty()) {
+            header.forEach(httpGet::setHeader);
+        }
 
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(35000).setConnectionRequestTimeout(35000).setSocketTimeout(60000).build();
         httpGet.setConfig(requestConfig);
@@ -73,7 +76,9 @@ public class HttpRequestUtil {
         httpPost.setConfig(requestConfig);
         httpPost.setHeader("Content-type", "application/json");
 
-        if(header.size()>0) header.forEach(httpPost::setHeader);
+        if(!header.isEmpty()) {
+            header.forEach(httpPost::setHeader);
+        }
 
         CloseableHttpResponse httpResponse = null;
         try {
@@ -81,7 +86,9 @@ public class HttpRequestUtil {
 
             httpResponse = httpClient.execute(httpPost);
             if(httpResponse.getStatusLine().getStatusCode() != 200){
-                return null;
+                HttpEntity entity = httpResponse.getEntity();
+                String errorMessage = EntityUtils.toString(entity, "UTF-8");
+                Logger.info("Http Request Message: " + errorMessage);
             }
             HttpEntity entity = httpResponse.getEntity();
             return EntityUtils.toString(entity);

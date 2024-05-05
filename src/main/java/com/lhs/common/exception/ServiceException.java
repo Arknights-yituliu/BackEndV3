@@ -9,12 +9,15 @@ public class ServiceException extends RuntimeException{
 
 
 	private ResultCode resultCode;
+
 	
 	public ServiceException(ResultCode resultCode) {
 		this(resultCode.message());
 		this.resultCode = resultCode;
 	}
-	
+
+
+
 	private ServiceException(String message) {
 		super(message);
 	}

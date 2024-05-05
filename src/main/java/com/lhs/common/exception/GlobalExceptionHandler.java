@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
 		}
 		else {
 			Logger.error(e.getMessage());
-//			e.printStackTrace();
+			e.printStackTrace();
             result = Result.failure(500, "服务器内部错误");
 		}
 		return result;

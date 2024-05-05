@@ -27,6 +27,7 @@ public enum ResultCode {
 	PASS_WORD_MUST_BE_IN_CHINESE_OR_ENGLISH(100015, "密码只能由英文、数字组成"),
 	SKLAND_CRED_ERROR(10016,"森空岛CRED错误"),
 	EXCESSIVE_IP_ACCESS_TIMES(10017, "同IP注册次数过多,5分钟5次"),
+	OPERATOR_QUANTITY_NOT_EQUAL_TO_TWELVE(10018,"选择干员数量不等于十二"),
 
 	
 	/* 用户错误：20001-29999*/
@@ -55,7 +56,7 @@ public enum ResultCode {
 	OPERATION_INTERVAL_TOO_SHORT(30007,"操作时间间隔过短"),
 
 
-		/* 系统错误：40001-49999 */
+	/* 系统错误：40001-49999 */
 	SYSTEM_INNER_ERROR(40001, "系统内部错误，请稍后重试"),
 	SYSTEM_TIME_ERROR(40002, "系统时间错误，请稍后重试"),
 	
@@ -75,9 +76,11 @@ public enum ResultCode {
 	INTERFACE_TOO_MANY_EMAIL_SENT(60006,"发送邮件次数过多，请稍后重试"),
 	INTERFACE_DAILY_SENDING_LIMIT(60007,"邮件推送服务次数达到上线，无法发送"),
 	REDIS_CLEAR_CACHE_ERROR(60008,"缓存清除失败"),
-	
+	AUTHORIZATION_FAILURE(60009,"鹰角网络通行证授权失败" ),
+	CERTIFICATE_GENERATION_FAILURE(60009,"森空岛凭证生成失败" ),
 	/* 权限错误：70001-79999 */
 	PERMISSION_NO_ACCESS(70001, "无访问权限");
+
 	
 	
 	private Integer code;
