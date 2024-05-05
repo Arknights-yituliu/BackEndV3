@@ -109,7 +109,7 @@ public class StageService {
     }
 
 
-    public void pullPenguinStagesApi(){
+    public void getPenguinStagesDropData(){
         String response = HttpRequestUtil.get("https://penguin-stats.io/PenguinStats/api/v2/stages", new HashMap<>());
         JsonNode stageDtoList = JsonMapper.parseJSONObject(response);
 

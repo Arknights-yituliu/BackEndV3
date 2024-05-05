@@ -48,7 +48,7 @@ public class ItemTask {
      */
     @Scheduled(cron = "0 0 0/3 * * ? ")
     public void pullPenguinStagesApi() {
-        stageService.pullPenguinStagesApi();
+        stageService.getPenguinStagesDropData();
     }
 
     /**

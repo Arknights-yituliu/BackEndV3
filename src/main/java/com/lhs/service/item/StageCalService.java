@@ -56,9 +56,9 @@ public class StageCalService {
         JsonNode itemSeriesTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
 
         Integer sampleSize = stageParamDTO.getSampleSize();
-        String version  = stageParamDTO.getVersion();
+        String version = stageParamDTO.getVersion();
 
-        List<PenguinMatrixDTO> penguinMatrix = getPenguinMatrix(itemMap,stageMap,sampleSize);
+        List<PenguinMatrixDTO> penguinMatrix = getPenguinMatrix(itemMap, stageMap, sampleSize);
 
         Map<String, List<PenguinMatrixDTO>> matrixByStageId = penguinMatrix.stream()
                 .collect(Collectors.groupingBy(PenguinMatrixDTO::getStageId));
@@ -74,30 +74,37 @@ public class StageCalService {
         long stageResultDeatilId = System.currentTimeMillis();
 
 
-        for(String stageId:matrixByStageId.keySet()){
+        for (String stageId : matrixByStageId.keySet()) {
             Stage stage = stageMap.get(stageId);
 
             List<PenguinMatrixDTO> stageDropList = matrixByStageId.get(stageId);
             //关卡消耗体力
-            int apCost = stage.getApCost();
+            double apCost = stage.getApCost();
             String stageType = stage.getStageType();
             //关卡效率
-            double stageEfficiency  = 0.0;
+            double stageEfficiency = 0.0;
             //关卡掉落物品价值总和
             double dropApValueSum = 0.0;
+
 
             PenguinMatrixDTO stageDropLMD = new PenguinMatrixDTO();
             stageDropLMD.setStageId(stageId);
             stageDropLMD.setItemId("4001");
-            stageDropLMD.setQuantity(12 * apCost);
+            stageDropLMD.setQuantity((int) (12 * apCost));
             stageDropLMD.setTimes(1);
             stageDropList.add(stageDropLMD);
 
-            if(StageType.ACT_REP.equals(stageType)||StageType.ACT.equals(stageType)){
+            if (stageId.startsWith("main_14")) {
+                stageType = StageType.ACT;
+                Logger.info("14章关卡——" + stageId + "转为SS模板");
+
+            }
+
+            if (StageType.ACT_REP.equals(stageType) || StageType.ACT.equals(stageType)) {
                 PenguinMatrixDTO stageDropStore = new PenguinMatrixDTO();
                 stageDropStore.setStageId(stageId);
                 stageDropStore.setItemId("4001");
-                stageDropStore.setQuantity(20 * apCost);
+                stageDropStore.setQuantity((int) (20 * apCost));
                 stageDropStore.setTimes(1);
                 stageDropList.add(stageDropStore);
             }
@@ -105,20 +112,21 @@ public class StageCalService {
 
             List<StageResultDetail> temporaryList = new ArrayList<>();
 
-            for(PenguinMatrixDTO stageDrop:stageDropList){
+            for (PenguinMatrixDTO stageDrop : stageDropList) {
                 Item item = itemMap.get(stageDrop.getItemId());
 
                 //关卡掉落详情
                 StageResultDetail detail = new StageResultDetail();
                 //材料掉率
                 double knockRating = ((double) stageDrop.getQuantity() / (double) stageDrop.getTimes());
+
                 //关卡置信度
                 double sampleConfidence = sampleConfidence(stageDrop.getTimes(), apCost,
                         item.getItemValueAp(), knockRating, quantileTables);
                 //该条掉落记录的结果
                 double result = item.getItemValueAp() * knockRating;
                 //期望理智
-                double apExpect = stage.getApCost() / knockRating;
+                double apExpect = apCost / knockRating;
                 detail.setId(idGenerator.nextId());
                 detail.setStageId(stageId);
                 detail.setItemId(item.getItemId());
@@ -131,7 +139,7 @@ public class StageCalService {
                 detail.setEndTime(stage.getEndTime());
                 detail.setVersion(version);
                 temporaryList.add(detail);
-                dropApValueSum+=result;
+                dropApValueSum += result;
 
             }
 
@@ -145,11 +153,11 @@ public class StageCalService {
             Integer itemRarity = null;
             for (int i = 0; i < temporaryList.size(); i++) {
                 StageResultDetail detail = temporaryList.get(i);
-                detail.setRatio(detail.getResult()/dropApValueSum);
+                detail.setRatio(detail.getResult() / dropApValueSum);
                 detail.setRatioRank(i);
                 String itemId = detail.getItemId();
                 String itemName = detail.getItemName();
-                if(i==0){
+                if (i == 0) {
                     //找到这个材料所属的材料系列
                     if (itemSeriesTable.get(itemId) != null) {
                         itemSeries = itemSeriesTable.get(itemId).get("series").asText();
@@ -158,52 +166,61 @@ public class StageCalService {
                         mainItemName = itemName;
                     }
                 }
-                if(i==1){
-                    if (detail.getResult()/dropApValueSum > 0.1) {
+                if (i == 1) {
+                    if (detail.getResult() / dropApValueSum > 0.1) {
                         secondaryItemName = itemName;
                         secondaryItemId = itemId;
                     }
                 }
+
+
                 detailInsertList.add(detail);
 //                System.out.println(detail);
             }
 
-            stageEfficiency = dropApValueSum/apCost;
+            stageEfficiency = dropApValueSum / apCost;
 
-            if(StageType.MAIN.equals(stageType)||StageType.ACT_PERM.equals(stageType)){
-                if(!"empty".equals(itemSeriesId)) {
+            if (StageType.MAIN.equals(stageType) || StageType.ACT_PERM.equals(stageType)) {
+                if (!"empty".equals(itemSeriesId)) {
                     Double maxStageEfficiency = itemIterationValueMap.get(itemSeriesId);
-                    if(maxStageEfficiency==null){
-                        itemIterationValueMap.put(itemSeriesId,stageEfficiency);
-                    }else {
-                        if(maxStageEfficiency<stageEfficiency){
-                            itemIterationValueMap.put(itemSeriesId,stageEfficiency);
+                    if (maxStageEfficiency == null) {
+                        itemIterationValueMap.put(itemSeriesId, stageEfficiency);
+                    } else {
+                        if (maxStageEfficiency < stageEfficiency) {
+                            itemIterationValueMap.put(itemSeriesId, stageEfficiency);
                         }
                     }
                 }
             }
 
-            StageResult common = new StageResult();
-            common.setId(idGenerator.nextId());
-            common.setStageId(stageId);
-            common.setStageCode(stage.getStageCode());
-            common.setSecondaryItemId(secondaryItemId);
-            common.setEndTime(stage.getEndTime());
-            common.setVersion(version);
-            common.setItemSeries(itemSeries);
-            common.setItemSeriesId(itemSeriesId);
-            common.setStageEfficiency(stageEfficiency);
-            common.setEndTime(stage.getEndTime());
+            if (stageId.startsWith("main")) {
+                dropApValueSum += apCost / (1000.0 / 6) * 11.28;
+                apCost -= apCost / 200 * 10;
+                stageEfficiency = dropApValueSum / apCost;
+            }
 
-            common.setSpm(stage.getSpm());
-            calMainItemRatio(common,apCost,temporaryList);
+            StageResult stageResult = new StageResult();
+            stageResult.setId(idGenerator.nextId());
+            stageResult.setStageId(stageId);
+            stageResult.setStageCode(stage.getStageCode());
+            stageResult.setSecondaryItemId(secondaryItemId);
+            stageResult.setEndTime(stage.getEndTime());
+            stageResult.setVersion(version);
+            stageResult.setItemSeries(itemSeries);
+            stageResult.setItemSeriesId(itemSeriesId);
+            stageResult.setStageEfficiency(stageEfficiency);
+            stageResult.setEndTime(stage.getEndTime());
+
+            stageResult.setSpm(stage.getSpm());
+            calMainItemRatio(stageResult, apCost, temporaryList);
+
 //            Log.info(stage.getStageCode()+" {} 主产物:"+mainItemName+" {} 副产物："+secondaryItemName+" {} 关卡效率："+stageEfficiency);
-            commonInsertList.add(common);
+            commonInsertList.add(stageResult);
         }
 
 
         List<ItemIterationValue> iterationValueList = new ArrayList<>();
-        itemIterationValueMap.forEach((itemTypeId,iterationValue)->{
+        itemIterationValueMap.forEach((itemTypeId, iterationValue) -> {
             ItemIterationValue itemIterationValue = new ItemIterationValue();
             String itemName = itemMap.get(itemTypeId).getItemName();
             itemIterationValue.setItemName(itemName);
@@ -211,7 +228,7 @@ public class StageCalService {
             itemIterationValue.setVersion(version);
             itemIterationValue.setItemId(itemTypeId);
             iterationValueList.add(itemIterationValue);
-            Logger.info(String.format("%-8s", itemName)+ "的迭代系数是：" + 1 / iterationValue);
+            Logger.info(String.format("%-8s", itemName) + "的迭代系数是：" + 1 / iterationValue);
         });
 
         stageResultDetailMapper.delete(new QueryWrapper<StageResultDetail>().eq("version", version));
@@ -220,34 +237,36 @@ public class StageCalService {
         itemService.saveItemIterationValue(iterationValueList);
 
         List<StageResultDetail> insertList = new ArrayList<>();
-        for (StageResultDetail stageResultDetail :detailInsertList){
+        for (StageResultDetail stageResultDetail : detailInsertList) {
             insertList.add(stageResultDetail);
-            if(insertList.size()==2000){
+
+            if (insertList.size() == 2000) {
+
                 stageResultDetailMapper.insertBatch(insertList);
                 insertList.clear();
             }
         }
 
-        if(!insertList.isEmpty()) {
+        if (!insertList.isEmpty()) {
             stageResultDetailMapper.insertBatch(insertList);
         }
 
-        redisTemplate.opsForValue().set("Item:updateTime",new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
+        redisTemplate.opsForValue().set("Item:updateTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
 
-        Logger.info("本次批量插入关卡掉落详细数据条数："+detailInsertList.size());
+        Logger.info("本次批量插入关卡掉落详细数据条数：" + detailInsertList.size());
         stageResultMapper.insertBatch(commonInsertList);
-        Logger.info("本次批量插入关卡通用掉落数据条数："+ commonInsertList.size());
+        Logger.info("本次批量插入关卡通用掉落数据条数：" + commonInsertList.size());
 
     }
 
     /**
-     * @param common 关卡部分通用计算结果
-     * @param detailList  关卡每种掉落物品的详细数据
+     * @param common     关卡部分通用计算结果
+     * @param detailList 关卡每种掉落物品的详细数据
      */
-    private void calMainItemRatio(StageResult common,Integer apCost, List<StageResultDetail> detailList) {
+    private void calMainItemRatio(StageResult common, double apCost, List<StageResultDetail> detailList) {
 
         String itemType = common.getItemSeries();  //关卡掉落材料所属类型   比如1-7，4-6这种同属”固源岩组“类
-        if("empty".equals(itemType)){
+        if ("empty".equals(itemType)) {
             common.setLeT4Efficiency(0.0);  //等级1-4的材料占比
             common.setLeT3Efficiency(0.0); //等级1-3的材料占比
             common.setLeT2Efficiency(0.0); //等级1-2的材料占比
@@ -270,10 +289,10 @@ public class StageCalService {
             if (itemTypeNode.get(stageResultDetail.getItemName()) != null) {
                 JsonNode item = itemTypeNode.get(stageResultDetail.getItemName());
                 int rarity = item.get("rarity").asInt();
-                if (rarity == 1) rarity1Ratio = stageResultDetail.getResult()/apCost;
-                if (rarity == 2) rarity2Ratio = stageResultDetail.getResult()/apCost;
-                if (rarity == 3) rarity3Ratio = stageResultDetail.getResult()/apCost;
-                if (rarity == 4) rarity4Ratio = stageResultDetail.getResult()/apCost;
+                if (rarity == 1) rarity1Ratio = stageResultDetail.getResult() / apCost;
+                if (rarity == 2) rarity2Ratio = stageResultDetail.getResult() / apCost;
+                if (rarity == 3) rarity3Ratio = stageResultDetail.getResult() / apCost;
+                if (rarity == 4) rarity4Ratio = stageResultDetail.getResult() / apCost;
             }
         }
 
@@ -287,7 +306,7 @@ public class StageCalService {
      *
      * @return 合并完的企鹅数据
      */
-    private List<PenguinMatrixDTO> getPenguinMatrix(Map<String, Item> itemMap, Map<String, Stage> stageMap,Integer sampleSize) {
+    private List<PenguinMatrixDTO> getPenguinMatrix(Map<String, Item> itemMap, Map<String, Stage> stageMap, Integer sampleSize) {
         //获取企鹅物流关卡矩阵
         String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + "matrix auto.json");
         if (penguinStageDataText == null) throw new ServiceException(ResultCode.DATA_NONE);
@@ -299,7 +318,7 @@ public class StageCalService {
         Map<String, PenguinMatrixDTO> toughStageMap = penguinMatrixDTOList.stream()
                 .filter(e -> e.getStageId().contains("tough"))
                 .collect(Collectors.toMap(e -> e.getStageId()
-                                .replace("tough", "main") + "." + e.getItemId(), Function.identity()));
+                        .replace("tough", "main") + "." + e.getItemId(), Function.identity()));
 
         //将磨难关卡和标准关卡合并
         List<PenguinMatrixDTO> mergeList = new ArrayList<>();
@@ -335,7 +354,6 @@ public class StageCalService {
                 .filter(quantileTable -> quantileTable.getValue() <= quantileValue).toList();
         return (collect.get(collect.size() - 1).getSection() * 2 - 1) * 100;
     }
-
 
 
 }
