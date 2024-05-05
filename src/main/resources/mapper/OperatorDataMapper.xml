@@ -7,11 +7,11 @@
     <!--  批量插入干员练度信息表-->
     <insert id="insertBatch">
         INSERT INTO ${tableName}
-        (`id`, `uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `main_skill`, `skill1`, `skill2`, `skill3`, `mod_x`,
+        (`id`, `uid`,`ak_uid`, `char_id`, `elite`, `level`, `potential`, `rarity`, `main_skill`, `skill1`, `skill2`, `skill3`, `mod_x`,
         `mod_y`,`mod_d`,`own`)
         VALUES
         <foreach collection="list" item="item" separator="," >
-            (#{item.id}, #{item.uid}, #{item.charId}, #{item.elite},
+            (#{item.id}, #{item.uid}, #{item.akUid}, #{item.charId}, #{item.elite},
             #{item.level},#{item.potential}, #{item.rarity}, #{item.mainSkill}, #{item.skill1},
             #{item.skill2},#{item.skill3},#{item.modX},#{item.modY},#{item.modD},
             #{item.own})
@@ -33,7 +33,8 @@
             `skill3` = #{item.skill3},
             `mod_x` = #{item.modX},
             `mod_y` = #{item.modY},
-            `mod_d` = #{item.modD}
+            `mod_d` = #{item.modD},
+            `ak_uid` = #{item.akUid}
             WHERE
                 id = #{item.id}
     </update>

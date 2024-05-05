@@ -7,8 +7,7 @@ import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.SklandDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.po.survey.SurveyUser;
-import com.lhs.entity.vo.survey.UserDataVO;
-import org.springframework.stereotype.Service;
+import com.lhs.entity.vo.survey.UserInfoVO;
 
 import java.util.*;
 
@@ -21,7 +20,7 @@ public interface SurveyUserService {
      * @param loginDataDTO 注册信息
      * @return
      */
-    UserDataVO registerV2(String ipAddress, LoginDataDTO loginDataDTO);
+    UserInfoVO registerV2(String ipAddress, LoginDataDTO loginDataDTO);
 
     /**
      * 调查站登录
@@ -29,7 +28,14 @@ public interface SurveyUserService {
      * @param loginDataDto 用户修改的信息
      * @return 用户状态信息
      */
-    UserDataVO loginV2(String ipAddress, LoginDataDTO loginDataDto);
+    UserInfoVO loginV2(String ipAddress, LoginDataDTO loginDataDto);
+
+    /**
+     * 通过token获取用户信息
+     * @param token 用户登录后获得的凭证
+     * @return 用户信息
+     */
+    UserInfoVO getUserInfo(String token);
 
     /**
      * 通过密码登录
@@ -45,7 +51,7 @@ public interface SurveyUserService {
     void sendEmail(EmailRequestDTO emailRequestDto);
 
 
-    UserDataVO updateUserData(UpdateUserDataDTO updateUserDataDto);
+    UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto);
 
     /**
      * 通过用户凭证查找用户信息
@@ -82,7 +88,7 @@ public interface SurveyUserService {
      * @param sklandDto 用户修改的信息
      * @return 用户状态信息
      */
-    Result<UserDataVO> loginByCRED(String ipAddress, SklandDTO sklandDto);
+    Result<UserInfoVO> loginByCRED(String ipAddress, SklandDTO sklandDto);
 
     /**
      * 通过森空岛CRED找回账号
@@ -90,9 +96,8 @@ public interface SurveyUserService {
      * @param CRED 森空岛CRED
      * @return 用户状态信息
      */
-    Result<UserDataVO> retrievalAccountByCRED(String CRED);
+    Result<UserInfoVO> retrievalAccountByCRED(String CRED);
 
-    void migrateLog();
 
     List<SurveyUser> getAllUserData();
 }

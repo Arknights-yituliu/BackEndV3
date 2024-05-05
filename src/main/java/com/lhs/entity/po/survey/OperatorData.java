@@ -17,6 +17,8 @@ public class OperatorData {
 
     private Long uid;
 
+    private String akUid;
+
     private String charId;
 
     private Boolean own;

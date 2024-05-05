@@ -38,7 +38,7 @@ public interface OperatorDataService  {
     /**
      * 重置个人上传的干员数据
      * @param token 一图流凭证
-     * @return
+     * @return 成功消息
      */
     Result<Object> operatorDataReset(String token);
 
@@ -47,7 +47,7 @@ public interface OperatorDataService  {
      * @param token token
      * @return 成功消息
      */
-    List<OperatorDataVo> getOperatorForm(String token);
+    List<OperatorDataVo> getOperatorTable(String token);
 
     /**
      * 导出干员的数据
@@ -57,7 +57,7 @@ public interface OperatorDataService  {
     void exportSurveyOperatorForm(HttpServletResponse response, String token);
 
 
-    List<Map<String,Object>> operatorDataDuplicateDistinct();
+
 
 
 

@@ -11,19 +11,25 @@ import lombok.Data;
 @Data
 @TableName(value = "ak_player_bind_info_v2")
 @Table
-@Entity
 public class AkPlayerBindInfoV2 {
 
-    @Id
     @TableId
     private Long id;
+    //一图流uid
     private Long uid;
-    private String userName;
-    private String AkUid;
-    private String AkNickName;
-    private String ip;   //ip地址
-    private Long lastTime;  //创建时间
-    private boolean deleteFlag;
-
+    //方舟uid
+    private String akUid;
+    //方舟昵称
+    private String akNickName;
+    //频道名称
+    private String channelName;
+    //频道id
+    private Integer channelMasterId;
+    //是否是一图流账号默认绑定的uid
+    private Boolean defaultFlag;
+    //最后活跃时间
+    private Long lastActiveTime;
+    //删除标记
+    private Boolean deleteFlag;
 
 }

@@ -3,20 +3,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhs.mapper.survey.SurveyUserMapper">
 
-    <insert id="save">
-        INSERT INTO survey_user
-        (`id`,`pass_word`,`ak_uid`,`user_name`,`create_time`,`update_time`,`ip`,`status`,`email`,`avatar`,`delete_flag`)
-        VALUES
-       (#{item.id},#{item.passWord},#{item.akUid},#{item.userName},#{item.createTime},
-        #{item.updateTime},#{item.ip},#{item.status},#{item.email},#{item.avatar},
-        #{item.deleteFlag})
-    </insert>
+
 
     <update id="updateUserById">
         UPDATE survey_user
         SET
             `pass_word`   = #{item.passWord},
-            `ak_uid`         = #{item.akUid},
             `user_name`   = #{item.userName},
             `update_time` = #{item.updateTime},
             `status`      = #{item.status},

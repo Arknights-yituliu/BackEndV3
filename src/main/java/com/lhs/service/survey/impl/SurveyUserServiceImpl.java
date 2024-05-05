@@ -11,10 +11,10 @@ import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.SklandDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.dto.util.EmailFormDTO;
-import com.lhs.entity.po.survey.AkPlayerBindInfo;
+import com.lhs.entity.po.survey.AkPlayerBindInfoV2;
 import com.lhs.entity.po.survey.SurveyUser;
-import com.lhs.entity.vo.survey.UserDataVO;
-import com.lhs.mapper.survey.AkPlayerBindInfoMapper;
+import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
 import com.lhs.service.survey.SurveyUserService;
 import com.lhs.service.util.Email163Service;
@@ -33,22 +33,25 @@ public class SurveyUserServiceImpl implements SurveyUserService {
 
     private final Email163Service email163Service;
 
-    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
-
+    private final AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper;
 
     private final OSSService ossService;
 
-    public SurveyUserServiceImpl(SurveyUserMapper surveyUserMapper, RedisTemplate<String, String> redisTemplate, Email163Service email163Service, AkPlayerBindInfoMapper akPlayerBindInfoMapper, OSSService ossService) {
+    public SurveyUserServiceImpl(SurveyUserMapper surveyUserMapper,
+                                 RedisTemplate<String, String> redisTemplate,
+                                 Email163Service email163Service,
+                                 OSSService ossService,
+                                 AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
         this.email163Service = email163Service;
-        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         this.ossService = ossService;
+        this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
     }
 
 
     @Override
-    public UserDataVO registerV2(String ipAddress, LoginDataDTO loginDataDTO) {
+    public UserInfoVO registerV2(String ipAddress, LoginDataDTO loginDataDTO) {
         //注册类型
         String accountType = loginDataDTO.getAccountType();
 
@@ -61,6 +64,8 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         String userName = loginDataDTO.getUserName().trim();
         String passWord = loginDataDTO.getPassWord().trim();
         String email = loginDataDTO.getEmail().trim();
+
+//        Logger.info("用户输入的信息："+loginDataDTO);
 
         //当前时间
         Date date = new Date();
@@ -96,7 +101,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             status = UserStatus.addPermission(status, UserStatusCode.HAS_PASSWORD);
             //给用户信息写入密码
             surveyUserNew.setPassWord(passWord);
-//            Log.info("账号密码注册——用户名："+userName+"密码："+passWord);
+            Logger.info("账号密码注册——用户名："+userName+"密码："+passWord);
 
         }
 
@@ -115,14 +120,16 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             userName = "博士" + date.getTime() + randomEnd4_id();
             surveyUserNew.setUserName(userName);
             surveyUserNew.setEmail(email);
-//            Log.info("账号密码注册——邮箱："+email+"验证码："+inputCode);
+            Logger.info("账号密码注册——邮箱："+email+"验证码："+inputCode);
         }
 
         //给用户写入状态
         surveyUserNew.setStatus(status);
         surveyUserNew.setDeleteFlag(false);
+        surveyUserNew.setAvatar("char_377_gdglow");
 
-        surveyUserMapper.save(surveyUserNew);
+        surveyUserMapper.insert(surveyUserNew);
+
 
         long timeStamp = date.getTime();
 
@@ -132,18 +139,19 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         String header = JsonMapper.toJSONString(hashMap);
         String token = getToken(header, userId, timeStamp);
 
-        UserDataVO response = new UserDataVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
+        UserInfoVO response = new UserInfoVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
         response.setUserName(surveyUserNew.getUserName());
         response.setToken(token);
         response.setStatus(surveyUserNew.getStatus());
         response.setEmail(surveyUserNew.getEmail());
+        response.setAvatar("char_377_gdglow");
 
         return response;
     }
 
 
     @Override
-    public UserDataVO loginV2(String ipAddress, LoginDataDTO loginDataDto) {
+    public UserInfoVO loginV2(String ipAddress, LoginDataDTO loginDataDto) {
         String accountType = loginDataDto.getAccountType();
 
         if (accountType == null || "undefined".equals(accountType) || "null".equals(accountType)) {
@@ -160,23 +168,69 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             surveyUser = loginByEmailCode(loginDataDto);
         }
 
-        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        if (surveyUser == null) {
+            throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        }
 
         long timeStamp = System.currentTimeMillis();
-        Long userId = surveyUser.getId();  //一图流id
+        Long surveyUserId = surveyUser.getId();  //一图流id
 
         //用户凭证  由用户部分信息+一图流id+时间戳 加密得到
         Map<Object, Object> hashMap = new HashMap<>();
         hashMap.put("userName", surveyUser.getUserName());
         String header = JsonMapper.toJSONString(hashMap);
-        String token = getToken(header, userId, timeStamp);
+        String token = getToken(header, surveyUserId, timeStamp);
 
-        UserDataVO response = new UserDataVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
-        response.setUserName(surveyUser.getUserName());
+        //用户信息,包括凭证，用户名，用户状态等
+        UserInfoVO response = getUserDataVO(surveyUser);
         response.setToken(token);
+        return response;
+    }
+
+    @Override
+    public UserInfoVO getUserInfo(String token) {
+
+        if (token == null || "undefined".equals(token) || "null".equals(token)) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+
+        SurveyUser surveyUser = getSurveyUserByToken(token);
+        //用户信息 包括凭证，用户名，用户状态等
+
+        UserInfoVO userInfoVO = getUserDataVO(surveyUser);
+        userInfoVO.setToken(token);
+        return userInfoVO;
+    }
+
+    private UserInfoVO getUserDataVO(SurveyUser surveyUser){
+        UserInfoVO response = new UserInfoVO();
+        response.setUid(surveyUser.getId());
+        response.setUserName(surveyUser.getUserName());
         response.setStatus(surveyUser.getStatus());
         response.setEmail(surveyUser.getEmail());
         response.setAvatar(surveyUser.getAvatar());
+        response.setAkUid("0");
+        response.setAkNickName(surveyUser.getUserName());
+
+        QueryWrapper<AkPlayerBindInfoV2> akPlayerBindInfoQueryWrapper = new QueryWrapper<>();
+        akPlayerBindInfoQueryWrapper.eq("uid",surveyUser.getId()).orderByDesc("last_active_time");
+        List<AkPlayerBindInfoV2> akPlayerBindInfoV2List = akPlayerBindInfoV2Mapper.selectList(akPlayerBindInfoQueryWrapper);
+
+
+        if(akPlayerBindInfoV2List.isEmpty()){
+            return response;
+        }
+
+        Logger.info("用户绑定了"+akPlayerBindInfoV2List.size()+"条方舟uid");
+        for(AkPlayerBindInfoV2 akPlayerBindInfo :akPlayerBindInfoV2List){
+
+            if(akPlayerBindInfo.getDefaultFlag()){
+                response.setAkUid(akPlayerBindInfo.getAkUid());
+                response.setAkNickName(akPlayerBindInfo.getAkNickName());
+            }
+        }
+
+        response.setAkUid(akPlayerBindInfoV2List.get(0).getAkUid());
 
         return response;
     }
@@ -333,7 +387,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     }
 
     @Override
-    public UserDataVO updateUserData(UpdateUserDataDTO updateUserDataDto) {
+    public UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto) {
 
         String property = updateUserDataDto.getProperty();
         String token = updateUserDataDto.getToken();
@@ -366,7 +420,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
      * @param updateUserDataDto 用户修改的信息
      * @return 成功信息
      */
-    private UserDataVO updateOrBindEmail(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
+    private UserInfoVO updateOrBindEmail(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
         String email = updateUserDataDto.getEmail().trim();
         String emailCode = updateUserDataDto.getEmailCode().trim();
 
@@ -379,7 +433,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         }
 
         backupSurveyUser(surveyUserByToken);
-        UserDataVO response = new UserDataVO();
+        UserInfoVO response = new UserInfoVO();
         response.setStatus(surveyUserByToken.getStatus());
         return response;
     }
@@ -391,7 +445,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
      * @param updateUserDataDto 用户修改的信息
      * @return 用户新信息
      */
-    private UserDataVO updatePassWord(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
+    private UserInfoVO updatePassWord(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
 
 
         String newPassWord = updateUserDataDto.getNewPassWord().trim(); //新密码
@@ -424,7 +478,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
 
         backupSurveyUser(surveyUserByToken);
 
-        UserDataVO response = new UserDataVO();
+        UserInfoVO response = new UserInfoVO();
         response.setStatus(surveyUserByToken.getStatus());
 
         return response;
@@ -437,7 +491,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
      * @param updateUserDataDto 用户修改的信息
      * @return 用户新信息
      */
-    private UserDataVO updateUserName(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
+    private UserInfoVO updateUserName(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
         String userName = updateUserDataDto.getUserName().trim();
         //检查用户名格式
         checkUserName(userName);
@@ -457,14 +511,14 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             throw new ServiceException(ResultCode.NOT_SET_PASSWORD_OR_BIND_EMAIL);
         }
 
-        UserDataVO response = new UserDataVO();
+        UserInfoVO response = new UserInfoVO();
         response.setUserName(surveyUserByToken.getUserName());
         return response;
     }
 
-    private UserDataVO updateUserAvatar(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
+    private UserInfoVO updateUserAvatar(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
         surveyUserByToken.setAvatar(updateUserDataDto.getAvatar());
-        UserDataVO response = new UserDataVO();
+        UserInfoVO response = new UserInfoVO();
         response.setAvatar(surveyUserByToken.getAvatar());
         backupSurveyUser(surveyUserByToken);
         return response;
@@ -638,8 +692,8 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     }
 
     @Override
-    public Result<UserDataVO> loginByCRED(String ipAddress, SklandDTO sklandDto) {
-        UserDataVO response = new UserDataVO();
+    public Result<UserInfoVO> loginByCRED(String ipAddress, SklandDTO sklandDto) {
+        UserInfoVO response = new UserInfoVO();
         Date date = new Date();  //当前时间
         long timeStamp = date.getTime();
 
@@ -683,7 +737,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         surveyUser.setId(id);
         surveyUser.setIp(ipAddress);
         surveyUser.setUserName(userName);
-        surveyUser.setAkUid(uid);
+
         surveyUser.setStatus(1);
         surveyUser.setCreateTime(date);
         surveyUser.setUpdateTime(new Date(timeStamp + 3600));
@@ -702,7 +756,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     }
 
     @Override
-    public Result<UserDataVO> retrievalAccountByCRED(String CRED) {
+    public Result<UserInfoVO> retrievalAccountByCRED(String CRED) {
 
         Map<String, String> skLandPlayerBinding = getSKLandPlayerBinding(CRED);
         String uid = skLandPlayerBinding.get("uid");
@@ -713,33 +767,11 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         if (surveyUser == null) {
             throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
         }
-        UserDataVO response = new UserDataVO();
+        UserInfoVO response = new UserInfoVO();
         response.setUserName(surveyUser.getUserName());
         return Result.success(response);
     }
 
-    @Override
-    public void migrateLog() {
-        List<SurveyUser> surveyUsers = surveyUserMapper.selectList(null);
-        for (SurveyUser surveyUser : surveyUsers) {
-            if (surveyUser.getAkUid() == null) continue;
-            if (surveyUser.getAkUid().contains("delete")) continue;
-            AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
-            akPlayerBindInfo.setId(surveyUser.getId());
-            akPlayerBindInfo.setUserName(surveyUser.getUserName());
-            akPlayerBindInfo.setAkUid(surveyUser.getAkUid());
-            akPlayerBindInfo.setDeleteFlag(surveyUser.getDeleteFlag());
-            akPlayerBindInfo.setLastTime(surveyUser.getUpdateTime().getTime());
-            akPlayerBindInfo.setIp(surveyUser.getIp());
-            QueryWrapper<AkPlayerBindInfo> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("id", surveyUser.getId());
-            if (akPlayerBindInfoMapper.selectOne(queryWrapper) == null) {
-                akPlayerBindInfoMapper.insert(akPlayerBindInfo);
-            } else {
-                akPlayerBindInfoMapper.update(akPlayerBindInfo, queryWrapper);
-            }
-        }
-    }
 
     @Override
     public List<SurveyUser> getAllUserData() {

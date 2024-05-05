@@ -21,6 +21,5 @@ public class SurveyUser {
     private Integer status;  //用户状态，1正常，0封禁
     private String email; //邮箱
     private String avatar; //用户头像
-    private String akUid; //明日方舟uid
-    private Boolean deleteFlag;
+    private Boolean deleteFlag; //删除标记
 }

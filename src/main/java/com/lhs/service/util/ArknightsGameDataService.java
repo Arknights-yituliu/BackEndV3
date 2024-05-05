@@ -219,13 +219,18 @@ public class ArknightsGameDataService {
 
             OperatorTable operatorTableSimple = characterTableMap.get(charId);
 
+            long timestamp = System.currentTimeMillis();
+            if(operatorTableSimple!=null){
+                timestamp = operatorTableSimple.getUpdateTime().getTime();
+            }
+
             character.put("name", name);
             character.put("charId", charId);
             character.put("rarity", rarity);
-            character.put("itemObtainApproach", operatorTableSimple.getObtainApproach());
+            character.put("itemObtainApproach", "常驻干员");
             character.put("equip", equipListMap.get(charId));
             character.put("skill", skillList);
-            character.put("date", characterTableMap.get(charId).getUpdateTime().getTime());
+            character.put("date", timestamp);
             character.put("profession", profession);
             character.put("subProfessionId", subProfessionId);
             character.put("own", false);
@@ -279,6 +284,7 @@ public class ArknightsGameDataService {
                 OperatorTable operatorTableSimple = characterTableMap.get(charId);
                 String itemObtainApproach = "常驻干员";
                 long updateTime = System.currentTimeMillis();
+
                 if (operatorTableSimple != null) {
                     itemObtainApproach = operatorTableSimple.getObtainApproach();
                     updateTime = operatorTableSimple.getUpdateTime().getTime();
@@ -534,6 +540,77 @@ public class ArknightsGameDataService {
 
     }
 
+
+    public void getBuildingTableByBot() {
+        String read = FileUtil.read(githubBotResource + "gamedata/excel/building_data.json");
+        String read1 = FileUtil.read(githubBotResource + "gamedata/excel/character_table.json");
+
+
+        List<OperatorTable> operatorTable = getOperatorTable();
+
+        Map<String, OperatorTable> characterTableMap = operatorTable.stream()
+                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
+
+        JsonNode building = JsonMapper.parseJSONObject(read);
+        JsonNode characters = JsonMapper.parseJSONObject(read1);
+        JsonNode buffs = building.get("buffs");
+        JsonNode chars = building.get("chars");
+        List<BuildingData> buildingDataList = new ArrayList<>();
+        for (JsonNode jsonNode : chars) {
+            String charId = jsonNode.get("charId").asText();
+            JsonNode character = characters.get(charId);
+            String name = character.get("name").asText();
+            JsonNode buffChar = jsonNode.get("buffChar");
+            for (JsonNode buffCharElement : buffChar) {
+                JsonNode buffData = buffCharElement.get("buffData");
+                for (JsonNode buffDataElement : buffData) {
+                    String buffId = buffDataElement.get("buffId").asText();
+                    JsonNode cond = buffDataElement.get("cond");
+                    BuildingData buildingData = new BuildingData();
+                    buildingData.setCharId(charId);
+                    buildingData.setLevel(cond.get("level").asInt());
+                    buildingData.setPhase(getPhase(cond.get("phase").asText()));
+                    JsonNode buff = buffs.get(buffId);
+                    if (buff == null) continue;
+
+
+                    String buffName = buff.get("buffName").asText();
+                    String buffColor = buff.get("buffColor").asText();
+                    String textColor = buff.get("textColor").asText();
+                    String description = buff.get("description").asText();
+                    String roomType = buff.get("buffIcon").asText();
+                    buildingData.setBuffName(buffName);
+                    buildingData.setBuffColor(buffColor);
+                    buildingData.setTextColor(textColor);
+                    if (name.equals("假日威龙陈")) {
+                        System.out.println(description);
+                    }
+
+                    long timestamp = System.currentTimeMillis();
+
+                    if(characterTableMap.get(charId)!=null){
+                        timestamp = characterTableMap.get(charId).getUpdateTime().getTime();
+                    }
+
+
+                    buildingData.setTimestamp(timestamp);
+                    buildingData.setDescription(replaceDescription(description));
+                    buildingData.setRoomType(roomType);
+                    buildingData.setName(name);
+                    buildingDataList.add(buildingData);
+
+                }
+            }
+        }
+
+
+//        Map<String, List<BuildingData>> collect = buildingDataList.stream()
+//                .collect(Collectors.groupingBy(BuildingData::getRoomType));
+        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
+        FileUtil.save("C:/VCProject/frontend-v2-plus/src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+
+    }
+
     private Integer getPhase(String text) {
         return Integer.parseInt(text.replace("PHASE_", ""));
     }
@@ -559,6 +636,7 @@ public class ArknightsGameDataService {
                 String charId = fields.next().getKey();
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
+
                 int rarity = getRarity(charData.get("rarity").asText());
                 System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 " + endPath + charId + ".png");
                 File source = new File(startPath + charId + "_1.png");
@@ -604,6 +682,52 @@ public class ArknightsGameDataService {
                 String charId = fields.next().getKey();
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
+                int rarity = getRarity(charData.get("rarity").asText());
+                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 " + endPath + charId + ".png");
+                File source = new File(startPath + charId + ".png");
+
+                if (rarity == 6) endPath = avatar6;
+                if (rarity == 5) endPath = avatar5;
+                if (rarity < 5) endPath = avatar4;
+
+                File tmpFile = new File(endPath);//获取文件夹路径
+
+                if (!tmpFile.exists()) {//判断文件夹是否创建，没有创建则创建新文件夹
+                    boolean mkdirs = tmpFile.mkdirs();
+                }
+
+                File dest = new File(endPath + charId + ".png");
+                copyFile(source, dest);
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getAvatarByBot() {
+        try {
+            // 创建流对象
+
+            String character_tableStr = FileUtil.read(githubBotResource + "gamedata/excel/character_table.json");
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode characterTable = objectMapper.readTree(character_tableStr);
+
+
+            String startPath = githubBotResource + "avatar/";
+            String avatar6 = "C:\\VCProject\\resources\\avatar-ori-6\\";
+            String avatar5 = "C:\\VCProject\\resources\\avatar-ori-5\\";
+            String avatar4 = "C:\\VCProject\\resources\\avatar-ori-4\\";
+            String endPath = avatar4;
+
+            Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
+
+            while (fields.hasNext()) {
+                String charId = fields.next().getKey();
+                if (!charId.startsWith("char")) continue;
+                JsonNode charData = characterTable.get(charId);
+                System.out.println(charData.get("rarity"));
                 int rarity = getRarity(charData.get("rarity").asText());
                 System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 " + endPath + charId + ".png");
                 File source = new File(startPath + charId + ".png");
