@@ -9,4 +9,5 @@ public class PlayerBinding {
     private String channelMasterId;
     private String channelName;
     private String nickName;
+    private Boolean defaultFlag;
 }

@@ -12,4 +12,6 @@ public class PenguinMatrixDTO {
     private String itemId; //物品id
     private Integer quantity;  //物品掉落次数
     private Integer times;  //关卡刷取次数
+    private Long start;
+    private Long end;
 }

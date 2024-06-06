@@ -21,5 +21,6 @@ public class UserInfoVO implements Serializable {
     private String avatar;
     private String akNickName;
     private String akUid;
-
+    private String emailLogin;
+    private Boolean passwordLogin;
 }

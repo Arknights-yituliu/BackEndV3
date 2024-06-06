@@ -102,13 +102,13 @@ public class ItemControllerV3 {
     @GetMapping("/stage/chapter")
     public Result<List<StageResultVOV2>> getStageResultByZone(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
                                                               @RequestParam(required = false, defaultValue = "300") Integer sampleSize,
-                                                              @RequestParam String zone) {
+                                                              @RequestParam String zoneCode) {
 
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
 
-        List<StageResultVOV2> stageByZoneName = stageResultService.getStageByZoneName(stageParamDTO, "main_" + zone);
+        List<StageResultVOV2> stageByZoneName = stageResultService.getStageByZoneName(stageParamDTO, "main_" + zoneCode);
         return Result.success(stageByZoneName);
     }
 

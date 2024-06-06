@@ -1,5 +1,6 @@
 package com.lhs.service.dev.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
@@ -103,11 +104,13 @@ public class VisitsServiceImpl implements VisitsService {
     @Override
     public List<PageViewStatisticsVo> getVisits(VisitsTimeVo visitsTimeVo) {
 
-        QueryWrapper<PageViewStatistics> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ge("create_time", new Date(visitsTimeVo.getStartTime())).le("create_time", new Date(visitsTimeVo.getEndTime()));
-        System.out.println(visitsTimeVo);
 
-        List<PageViewStatistics> pageViewStatisticsList = pageVisitsMapper.selectList(queryWrapper);
+        LambdaQueryWrapper<PageViewStatistics> pageViewStatisticsLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        pageViewStatisticsLambdaQueryWrapper.ge(PageViewStatistics::getCreateTime,new Date(visitsTimeVo.getStartTime()))
+                        .le(PageViewStatistics::getCreateTime,new Date(visitsTimeVo.getEndTime()))
+                                .orderByAsc(PageViewStatistics::getCreateTime);
+
+        List<PageViewStatistics> pageViewStatisticsList = pageVisitsMapper.selectList(pageViewStatisticsLambdaQueryWrapper);
 
         List<PageViewStatisticsVo> pageViewStatisticsVoList = new ArrayList<>();
         if(pageViewStatisticsList !=null){

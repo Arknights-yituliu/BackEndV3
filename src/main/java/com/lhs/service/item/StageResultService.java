@@ -1,5 +1,6 @@
 package com.lhs.service.item;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
@@ -29,7 +30,6 @@ public class StageResultService {
     private final StageService stageService;
     private final OSSService ossService;
     private final RedisTemplate<String, Object> redisTemplate;
-
 
 
     public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate) {
@@ -72,7 +72,6 @@ public class StageResultService {
         stageCalService.stageResultCal(items, stageParamDTO);      //用新材料价值计算新关卡效率
         Logger.info("V2关卡效率更新成功");
     }
-
 
 
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
@@ -274,7 +273,6 @@ public class StageResultService {
     }
 
 
-
     @RedisCacheable(key = "Item:Stage.T2.V2", params = "version")
     public List<RecommendedStageVO> getT2RecommendedStage(String version) {
 
@@ -365,12 +363,13 @@ public class StageResultService {
                 })
                 .collect(Collectors.groupingBy(StageResultDetail::getStageId))
                 .forEach((stageId, list) -> {
-                    Stage stage =  stageMap.get(stageId);
+                    Stage stage = stageMap.get(stageId);
                     Map<String, Double> calResult = orundumPerApCal(list, stage.getApCost());
                     if (calResult.get("orundumPerAp") > 0.2) {
                         StageResult stageResult = resultCommonMap.get(stageId);
                         OrundumPerApResultVO resultVo = OrundumPerApResultVO.builder()
                                 .stageCode(stageResult.getStageCode())
+                                .zoneName(stage.getZoneName())
                                 .stageEfficiency(stageResult.getStageEfficiency())
                                 .orundumPerAp(calResult.get("orundumPerAp"))
                                 .lMDCost(calResult.get("LMDCost"))
@@ -410,6 +409,8 @@ public class StageResultService {
         }
 
 
+
+
         double orundumPerAp = (knockRating_30012 * 5 + knockRating_30011 * 5 / 3 +
                 knockRating_30062 * 10 + knockRating_30061 * 10 / 3) / apCost;
 
@@ -425,7 +426,7 @@ public class StageResultService {
     }
 
 
-//    @RedisCacheable(key = "Item:Stage.ACT.V2", params = "version")
+    //    @RedisCacheable(key = "Item:Stage.ACT.V2", params = "version")
     public List<ActStageVO> getHistoryActStage(String version) {
 
         Map<String, Item> itemMap = itemService.getItemListCache(version)
@@ -519,10 +520,13 @@ public class StageResultService {
 
 
         List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
-        stageResultMapper.selectList(new QueryWrapper<StageResult>()
-                        .eq("version", stageParamDTO.getVersion())
-                        .ge("end_time", new Date())
-                        .like("stage_id", zone)).stream().filter(e -> !e.getItemSeries().equals("empty"))
+        stageResultMapper.selectList(new LambdaQueryWrapper<StageResult>()
+                        .eq(StageResult::getVersion, stageParamDTO.getVersion())
+                        .ge(StageResult::getEndTime, new Date())
+                        .like(StageResult::getStageId, zone)
+                        .orderByDesc(StageResult::getStageEfficiency))
+                .stream()
+                .filter(e -> !e.getItemSeries().equals("empty"))
                 .forEach(e -> {
                     StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
                     stageResultVOV2.copyByStageResultCommon(e);

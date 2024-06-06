@@ -7,6 +7,7 @@ import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
+import com.lhs.entity.vo.survey.AKPlayerBindingListVO;
 import com.lhs.service.survey.SklandService;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class SklandServiceImpl implements SklandService {
@@ -31,65 +30,128 @@ public class SklandServiceImpl implements SklandService {
 
 
     @Override
-    public PlayerBinding getPlayerBindings(String token) {
+    public AKPlayerBindingListVO getPlayerBindings(String token) {
 
 
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("token",token);
-        data.put("appCode","4ca99fa6b56cc2ba");
-        data.put("type",0);
+        HashMap<Object, Object> requestParams = new HashMap<>();
+        requestParams.put("token", token);
+        requestParams.put("appCode", "4ca99fa6b56cc2ba");
+        requestParams.put("type", 0);
 
-        String dataString = JsonMapper.toJSONString(data);
+        String dataString = JsonMapper.toJSONString(requestParams);
 
+        //向鹰角通行证请求授权
         String OAUTH2ResponseText = HttpRequestUtil.post(OAUTH2_URL, new HashMap<>(), dataString);
-        if(OAUTH2ResponseText==null){
+        if (OAUTH2ResponseText == null) {
             throw new ServiceException(ResultCode.AUTHORIZATION_FAILURE);
         }
-
         JsonNode oauth2Response = JsonMapper.parseJSONObject(OAUTH2ResponseText);
-        data.clear();
-        data.put("kind",1);
-        data.put("code",oauth2Response.get("data").get("code").asText());
-        dataString = JsonMapper.toJSONString(data);
-        String CREDResponseText = HttpRequestUtil.post(SKLAND_DOMAIN+GENERATE_CRED_BY_CODE_URL, new HashMap<>(), dataString);
+
+        requestParams.clear();
+        requestParams.put("kind", 1);
+        requestParams.put("code", oauth2Response.get("data").get("code").asText());
+        dataString = JsonMapper.toJSONString(requestParams);
+
+        //获取森空岛凭证和临时token
+        String CREDResponseText = HttpRequestUtil.post(SKLAND_DOMAIN + GENERATE_CRED_BY_CODE_URL, new HashMap<>(), dataString);
 
         JsonNode credResponse = JsonMapper.parseJSONObject(CREDResponseText).get("data");
-        String timestamp =  String.valueOf ((System.currentTimeMillis()-1000)/1000);
+        String timestamp = String.valueOf((System.currentTimeMillis() - 800) / 1000);
 
         String cred = credResponse.get("cred").asText();
         String tempToken = credResponse.get("token").asText();
 
-        String sign = GenerateSign(PLAYER_BINDING_URL,"",timestamp,tempToken);
+        String sign = GenerateSign(PLAYER_BINDING_URL, "", timestamp, tempToken);
 
         Map<String, String> header = new LinkedHashMap<>();
 
-        header.put("platform","3");
-        header.put("timestamp",timestamp);
-        header.put("dId","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0");
-        header.put("vName","1.2.0");
-        header.put("cred",cred);
+        header.put("platform", "3");
+        header.put("timestamp", timestamp);
+        header.put("dId", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0");
+        header.put("vName", "1.2.0");
+        header.put("cred", cred);
 
-        header.put("sign",sign);
-        System.out.println(sign);
-        String playerResponseText = HttpRequestUtil.get(SKLAND_DOMAIN+PLAYER_BINDING_URL, header);
-        System.out.println(playerResponseText);
+        header.put("sign", sign);
+        String playerBindingResponseText = HttpRequestUtil.get(SKLAND_DOMAIN + PLAYER_BINDING_URL, header);
+        JsonNode playerBindingResponse = JsonMapper.parseJSONObject(playerBindingResponseText);
+        int code = playerBindingResponse.get("code").asInt();
+
+        List<PlayerBinding> playerBindingList = new ArrayList<>();
+
+        AKPlayerBindingListVO akPlayerBindingListVO = new AKPlayerBindingListVO();
+
+        if (code == 0) {
+            JsonNode data = playerBindingResponse.get("data");
+            JsonNode list = data.get("list");
+            for (JsonNode jsonNode : list) {
+                String appCode = jsonNode.get("appCode").asText();
+                if ("arknights".equals(appCode)) {
+                    String defaultUid = jsonNode.get("defaultUid").asText();
+                    PlayerBinding defaultBinding = null;
+                    JsonNode bindingList = jsonNode.get("bindingList");
+
+                    for (JsonNode binding : bindingList) {
+                        String uid = binding.get("uid").asText();
+                        boolean isOfficial = binding.get("isOfficial").asBoolean();
+                        boolean isDefault = binding.get("isDefault").asBoolean();
+                        String channelMasterId = binding.get("channelMasterId").asText();
+                        String channelName = binding.get("channelName").asText();
+                        String nickName = binding.get("nickName").asText();
+
+                        PlayerBinding playerBinding = new PlayerBinding();
+                        playerBinding.setUid(uid);
+                        playerBinding.setDefaultFlag(isDefault);
+                        playerBinding.setNickName(nickName);
+                        playerBinding.setChannelMasterId(channelMasterId);
+                        playerBinding.setChannelName(channelName);
+                        playerBindingList.add(playerBinding);
 
 
-        return null;
+
+                        if (uid.equals(defaultUid)) {
+                            defaultBinding = playerBinding;
+                        }
+
+                        if (defaultBinding != null) {
+                            continue;
+                        }
+
+                        if (isDefault) {
+                            defaultBinding = playerBinding;
+                        }
+
+                        if (isOfficial) {
+                            defaultBinding = playerBinding;
+                        }
+
+
+                    }
+
+                    if (defaultBinding == null) {
+                        defaultBinding = playerBindingList.get(0);
+                    }
+                    akPlayerBindingListVO.setPlayerBinding(defaultBinding);
+                    akPlayerBindingListVO.setPlayerBindingList(playerBindingList);
+                }
+            }
+
+        }
+
+
+        return akPlayerBindingListVO;
     }
 
 
-
-    private String GenerateSign(String path,String params,String timestamp,String token){
+    private String GenerateSign(String path, String params, String timestamp, String token) {
 
         Map<String, String> map = new LinkedHashMap<>();
-        map.put("platform","3");
-        map.put("timestamp",timestamp);
-        map.put("dId","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0");
-        map.put("vName","1.2.0");
+        map.put("platform", "3");
+        map.put("timestamp", timestamp);
+        map.put("dId", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/118.0");
+        map.put("vName", "1.2.0");
 
-        String text = path+params+timestamp+JsonMapper.toJSONString(map);
-        System.out.println(text);
+        String text = path + params + timestamp + JsonMapper.toJSONString(map);
+
         String sign = "";
 
         try {
@@ -124,7 +186,7 @@ public class SklandServiceImpl implements SklandService {
         }
 
 
-        return  sign;
+        return sign;
 
     }
 

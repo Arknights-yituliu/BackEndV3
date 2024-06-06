@@ -88,25 +88,25 @@ public class HttpRequestUtil {
             if(httpResponse.getStatusLine().getStatusCode() != 200){
                 HttpEntity entity = httpResponse.getEntity();
                 String errorMessage = EntityUtils.toString(entity, "UTF-8");
-                Logger.info("Http Request Message: " + errorMessage);
+                Logger.error("Http Request Message: " + errorMessage);
             }
             HttpEntity entity = httpResponse.getEntity();
             return EntityUtils.toString(entity);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e.getMessage());
         } finally {
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.error(e.getMessage());
                 }
             }
             if (null != httpClient) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.error(e.getMessage());
                 }
             }
         }

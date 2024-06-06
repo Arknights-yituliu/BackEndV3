@@ -45,11 +45,11 @@ public class Email163Service {
     public Boolean compareVerificationCode(String inputCode,String emailAddress){
         Object code = redisTemplate.opsForValue().get(emailAddress);
         Logger.info("输入的验证码："+inputCode+"---------服务端验证码："+code);
-        if(inputCode==null) throw new ServiceException(ResultCode.CODE_ERROR);
+        if(inputCode==null) throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
 
-        if(code==null)throw new ServiceException(ResultCode.CODE_NOT_EXIST);
+        if(code==null)throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_EXIST);
 
-        if(!inputCode.equals(code)) throw new ServiceException(ResultCode.CODE_ERROR);
+        if(!inputCode.equals(code)) throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
 
         return true;
     }

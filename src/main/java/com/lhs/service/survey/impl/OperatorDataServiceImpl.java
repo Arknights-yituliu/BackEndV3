@@ -370,8 +370,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
     /**
-     * 对新老干员数据进行检查
-     *
+     * 对新老干员数据进行检查，是否有非法数据
      * @param operatorData 新干员数据
      */
     private void checkOperatorDataValidity(OperatorData operatorData) {
@@ -387,7 +386,9 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         }
 
         if (operatorData.getRarity() < 6) {
-            operatorData.setSkill3(0);
+            if(!operatorData.getCharId().contains("amiya")){
+                operatorData.setSkill3(0);
+            }
         }
 
         if (!operatorData.getOwn()) {

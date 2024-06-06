@@ -81,7 +81,7 @@ public class AdminServiceImpl implements AdminService {
         String code = String.valueOf(redisTemplate.opsForValue().get("CODE:" + admin.getEmail() + "CODE"));
         //检查邮件验证码
         if (!loginVo.getVerificationCode().equals(code)) {
-            throw new ServiceException(ResultCode.CODE_ERROR);
+            throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
         }
 
         //登录时间

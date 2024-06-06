@@ -29,7 +29,7 @@ public class SurveyInterceptor implements HandlerInterceptor {
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(request), ConfigUtil.Secret);
         Object cache = redisTemplate.opsForValue().get("IP:"+ipAddress);
         if(cache==null) {
-            redisTemplate.opsForValue().set("IP:"+ipAddress, 1, 5, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set("IP:"+ipAddress, 1, 60, TimeUnit.SECONDS);
             return  true;
         }
         int times = Integer.parseInt(String.valueOf(cache));

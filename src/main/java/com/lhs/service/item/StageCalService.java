@@ -94,10 +94,14 @@ public class StageCalService {
             stageDropLMD.setTimes(1);
             stageDropList.add(stageDropLMD);
 
-            if (stageId.startsWith("main_14")) {
-                stageType = StageType.ACT;
-                Logger.info("14章关卡——" + stageId + "转为SS模板");
+//            if (stageId.startsWith("main_14")) {
+//                stageType = StageType.ACT;
+//                Logger.info("14章关卡——" + stageId + "转为SS模板");
+//            }
 
+            if(stageId.startsWith("main_14")){
+//                continue;
+                Logger.info("遇到一条14章关卡记录："+stage.getStageCode());
             }
 
             if (StageType.ACT_REP.equals(stageType) || StageType.ACT.equals(stageType)) {
@@ -193,11 +197,12 @@ public class StageCalService {
                 }
             }
 
-            if (stageId.startsWith("main")) {
-                dropApValueSum += apCost / (1000.0 / 6) * 11.28;
-                apCost -= apCost / 200 * 10;
-                stageEfficiency = dropApValueSum / apCost;
-            }
+            //计算战备资源活动的效率
+//            if (stageId.startsWith("main")) {
+//                dropApValueSum += apCost / (1000.0 / 6) * 11.28;
+//                apCost -= apCost / 200 * 10;
+//                stageEfficiency = dropApValueSum / apCost;
+//            }
 
             StageResult stageResult = new StageResult();
             stageResult.setId(idGenerator.nextId());
@@ -324,22 +329,40 @@ public class StageCalService {
         List<PenguinMatrixDTO> mergeList = new ArrayList<>();
         for (PenguinMatrixDTO element : penguinMatrixDTOList) {
             String stageId = element.getStageId();
-            if (stageId.contains("tough")) continue;
+            if (stageId.contains("tough")) {
+                continue;
+            }
             if (toughStageMap.get(stageId + "." + element.getItemId()) != null) {
                 PenguinMatrixDTO toughItem = toughStageMap.get(stageId + "." + element.getItemId());
                 element.setQuantity(element.getQuantity() + toughItem.getQuantity());
                 element.setTimes(element.getTimes() + toughItem.getTimes());
             }
 
-            if (element.getTimes() < sampleSize) continue;
+            if(stageId.startsWith("main_14")){
+                if(element.getEnd()!=null){
+                    continue;
+                }
+            }
+
+            if (element.getTimes() < sampleSize) {
+                continue;
+            }
             //掉落为零进行下次循环
             if (element.getQuantity() == 0) continue;
             //材料不在材料表继续下次循环
-            if (itemMap.get(element.getItemId()) == null) continue;
+            if (itemMap.get(element.getItemId()) == null) {
+                continue;
+            }
             //关卡不在关卡表继续下次循环
-            if (stageMap.get(element.getStageId()) == null) continue;
-            if (element.getItemId().startsWith("ap_supply")) continue;
-            if (element.getItemId().startsWith("randomMaterial")) continue;
+            if (stageMap.get(element.getStageId()) == null) {
+                continue;
+            }
+            if (element.getItemId().startsWith("ap_supply")) {
+                continue;
+            }
+            if (element.getItemId().startsWith("randomMaterial")) {
+                continue;
+            }
 
             mergeList.add(element);
 

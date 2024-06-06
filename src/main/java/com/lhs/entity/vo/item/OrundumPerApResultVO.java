@@ -16,6 +16,8 @@ public class OrundumPerApResultVO {
 
     private String stageCode;
 
+    private String zoneName;
+
     private Double orundumPerAp;
 
     private Double stageEfficiency;

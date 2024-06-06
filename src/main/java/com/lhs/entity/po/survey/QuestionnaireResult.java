@@ -10,8 +10,7 @@ public class QuestionnaireResult {
     @TableId
     private Long id;
     private Long ipId;
-    private Integer QuestionnaireType;
-    private String QuestionnaireContent;
+    private Integer questionnaireType;
+    private String questionnaireContent;
     private Long createTime;
-    private Long updateTime;
 }
