@@ -1,5 +1,6 @@
 package com.lhs.entity.po.survey;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ public class SurveyUser {
     @TableId
     private Long id;   //唯一id （自增
     private String userName;  //用户名称
+    @TableField(value = "pass_word")
     private String password; //密码
     private String email; //邮箱
     private Date createTime;  //创建时间

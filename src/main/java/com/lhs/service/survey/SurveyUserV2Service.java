@@ -2,6 +2,7 @@ package com.lhs.service.survey;
 
 import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;
+import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.po.survey.SurveyUser;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,4 +41,11 @@ public interface SurveyUserV2Service {
     UserInfoVO getUserInfo(String token);
 
     SurveyUser getSurveyUserByToken(String token);
+
+
+    UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto);
+
+    void backupSurveyUser(SurveyUser surveyUser);
+
+    void retrieveAccount(LoginDataDTO loginDataDTO);
 }

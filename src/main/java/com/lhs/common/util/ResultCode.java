@@ -29,6 +29,8 @@ public enum ResultCode {
 	EXCESSIVE_IP_ACCESS_TIMES(10017, "同IP注册次数过多,5分钟5次"),
 	OPERATOR_QUANTITY_INVALID(10018,"干员数量需大于6且小于13位"),
 
+
+
 	
 	/* 用户错误：20001-29999*/
 	USER_NOT_LOGIN(20001, "用户未登录"),
@@ -40,6 +42,7 @@ public enum ResultCode {
 	USER_EXISTED(20007, "用户已存在"),
 	USER_FORBIDDEN(20008, "账号已被禁用"),
 	USER_NOT_BIND_UID(20009, "未绑定uid"),
+	USER_NOT_BIND_EMAIL(20009, "未绑定邮箱"),
 	USER_INSUFFICIENT_PERMISSIONS  (20010, "权限不足"),
 	REGISTER_TOO_MANY_TIMES(20012, "同ID注册次数过多"),
 	USER_PASSWORD_ERROR(20014, "密码错误"),
