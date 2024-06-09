@@ -12,12 +12,12 @@ import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.survey.AkPlayerBindInfoV2;
-import com.lhs.entity.po.survey.SurveyUser;
+import com.lhs.entity.po.survey.UserInfo;
 import com.lhs.entity.vo.survey.AKPlayerBindingListVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.mapper.survey.SurveyUserMapper;
-import com.lhs.service.survey.SklandService;
+import com.lhs.service.survey.HypergryphService;
 import com.lhs.service.survey.SurveyUserService;
 import com.lhs.service.util.Email163Service;
 import com.lhs.service.util.OSSService;
@@ -41,20 +41,20 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     private final OSSService ossService;
 
     private final IdGenerator idGenerator;
-    private final SklandService sklandService;
+    private final HypergryphService hypergryphService;
 
     public SurveyUserServiceImpl(SurveyUserMapper surveyUserMapper,
                                  RedisTemplate<String, String> redisTemplate,
                                  Email163Service email163Service,
                                  OSSService ossService,
                                  AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper,
-                                 SklandService sklandService) {
+                                 HypergryphService hypergryphService) {
         this.surveyUserMapper = surveyUserMapper;
         this.redisTemplate = redisTemplate;
         this.email163Service = email163Service;
         this.ossService = ossService;
         this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
-        this.sklandService = sklandService;
+        this.hypergryphService = hypergryphService;
         idGenerator = new IdGenerator(1L);
     }
 
@@ -68,28 +68,28 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         }
 
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);
-        SurveyUser surveyUser = null;
+        UserInfo userInfo = null;
 
         if ("password".equals(accountType)) {
-            surveyUser = registerByPassword(loginDataDTO, ipAddress);
+            userInfo = registerByPassword(loginDataDTO, ipAddress);
         }
 
         if ("email".equals(accountType)) {
-            surveyUser = registerByEmail(loginDataDTO, ipAddress);
+            userInfo = registerByEmail(loginDataDTO, ipAddress);
         }
 
-        if (surveyUser == null) {
+        if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_SIGN_IN_ERROR);
         }
 
-        String token = tokenGenerator(surveyUser);
+        String token = tokenGenerator(userInfo);
         HashMap<String, Object> result = new HashMap<>();
         result.put("token", token);
         return result;
     }
 
 
-    private SurveyUser registerByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
+    private UserInfo registerByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
 
         //当前时间
         Date date = new Date();
@@ -102,10 +102,10 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         String passWord = loginDataDTO.getPassword().trim();
         String email = loginDataDTO.getEmail().trim();
 
-        LambdaQueryWrapper<SurveyUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SurveyUser::getUserName, userName);
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-        if (surveyUser != null) {
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getUserName, userName);
+        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        if (userInfo != null) {
             throw new ServiceException(ResultCode.USER_EXISTED);
         }
 
@@ -114,26 +114,26 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         // 密码加密
         passWord = AES.encrypt(passWord, ConfigUtil.Secret);
 
-        SurveyUser surveyUserNew = new SurveyUser();
+        UserInfo userInfoNew = new UserInfo();
 
-        surveyUserNew.setId(userId);
-        surveyUserNew.setUserName(userName);
-        surveyUserNew.setPassword(passWord);
-        surveyUserNew.setAvatar("char_377_gdglow");
-        surveyUserNew.setIp(ipAddress);
-        surveyUserNew.setEmail(email);
-        surveyUserNew.setCreateTime(date);
-        surveyUserNew.setUpdateTime(date);
-        surveyUserNew.setStatus(1);
-        surveyUserNew.setDeleteFlag(false);
+        userInfoNew.setId(userId);
+        userInfoNew.setUserName(userName);
+        userInfoNew.setPassword(passWord);
+        userInfoNew.setAvatar("char_377_gdglow");
+        userInfoNew.setIp(ipAddress);
+        userInfoNew.setEmail(email);
+        userInfoNew.setCreateTime(date);
+        userInfoNew.setUpdateTime(date);
+        userInfoNew.setStatus(1);
+        userInfoNew.setDeleteFlag(false);
 
-        surveyUserMapper.insert(surveyUserNew);
+        surveyUserMapper.insert(userInfoNew);
 
-        return surveyUserNew;
+        return userInfoNew;
     }
 
 
-    private SurveyUser registerByEmail(LoginDataDTO loginDataDTO, String ipAddress) {
+    private UserInfo registerByEmail(LoginDataDTO loginDataDTO, String ipAddress) {
 
         //当前时间
         Date date = new Date();
@@ -143,10 +143,10 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         //用户输入的验证码
         String inputCode = loginDataDTO.getEmailCode();
 
-        LambdaQueryWrapper<SurveyUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SurveyUser::getEmail, email);
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-        if (surveyUser != null) {
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getEmail, email);
+        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        if (userInfo != null) {
             throw new ServiceException(ResultCode.USER_EXISTED);
         }
 
@@ -154,20 +154,20 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         email163Service.compareVerificationCode(inputCode, "CODE:CODE." + email);
         //给用户设置初始昵称
         String userName = "博士" + idGenerator.nextId();
-        SurveyUser surveyUserNew = new SurveyUser();
-        surveyUserNew.setId(userId);
-        surveyUserNew.setUserName(userName);
-        surveyUserNew.setAvatar("char_377_gdglow");
-        surveyUserNew.setIp(ipAddress);
-        surveyUserNew.setEmail(email);
-        surveyUserNew.setCreateTime(date);
-        surveyUserNew.setUpdateTime(date);
-        surveyUserNew.setStatus(1);
-        surveyUserNew.setDeleteFlag(false);
+        UserInfo userInfoNew = new UserInfo();
+        userInfoNew.setId(userId);
+        userInfoNew.setUserName(userName);
+        userInfoNew.setAvatar("char_377_gdglow");
+        userInfoNew.setIp(ipAddress);
+        userInfoNew.setEmail(email);
+        userInfoNew.setCreateTime(date);
+        userInfoNew.setUpdateTime(date);
+        userInfoNew.setStatus(1);
+        userInfoNew.setDeleteFlag(false);
 
-        surveyUserMapper.insert(surveyUserNew);
+        surveyUserMapper.insert(userInfoNew);
 
-        return surveyUserNew;
+        return userInfoNew;
     }
 
     @Override
@@ -181,25 +181,25 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         }
 
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);
-        SurveyUser surveyUser = null;
+        UserInfo userInfo = null;
 
         if ("email".equals(accountType)) {
-            surveyUser = loginByEmail(loginDataDTO, ipAddress);
+            userInfo = loginByEmail(loginDataDTO, ipAddress);
         }
 
         if ("password".equals(accountType)) {
-            surveyUser = loginByPassword1(loginDataDTO, ipAddress);
+            userInfo = loginByPassword1(loginDataDTO, ipAddress);
         }
 
         if ("hgToken".equals(accountType)) {
-            surveyUser = loginByHGToken(loginDataDTO, ipAddress);
+            userInfo = loginByHGToken(loginDataDTO, ipAddress);
         }
 
-        if (surveyUser == null) {
+        if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_SIGN_IN_ERROR);
         }
 
-        String token = tokenGenerator(surveyUser);
+        String token = tokenGenerator(userInfo);
 
         HashMap<String, Object> result = new HashMap<>();
         result.put("token", token);
@@ -207,7 +207,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         return result;
     }
 
-    private SurveyUser loginByEmail(LoginDataDTO loginDataDTO, String ipAddress) {
+    private UserInfo loginByEmail(LoginDataDTO loginDataDTO, String ipAddress) {
         String email = loginDataDTO.getEmail().trim();
         //用户输入的邮件验证码
         String inputEmailCode = loginDataDTO.getEmailCode().trim();
@@ -219,24 +219,24 @@ public class SurveyUserServiceImpl implements SurveyUserService {
 
 
         //设置查询构造器条件
-        LambdaQueryWrapper<SurveyUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SurveyUser::getEmail, email);
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getEmail, email);
 
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
         //查询用户是否存在
-        if (surveyUser == null) {
+        if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
         //存在直接返回
-        return surveyUser;
+        return userInfo;
 
     }
 
-    private SurveyUser loginByHGToken(LoginDataDTO loginDataDTO, String ipAddress) {
+    private UserInfo loginByHGToken(LoginDataDTO loginDataDTO, String ipAddress) {
         Logger.info("用户使用token登录");
         String hgToken = loginDataDTO.getHgToken();
         //获取默认的方舟绑定信息和方舟绑定信息列表
-        AKPlayerBindingListVO akPlayerBindingListVO = sklandService.getPlayerBindings(hgToken);
+        AKPlayerBindingListVO akPlayerBindingListVO = hypergryphService.getPlayerBindingsByHGToken(hgToken);
         //默认的方舟绑定信息
         PlayerBinding playerBinding = akPlayerBindingListVO.getPlayerBinding();
         //默认的方舟uid
@@ -257,11 +257,11 @@ public class SurveyUserServiceImpl implements SurveyUserService {
                 }
             }
             //根据这最后一个信息进行查询
-            LambdaQueryWrapper<SurveyUser> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userLambdaQueryWrapper.eq(SurveyUser::getId, akPlayerBindInfoV2.getUid());
-            SurveyUser surveyUser = surveyUserMapper.selectOne(userLambdaQueryWrapper);
-            if (surveyUser != null) {
-                return surveyUser;
+            LambdaQueryWrapper<UserInfo> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userLambdaQueryWrapper.eq(UserInfo::getId, akPlayerBindInfoV2.getUid());
+            UserInfo userInfo = surveyUserMapper.selectOne(userLambdaQueryWrapper);
+            if (userInfo != null) {
+                return userInfo;
             }
         }
 
@@ -278,7 +278,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
 
         String userName = nickName + "ID" + userId;
 
-        SurveyUser surveyUserNew = SurveyUser.builder()
+        UserInfo userInfoNew = UserInfo.builder()
                 .id(userId)
                 .ip(ipAddress)
                 .createTime(date)
@@ -288,33 +288,33 @@ public class SurveyUserServiceImpl implements SurveyUserService {
                 .avatar("char_377_gdglow")
                 .build();
 
-        LambdaQueryWrapper<SurveyUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(SurveyUser::getUserName, userName);
-        List<SurveyUser> surveyUsers = surveyUserMapper.selectList(lambdaQueryWrapper);
-        if (surveyUsers.isEmpty()) {
-            surveyUserNew.setUserName(userName);
+        LambdaQueryWrapper<UserInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(UserInfo::getUserName, userName);
+        List<UserInfo> userInfos = surveyUserMapper.selectList(lambdaQueryWrapper);
+        if (userInfos.isEmpty()) {
+            userInfoNew.setUserName(userName);
         }
 
 
-        surveyUserMapper.insert(surveyUserNew);
+        surveyUserMapper.insert(userInfoNew);
 
-        return surveyUserNew;
+        return userInfoNew;
     }
 
-    private SurveyUser loginByPassword1(LoginDataDTO loginDataDTO, String ipAddress) {
+    private UserInfo loginByPassword1(LoginDataDTO loginDataDTO, String ipAddress) {
         Logger.info("账号密码方式登录：");
         String userName = loginDataDTO.getUserName().trim();
         String passWord = loginDataDTO.getPassword().trim();
 
 
         //判断用户名/邮箱登录
-        LambdaQueryWrapper<SurveyUser> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(SurveyUser::getUserName, userName)
+        LambdaQueryWrapper<UserInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(UserInfo::getUserName, userName)
                 .or()
-                .eq(SurveyUser::getEmail, userName);
-        SurveyUser surveyUser = surveyUserMapper.selectOne(lambdaQueryWrapper);
+                .eq(UserInfo::getEmail, userName);
+        UserInfo userInfo = surveyUserMapper.selectOne(lambdaQueryWrapper);
 
-        if (surveyUser == null) {
+        if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
 
@@ -322,14 +322,14 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         // 密码加密
         passWord = AES.encrypt(passWord, ConfigUtil.Secret);
         // 获取用户密码
-        String encryptedPasswordFromDB = surveyUser.getPassword();
+        String encryptedPasswordFromDB = userInfo.getPassword();
         // 对比加密后的密码是否与数据库中存储的加密密码相等
         if (!encryptedPasswordFromDB.equals(passWord)) {
             throw new ServiceException(ResultCode.USER_PASSWORD_ERROR);
         }
 
 
-        return surveyUser;
+        return userInfo;
 
     }
 
@@ -357,9 +357,9 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         //用户初始状态
         int status = 1;
 
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         //组装新用户信息
-        SurveyUser surveyUserNew = SurveyUser.builder()
+        UserInfo userInfoNew = UserInfo.builder()
                 .id(userId)
                 .ip(ipAddress)
                 .createTime(date)
@@ -372,10 +372,10 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             checkUserName(userName);
             //查询是否存在同名用户
             queryWrapper.eq("user_name", userName);
-            SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-            if (surveyUser != null) throw new ServiceException(ResultCode.USER_EXISTED);
+            UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+            if (userInfo != null) throw new ServiceException(ResultCode.USER_EXISTED);
             //给用户信息写入用户名
-            surveyUserNew.setUserName(userName);
+            userInfoNew.setUserName(userName);
             //检查密码格式
             checkPassWord(passWord);
             //密码加密
@@ -383,7 +383,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             // 更新用户状态为有密码
             status = UserStatus.addPermission(status, UserStatusCode.HAS_PASSWORD);
             //给用户信息写入密码
-            surveyUserNew.setPassword(passWord);
+            userInfoNew.setPassword(passWord);
             Logger.info("账号密码注册——用户名：" + userName + "密码：" + passWord);
 
         }
@@ -391,8 +391,8 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         if ("emailCode".equals(accountType)) {
             //查看邮箱是否注册过
             queryWrapper.eq("email", email);
-            SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-            if (surveyUser != null) throw new ServiceException(ResultCode.USER_EXISTED);
+            UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+            if (userInfo != null) throw new ServiceException(ResultCode.USER_EXISTED);
             //用户输入的验证码
             String inputCode = loginDataDTO.getEmailCode();
             //检查验证码
@@ -401,26 +401,26 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             status = UserStatus.addPermission(status, UserStatusCode.HAS_EMAIL);
             //给用户设置初始昵称
             userName = "博士" + idGenerator.nextId();
-            surveyUserNew.setUserName(userName);
-            surveyUserNew.setEmail(email);
+            userInfoNew.setUserName(userName);
+            userInfoNew.setEmail(email);
             Logger.info("账号密码注册——邮箱：" + email + "验证码：" + inputCode);
         }
 
         //给用户写入状态
-        surveyUserNew.setStatus(status);
-        surveyUserNew.setDeleteFlag(false);
-        surveyUserNew.setAvatar("char_377_gdglow");
+        userInfoNew.setStatus(status);
+        userInfoNew.setDeleteFlag(false);
+        userInfoNew.setAvatar("char_377_gdglow");
 
-        surveyUserMapper.insert(surveyUserNew);
+        surveyUserMapper.insert(userInfoNew);
 
 
-        String token = tokenGenerator(surveyUserNew);
+        String token = tokenGenerator(userInfoNew);
 
         UserInfoVO response = new UserInfoVO();  //返回的用户信息实体类  包括凭证，用户名，用户状态等
-        response.setUserName(surveyUserNew.getUserName());
+        response.setUserName(userInfoNew.getUserName());
         response.setToken(token);
-        response.setStatus(surveyUserNew.getStatus());
-        response.setEmail(surveyUserNew.getEmail());
+        response.setStatus(userInfoNew.getStatus());
+        response.setEmail(userInfoNew.getEmail());
         response.setAvatar("char_377_gdglow");
 
         return response;
@@ -435,25 +435,25 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             throw new ServiceException(ResultCode.PARAM_TYPE_BIND_ERROR);
         }
 
-        SurveyUser surveyUser = null;
+        UserInfo userInfo = null;
 
         if ("passWord".equals(accountType)) {
-            surveyUser = loginByPassWordOld(loginDataDto);
+            userInfo = loginByPassWordOld(loginDataDto);
         }
 
         if ("emailCode".equals(accountType)) {
-            surveyUser = loginByEmailCode(loginDataDto);
+            userInfo = loginByEmailCode(loginDataDto);
         }
 
-        if (surveyUser == null) {
+        if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
 
 
-        String token = tokenGenerator(surveyUser);
+        String token = tokenGenerator(userInfo);
 
         //用户信息,包括凭证，用户名，用户状态等
-        UserInfoVO response = getUserDataVO(surveyUser);
+        UserInfoVO response = getUserDataVO(userInfo);
         response.setToken(token);
         return response;
     }
@@ -466,22 +466,22 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         }
 
 
-        SurveyUser surveyUser = getSurveyUserByToken(token);
+        UserInfo userInfo = getSurveyUserByToken(token);
         //用户信息 包括凭证，用户名，用户状态等
 
-        UserInfoVO userInfoVO = getUserDataVO(surveyUser);
+        UserInfoVO userInfoVO = getUserDataVO(userInfo);
         userInfoVO.setToken(token);
         return userInfoVO;
     }
 
 
-    public SurveyUser loginByPassWordOld(LoginDataDTO loginDataDto) {
+    public UserInfo loginByPassWordOld(LoginDataDTO loginDataDto) {
         String userName = loginDataDto.getUserName().trim();
         String passWord = loginDataDto.getPassword().trim();
 
         passWord = AES.encrypt(passWord, ConfigUtil.Secret); //密码加密
 
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
 
         //判断用户名/邮箱登录
         if (userName.contains("@")) {
@@ -491,17 +491,17 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         }
 
         //查询用户信息是否存在
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        if (userInfo == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
 
         //用户是否设置了密码
-        if (UserStatus.hasPermission(surveyUser.getStatus(), UserStatusCode.HAS_PASSWORD)) {
+        if (UserStatus.hasPermission(userInfo.getStatus(), UserStatusCode.HAS_PASSWORD)) {
             //对比密码是否正确
-            if (!surveyUser.getPassword().equals(passWord)) {
+            if (!userInfo.getPassword().equals(passWord)) {
                 throw new ServiceException(ResultCode.USER_PASSWORD_OR_ACCOUNT_ERROR);
             }
         }
-        return surveyUser;
+        return userInfo;
     }
 
     /**
@@ -510,22 +510,22 @@ public class SurveyUserServiceImpl implements SurveyUserService {
      * @param loginDataDto 前端传来的邮箱和验证码
      * @return 用户数据
      */
-    private SurveyUser loginByEmailCode(LoginDataDTO loginDataDto) {
+    private UserInfo loginByEmailCode(LoginDataDTO loginDataDto) {
         String email = loginDataDto.getEmail().trim();
         String emailCode = loginDataDto.getEmailCode().trim();
 
         //设置查询构造器条件
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", email);
 
         //查询用户是否存在
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper);
-        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        if (userInfo == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
 
         //对比输入的验证码和redis中的验证码
         email163Service.compareVerificationCode(emailCode, "CODE:CODE." + email);
 
-        return surveyUser;
+        return userInfo;
     }
 
 
@@ -553,11 +553,11 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     public void sendEmailForRegister(EmailRequestDTO emailRequestDto) {
         String emailAddress = emailRequestDto.getEmail().trim();
         //设置查询构造器条件
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", emailAddress);
         //查询是否有绑定这个邮箱的用户
-        SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
-        if (surveyUserByEmail != null) throw new ServiceException(ResultCode.USER_EXISTED);
+        UserInfo userInfoByEmail = surveyUserMapper.selectOne(queryWrapper);
+        if (userInfoByEmail != null) throw new ServiceException(ResultCode.USER_EXISTED);
 
         Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流注册验证码";
@@ -578,11 +578,11 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     public void sendEmailForLogin(EmailRequestDTO emailRequestDto) {
         String emailAddress = emailRequestDto.getEmail().trim();  //收件人地址
         //设置查询构造器条件
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", emailAddress);
         //查询是否有绑定这个邮箱的用户
-        SurveyUser surveyUserByEmail = surveyUserMapper.selectOne(queryWrapper);
-        if (surveyUserByEmail == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        UserInfo userInfoByEmail = surveyUserMapper.selectOne(queryWrapper);
+        if (userInfoByEmail == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流登录验证码";
         String text = "您本次登录验证码：" + code + ",验证码有效时间5分钟";
@@ -622,22 +622,22 @@ public class SurveyUserServiceImpl implements SurveyUserService {
 
         String property = updateUserDataDto.getProperty();
         String token = updateUserDataDto.getToken();
-        SurveyUser surveyUserByToken = getSurveyUserByToken(token);
+        UserInfo userInfoByToken = getSurveyUserByToken(token);
 
         if ("email".equals(property)) {
-            return updateOrBindEmail(surveyUserByToken, updateUserDataDto);
+            return updateOrBindEmail(userInfoByToken, updateUserDataDto);
         }
 
         if ("passWord".equals(property)) {
-            return updatePassWord(surveyUserByToken, updateUserDataDto);
+            return updatePassWord(userInfoByToken, updateUserDataDto);
         }
 
         if ("userName".equals(property)) {
-            return updateUserName(surveyUserByToken, updateUserDataDto);
+            return updateUserName(userInfoByToken, updateUserDataDto);
         }
 
         if ("avatar".equals(property)) {
-            return updateUserAvatar(surveyUserByToken, updateUserDataDto);
+            return updateUserAvatar(userInfoByToken, updateUserDataDto);
         }
 
         throw new ServiceException(ResultCode.PARAM_IS_INVALID);
@@ -647,36 +647,36 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     /**
      * 更新或绑定邮箱
      *
-     * @param surveyUserByToken 用户信息
+     * @param userInfoByToken 用户信息
      * @param updateUserDataDto 用户修改的信息
      * @return 成功信息
      */
-    private UserInfoVO updateOrBindEmail(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
+    private UserInfoVO updateOrBindEmail(UserInfo userInfoByToken, UpdateUserDataDTO updateUserDataDto) {
         String email = updateUserDataDto.getEmail().trim();
         String emailCode = updateUserDataDto.getEmailCode().trim();
 
         //对比用户输入的验证码和后台的验证码
         email163Service.compareVerificationCode(emailCode, "CODE:CODE." + email);
         //设置用户邮箱
-        surveyUserByToken.setEmail(email);
-        if (!UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
-            surveyUserByToken.setStatus(UserStatus.addPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL));
+        userInfoByToken.setEmail(email);
+        if (!UserStatus.hasPermission(userInfoByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
+            userInfoByToken.setStatus(UserStatus.addPermission(userInfoByToken.getStatus(), UserStatusCode.HAS_EMAIL));
         }
 
-        backupSurveyUser(surveyUserByToken);
+        backupSurveyUser(userInfoByToken);
         UserInfoVO response = new UserInfoVO();
-        response.setStatus(surveyUserByToken.getStatus());
+        response.setStatus(userInfoByToken.getStatus());
         return response;
     }
 
     /**
      * 更新密码
      *
-     * @param surveyUserByToken 用户信息
+     * @param userInfoByToken 用户信息
      * @param updateUserDataDto 用户修改的信息
      * @return 用户新信息
      */
-    private UserInfoVO updatePassWord(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
+    private UserInfoVO updatePassWord(UserInfo userInfoByToken, UpdateUserDataDTO updateUserDataDto) {
 
 
         String newPassWord = updateUserDataDto.getNewPassWord().trim(); //新密码
@@ -685,7 +685,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         //加密新密码
         newPassWord = AES.encrypt(newPassWord, ConfigUtil.Secret);
         //用户状态
-        Integer status = surveyUserByToken.getStatus();
+        Integer status = userInfoByToken.getStatus();
 
         if (UserStatus.hasPermission(status, UserStatusCode.HAS_PASSWORD)) {//替换旧密码
             //旧密码
@@ -693,9 +693,9 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             //加密旧密码
             oldPassWord = AES.encrypt(oldPassWord, ConfigUtil.Secret);
             //检查旧密码是否正确
-            if (surveyUserByToken.getPassword().equals(oldPassWord)) {
+            if (userInfoByToken.getPassword().equals(oldPassWord)) {
                 //更新旧密码为新密码
-                surveyUserByToken.setPassword(newPassWord);
+                userInfoByToken.setPassword(newPassWord);
             } else {
                 throw new ServiceException(ResultCode.USER_PASSWORD_ERROR);
             }
@@ -703,14 +703,14 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             //更新用户状态
             status = UserStatus.addPermission(status, UserStatusCode.HAS_PASSWORD);
             //想用户信息写入密码和状态
-            surveyUserByToken.setPassword(newPassWord);
-            surveyUserByToken.setStatus(status);
+            userInfoByToken.setPassword(newPassWord);
+            userInfoByToken.setStatus(status);
         }
 
-        backupSurveyUser(surveyUserByToken);
+        backupSurveyUser(userInfoByToken);
 
         UserInfoVO response = new UserInfoVO();
-        response.setStatus(surveyUserByToken.getStatus());
+        response.setStatus(userInfoByToken.getStatus());
 
         return response;
     }
@@ -718,84 +718,84 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     /**
      * 更新用户名
      *
-     * @param surveyUserByToken 用户信息
+     * @param userInfoByToken 用户信息
      * @param updateUserDataDto 用户修改的信息
      * @return 用户新信息
      */
-    private UserInfoVO updateUserName(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
+    private UserInfoVO updateUserName(UserInfo userInfoByToken, UpdateUserDataDTO updateUserDataDto) {
         String userName = updateUserDataDto.getUserName().trim();
         //检查用户名格式
         checkUserName(userName);
         //查询更新的用户名是否有同名的
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name", userName);
         if (surveyUserMapper.selectOne(queryWrapper) != null) throw new ServiceException(ResultCode.USER_EXISTED);
 
         //通过判断用户是否绑定了邮箱或设置了密码，用来区分v2版本注册的用户
-        if (UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_PASSWORD) ||
-                UserStatus.hasPermission(surveyUserByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
+        if (UserStatus.hasPermission(userInfoByToken.getStatus(), UserStatusCode.HAS_PASSWORD) ||
+                UserStatus.hasPermission(userInfoByToken.getStatus(), UserStatusCode.HAS_EMAIL)) {
             //用户信息写入新用户名
-            surveyUserByToken.setUserName(userName);
+            userInfoByToken.setUserName(userName);
             //备份用户信息
-            backupSurveyUser(surveyUserByToken);
+            backupSurveyUser(userInfoByToken);
         } else {
             throw new ServiceException(ResultCode.NOT_SET_PASSWORD_OR_BIND_EMAIL);
         }
 
         UserInfoVO response = new UserInfoVO();
-        response.setUserName(surveyUserByToken.getUserName());
+        response.setUserName(userInfoByToken.getUserName());
         return response;
     }
 
-    private UserInfoVO updateUserAvatar(SurveyUser surveyUserByToken, UpdateUserDataDTO updateUserDataDto) {
-        surveyUserByToken.setAvatar(updateUserDataDto.getAvatar());
+    private UserInfoVO updateUserAvatar(UserInfo userInfoByToken, UpdateUserDataDTO updateUserDataDto) {
+        userInfoByToken.setAvatar(updateUserDataDto.getAvatar());
         UserInfoVO response = new UserInfoVO();
-        response.setAvatar(surveyUserByToken.getAvatar());
-        backupSurveyUser(surveyUserByToken);
+        response.setAvatar(userInfoByToken.getAvatar());
+        backupSurveyUser(userInfoByToken);
         return response;
     }
 
 
     @Override
-    public SurveyUser getSurveyUserByToken(String token) {
+    public UserInfo getSurveyUserByToken(String token) {
         if (token == null || "undefined".equals(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
         Long yituliuId = decryptToken(token);
 
-        QueryWrapper<SurveyUser> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", yituliuId);
-        SurveyUser surveyUser = surveyUserMapper.selectOne(queryWrapper); //查询用户
+        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper); //查询用户
 
-        if (surveyUser == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        if (surveyUser.getStatus() < 0) throw new ServiceException(ResultCode.USER_FORBIDDEN);
+        if (userInfo == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        if (userInfo.getStatus() < 0) throw new ServiceException(ResultCode.USER_FORBIDDEN);
 
-        return surveyUser;
+        return userInfo;
     }
 
 
     @Override
-    public void backupSurveyUser(SurveyUser surveyUser) {
-        surveyUser.setUpdateTime(new Date());
-        surveyUserMapper.updateUserById(surveyUser);   //更新用户表
+    public void backupSurveyUser(UserInfo userInfo) {
+        userInfo.setUpdateTime(new Date());
+        surveyUserMapper.updateUserById(userInfo);   //更新用户表
 
-        Long id = surveyUser.getId();
-        ossService.upload(JsonMapper.toJSONString(surveyUser), "survey/user/info/" + id + ".json");
+        Long id = userInfo.getId();
+        ossService.upload(JsonMapper.toJSONString(userInfo), "survey/user/info/" + id + ".json");
     }
 
 
-    private UserInfoVO getUserDataVO(SurveyUser surveyUser) {
+    private UserInfoVO getUserDataVO(UserInfo userInfo) {
         UserInfoVO response = new UserInfoVO();
-//        response.setUid(surveyUser.getId());
-        response.setUserName(surveyUser.getUserName());
-        response.setStatus(surveyUser.getStatus());
-        response.setEmail(surveyUser.getEmail());
-        response.setAvatar(surveyUser.getAvatar());
+        response.setUid(userInfo.getId());
+        response.setUserName(userInfo.getUserName());
+        response.setStatus(userInfo.getStatus());
+        response.setEmail(userInfo.getEmail());
+        response.setAvatar(userInfo.getAvatar());
         response.setAkUid("0");
-        response.setAkNickName(surveyUser.getUserName());
+        response.setAkNickName(userInfo.getUserName());
 
         QueryWrapper<AkPlayerBindInfoV2> akPlayerBindInfoQueryWrapper = new QueryWrapper<>();
-        akPlayerBindInfoQueryWrapper.eq("uid", surveyUser.getId()).orderByDesc("last_active_time");
+        akPlayerBindInfoQueryWrapper.eq("uid", userInfo.getId()).orderByDesc("last_active_time");
         List<AkPlayerBindInfoV2> akPlayerBindInfoV2List = akPlayerBindInfoV2Mapper.selectList(akPlayerBindInfoQueryWrapper);
 
 
@@ -818,14 +818,14 @@ public class SurveyUserServiceImpl implements SurveyUserService {
     }
 
 
-    private String tokenGenerator(SurveyUser surveyUser) {
+    private String tokenGenerator(UserInfo userInfo) {
         //用户凭证  由用户部分信息+一图流id+时间戳 加密得到
         Map<String, Object> hashMap = new HashMap<>();
-        String userName = surveyUser.getUserName();
-        Long id = surveyUser.getId();
+        String userName = userInfo.getUserName();
+        Long id = userInfo.getId();
         hashMap.put("userName", userName.replace(".", "·"));
-        hashMap.put("id", surveyUser.getId());
-        hashMap.put("ip", surveyUser.getIp());
+        hashMap.put("id", userInfo.getId());
+        hashMap.put("ip", userInfo.getIp());
         String header = JsonMapper.toJSONString(hashMap);
         long timeStamp = System.currentTimeMillis();
         return AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);

@@ -15,7 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName
-public class SurveyUser {
+public class UserInfo {
     @TableId
     private Long id;   //唯一id （自增
     private String userName;  //用户名称

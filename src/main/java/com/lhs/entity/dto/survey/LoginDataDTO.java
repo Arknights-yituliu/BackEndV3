@@ -11,6 +11,7 @@ public class LoginDataDTO {
     private String password;//密码
     private String emailCode; //邮箱验证码
     private String verificationCode; //邮箱验证码
+    private String token;
     private String hgToken;
     private String sklandCred;
 }

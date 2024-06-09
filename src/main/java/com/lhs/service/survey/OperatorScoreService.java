@@ -2,7 +2,7 @@ package com.lhs.service.survey;
 
 import com.lhs.entity.po.survey.OperatorScore;
 import com.lhs.entity.po.survey.OperatorScoreStatistics;
-import com.lhs.entity.po.survey.SurveyUser;
+import com.lhs.entity.po.survey.UserInfo;
 import com.lhs.mapper.survey.OperatorScoreMapper;
 import com.lhs.entity.vo.survey.OperatorScoreVO;
 import com.lhs.entity.vo.survey.OperatorScoreStatisticsVO;
@@ -43,15 +43,15 @@ public class OperatorScoreService {
 //    @TakeCount(name = "上传评分")
     public HashMap<Object, Object> uploadScoreForm(String token, List<OperatorScore> operatorScoreList) {
 
-        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
-        long uid = surveyUser.getId();
-        String tableName = "survey_score_" + surveyUserService.getTableIndex(surveyUser.getId());  //拿到这个用户的干员练度数据存在了哪个表
+        UserInfo userInfo = surveyUserService.getSurveyUserByToken(token);
+        long uid = userInfo.getId();
+        String tableName = "survey_score_" + surveyUserService.getTableIndex(userInfo.getId());  //拿到这个用户的干员练度数据存在了哪个表
 
         int affectedRows = 0;
 
         //用户之前上传的数据
         List<OperatorScore> operatorScores
-                = operatorScoreMapper.selectSurveyScoreByUid(tableName, surveyUser.getId());
+                = operatorScoreMapper.selectSurveyScoreByUid(tableName, userInfo.getId());
 
         //用户之前上传的数据转为map方便对比
         Map<String, OperatorScore> oldDataCollectById = operatorScores.stream()
@@ -82,8 +82,8 @@ public class OperatorScoreService {
 
         if (insertList.size() > 0) operatorScoreMapper.insertBatchSurveyScore(tableName, insertList);  //批量插入
         Date date = new Date();
-        surveyUser.setUpdateTime(date);   //更新用户最后一次上传时间
-        surveyUserService.backupSurveyUser(surveyUser);
+        userInfo.setUpdateTime(date);   //更新用户最后一次上传时间
+        surveyUserService.backupSurveyUser(userInfo);
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 

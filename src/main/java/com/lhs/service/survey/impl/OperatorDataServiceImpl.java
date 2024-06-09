@@ -5,7 +5,6 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
@@ -194,10 +193,9 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         newAkPlayerBindInfo.setDefaultFlag(true);
         newAkPlayerBindInfo.setChannelName(channelName);
         newAkPlayerBindInfo.setChannelMasterId(channelMasterId);
-
         userBindPlayerUid(newAkPlayerBindInfo);
-
         userInfo.setAkUid(akUid);
+        System.out.println(newAkPlayerBindInfo);
 
         return saveOperatorData(userInfo, operatorDataList);
     }
@@ -232,6 +230,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                 break;
             }
         }
+
 
 
         if (isBindingAkAccount) {
@@ -506,12 +505,12 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     @Override
     public void exportSurveyOperatorForm(HttpServletResponse response, String token) {
 
-        SurveyUser surveyUser = surveyUserService.getSurveyUserByToken(token);
+        UserInfo userInfo = surveyUserService.getSurveyUserByToken(token);
         //拿到这个用户的干员练度数据存在了哪个表
 
         //用户之前上传的数据
         QueryWrapper<OperatorData> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid", surveyUser.getId());
+        queryWrapper.eq("uid", userInfo.getId());
         List<OperatorData> operatorDataList =
                 operatorDataMapper.selectList(queryWrapper);
 
@@ -531,7 +530,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             listVo.add(operatorExportExcelVo);
         }
 
-        String userName = surveyUser.getUserName();
+        String userName = userInfo.getUserName();
 
         ExcelUtil.exportExcel(response, listVo, OperatorExportExcelVO.class, userName);
     }

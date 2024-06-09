@@ -6,7 +6,7 @@ import com.lhs.common.util.Result;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.survey.OperatorPlan;
 import com.lhs.entity.po.survey.OperatorTable;
-import com.lhs.entity.po.survey.SurveyUser;
+import com.lhs.entity.po.survey.UserInfo;
 import com.lhs.mapper.survey.OperatorTableMapper;
 import com.lhs.service.util.OSSService;
 import com.lhs.entity.vo.survey.OperatorPlanVO;
@@ -32,8 +32,8 @@ public class OperatorPlanService {
 
     public Result<Object> savePlan(OperatorPlanVO operatorPlanVo){
 
-        SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(operatorPlanVo.getToken());
-        String userName = surveyUserByToken.getUserName();
+        UserInfo userInfoByToken = surveyUserService.getSurveyUserByToken(operatorPlanVo.getToken());
+        String userName = userInfoByToken.getUserName();
 
         List<OperatorPlan> operatorPlanList = operatorPlanVo.getOperatorPlanList();
 
@@ -60,8 +60,8 @@ public class OperatorPlanService {
 
     public Result<List<OperatorPlan>> getPlan(OperatorPlanVO operatorPlanVo){
         String token = operatorPlanVo.getToken();
-        SurveyUser surveyUserByToken = surveyUserService.getSurveyUserByToken(token);
-        String userName = surveyUserByToken.getUserName();
+        UserInfo userInfoByToken = surveyUserService.getSurveyUserByToken(token);
+        String userName = userInfoByToken.getUserName();
         String read = ossService.read("survey/operator/plan/" + userName + ".json");
         List<OperatorPlan> operatorPlans = JsonMapper.parseJSONArray(read, new TypeReference<List<OperatorPlan>>() {
         });

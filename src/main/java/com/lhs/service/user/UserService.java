@@ -1,15 +1,15 @@
-package com.lhs.service.survey;
+package com.lhs.service.user;
 
 import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
-import com.lhs.entity.po.survey.SurveyUser;
+import com.lhs.entity.po.survey.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 
-public interface SurveyUserV2Service {
+public interface UserService {
 
     /**
      * 调查站登录
@@ -40,12 +40,14 @@ public interface SurveyUserV2Service {
      */
     UserInfoVO getUserInfo(String token);
 
-    SurveyUser getSurveyUserByToken(String token);
+    UserInfo getSurveyUserByToken(String token);
 
 
     UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto);
 
-    void backupSurveyUser(SurveyUser surveyUser);
+    void backupSurveyUser(UserInfo userInfo);
 
-    void retrieveAccount(LoginDataDTO loginDataDTO);
+    HashMap<String, String> retrieveAccount(LoginDataDTO loginDataDTO);
+
+    HashMap<String, String> resetAccount(LoginDataDTO loginDataDTO);
 }

@@ -4,7 +4,7 @@ package com.lhs.service.survey;
 import com.lhs.entity.dto.survey.EmailRequestDTO;
 import com.lhs.entity.dto.survey.LoginDataDTO;
 import com.lhs.entity.dto.survey.UpdateUserDataDTO;
-import com.lhs.entity.po.survey.SurveyUser;
+import com.lhs.entity.po.survey.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -50,15 +50,15 @@ public interface SurveyUserService {
      * @param token 用户凭证
      * @return 用户信息
      */
-    SurveyUser getSurveyUserByToken(String token);
+    UserInfo getSurveyUserByToken(String token);
 
 
 
     /**
      * 备份更新用户信息
-     * @param surveyUser 用户信息
+     * @param userInfo 用户信息
      */
-    void backupSurveyUser(SurveyUser surveyUser);
+    void backupSurveyUser(UserInfo userInfo);
 
     /**
      * 拿到表名序号

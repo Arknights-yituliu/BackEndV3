@@ -8,6 +8,7 @@ import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.survey.OperatorPlan;
 import com.lhs.entity.po.survey.OperatorData;
 import com.lhs.entity.po.survey.OperatorDataVo;
+import com.lhs.entity.vo.survey.AKPlayerBindingListVO;
 import com.lhs.service.survey.*;
 import com.lhs.entity.vo.survey.OperatorPlanVO;
 
@@ -33,13 +34,20 @@ public class SurveyOperatorController {
 
     private final ArknightsGameDataService arknightsGameDataService;
 
+    private final HypergryphService hypergryphService;
+
     private final OperatorStatisticsService operatorStatisticsService;
 
-    public SurveyOperatorController(OperatorDataService operatorDataService, OperatorPlanService operatorPlanService, ArknightsGameDataService arknightsGameDataService, OperatorStatisticsService operatorStatisticsService) {
+    public SurveyOperatorController(OperatorDataService operatorDataService,
+                                    OperatorPlanService operatorPlanService,
+                                    ArknightsGameDataService arknightsGameDataService,
+                                    OperatorStatisticsService operatorStatisticsService,
+                                    HypergryphService hypergryphService) {
         this.operatorDataService = operatorDataService;
         this.operatorPlanService = operatorPlanService;
         this.arknightsGameDataService = arknightsGameDataService;
         this.operatorStatisticsService = operatorStatisticsService;
+        this.hypergryphService = hypergryphService;
     }
 
     @Operation(summary ="上传干员练度调查表")
@@ -49,6 +57,12 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
+    @Operation(summary ="通过鹰角网络通行证获取玩家绑定数据")
+    @PostMapping("/hg/player-binding")
+    public Result<AKPlayerBindingListVO> getPlayerBindingsByHgToken(@RequestBody Map<String,String> params) {
+        String token = params.get("token");
+        return Result.success(hypergryphService.getPlayerBindingsByHGToken(token));
+    }
 
     @Operation(summary ="通过森空岛导入干员练度V2")
     @PostMapping("/operator/import/skland/v2")
@@ -94,13 +108,41 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @Operation(summary ="导出干员练度调查表")
     @GetMapping("/operator/export")
     public void exportSurveyCharacterForm(HttpServletResponse response, @RequestParam String token) {
         operatorDataService.exportSurveyOperatorForm(response,token);
     }
-
-
 
     @Operation(summary ="上传训练干员计划")
     @PostMapping("/operator/plan/save")
