@@ -1,4 +1,4 @@
-package com.lhs.service.dev.impl;
+package com.lhs.service.user.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -9,7 +9,7 @@ import com.lhs.entity.po.dev.PageViewStatistics;
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.mapper.dev.PageVisitsMapper;
-import com.lhs.service.dev.VisitsService;
+import com.lhs.service.user.VisitsService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -64,7 +64,7 @@ public class VisitsServiceImpl implements VisitsService {
 
 
             if (yyyyMMddHH.equals(visitsTime)) {
-                Logger.info("当时小时的访问未结束，不保存");
+//                Logger.info("当时小时的访问未结束，不保存");
                 continue;
             }
 
@@ -94,7 +94,7 @@ public class VisitsServiceImpl implements VisitsService {
             pageViewStatistics.setPagePath(pagePath);
             pageViewStatistics.setCreateTime(todayDate);
             pageViewStatistics.setRedisKey(timeAndURL);
-            Logger.info(visitsTime + "访问" + pagePath + "共" + visitsCount + "次");
+//            Logger.info(visitsTime + "访问" + pagePath + "共" + visitsCount + "次");
             pageVisitsMapper.insert(pageViewStatistics);
         }
 

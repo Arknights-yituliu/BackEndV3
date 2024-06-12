@@ -1,4 +1,4 @@
-package com.lhs.service.dev;
+package com.lhs.service.user;
 
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;

@@ -22,7 +22,6 @@ public interface StoreService {
      * 获得当前未关闭的活动商店性价比
      * @return 活动商店性价比
      */
-    @RedisCacheable(key = "Item:StoreAct",timeout=86400)
     List<ActivityStoreDataVO> getActivityStoreData();
 
     /**

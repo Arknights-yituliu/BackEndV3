@@ -144,7 +144,7 @@
     </dependencies>
 
     <build>
-        <finalName>BackEnd.V3.6.9</finalName>
+        <finalName>BackEnd</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

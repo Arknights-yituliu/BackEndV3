@@ -39,7 +39,7 @@ public enum ResultCode {
 	USER_PASSWORD_OR_ACCOUNT_ERROR(20003, "账号不存在或密码错误"),
 	USER_BIND_UID(20004, "已经绑定uid了"),
 	USER_NOT_EXIST(20006, "用户不存在"),
-	USER_EXISTED(20007, "用户已存在"),
+	USER_IS_EXIST(20007, "用户已存在"),
 	USER_FORBIDDEN(20008, "账号已被禁用"),
 	USER_NOT_BIND_UID(20009, "未绑定uid"),
 	USER_NOT_BIND_EMAIL(20009, "未绑定邮箱"),

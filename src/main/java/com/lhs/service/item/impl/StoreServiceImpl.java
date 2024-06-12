@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -57,6 +58,8 @@ public class StoreServiceImpl implements StoreService {
     private final PackItemMapper packItemMapper;
 
 
+
+
     public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
                             HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
                             OSSService ossService, StorePermMapperService storePermMapperService,
@@ -76,6 +79,7 @@ public class StoreServiceImpl implements StoreService {
         this.packContentMapperService = packContentMapperService;
         this.idGenerator = new IdGenerator(1L);
         this.packItemMapper = packItemMapper;
+
     }
 
     /**
@@ -144,9 +148,10 @@ public class StoreServiceImpl implements StoreService {
         String message = "活动商店已更新";
 
         if (developerLevel) {
-            redisTemplate.delete("StoreAct");
-            message = "活动商店已更新，并清空缓存";
+            List<ActivityStoreDataVO> activityStoreDataVOList = getActivityStoreDataNoCache();
+            redisTemplate.opsForValue().set("Item:StoreAct",activityStoreDataVOList,6, TimeUnit.HOURS);
 
+            message = "活动商店已更新，并清空缓存";
         }
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
@@ -183,8 +188,23 @@ public class StoreServiceImpl implements StoreService {
         return "https://oss.yituliu.cn/image/store/" + fileName;
     }
 
+
+    public List<ActivityStoreDataVO> getActivityStoreDataNoCache() {
+        QueryWrapper<ActivityStoreData> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ge("end_time", new Date());
+        List<ActivityStoreData> activityStoreData = storeActMapper.selectList(queryWrapper);
+        List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
+        activityStoreData.forEach(e -> {
+            String result = e.getResult();
+            ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
+            activityStoreDataVo.setImageLink(e.getImageLink());
+            activityStoreDataVOList.add(activityStoreDataVo);
+        });
+        return activityStoreDataVOList;
+    }
+
     @Override
-    @RedisCacheable(key = "Item:StoreAct", timeout = 86400)
+    @RedisCacheable(key = "Item:StoreAct")
     public List<ActivityStoreDataVO> getActivityStoreData() {
         QueryWrapper<ActivityStoreData> queryWrapper = new QueryWrapper<>();
         queryWrapper.ge("end_time", new Date());

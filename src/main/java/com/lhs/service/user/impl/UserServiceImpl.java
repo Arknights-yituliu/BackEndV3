@@ -118,7 +118,7 @@ public class UserServiceImpl implements UserService {
         queryWrapper.eq(UserInfo::getUserName, userName);
         UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
         if (userInfo != null) {
-            throw new ServiceException(ResultCode.USER_EXISTED);
+            throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
         checkUserName(userName);
@@ -171,7 +171,7 @@ public class UserServiceImpl implements UserService {
         queryWrapper.eq(UserInfo::getEmail, email);
         UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
         if (userInfo != null) {
-            throw new ServiceException(ResultCode.USER_EXISTED);
+            throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
         //检查验证码
@@ -248,9 +248,6 @@ public class UserServiceImpl implements UserService {
 
         //检查验证码
         email163Service.compareVerificationCode(verificationCode, "CODE:CODE." + email);
-
-
-
 
         //设置查询构造器条件
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -380,13 +377,13 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserInfoVO getUserInfo(String token) {
+    public UserInfoVO getUserInfoByToken(String token) {
 
         if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 
-        UserInfo userInfo = getSurveyUserByToken(token);
+        UserInfo userInfo = getDBUserInfoByToken(token);
         //用户信息 包括凭证，用户名，用户状态等
         UserInfoVO userInfoVO = getUserDataVO(userInfo);
         userInfoVO.setToken(token);
@@ -395,7 +392,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserInfo getSurveyUserByToken(String token) {
+    public UserInfo getDBUserInfoByToken(String token) {
         if (token == null || "undefined".equals(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
@@ -416,15 +413,15 @@ public class UserServiceImpl implements UserService {
         String mailUsage = emailRequestDto.getMailUsage();
         //注册
         if ("register".equals(mailUsage)) {
-            sendVerificationCodeByNotExistEmail(emailRequestDto);
+            sendVerificationCodeIsNotExistEmail(emailRequestDto);
         }
         //登录
         if ("login".equals(mailUsage)) {
-            sendVerificationCodeByExistEmail(emailRequestDto);
+            sendVerificationCodeIsExistEmail(emailRequestDto);
         }
         //修改邮箱
         if ("updateEmail".equals(mailUsage)) {
-            sendVerificationCodeByToken(emailRequestDto);
+            sendVerificationCodeIsNotExistEmail(emailRequestDto);
         }
     }
 
@@ -434,7 +431,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param emailRequestDto 邮件信息
      */
-    private void sendVerificationCodeByNotExistEmail(EmailRequestDTO emailRequestDto) {
+    private void sendVerificationCodeIsNotExistEmail(EmailRequestDTO emailRequestDto) {
         String emailAddress = emailRequestDto.getEmail();
         //设置查询构造器条件
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
@@ -442,8 +439,9 @@ public class UserServiceImpl implements UserService {
         //查询是否有绑定这个邮箱的用户
         UserInfo userInfoByEmail = surveyUserMapper.selectOne(queryWrapper);
 
+        System.out.println(emailAddress);
         if (userInfoByEmail != null) {
-            throw new ServiceException(ResultCode.USER_EXISTED);
+            throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
         Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
@@ -463,7 +461,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param emailRequestDto 前端输入的收件人地址
      */
-    private void sendVerificationCodeByExistEmail(EmailRequestDTO emailRequestDto) {
+    private void sendVerificationCodeIsExistEmail(EmailRequestDTO emailRequestDto) {
         String emailAddress = emailRequestDto.getEmail();  //收件人地址
         //设置查询构造器条件
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
@@ -494,7 +492,7 @@ public class UserServiceImpl implements UserService {
         String emailAddress = emailRequestDto.getEmail();
         String token = emailRequestDto.getToken();  //用户凭证
         //变更邮箱
-        getSurveyUserByToken(token);
+        getDBUserInfoByToken(token);
 
         Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流邮箱变更验证码";
@@ -515,7 +513,7 @@ public class UserServiceImpl implements UserService {
 
         String property = updateUserDataDto.getProperty();
         String token = updateUserDataDto.getToken();
-        UserInfo userInfoByToken = getSurveyUserByToken(token);
+        UserInfo userInfoByToken = getDBUserInfoByToken(token);
 
         if ("email".equals(property)) {
             return updateOrBindEmail(userInfoByToken, updateUserDataDto);
@@ -576,7 +574,6 @@ public class UserServiceImpl implements UserService {
         newPassWord = AES.encrypt(newPassWord, ConfigUtil.Secret);
         //用户状态
         Integer status = userInfo.getStatus();
-
         if (userInfo.getPassword() != null && userInfo.getPassword().length() > 5) {//替换旧密码
             //旧密码
             String oldPassWord = updateUserDataDto.getOldPassWord();
@@ -617,7 +614,7 @@ public class UserServiceImpl implements UserService {
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name", userName);
         if (surveyUserMapper.selectOne(queryWrapper) != null) {
-            throw new ServiceException(ResultCode.USER_EXISTED);
+            throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
         //通过判断用户是否绑定了邮箱或设置了密码，用来区分v2版本注册的用户
@@ -691,12 +688,14 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
 
-        String password = loginDataDTO.getPassword();
-        if(!checkParamsValidity(password)){
+        String newPassword = loginDataDTO.getPassword();
+        if(!checkParamsValidity(newPassword)){
             throw new ServiceException(ResultCode.PASSWORD_IS_BLANK);
         }
-        checkPassWord(password);
-        userInfo.setPassword(password);
+
+        newPassword = AES.encrypt(newPassword,ConfigUtil.Secret);
+        checkPassWord(newPassword);
+        userInfo.setPassword(newPassword);
 
         surveyUserMapper.updateById(userInfo);
         String token = tokenGenerator(userInfo);
@@ -803,8 +802,8 @@ public class UserServiceImpl implements UserService {
                 ConfigUtil.Secret);
         redisTemplate.opsForValue().set(tmpToken, userInfo.getId().toString(), 10, TimeUnit.MINUTES);
         HashMap<String, String> result = new HashMap<>();
-        result.put("token",tmpToken);
-        result.put("name", userInfo.getUserName());
+        result.put("tmpToken",tmpToken);
+        result.put("userName", userInfo.getUserName());
         return result;
     }
 

@@ -53,7 +53,7 @@ public class SurveyUserController {
     @GetMapping("/user/info")
     public Result<UserInfoVO> getUserInfo(@RequestParam String token) {
 
-        UserInfoVO response = userService.getUserInfo(token);
+        UserInfoVO response = userService.getUserInfoByToken(token);
         return Result.success(response);
     }
 

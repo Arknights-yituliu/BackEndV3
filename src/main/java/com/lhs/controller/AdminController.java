@@ -10,7 +10,7 @@ import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.entity.vo.item.PackInfoVO;
 import com.lhs.entity.vo.item.ActivityStoreDataVO;
 import com.lhs.service.dev.AdminService;
-import com.lhs.service.dev.VisitsService;
+import com.lhs.service.user.VisitsService;
 import com.lhs.service.item.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,6 +37,11 @@ public class AdminController {
         this.visitsService = visitsService;
     }
 
+    @GetMapping("/")
+    public Result<String> startStatus() {
+
+        return Result.success("后端启动成功");
+    }
 
     @GetMapping("/visits/page")
     public Result<Object> updatePageVisits(@RequestParam String path) {

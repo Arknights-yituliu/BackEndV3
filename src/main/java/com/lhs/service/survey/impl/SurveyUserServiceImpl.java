@@ -106,7 +106,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         queryWrapper.eq(UserInfo::getUserName, userName);
         UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
         if (userInfo != null) {
-            throw new ServiceException(ResultCode.USER_EXISTED);
+            throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
         checkUserName(userName);
@@ -147,7 +147,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         queryWrapper.eq(UserInfo::getEmail, email);
         UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
         if (userInfo != null) {
-            throw new ServiceException(ResultCode.USER_EXISTED);
+            throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
         //检查验证码
@@ -373,7 +373,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             //查询是否存在同名用户
             queryWrapper.eq("user_name", userName);
             UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
-            if (userInfo != null) throw new ServiceException(ResultCode.USER_EXISTED);
+            if (userInfo != null) throw new ServiceException(ResultCode.USER_IS_EXIST);
             //给用户信息写入用户名
             userInfoNew.setUserName(userName);
             //检查密码格式
@@ -392,7 +392,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
             //查看邮箱是否注册过
             queryWrapper.eq("email", email);
             UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
-            if (userInfo != null) throw new ServiceException(ResultCode.USER_EXISTED);
+            if (userInfo != null) throw new ServiceException(ResultCode.USER_IS_EXIST);
             //用户输入的验证码
             String inputCode = loginDataDTO.getEmailCode();
             //检查验证码
@@ -557,7 +557,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         queryWrapper.eq("email", emailAddress);
         //查询是否有绑定这个邮箱的用户
         UserInfo userInfoByEmail = surveyUserMapper.selectOne(queryWrapper);
-        if (userInfoByEmail != null) throw new ServiceException(ResultCode.USER_EXISTED);
+        if (userInfoByEmail != null) throw new ServiceException(ResultCode.USER_IS_EXIST);
 
         Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流注册验证码";
@@ -729,7 +729,7 @@ public class SurveyUserServiceImpl implements SurveyUserService {
         //查询更新的用户名是否有同名的
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name", userName);
-        if (surveyUserMapper.selectOne(queryWrapper) != null) throw new ServiceException(ResultCode.USER_EXISTED);
+        if (surveyUserMapper.selectOne(queryWrapper) != null) throw new ServiceException(ResultCode.USER_IS_EXIST);
 
         //通过判断用户是否绑定了邮箱或设置了密码，用来区分v2版本注册的用户
         if (UserStatus.hasPermission(userInfoByToken.getStatus(), UserStatusCode.HAS_PASSWORD) ||

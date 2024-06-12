@@ -38,16 +38,35 @@ public interface UserService {
      * @param token 用户登录后获得的凭证
      * @return 用户信息
      */
-    UserInfoVO getUserInfo(String token);
+    UserInfoVO getUserInfoByToken(String token);
 
-    UserInfo getSurveyUserByToken(String token);
+    /**
+     * 通过token获取用户数据内的信息
+     * @param token 用户登录后获得的凭证
+     * @return 用户信息
+     */
+    UserInfo getDBUserInfoByToken(String token);
 
-
+    /**
+     * 更新用户信息
+     * @param updateUserDataDto 要更新的内容
+     * @return 用户信息
+     */
     UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto);
 
     void backupSurveyUser(UserInfo userInfo);
 
+    /**
+     * 找回账号
+     * @param loginDataDTO  找回所需的内容
+     * @return 临时凭证
+     */
     HashMap<String, String> retrieveAccount(LoginDataDTO loginDataDTO);
 
+    /**
+     * 找回账号
+     * @param loginDataDTO  找回所需的内容
+     * @return 临时凭证
+     */
     HashMap<String, String> resetAccount(LoginDataDTO loginDataDTO);
 }
