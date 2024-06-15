@@ -56,21 +56,28 @@ public class AdminController {
     }
 
     @Operation(summary = "管理登录发送验证码")
-    @PostMapping("/email/code")
+    @PostMapping("/auth/email/verificationCode")
     public Result<Object> emailSendCode(@RequestBody LoginVo loginVo) {
         adminService.emailSendCode(loginVo);
         return Result.success("已发送验证码到您的邮箱,5分钟过期");
     }
 
     @Operation(summary = "管理者登录")
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public Result<Map<String,Object>> loginAndToken(@RequestBody LoginVo loginVo) {
 
         return Result.success(adminService.login(loginVo));
     }
 
+    @Operation(summary = "获取管理者信息")
+    @GetMapping("/auth/developer/info")
+    public Result<Map<String,Object>> getDeveloperInfo(@RequestParam("token") String token) {
+
+        return Result.success(adminService.getDeveloperInfo(token));
+    }
+
     @Operation(summary = "检查管理者登录状态")
-    @GetMapping("/login/checkToken")
+    @GetMapping("/auth/login/checkToken")
     public Result<Boolean> loginAndCheckToken(HttpServletRequest request) {
         String token = request.getHeader("token");
         if(token ==null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
@@ -88,7 +95,7 @@ public class AdminController {
     @Operation(summary = "上传礼包图片")
     @PostMapping("/admin/store/pack/upload/image")
     public Result<Object> uploadImage(@RequestParam("file") MultipartFile file,@RequestParam("id") Long id) {
-        storeService.uploadImage(file,id);
+        storeService.uploadPackImage(file,id);
         return Result.success();
     }
 
@@ -103,7 +110,7 @@ public class AdminController {
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
     public Result<List<PackInfoVO>> getPackList(){
-        return Result.success(storeService.listAllPackInfoData());
+        return Result.success(storeService.listAllPackInfo());
     }
 
     @Operation(summary = "更新礼包材料表")
@@ -126,14 +133,6 @@ public class AdminController {
         String message = storeService.clearPackCache();
         return Result.success(message);
     }
-
-    @Operation(summary = "更新材料礼包状态")
-    @GetMapping("/admin/store/pack/update/state")
-    public Result<Object> updatePackState(){
-
-        return Result.success(storeService.updatePackState());
-    }
-
 
 
     @PostMapping("/admin1/view/statistics")

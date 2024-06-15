@@ -50,6 +50,8 @@ public enum ResultCode {
 	USER_SIGN_IN_ERROR(20016, "登录失败，请向网站开发人员反馈"),
 	USER_PERMISSION_NO_ACCESS_OR_TIME_OUT(20017, "用户权限验证失败或操作超时"),
 	EMAIL_REGISTERED(20018,"邮箱已被注册"),
+
+	LOGIN_EXPIRATION(20019,"登录过期"),
 	
 	/* 业务错误：30001-39999 */
 	SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001, "业务逻辑出现问题"),

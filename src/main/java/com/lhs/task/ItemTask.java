@@ -74,9 +74,6 @@ public class ItemTask {
        stageDropUploadService.exportData();
     }
 
-    public void deleteArchivedPackContentData() {
-        storeService.deleteArchivedPackContentData();
-    }
 
     /**
      * 备份关卡计算结果

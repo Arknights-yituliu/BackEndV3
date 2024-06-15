@@ -1,6 +1,8 @@
 package com.lhs.service.item.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
@@ -17,6 +19,7 @@ import com.lhs.mapper.item.service.PackInfoMapperService;
 import com.lhs.mapper.item.service.StorePermMapperService;
 import com.lhs.service.item.ItemService;
 import com.lhs.service.item.StoreService;
+import com.lhs.service.util.COSService;
 import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -57,15 +60,13 @@ public class StoreServiceImpl implements StoreService {
 
     private final PackItemMapper packItemMapper;
 
-
-
-
+    private final COSService cosService;
     public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
                             HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
                             OSSService ossService, StorePermMapperService storePermMapperService,
                             PackInfoMapper packInfoMapper, PackInfoMapperService packInfoMapperService,
                             PackContentMapper packContentMapper, PackContentMapperService packContentMapperService,
-                            PackItemMapper packItemMapper) {
+                            PackItemMapper packItemMapper,COSService cosService) {
         this.storePermMapper = storePermMapper;
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
@@ -79,7 +80,7 @@ public class StoreServiceImpl implements StoreService {
         this.packContentMapperService = packContentMapperService;
         this.idGenerator = new IdGenerator(1L);
         this.packItemMapper = packItemMapper;
-
+        this.cosService = cosService;
     }
 
     /**
@@ -149,7 +150,7 @@ public class StoreServiceImpl implements StoreService {
 
         if (developerLevel) {
             List<ActivityStoreDataVO> activityStoreDataVOList = getActivityStoreDataNoCache();
-            redisTemplate.opsForValue().set("Item:StoreAct",activityStoreDataVOList,6, TimeUnit.HOURS);
+            redisTemplate.opsForValue().set("Item:StoreAct", activityStoreDataVOList, 6, TimeUnit.HOURS);
 
             message = "活动商店已更新，并清空缓存";
         }
@@ -221,7 +222,9 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public List<ActivityStoreDataVO> getActivityStoreHistoryData() {
-        List<ActivityStoreData> activityStoreData = storeActMapper.selectList(null);
+        LambdaQueryWrapper<ActivityStoreData> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(ActivityStoreData::getEndTime);
+        List<ActivityStoreData> activityStoreData = storeActMapper.selectList(queryWrapper);
         List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
         activityStoreData.forEach(activity -> {
             String result = activity.getResult();
@@ -271,27 +274,23 @@ public class StoreServiceImpl implements StoreService {
         PackInfo packInfo = new PackInfo();
         //将VO类的数据传递给po
         packInfo.copy(packInfoVO);
-        packInfo.setCreateTime(currentDate);
+        Long contentId = idGenerator.nextId();
+        packInfo.setContentId(contentId);
 
+        //旧礼包需要更新,通过id查询旧礼包的信息
+        LambdaQueryWrapper<PackInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PackInfo::getId, packInfoVO.getId());
+        PackInfo packInfoById = packInfoMapper.selectOne(queryWrapper);
 
         //判断是新礼包还是旧礼包
-        if (packInfoVO.getNewPack()) {
+        if (packInfoById == null) {
             //新礼包直接生成一个id保存到数据库
             packInfo.setId(idGenerator.nextId());
             packInfoMapper.insert(packInfo);
+            packInfo.setCreateTime(currentDate);
         } else {
-            //旧礼包需要更新,通过id查询旧礼包的信息
-            QueryWrapper<PackInfo> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("id", packInfo.getId());
-            PackInfo packInfoById = packInfoMapper.selectOne(queryWrapper);
-            if (packInfoById == null) {
-                //如果旧礼包不存在则直接新增
-                packInfo.setId(idGenerator.nextId());
-                packInfoMapper.insert(packInfo);
-            } else {
-                //如果旧礼包存在则根据id更新
-                packInfoMapper.updateById(packInfo);
-            }
+            //如果旧礼包存在则根据id更新
+            packInfoMapper.updateById(packInfo);
         }
 
         //礼包id
@@ -310,16 +309,13 @@ public class StoreServiceImpl implements StoreService {
         for (PackContentVO packContentVO : packContentVOList) {
             PackContent packContent = new PackContent();
             packContent.copy(packContentVO);
-            packContent.setPackId(packId);
-            packContent.setArchived(false);
             packContent.setId(idGenerator.nextId());
+            packContent.setContentId(contentId);
+            packContent.setPackId(packId);
             packContentList.add(packContent);
         }
 
-        UpdateWrapper<PackContent> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("pack_id", packId)
-                .set("archived", true);
-        packContentMapper.update(null, updateWrapper);
+
 
         //批量保存
         packContentMapperService.saveBatch(packContentList);
@@ -329,73 +325,40 @@ public class StoreServiceImpl implements StoreService {
         return getPackById(packId.toString());
     }
 
-    @Scheduled(cron = "0 0 0 1/7 * ?")
-    public void deleteArchivedPackContentData() {
-        QueryWrapper<PackContent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("archived", true);
-        int delete = packContentMapper.delete(queryWrapper);
-        Logger.info("删除了" + delete + "条礼包内容归档数据");
-    }
+
 
     @RedisCacheable(key = "Item:PackData")
     @Override
-    public List<PackInfoVO> listPackInfoBySaleStatus() {
-        QueryWrapper<PackInfo> packInfoQueryWrapper = new QueryWrapper<>();
-        packInfoQueryWrapper.ge("end", new Date());
+    public List<PackInfoVO> listPackInfoByEndTime() {
+        return listAllPackInfo();
+    }
 
-        List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
-        List<Long> packIdList = packInfoList.stream().map(PackInfo::getId).collect(Collectors.toList());
-        QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
-        packContentQueryWrapper.eq("archived", false);
-        packContentQueryWrapper.in("pack_id", packIdList);
 
-        List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
 
-        Map<Long, List<PackContent>> collect = packContentList.stream().collect(Collectors.groupingBy(PackContent::getPackId));
+
+    @Override
+    public List<PackInfoVO> listAllPackInfo() {
+        //查询所有礼包
+        List<PackInfo> packInfoList = packInfoMapper.selectList(null);
+
+        //根据上面内容id的集合对礼包内容进行查询
+        List<PackContent> packContentList = packContentMapper.selectList(null);
+
+        //查询出来的礼包内容根据packId进行一个分组
+        Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream()
+                .collect(Collectors.groupingBy(PackContent::getPackId));
+
+        //将礼包价值表转为map对象，方便使用
         Map<String, Double> itemValueMap = packItemMapper.selectList(null)
                 .stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
 
         List<PackInfoVO> VOList = new ArrayList<>();
+
         for (PackInfo packInfo : packInfoList) {
-            PackInfoVO packInfoVO = getPackInfoVO(packInfo, collect.get(packInfo.getId()));
+            PackInfoVO packInfoVO = getPackInfoVO(packInfo, mapPackContentByContentId.get(packInfo.getContentId()));
             VOList.add(packInfoVO);
             packPromotionRatioCalc(packInfoVO, itemValueMap);
         }
-        return VOList;
-    }
-
-
-
-
-    @Override
-    public List<PackInfoVO> listAllPackInfoData() {
-        List<PackInfo> packInfoList = packInfoMapper.selectList(null);
-        QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
-        packContentQueryWrapper.eq("archived", false);
-
-        List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
-
-        Map<Long, List<PackContent>> collect = packContentList.stream()
-                .collect(Collectors.groupingBy(PackContent::getPackId));
-
-        Map<String, Double> itemValueMap = packItemMapper.selectList(null)
-                .stream()
-                .collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
-
-        List<PackInfoVO> VOList = new ArrayList<>();
-
-        long currentTimeStamp = System.currentTimeMillis();
-
-        for (PackInfo packInfo : packInfoList) {
-            PackInfoVO packInfoVO = getPackInfoVO(packInfo, collect.get(packInfo.getId()));
-            if(packInfo.getEnd().getTime()<currentTimeStamp){
-                packInfoVO.setSaleStatus(0);
-            }
-
-            packPromotionRatioCalc(packInfoVO, itemValueMap);
-            VOList.add(packInfoVO);
-        }
-
         return VOList;
     }
 
@@ -403,12 +366,11 @@ public class StoreServiceImpl implements StoreService {
     public PackInfoVO getPackById(String idStr) {
         long id = Long.parseLong(idStr);
         PackInfo packInfo = packInfoMapper.selectOne(new QueryWrapper<PackInfo>().eq("id", id));
-        QueryWrapper<PackContent> packContentQueryWrapper = new QueryWrapper<>();
-        packContentQueryWrapper.eq("pack_id", id).eq("archived", false);
+        LambdaQueryWrapper<PackContent> packContentQueryWrapper = new LambdaQueryWrapper<>();
+        packContentQueryWrapper.eq(PackContent::getContentId, packInfo.getContentId());
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
         return getPackInfoVO(packInfo, packContentList);
     }
-
 
 
     @Override
@@ -438,41 +400,31 @@ public class StoreServiceImpl implements StoreService {
         packItemMapper.delete(queryWrapper);
     }
 
-    @Override
-    public String updatePackState() {
-        UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("sale_status", 0);
-        updateWrapper.le("end", new Date());
-        int update = packInfoMapper.update(null, updateWrapper);
 
-        redisTemplate.delete("Item:PackData");
-
-        return "刷新了"+update+"条";
-    }
 
     @Override
-    public void uploadImage(MultipartFile file, Long id) {
+    public void uploadPackImage(MultipartFile file, Long id) {
 
         if (file.isEmpty()) {
             throw new ServiceException(ResultCode.FILE_IS_NULL);
         }
 
-        QueryWrapper<PackInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", id);
+        LambdaQueryWrapper<PackInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PackInfo::getId, id);
         PackInfo packInfo = packInfoMapper.selectOne(queryWrapper);
 
         if (packInfo == null) {
             throw new ServiceException(ResultCode.DATA_NONE);
         }
 
-        String fileName = null;
+        String fileName = idGenerator.nextId()+"png";
         if (file.getOriginalFilename() != null) {
             String[] split = file.getOriginalFilename().split("\\.");
             fileName = packInfo.getOfficialName() + "." + idGenerator.nextId() + "." + split[1];
         }
 
 
-        String filePath = ConfigUtil.Resources + "image/store/" + fileName;
+        String filePath =  "image/store/" + fileName;
         File saveFile = new File(filePath);
 
         try {
@@ -481,15 +433,11 @@ public class StoreServiceImpl implements StoreService {
             Logger.error(exception.getMessage());
         }
 
-        UpdateWrapper<PackInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("image_name", fileName).eq("id", id);
+        LambdaUpdateWrapper<PackInfo> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(PackInfo::getImageName, fileName).eq(PackInfo::getId, id);
         packInfoMapper.update(null, updateWrapper);
 
-        try {
-            ossService.uploadFileInputStream(new FileInputStream(saveFile), "image/store/" + fileName);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        cosService.uploadFile(saveFile,filePath);
 
     }
 
@@ -506,7 +454,6 @@ public class StoreServiceImpl implements StoreService {
     private PackInfoVO getPackInfoVO(PackInfo packInfo, List<PackContent> packContentList) {
         PackInfoVO packInfoVO = new PackInfoVO();
         packInfoVO.copy(packInfo);
-        packInfoVO.setNewPack(false);
         if (packContentList != null) {
             List<PackContentVO> packContentVOList = new ArrayList<>();
             for (PackContent packContent : packContentList) {

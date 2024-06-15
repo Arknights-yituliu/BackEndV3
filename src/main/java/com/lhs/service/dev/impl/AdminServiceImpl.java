@@ -48,7 +48,6 @@ public class AdminServiceImpl implements AdminService {
     }
 
 
-
     @Override
     public void emailSendCode(LoginVo loginVo) {
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
@@ -71,7 +70,7 @@ public class AdminServiceImpl implements AdminService {
 
 
     @Override
-    public Map<String,Object> login(LoginVo loginVo) {
+    public Map<String, Object> login(LoginVo loginVo) {
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("developer", loginVo.getDeveloper());
         Admin admin = adminMapper.selectOne(queryWrapper);
@@ -106,8 +105,8 @@ public class AdminServiceImpl implements AdminService {
                 .eq("id", admin.getId());
         adminMapper.update(null, updateWrapper);
         Map<String, Object> response = new HashMap<>();
-        response.put("token",token);
-        response.put("developer",admin.getDeveloper());
+        response.put("token", token);
+        response.put("developer", admin.getDeveloper());
         return response;
     }
 
@@ -116,12 +115,21 @@ public class AdminServiceImpl implements AdminService {
 
         Admin admin = getAdminInfoByToken(token);
 
-        if (System.currentTimeMillis() < admin.getExpire().getTime()) {
-            Logger.info("开发者验证通过");
-            return true;
-        }
+        return true;
+    }
 
-        return false;
+    @Override
+    public HashMap<String, Object> getDeveloperInfo(String token) {
+
+        Admin admin = getAdminInfoByToken(token);
+
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("userName", admin.getDeveloper());
+        result.put("token", admin.getToken());
+        result.put("expire", admin.getExpire());
+
+        return result;
+
     }
 
     @Override
@@ -129,22 +137,26 @@ public class AdminServiceImpl implements AdminService {
         String token = request.getHeader("token");
         Admin admin = getAdminInfoByToken(token);
         return admin.getLevel() == 0;
+
     }
 
-    private Admin getAdminInfoByToken(String token){
-        if (token == null) {
+    private Admin getAdminInfoByToken(String token) {
+        if (token == null||"null".equals(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
-
         String headerBase64 = token.split("\\.")[0];
         String headerText = new String(Base64.getDecoder().decode(headerBase64), StandardCharsets.UTF_8);
         JsonNode header = JsonMapper.parseJSONObject(headerText);
         long id = header.get("id").asLong();
         QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id",id);
+        queryWrapper.eq("id", id);
         Admin admin = adminMapper.selectOne(queryWrapper);
         if (admin == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        }
+
+        if (System.currentTimeMillis() > admin.getExpire().getTime()) {
+            throw new ServiceException(ResultCode.LOGIN_EXPIRATION);
         }
 
         return admin;

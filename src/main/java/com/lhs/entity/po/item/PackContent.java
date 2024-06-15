@@ -10,17 +10,15 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@Entity
 @TableName
 public class PackContent {
-    @Id
     @TableId
     private Long id;
+    private Long contentId;
     private Long packId;
     private String itemName;
     private String itemId;
     private Integer quantity;
-    private Boolean archived;
 
     public void copy(PackContentVO packContentVO){
         this.id = packContentVO.getId();

@@ -34,6 +34,11 @@ public class ConfigUtil implements InitializingBean {
     @Value("${skland.playerBindingAPI}")
     private String sklandPlayerBindingAPI;
 
+    @Value("${tencent.secretId}")
+    private String cosSecretId;
+
+    @Value("${tencent.secretKey}")
+    private String cosSecretKey;
 
     public static String Penguin;
     public static String Item;
@@ -50,6 +55,10 @@ public class ConfigUtil implements InitializingBean {
     public static String SKLandPlayerInfoAPI;
 
     public static String Resources;
+
+    public static String CosSecretId;
+
+    public static String CosSecretKey;
 
     @Override
     public void afterPropertiesSet() {
@@ -68,7 +77,8 @@ public class ConfigUtil implements InitializingBean {
         SKLandPlayerBindingAPI = sklandPlayerBindingAPI;
         SKLandPlayerInfoAPI = sklandPlayerInfoAPI;
 
-
+        CosSecretId = cosSecretId;
+        CosSecretKey = cosSecretKey;
 
     }
 }
