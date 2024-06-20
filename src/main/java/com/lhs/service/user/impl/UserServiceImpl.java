@@ -140,6 +140,12 @@ public class UserServiceImpl implements UserService {
         userInfoNew.setDeleteFlag(false);
 
         if(checkParamsValidity(email)){
+            LambdaQueryWrapper<UserInfo> emailQueryWrapper = new LambdaQueryWrapper<>();
+            emailQueryWrapper.eq(UserInfo::getEmail,email);
+            UserInfo userInfoByEmail = surveyUserMapper.selectOne(emailQueryWrapper);
+            if(userInfoByEmail!=null){
+                throw new ServiceException(ResultCode.EMAIL_REGISTERED);
+            }
             userInfoNew.setEmail(email);
         }
 
@@ -947,5 +953,12 @@ public class UserServiceImpl implements UserService {
         userInfoVO.setAkUid(akPlayerBindInfoV2List.get(0).getAkUid());
 
         return userInfoVO;
+    }
+
+    private void ensureIdempotent(String key){
+        Boolean lock = redisTemplate.opsForValue().setIfAbsent(key, "1", 5, TimeUnit.SECONDS);
+        if (Boolean.FALSE.equals(lock)) {
+            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
+        }
     }
 }
