@@ -49,7 +49,7 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
         //提交间隔不能短于5s，短于5s抛出异常
         Boolean lock = redisTemplate.opsForValue().setIfAbsent("SurveySubmitterIP", ipAddress, 5, TimeUnit.SECONDS);
         if (Boolean.FALSE.equals(lock)) {
-            throw new ServiceException(ResultCode.OPERATION_INTERVAL_TOO_SHORT);
+            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
         }
 
         SurveySubmitterVO surveySubmitterVO = new SurveySubmitterVO();

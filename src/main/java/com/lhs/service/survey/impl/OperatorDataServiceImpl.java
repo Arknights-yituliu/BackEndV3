@@ -287,7 +287,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInterval:" + userInfo.getUid(), "done", 5, TimeUnit.SECONDS);
 
         if (Boolean.FALSE.equals(done)) {
-            throw new ServiceException(ResultCode.OPERATION_INTERVAL_TOO_SHORT);
+            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
         }
 
         //用户唯一id
