@@ -64,6 +64,7 @@ public class StageDropUploadService {
 
     public String saveStageDrop(HttpServletRequest httpServletRequest, StageDropDTO stageDropDTO) {
 
+
         if("main_01-07".equals(stageDropDTO.getStageId())){
             return "本次作战已成功上传";
         }
