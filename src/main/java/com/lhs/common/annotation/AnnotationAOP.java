@@ -10,9 +10,11 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.CodeSignature;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -49,26 +51,47 @@ public class AnnotationAOP {
         startTime.remove();
     }
 
-    @Before("@annotation(rateLimiter)")
-    public void rateLimiter(RateLimiter rateLimiter){
+    @Around("@annotation(rateLimiter)")
+    public Object rateLimiter(ProceedingJoinPoint joinPoint,RateLimiter rateLimiter) throws Throwable {
 
+        //获取方法的参数列表
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Method method = signature.getMethod();
+        Object[] args = joinPoint.getArgs();
+
+        //限流的窗口时间
         int time = rateLimiter.time();
+        //窗口时间内的最大次数
         int maximumTimes = rateLimiter.MaximumTimes();
-        String key = rateLimiter.key();
+        //限流的key前缀，后面可能根据参数拼接
+        String keyPrefix = rateLimiter.key();
 
-        Object cache = redisTemplate.opsForValue().get(key);
+        // 假设只有一个参数，且该参数是自定义实体类
 
-        if(cache!=null){
-            int times = Integer.parseInt(String.valueOf(cache));
+        String keyField = rateLimiter.keyField();
 
-            if(times>maximumTimes) {
-                throw new ServiceException(ResultCode.INTERFACE_TOO_MANY_EMAIL_SENT);
-            }
-            times++;
-            redisTemplate.opsForValue().set(key,times,time,TimeUnit.SECONDS);
-        }else {
-            redisTemplate.opsForValue().set(key,1,time,TimeUnit.SECONDS);
+        return joinPoint.proceed();
+
+    }
+
+    private void RedisLimiter(String key,Integer time,Integer maximumTimes){
+        Boolean hasKey = redisTemplate.hasKey(key);
+        Long expireTime = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+        if(hasKey==null||!hasKey||expireTime==null||expireTime<=0){
+            redisTemplate.expire(key, time, TimeUnit.SECONDS);
         }
+        // 增加访问计数，原子操作以确保并发安全
+
+        Long count = redisTemplate.opsForValue().increment(key);
+        if(count==null){
+            return;
+        }
+        if(count<maximumTimes){
+            return;
+        }
+
+        throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
+
 
     }
 
