@@ -2,6 +2,7 @@ package com.lhs.service.item;
 
 import com.alibaba.excel.EasyExcel;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -79,9 +80,10 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         //读取每级材料的加工副产物价值
         List<WorkShopProducts> workShopProductsList = getWorkShopProductsValue(version);
 
+        workShopProductsList.forEach(System.out::println);
         //加工站副产物价值
         Map<String, Double> workShopProductsValue =workShopProductsList.stream()
-                        .collect(Collectors.toMap(WorkShopProducts::getRank, WorkShopProducts::getExpectValue));
+                        .collect(Collectors.toMap(WorkShopProducts::getItemRank, WorkShopProducts::getExpectValue));
 
         //加工站材料合成表
         List<CompositeTableDTO> compositeTableDTO = getCompositeTable();
@@ -160,7 +162,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         List<ItemIterationValue> itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
 
         //找不到读基础版本
-        if (itemIterationValueList.size() < 1) {
+        if (itemIterationValueList.isEmpty()) {
             iterationValueQueryWrapper.clear();
             iterationValueQueryWrapper.eq("version", "original");
             itemIterationValueList = itemIterationValueMapper.selectList(iterationValueQueryWrapper);
@@ -170,14 +172,16 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
     }
 
     private List<WorkShopProducts> getWorkShopProductsValue(String version){
-        QueryWrapper<WorkShopProducts> workShopProductsQueryWrapper = new QueryWrapper<>();
-        workShopProductsQueryWrapper.eq("version", version);
-        List<WorkShopProducts> workShopProductsList = workShopProductsMapper.selectList(workShopProductsQueryWrapper);
+
+        LambdaQueryWrapper<WorkShopProducts> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(WorkShopProducts::getVersion,version);
+        List<WorkShopProducts> workShopProductsList = workShopProductsMapper.selectList(queryWrapper);
+
         //找不到读基础版本
-        if (workShopProductsList==null||workShopProductsList.size()<1) {
-            workShopProductsQueryWrapper.clear();
-            workShopProductsQueryWrapper.eq("version", "original");
-            workShopProductsList = workShopProductsMapper.selectList(workShopProductsQueryWrapper);
+        if ( workShopProductsList.isEmpty()) {
+            LambdaQueryWrapper<WorkShopProducts> queryWrapper1 = new LambdaQueryWrapper<>();
+            queryWrapper1.eq(WorkShopProducts::getVersion,"original");
+            workShopProductsList = workShopProductsMapper.selectList(queryWrapper1);
         }
         return workShopProductsList;
     }
@@ -215,7 +219,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
             double expectValue = list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight()).sum() * knockRating;
             log.info(rarity + "级材料副产物期望：" + expectValue / knockRating);
             WorkShopProducts workShopProducts = new WorkShopProducts();
-            workShopProducts.setRank("rarity_" + rarity);  //副产物等级
+            workShopProducts.setItemRank("rarity_" + rarity);  //副产物等级
             workShopProducts.setId(time++);
             workShopProducts.setVersion(version); //版本号
             workShopProducts.setExpectValue(expectValue); //副产物期望价值

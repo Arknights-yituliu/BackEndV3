@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class WorkShopProducts {
     @TableId
     private Long id;
-    private String rank;
+    private String itemRank;
     private Double expectValue;
     private String version;
 }

@@ -13,4 +13,6 @@ public @interface RateLimiter {
     int time() default 10;  //限流的窗口时间
     int MaximumTimes() default 10;  //窗口时间内的最大次数
 
+    String keyField() default ""; //方法的参数
+
 }

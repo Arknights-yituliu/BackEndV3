@@ -346,7 +346,7 @@ public class StoreServiceImpl implements StoreService {
 
         //查询出来的礼包内容根据packId进行一个分组
         Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream()
-                .collect(Collectors.groupingBy(PackContent::getPackId));
+                .collect(Collectors.groupingBy(PackContent::getContentId));
 
         //将礼包价值表转为map对象，方便使用
         Map<String, Double> itemValueMap = packItemMapper.selectList(null)
@@ -424,7 +424,7 @@ public class StoreServiceImpl implements StoreService {
         }
 
 
-        String filePath =  "image/store/" + fileName;
+        String filePath =  "/image/store/" + fileName;
         File saveFile = new File(filePath);
 
         try {
