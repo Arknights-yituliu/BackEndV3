@@ -1,6 +1,7 @@
 package com.lhs.service.util.impl;
 
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.util.Logger;
 import com.lhs.service.util.COSService;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
@@ -12,14 +13,27 @@ import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.model.*;
 import com.qcloud.cos.region.Region;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 
 @Service
 public class COSServiceImpl implements COSService {
     @Override
-    public void uploadFile(File file,String bucketPath) {
+    public void uploadFile(File file, String bucketPath) {
 
+        uploadCOS(file, bucketPath);
+
+    }
+
+    @Override
+    public void uploadFile(MultipartFile multipartFile, String bucketPath) {
+        File file = multipartFileToFile(multipartFile, multipartFile.getName());
+        uploadCOS(file, bucketPath);
+    }
+
+    private void uploadCOS(File file, String bucketPath){
         String secretId = ConfigUtil.CosSecretId;
         String secretKey = ConfigUtil.CosSecretKey;
         COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
@@ -40,7 +54,18 @@ public class COSServiceImpl implements COSService {
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, file);
         PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest);
+    }
 
+    private File multipartFileToFile(MultipartFile multipartFile, String fileName) {
+        String filePath = "/image/store/" + fileName;
+        File file = new File(filePath);
 
+        try {
+            multipartFile.transferTo(file);
+        } catch (IOException exception) {
+            Logger.error(exception.getMessage());
+        }
+
+        return file;
     }
 }
