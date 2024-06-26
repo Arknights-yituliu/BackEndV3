@@ -1,7 +1,6 @@
-package com.lhs.entity.po.dev;
+package com.lhs.entity.po.admin;
 
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;

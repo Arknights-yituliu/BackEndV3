@@ -1,4 +1,4 @@
-package com.lhs.service.dev;
+package com.lhs.service.admin;
 
 
 import com.lhs.entity.vo.dev.LoginVo;

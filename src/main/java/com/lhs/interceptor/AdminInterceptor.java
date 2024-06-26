@@ -3,7 +3,7 @@ package com.lhs.interceptor;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.ResultCode;
-import com.lhs.service.dev.AdminService;
+import com.lhs.service.admin.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -14,14 +14,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Slf4j
-public class DevInterceptor implements HandlerInterceptor {
+public class AdminInterceptor implements HandlerInterceptor {
 
 
 
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final AdminService adminService;
-    public DevInterceptor(RedisTemplate<String, Object> redisTemplate, AdminService adminService){
+    public AdminInterceptor(RedisTemplate<String, Object> redisTemplate, AdminService adminService){
             this.redisTemplate =redisTemplate;
         this.adminService = adminService;
     }

@@ -36,6 +36,22 @@ public class HypergryphServiceImpl implements HypergryphService {
         return getPlayerBindingsBySkland(sklandCredAndToken);
     }
 
+    @Override
+    public Map<String, Object> getCredAndTokenAndPlayerBindingsByHgToken(String hgToken) {
+        HashMap<String, String> sklandCredAndToken = getSklandCredAndToken(hgToken);
+
+        Map<String, Object> result = new HashMap<>();
+        String cred = sklandCredAndToken.get("cred");
+        String sklandToken = sklandCredAndToken.get("sklandToken");
+        AKPlayerBindingListVO playerBindingsBySkland = getPlayerBindingsBySkland(sklandCredAndToken);
+
+        result.put("cred",cred);
+        result.put("token",sklandToken);
+        result.put("playerBindingList",playerBindingsBySkland.getPlayerBindingList());
+
+        return result;
+    }
+
 
     @Override
     public AKPlayerBindingListVO getPlayerBindingsBySkland(HashMap<String, String> sklandCredAndToken) {
@@ -43,7 +59,7 @@ public class HypergryphServiceImpl implements HypergryphService {
         String timestamp = String.valueOf((System.currentTimeMillis() - 800) / 1000);
 
         String cred = sklandCredAndToken.get("cred");
-        String token = sklandCredAndToken.get("token");
+        String token = sklandCredAndToken.get("sklandToken");
 
 
         //根据长期token生成一个短期token
@@ -157,7 +173,7 @@ public class HypergryphServiceImpl implements HypergryphService {
 
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("cred",cred);
-        hashMap.put("token",sklandToken);
+        hashMap.put("sklandToken",sklandToken);
 
         return hashMap;
     }

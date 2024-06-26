@@ -1,4 +1,4 @@
-package com.lhs.entity.po.dev;
+package com.lhs.entity.po.admin;
 
 
 import com.baomidou.mybatisplus.annotation.TableId;

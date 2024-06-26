@@ -1,10 +1,10 @@
-package com.lhs.service.dev.impl;
+package com.lhs.service.admin.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhs.entity.po.dev.DevelopLog;
+import com.lhs.entity.po.admin.DevelopLog;
 import com.lhs.entity.vo.dev.DevelopLogVO;
-import com.lhs.mapper.dev.DevelopLogMapper;
-import com.lhs.service.dev.DevelopService;
+import com.lhs.mapper.admin.DevelopLogMapper;
+import com.lhs.service.admin.DevelopService;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;

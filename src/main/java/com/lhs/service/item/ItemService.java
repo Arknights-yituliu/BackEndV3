@@ -80,7 +80,7 @@ public class ItemService extends ServiceImpl<ItemMapper, Item> {
         //读取每级材料的加工副产物价值
         List<WorkShopProducts> workShopProductsList = getWorkShopProductsValue(version);
 
-        workShopProductsList.forEach(System.out::println);
+
         //加工站副产物价值
         Map<String, Double> workShopProductsValue =workShopProductsList.stream()
                         .collect(Collectors.toMap(WorkShopProducts::getItemRank, WorkShopProducts::getExpectValue));

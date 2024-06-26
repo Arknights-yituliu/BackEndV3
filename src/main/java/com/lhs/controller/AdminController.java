@@ -1,15 +1,18 @@
 package com.lhs.controller;
 
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.po.admin.LogInfo;
 import com.lhs.entity.po.item.PackItem;
 import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.entity.vo.item.PackInfoVO;
 import com.lhs.entity.vo.item.ActivityStoreDataVO;
-import com.lhs.service.dev.AdminService;
+import com.lhs.service.admin.AdminService;
+import com.lhs.service.admin.ImageInfoService;
+import com.lhs.service.admin.LogService;
+import com.lhs.service.item.PackInfoService;
 import com.lhs.service.user.VisitsService;
 import com.lhs.service.item.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,15 +29,24 @@ import java.util.Map;
 public class AdminController {
 
     private final StoreService storeService;
+    private final PackInfoService packInfoService;
 
     private final AdminService adminService;
 
     private final VisitsService visitsService;
 
-    public AdminController(StoreService storeService, AdminService adminService, VisitsService visitsService) {
+    private final ImageInfoService imageInfoService;
+
+    private final LogService logService;
+
+    public AdminController(StoreService storeService, AdminService adminService, VisitsService visitsService,
+                           ImageInfoService imageInfoService, PackInfoService packInfoService, LogService logService) {
         this.storeService = storeService;
         this.adminService = adminService;
         this.visitsService = visitsService;
+        this.imageInfoService = imageInfoService;
+        this.packInfoService = packInfoService;
+        this.logService = logService;
     }
 
     @GetMapping("/")
@@ -49,6 +61,12 @@ public class AdminController {
         return Result.success();
     }
 
+    @PostMapping("/log/collect")
+    public Result<String> collectLog(@RequestBody LogInfo logInfo){
+        logService.saveLog(logInfo);
+        return Result.success();
+    }
+
     @GetMapping("/visits/save")
     public Result<Object> savePageVisits() {
         visitsService.savePageVisits();
@@ -56,53 +74,40 @@ public class AdminController {
     }
 
     @Operation(summary = "管理登录发送验证码")
-    @PostMapping("/auth/email/verificationCode")
+    @PostMapping("/dev/email/verificationCode")
     public Result<Object> emailSendCode(@RequestBody LoginVo loginVo) {
         adminService.emailSendCode(loginVo);
         return Result.success("已发送验证码到您的邮箱,5分钟过期");
     }
 
     @Operation(summary = "管理者登录")
-    @PostMapping("/auth/login")
+    @PostMapping("/dev/login")
     public Result<Map<String,Object>> loginAndToken(@RequestBody LoginVo loginVo) {
 
         return Result.success(adminService.login(loginVo));
     }
 
     @Operation(summary = "获取管理者信息")
-    @GetMapping("/auth/developer/info")
+    @GetMapping("/dev/developer/info")
     public Result<Map<String,Object>> getDeveloperInfo(@RequestParam("token") String token) {
 
         return Result.success(adminService.getDeveloperInfo(token));
     }
 
-    @Operation(summary = "检查管理者登录状态")
-    @GetMapping("/auth/login/checkToken")
-    public Result<Boolean> loginAndCheckToken(HttpServletRequest request) {
-        String token = request.getHeader("token");
-        if(token ==null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        Boolean status  =  adminService.checkToken(token);
-        return Result.success(status);
-    }
+
 
     @Operation(summary = "更新商店礼包")
     @PostMapping("/admin/store/pack/update")
-    public Result<PackInfoVO> updateStageResult(@RequestBody PackInfoVO packInfoVO) {
-        PackInfoVO pack = storeService.updateStorePackById(packInfoVO);
-        return Result.success(pack);
+    public Result<String> updateStageResult(@RequestBody PackInfoVO packInfoVO) {
+
+        return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoVO));
     }
 
-    @Operation(summary = "上传礼包图片")
-    @PostMapping("/admin/store/pack/upload/image")
-    public Result<Object> uploadImage(@RequestParam("file") MultipartFile file,@RequestParam("id") Long id) {
-        storeService.uploadPackImage(file,id);
-        return Result.success();
-    }
 
     @Operation(summary = "根据id获取礼包")
     @GetMapping("/admin/store/pack")
     public Result<PackInfoVO> updateStageResult(@RequestParam(required = false, defaultValue = "1") String id) {
-        PackInfoVO pack = storeService.getPackById(id);
+        PackInfoVO pack = packInfoService.getPackById(id);
         return Result.success(pack);
     }
 
@@ -110,32 +115,32 @@ public class AdminController {
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
     public Result<List<PackInfoVO>> getPackList(){
-        return Result.success(storeService.listAllPackInfo());
+        return Result.success(packInfoService.listAllPackInfo());
     }
 
     @Operation(summary = "更新礼包材料表")
     @PostMapping("/admin/item/update")
     public Result<PackItem> saveOrUpdatePackItem(@RequestBody PackItem newPackItem){
-        PackItem packItem = storeService.saveOrUpdatePackItem(newPackItem);
+        PackItem packItem = packInfoService.saveOrUpdatePackItem(newPackItem);
         return Result.success(packItem);
     }
 
     @Operation(summary = "删除礼包材料")
     @GetMapping("/admin/item/delete")
     public Result<Object> deletePackItem(@RequestParam String id){
-        storeService.deletePackItemById(id);
+        packInfoService.deletePackItemById(id);
         return Result.success();
     }
 
     @Operation(summary = "清除礼包缓存数据")
     @GetMapping("/admin/pack/clearCache")
     public Result<Object> clearPackCache(){
-        String message = storeService.clearPackCache();
+        String message = packInfoService.clearPackInfoCache();
         return Result.success(message);
     }
 
 
-    @PostMapping("/admin1/view/statistics")
+    @PostMapping("/admin/view/statistics")
     public Result<List<PageViewStatisticsVo>> queryVisits(@RequestBody VisitsTimeVo visitsTimeVo) {
         List<PageViewStatisticsVo> pageViewStatisticsVos = visitsService.getVisits(visitsTimeVo);
         return Result.success(pageViewStatisticsVos);
@@ -164,4 +169,17 @@ public class AdminController {
         return Result.success(list);
     }
 
+    @Operation(summary = "上传图片服务")
+    @PostMapping("/admin/upload/image")
+    public Result<String> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("path") String path, @RequestParam("imageName") String imageName) {
+        imageInfoService.saveImage(file,path,imageName);
+        return Result.success("上传成功");
+    }
+
+    @Operation(summary = "获取礼包自定义材料表")
+    @GetMapping("/store/pack/item/list")
+    public Result<List<PackItem>> getItemList() {
+        List<PackItem> packItemList = packInfoService.listPackItem();
+        return Result.success(packItemList);
+    }
 }

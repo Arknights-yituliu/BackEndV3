@@ -1,9 +1,7 @@
 package com.lhs.service.item;
 
 
-import com.lhs.entity.po.dev.HoneyCake;
-import com.lhs.entity.po.item.PackItem;
-import com.lhs.entity.vo.item.PackInfoVO;
+import com.lhs.entity.po.admin.HoneyCake;
 import com.lhs.entity.po.item.StorePerm;
 import com.lhs.entity.vo.item.ActivityStoreDataVO;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,41 +46,6 @@ public interface StoreService {
      */
     String uploadActivityBackgroundImage(MultipartFile file);
 
-    /**
-     * 更新礼包数据
-     *
-     * @param packInfoVO 礼包数据
-     * @return 更新后的礼包数据
-     */
-    PackInfoVO updateStorePackById(PackInfoVO packInfoVO);
-
-
-
-    /**
-     * 获得礼包性价比数据（带缓存
-     *
-     * @return 礼包性价比数据
-     */
-    List<PackInfoVO> listPackInfoByEndTime();
-
-    /**
-     * 获得全部礼包性价比数据（不带缓存
-     *
-     * @return 礼包性价比数据
-     */
-    List<PackInfoVO> listAllPackInfo();
-
-    PackInfoVO getPackById(String idStr);
-
-    List<PackItem> listPackItem();
-
-    PackItem saveOrUpdatePackItem(PackItem newPackItem);
-
-    void deletePackItemById(String id);
-
-    void uploadPackImage(MultipartFile file, Long id);
-
-    String clearPackCache();
 
     void updateHoneyCake(List<HoneyCake> honeyCakeList);
 

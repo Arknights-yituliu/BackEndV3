@@ -1,7 +1,7 @@
-package com.lhs.service.dev;
+package com.lhs.service.admin;
 
 
-import com.lhs.entity.po.dev.DevelopLog;
+import com.lhs.entity.po.admin.DevelopLog;
 import com.lhs.entity.vo.dev.DevelopLogVO;
 
 public interface DevelopService {

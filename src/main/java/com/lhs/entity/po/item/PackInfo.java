@@ -20,7 +20,6 @@ public class PackInfo {
     private String displayName;
     private double price;
     private String saleType;
-    private String imageName;
     private String tags;
     private Integer originium;
     private Integer orundum;
@@ -31,6 +30,7 @@ public class PackInfo {
     private Date createTime;
     private String note;
     private Long contentId;
+    private Boolean deleteFlag = false;
 
     public void copy(PackInfoVO packInfoVO){
         this.id = packInfoVO.getId();
@@ -38,8 +38,7 @@ public class PackInfo {
         this.displayName = packInfoVO.getDisplayName();
         this.price = packInfoVO.getPrice();
         this.saleType = packInfoVO.getSaleType();
-        this.tags = ListToString(packInfoVO.getTags());
-        this.imageName = packInfoVO.getImageName();
+        this.tags = packInfoVO.getTags();
         this.gachaTicket = packInfoVO.getGachaTicket();
         this.tenGachaTicket = packInfoVO.getTenGachaTicket();
         this.originium = packInfoVO.getOriginium();
@@ -49,23 +48,6 @@ public class PackInfo {
         this.note = packInfoVO.getNote();
     }
 
-    private String ListToString(List<String> list){
-        if(list==null||list.isEmpty()){
-            return "";
-        }
 
-        StringBuilder tagStr = new StringBuilder();
-        for(String str:list){
-            if(str.isEmpty()){
-                continue;
-            }
-            if(!tagStr.isEmpty()){
-                tagStr.append(",").append(str);
-            }
-
-        }
-
-        return tagStr.toString();
-    }
 
 }

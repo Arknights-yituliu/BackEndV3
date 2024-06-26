@@ -14,8 +14,9 @@ public class PackInfoVO {
     private String displayName;  //前端展示名称
     private double price;  //价格
     private String saleType;  //礼包类型
-    private List<String> tags;
+    private String tags;
     private String imageName;  //礼包图片名称
+    private String imageLink;  //礼包图片名称
     private Integer gachaTicket;  //单抽券数量
     private Integer tenGachaTicket; //十连券数量
     private Integer originium; //源石数量
@@ -29,8 +30,8 @@ public class PackInfoVO {
     private List<PackContentVO> packContent;  //礼包非抽卡道具内容
     private Long start;
     private Long end;
-    private Boolean newPack;
     private String note;
+
 
     public void copy(PackInfo packInfo) {
         this.id = packInfo.getId();
@@ -38,7 +39,6 @@ public class PackInfoVO {
         this.displayName = packInfo.getDisplayName();
         this.price = packInfo.getPrice();
         this.saleType = packInfo.getSaleType();
-        this.imageName = packInfo.getImageName();
         this.gachaTicket = packInfo.getGachaTicket();
         this.tenGachaTicket = packInfo.getTenGachaTicket();
         this.originium = packInfo.getOriginium();
@@ -46,14 +46,8 @@ public class PackInfoVO {
         this.start = packInfo.getStart().getTime();
         this.end = packInfo.getEnd().getTime();
         this.note = packInfo.getNote();
-        this.tags = StringToList(packInfo.getTags());
+        this.tags = packInfo.getTags();
     }
 
-    private List<String> StringToList(String text) {
-        if (text == null || text.isEmpty()) {
-            return null;
-        }
-        String[] split = text.split(",");
-        return Arrays.stream(split).toList();
-    }
+
 }

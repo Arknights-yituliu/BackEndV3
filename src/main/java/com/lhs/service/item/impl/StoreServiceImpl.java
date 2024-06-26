@@ -2,31 +2,24 @@ package com.lhs.service.item.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
-import com.lhs.entity.po.dev.HoneyCake;
+import com.lhs.entity.po.admin.HoneyCake;
 import com.lhs.entity.po.item.*;
 import com.lhs.entity.vo.item.*;
-import com.lhs.mapper.dev.HoneyCakeMapper;
+import com.lhs.mapper.admin.HoneyCakeMapper;
 import com.lhs.mapper.item.*;
-import com.lhs.mapper.item.service.PackContentMapperService;
-import com.lhs.mapper.item.service.PackInfoMapperService;
 import com.lhs.mapper.item.service.StorePermMapperService;
 import com.lhs.service.item.ItemService;
 import com.lhs.service.item.StoreService;
 import com.lhs.service.util.COSService;
 import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -52,21 +45,13 @@ public class StoreServiceImpl implements StoreService {
     private final StorePermMapperService storePermMapperService;
 
     private final PackInfoMapper packInfoMapper;
-    private final PackInfoMapperService packInfoMapperService;
-    private final PackContentMapper packContentMapper;
-    private final PackContentMapperService packContentMapperService;
-
     private final IdGenerator idGenerator;
-
-    private final PackItemMapper packItemMapper;
 
     private final COSService cosService;
     public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
                             HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
                             OSSService ossService, StorePermMapperService storePermMapperService,
-                            PackInfoMapper packInfoMapper, PackInfoMapperService packInfoMapperService,
-                            PackContentMapper packContentMapper, PackContentMapperService packContentMapperService,
-                            PackItemMapper packItemMapper,COSService cosService) {
+                            PackInfoMapper packInfoMapper,COSService cosService) {
         this.storePermMapper = storePermMapper;
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
@@ -75,11 +60,7 @@ public class StoreServiceImpl implements StoreService {
         this.ossService = ossService;
         this.storePermMapperService = storePermMapperService;
         this.packInfoMapper = packInfoMapper;
-        this.packInfoMapperService = packInfoMapperService;
-        this.packContentMapper = packContentMapper;
-        this.packContentMapperService = packContentMapperService;
         this.idGenerator = new IdGenerator(1L);
-        this.packItemMapper = packItemMapper;
         this.cosService = cosService;
     }
 
@@ -166,13 +147,6 @@ public class StoreServiceImpl implements StoreService {
         if (file == null) {
             throw new ServiceException(ResultCode.FILE_IS_NULL);
         }
-        InputStream inputStream = null;
-
-        try {
-            inputStream = file.getInputStream();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         file.getOriginalFilename();
 
@@ -184,9 +158,9 @@ public class StoreServiceImpl implements StoreService {
             throw new ServiceException(ResultCode.FILE_IS_NULL);
         }
 
-        ossService.uploadFileInputStream(inputStream, "image/store/" + fileName);
+        cosService.uploadFile(file,"/image/store/"+fileName);
 
-        return "https://oss.yituliu.cn/image/store/" + fileName;
+        return "https://cos.yituliu.cn/image/store/" + fileName;
     }
 
 
@@ -267,256 +241,20 @@ public class StoreServiceImpl implements StoreService {
         return honeyCakeMapper.selectList(honeyCakeQueryWrapper);
     }
 
-    @Override
-    public PackInfoVO updateStorePackById(PackInfoVO packInfoVO) {
-        Date currentDate = new Date();
-        //创建一个po对象存储数据
-        PackInfo packInfo = new PackInfo();
-        //将VO类的数据传递给po
-        packInfo.copy(packInfoVO);
-        Long contentId = idGenerator.nextId();
-        packInfo.setContentId(contentId);
-
-        //旧礼包需要更新,通过id查询旧礼包的信息
-        LambdaQueryWrapper<PackInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(PackInfo::getId, packInfoVO.getId());
-        PackInfo packInfoById = packInfoMapper.selectOne(queryWrapper);
-
-        //判断是新礼包还是旧礼包
-        if (packInfoById == null) {
-            //新礼包直接生成一个id保存到数据库
-            packInfo.setId(idGenerator.nextId());
-            packInfoMapper.insert(packInfo);
-            packInfo.setCreateTime(currentDate);
-        } else {
-            //如果旧礼包存在则根据id更新
-            packInfoMapper.updateById(packInfo);
-        }
-
-        //礼包id
-        Long packId = packInfo.getId();
-
-        //礼包没有除四种抽卡资源之外内容直接返回礼包信息
-        if (packInfoVO.getPackContent() == null) {
-            return getPackById(packId.toString());
-        }
-
-        //礼包的额外内容
-        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
-        //创建一个礼包额外内容的po类的集合
-        List<PackContent> packContentList = new ArrayList<>();
-        //将vo类的内容拷贝到po,同时生成礼包id
-        for (PackContentVO packContentVO : packContentVOList) {
-            PackContent packContent = new PackContent();
-            packContent.copy(packContentVO);
-            packContent.setId(idGenerator.nextId());
-            packContent.setContentId(contentId);
-            packContent.setPackId(packId);
-            packContentList.add(packContent);
-        }
-
-
-
-        //批量保存
-        packContentMapperService.saveBatch(packContentList);
-
-        redisTemplate.delete("Item:PackData");
-
-        return getPackById(packId.toString());
-    }
-
-
-
-    @RedisCacheable(key = "Item:PackData")
-    @Override
-    public List<PackInfoVO> listPackInfoByEndTime() {
-        return listAllPackInfo();
-    }
 
 
 
 
-    @Override
-    public List<PackInfoVO> listAllPackInfo() {
-        //查询所有礼包
-        List<PackInfo> packInfoList = packInfoMapper.selectList(null);
-
-        //根据上面内容id的集合对礼包内容进行查询
-        List<PackContent> packContentList = packContentMapper.selectList(null);
-
-        //查询出来的礼包内容根据packId进行一个分组
-        Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream()
-                .collect(Collectors.groupingBy(PackContent::getContentId));
-
-        //将礼包价值表转为map对象，方便使用
-        Map<String, Double> itemValueMap = packItemMapper.selectList(null)
-                .stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
-
-        List<PackInfoVO> VOList = new ArrayList<>();
-
-        for (PackInfo packInfo : packInfoList) {
-            PackInfoVO packInfoVO = getPackInfoVO(packInfo, mapPackContentByContentId.get(packInfo.getContentId()));
-            VOList.add(packInfoVO);
-            packPromotionRatioCalc(packInfoVO, itemValueMap);
-        }
-        return VOList;
-    }
-
-    @Override
-    public PackInfoVO getPackById(String idStr) {
-        long id = Long.parseLong(idStr);
-        PackInfo packInfo = packInfoMapper.selectOne(new QueryWrapper<PackInfo>().eq("id", id));
-        LambdaQueryWrapper<PackContent> packContentQueryWrapper = new LambdaQueryWrapper<>();
-        packContentQueryWrapper.eq(PackContent::getContentId, packInfo.getContentId());
-        List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
-        return getPackInfoVO(packInfo, packContentList);
-    }
-
-
-    @Override
-    public List<PackItem> listPackItem() {
-        return packItemMapper.selectList(null);
-
-    }
-
-    @Override
-    public PackItem saveOrUpdatePackItem(PackItem newPackItem) {
-        QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", newPackItem.getId());
-        PackItem packItem = packItemMapper.selectOne(queryWrapper);
-        if (packItem == null) {
-            newPackItem.setId(String.valueOf(idGenerator.nextId()));
-            packItemMapper.insert(newPackItem);
-        } else {
-            packItemMapper.update(newPackItem, queryWrapper);
-        }
-        return newPackItem;
-    }
-
-    @Override
-    public void deletePackItemById(String id) {
-        QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", id);
-        packItemMapper.delete(queryWrapper);
-    }
 
 
 
-    @Override
-    public void uploadPackImage(MultipartFile file, Long id) {
-
-        if (file.isEmpty()) {
-            throw new ServiceException(ResultCode.FILE_IS_NULL);
-        }
-
-        LambdaQueryWrapper<PackInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(PackInfo::getId, id);
-        PackInfo packInfo = packInfoMapper.selectOne(queryWrapper);
-
-        if (packInfo == null) {
-            throw new ServiceException(ResultCode.DATA_NONE);
-        }
-
-        String fileName = idGenerator.nextId()+"png";
-        if (file.getOriginalFilename() != null) {
-            String[] split = file.getOriginalFilename().split("\\.");
-            fileName = packInfo.getOfficialName() + "." + idGenerator.nextId() + "." + split[1];
-        }
 
 
-        String filePath =  "/image/store/" + fileName;
-        File saveFile = new File(filePath);
-
-        try {
-            file.transferTo(saveFile);
-        } catch (IOException exception) {
-            Logger.error(exception.getMessage());
-        }
-
-        LambdaUpdateWrapper<PackInfo> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.set(PackInfo::getImageName, fileName).eq(PackInfo::getId, id);
-        packInfoMapper.update(null, updateWrapper);
-
-        cosService.uploadFile(saveFile,filePath);
-
-    }
-
-    @Override
-    public String clearPackCache() {
-        Boolean delete = redisTemplate.delete("Item:PackData");
-        if (Boolean.FALSE.equals(delete)) {
-            throw new ServiceException(ResultCode.REDIS_CLEAR_CACHE_ERROR);
-        }
-        return "缓存清除成功";
-    }
 
 
-    private PackInfoVO getPackInfoVO(PackInfo packInfo, List<PackContent> packContentList) {
-        PackInfoVO packInfoVO = new PackInfoVO();
-        packInfoVO.copy(packInfo);
-        if (packContentList != null) {
-            List<PackContentVO> packContentVOList = new ArrayList<>();
-            for (PackContent packContent : packContentList) {
-                PackContentVO packContentVO = new PackContentVO();
-                packContentVO.copy(packContent);
-                packContentVOList.add(packContentVO);
-                packInfoVO.setPackContent(packContentVOList);
-            }
-        }
 
-        return packInfoVO;
-    }
 
-    private void packPromotionRatioCalc(PackInfoVO packInfoVO, Map<String, Double> itemValue) {
-        double drawPrice = 0.0; //每一抽价格
-        double packedOriginiumPrice = 0.0; //每源石（折算物资后）价格
-        double drawEfficiency = 0.0; //氪金性价比
-        double packEfficiency = 0.0; //综合性价比
-        double packedOriginium = 0.0;
-        double draws = 0.0;
 
-        double totalOfOrundum = packInfoVO.getOrundum() + packInfoVO.getOriginium() * 180
-                + packInfoVO.getGachaTicket() * 600 + packInfoVO.getTenGachaTicket() * 6000;
 
-        double eachOriginalOriginiumPrice = 648 / 185.0;
-        double eachOriginalDrawPrice = 648.0 / 185 / 0.3;
 
-        if (totalOfOrundum > 0) {
-            //计算共计多少抽
-            draws = totalOfOrundum / 600;
-            //计算等效多少源石 1源石 = 180合成玉
-            packedOriginium += totalOfOrundum / 180;
-            //计算每一抽的价格
-            drawPrice = packInfoVO.getPrice() / draws;
-            //计算抽卡性价比
-            drawEfficiency = eachOriginalDrawPrice / drawPrice;
-            //计算每个源石的价格
-            packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
-            //计算综合性价比
-            packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
-        }
-
-        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
-        //当这个礼包的物品不为空时
-        if (packContentVOList != null) {
-            double apCount = 0.0;
-            for (PackContentVO packContentVO : packContentVOList) {
-                if (itemValue.get(packContentVO.getItemId()) != null) {
-                    apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
-                }
-            }
-            packedOriginium += apCount / 135;
-            if (packedOriginium > 0) {
-                packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
-                packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
-            }
-        }
-
-        packInfoVO.setDraws(draws);
-        packInfoVO.setDrawPrice(drawPrice);
-        packInfoVO.setPackedOriginiumPrice(packedOriginiumPrice);
-        packInfoVO.setDrawEfficiency(drawEfficiency);
-        packInfoVO.setPackedOriginium(packedOriginium);
-        packInfoVO.setPackEfficiency(packEfficiency);
-    }
 }

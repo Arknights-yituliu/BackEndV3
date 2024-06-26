@@ -1,6 +1,6 @@
 package com.lhs.interceptor;
 
-import com.lhs.service.dev.AdminService;
+import com.lhs.service.admin.AdminService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -26,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-        registry.addInterceptor(new DevInterceptor(redisTemplate, adminService))
+        registry.addInterceptor(new AdminInterceptor(redisTemplate, adminService))
                 .addPathPatterns("/admin/**"); //拦截
 //                .excludePathPatterns(); //放行
 

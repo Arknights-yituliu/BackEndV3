@@ -57,11 +57,12 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
-    @Operation(summary ="通过鹰角网络通行证获取玩家绑定数据")
+
+    @Operation(summary = "通过鹰角网络通行证获取凭证、密匙、玩家绑定数据")
     @PostMapping("/hg/player-binding")
-    public Result<AKPlayerBindingListVO> getPlayerBindingsByHgToken(@RequestBody Map<String,String> params) {
+    public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(@RequestBody Map<String,String> params) {
         String token = params.get("token");
-        return Result.success(hypergryphService.getPlayerBindingsByHGToken(token));
+        return Result.success(hypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
     }
 
     @Operation(summary ="通过森空岛导入干员练度V2")

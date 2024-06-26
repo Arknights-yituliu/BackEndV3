@@ -1,6 +1,6 @@
 package com.lhs.entity.vo.dev;
 
-import com.lhs.entity.po.dev.PageViewStatistics;
+import com.lhs.entity.po.admin.PageViewStatistics;
 import lombok.Data;
 
 @Data

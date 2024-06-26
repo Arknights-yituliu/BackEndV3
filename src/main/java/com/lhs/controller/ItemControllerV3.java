@@ -3,14 +3,10 @@ package com.lhs.controller;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.item.Item;
-import com.lhs.entity.po.item.PackItem;
 import com.lhs.entity.po.item.Stage;
 import com.lhs.entity.po.item.StorePerm;
 import com.lhs.entity.vo.item.*;
-import com.lhs.service.item.ItemService;
-import com.lhs.service.item.StageResultService;
-import com.lhs.service.item.StageService;
-import com.lhs.service.item.StoreService;
+import com.lhs.service.item.*;
 import com.lhs.task.ItemTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,17 +26,21 @@ public class ItemControllerV3 {
     private final StageService stageService;
 
     private final StoreService storeService;
+    private final PackInfoService packInfoService;
 
     private final ItemTask itemTask;
 
     private final StageResultService stageResultService;
 
-    public ItemControllerV3(ItemService itemService, StageService stageService, StoreService storeService, ItemTask itemTask, StageResultService stageResultService) {
+    public ItemControllerV3(ItemService itemService, StageService stageService, StoreService storeService,
+                            ItemTask itemTask, StageResultService stageResultService,
+                            PackInfoService packInfoService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;
         this.itemTask = itemTask;
         this.stageResultService = stageResultService;
+        this.packInfoService = packInfoService;
     }
 
     @Operation(summary = "手动更新")
@@ -159,15 +159,10 @@ public class ItemControllerV3 {
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
     public Result<List<PackInfoVO>> getPackPromotionRatioList(){
-        List<PackInfoVO> list =  storeService.listPackInfoByEndTime();
+        List<PackInfoVO> list =  packInfoService.listPackInfo();
         return Result.success(list);
     }
 
 
-    @Operation(summary = "获取礼包自定义材料表")
-    @GetMapping("/store/pack/item/list")
-    public Result<List<PackItem>> getItemList() {
-        List<PackItem> packItemList = storeService.listPackItem();
-        return Result.success(packItemList);
-    }
+
 }
