@@ -8,7 +8,6 @@ import com.lhs.common.util.Logger;
 import com.lhs.entity.po.survey.*;
 import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.mapper.survey.OperatorDataMapper;
-import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.mapper.survey.OperatorSurveyStatisticsMapper;
 import com.lhs.service.util.ArknightsGameDataService;
 import com.lhs.service.util.OSSService;
@@ -18,12 +17,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.xml.crypto.Data;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class OperatorStatisticsService {
@@ -64,14 +61,10 @@ public class OperatorStatisticsService {
 
         List<AkPlayerBindInfoV2> akPlayerBindInfoList = akPlayerBindInfoV2Mapper.selectList(playerBindInfoQueryWrapper);
 
+        Integer playerCount = akPlayerBindInfoList.size();
 
-        Logger.info("本次统计人数为：" + akPlayerBindInfoList.size() + "人");
 
-        String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        redisTemplate.opsForHash().put("Survey", "UpdateTime.Operator", updateTime);
-        redisTemplate.opsForHash().put("Survey", "UserCount.Operator", akPlayerBindInfoList.size());
-
-        // 计算用户id按500个用户一组可以分成多少组
+        // 计算用户id按300个用户一组可以分成多少组
         operatorSurveyStatisticsMapper.truncate(); //清空统计表
         HashMap<String, OperatorStatisticsDTO> tmpResult = new HashMap<>();  //结果暂存对象
 
@@ -80,13 +73,13 @@ public class OperatorStatisticsService {
         for (AkPlayerBindInfoV2 akPlayerBindInfo : akPlayerBindInfoList) {
             tmpAkPlayerBindInfoList.add(akPlayerBindInfo);
             if (tmpAkPlayerBindInfoList.size() > 300) {
-                operatorStatistics(tmpAkPlayerBindInfoList, tmpResult);
+                operatorStatisticsByIds(tmpAkPlayerBindInfoList, tmpResult,playerCount);
                 tmpAkPlayerBindInfoList.clear();
             }
         }
 
         if (!tmpAkPlayerBindInfoList.isEmpty()) {
-            operatorStatistics(tmpAkPlayerBindInfoList, tmpResult);
+            operatorStatisticsByIds(tmpAkPlayerBindInfoList, tmpResult,playerCount);
         }
 
         List<OperatorStatistics> statisticsOperatorList = new ArrayList<>();  //最终结果
@@ -111,15 +104,33 @@ public class OperatorStatisticsService {
             statisticsOperatorList.add(build);
         });
 
+
+        Logger.info("本次统计人数为：" + playerCount + "人");
+        String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        redisTemplate.opsForHash().put("Survey", "UpdateTime.Operator", updateTime);
+        redisTemplate.opsForHash().put("Survey", "UserCount.Operator", playerCount);
+
+
         operatorSurveyStatisticsMapper.insertBatch(statisticsOperatorList);
         redisTemplate.expire("Survey:OperatorStatistics",10, TimeUnit.SECONDS);
 
     }
 
-    private void operatorStatistics(List<AkPlayerBindInfoV2> akPlayerBindInfoList, HashMap<String, OperatorStatisticsDTO> tmpResult) {
+    private static <T> java.util.function.Predicate<T> distinctByKey(java.util.function.Function<? super T, ?> keyExtractor) {
+
+        java.util.Map<Object, Boolean> seen = new java.util.concurrent.ConcurrentHashMap<>();
+
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+
+    }
+
+    private void operatorStatisticsByIds(List<AkPlayerBindInfoV2> akPlayerBindInfoList, HashMap<String, OperatorStatisticsDTO> tmpResult,Integer playerCount) {
 
         QueryWrapper<OperatorData> queryWrapper = new QueryWrapper<>();
+        //获取传入的绑定信息uid的去重后的set
         Set<Long> uidSet = akPlayerBindInfoList.stream().map(AkPlayerBindInfoV2::getUid).collect(Collectors.toSet());
+        //根据去重的set进行
+        List<AkPlayerBindInfoV2> distinctAkPlayerBindInfoList = akPlayerBindInfoList.stream().filter(e->uidSet.contains(e.getUid())).toList();
 
         queryWrapper.in("uid", uidSet);
         List<OperatorData> operatorDataListByUidSet = operatorDataMapper.selectList(queryWrapper);
@@ -130,14 +141,18 @@ public class OperatorStatisticsService {
         int lastOperatorDataSize = 0;
 
         Map<Long, List<OperatorData>> collect = operatorDataListByUidSet.stream().collect(Collectors.groupingBy(OperatorData::getUid));
-        for (AkPlayerBindInfoV2 akPlayerBindInfoV2 : akPlayerBindInfoList) {
+        for (AkPlayerBindInfoV2 akPlayerBindInfoV2 : distinctAkPlayerBindInfoList) {
             List<OperatorData> operatorDataListByUid = collect.get(akPlayerBindInfoV2.getUid());
             if (operatorDataListByUid != null) {
                 operatorDataListByUid.stream()
                         .filter(o -> o.getAkUid().equals(akPlayerBindInfoV2.getAkUid()))
                         .forEach(filteredList::add);
             }
+
             Logger.info("该用户名下有"+(filteredList.size()-lastOperatorDataSize)+"条干员数据");
+            if(filteredList.size()-lastOperatorDataSize<20){
+                playerCount--;
+            }
             lastOperatorDataSize = filteredList.size();
         }
 

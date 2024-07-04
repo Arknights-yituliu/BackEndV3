@@ -94,8 +94,6 @@ public class AdminController {
         return Result.success(adminService.getDeveloperInfo(token));
     }
 
-
-
     @Operation(summary = "更新商店礼包")
     @PostMapping("/admin/store/pack/update")
     public Result<String> updateStageResult(@RequestBody PackInfoVO packInfoVO) {
@@ -103,12 +101,17 @@ public class AdminController {
         return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoVO));
     }
 
-
     @Operation(summary = "根据id获取礼包")
     @GetMapping("/admin/store/pack")
     public Result<PackInfoVO> updateStageResult(@RequestParam(required = false, defaultValue = "1") String id) {
         PackInfoVO pack = packInfoService.getPackById(id);
         return Result.success(pack);
+    }
+
+    @Operation(summary = "删除礼包材料")
+    @GetMapping("/admin/store/pack/delete")
+    public Result<Object> deletePackInfo(@RequestParam String id){
+        return Result.success(packInfoService.deletePackInfoById(id));
     }
 
 
@@ -127,9 +130,9 @@ public class AdminController {
 
     @Operation(summary = "删除礼包材料")
     @GetMapping("/admin/item/delete")
-    public Result<Object> deletePackItem(@RequestParam String id){
-        packInfoService.deletePackItemById(id);
-        return Result.success();
+    public Result<String> deletePackItem(@RequestParam String id){
+
+        return Result.success(packInfoService.deletePackItemById(id));
     }
 
     @Operation(summary = "清除礼包缓存数据")

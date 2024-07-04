@@ -13,22 +13,15 @@ public interface ArknightsGameDataService {
     Map<String, String> getEquipIdAndType();
 
 
-    Map<String, String> getHasEquipTable();
-
-
     List<OperatorTable> getOperatorTable();
 
-    void getCharacterData();
-
-    void getOperatorApCost();
+    void getOperatorInfoSimpleTable();
 
     void getBuildingTable();
-
-    void getBuildingTableByBot();
 
     void getPortrait();
 
     void getAvatar();
 
-    void getAvatarByBot();
+
 }

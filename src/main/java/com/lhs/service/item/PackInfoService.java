@@ -3,6 +3,7 @@ package com.lhs.service.item;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
@@ -19,6 +20,7 @@ import com.lhs.mapper.item.PackItemMapper;
 import com.lhs.mapper.item.service.PackContentMapperService;
 import com.lhs.service.admin.ImageInfoService;
 import com.lhs.service.util.COSService;
+import org.bouncycastle.util.Pack;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +62,9 @@ public class PackInfoService {
 
     public List<PackInfoVO> listAllPackInfo() {
         //查询所有礼包
-        List<PackInfo> packInfoList = packInfoMapper.selectList(null);
+        LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
+        packInfoQueryWrapper.eq(PackInfo::getDeleteFlag,false);
+        List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
 
         //根据上面内容id的集合对礼包内容进行查询
         List<PackContent> packContentList = packContentMapper.selectList(null);
@@ -113,9 +117,11 @@ public class PackInfoService {
             packInfoMapper.insert(packInfo);
             packInfo.setCreateTime(currentDate);
         } else {
+            Long oldContentId = packInfoById.getContentId();
+            int deleteRows = packContentMapper.deleteById(oldContentId);
             //如果旧礼包存在则根据id更新
             packInfoMapper.updateById(packInfo);
-            message = "更新礼包成功";
+            message = "更新礼包成功，删除了"+deleteRows+"条内容数据";
         }
 
         //礼包id
@@ -180,10 +186,11 @@ public class PackInfoService {
     }
 
 
-    public void deletePackItemById(String id) {
+    public String deletePackItemById(String id) {
         QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", id);
-        packItemMapper.delete(queryWrapper);
+        int delete = packItemMapper.delete(queryWrapper);
+        return "删除了"+delete+"条物品数据";
     }
 
 
@@ -263,5 +270,13 @@ public class PackInfoService {
         packInfoVO.setDrawEfficiency(drawEfficiency);
         packInfoVO.setPackedOriginium(packedOriginium);
         packInfoVO.setPackEfficiency(packEfficiency);
+    }
+
+    public String deletePackInfoById(String id) {
+        PackInfo packInfo = new PackInfo();
+        packInfo.setId(Long.parseLong(id));
+        packInfo.setDeleteFlag(true);
+        int delete = packInfoMapper.updateById(packInfo);
+        return "删除了"+delete+"条礼包数据";
     }
 }
