@@ -173,7 +173,6 @@ public class StageService {
             stage.setStartTime(openTime);
             stage.setEndTime(endTime);
             stage.setSpm(spm);
-            stage.setIsReproduction(isReproduction);
             stage.setMinClearTime(minClearTime);
 
             Logger.info("本次拉取更新的关卡是："+stageId);

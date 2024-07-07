@@ -37,9 +37,9 @@ public class CustomItemService {
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
-        for (int i = 0; i < 5; i++) {
-            itemService.ItemValueCal(baseItemList,stageParamDTO);
-            stageCalService.stageResultCal(baseItemList,stageParamDTO);
-        }
+//        for (int i = 0; i < 5; i++) {
+//            itemService.ItemValueCal(baseItemList,stageParamDTO);
+//            stageCalService.stageResultCal(baseItemList,stageParamDTO);
+//        }
     }
 }

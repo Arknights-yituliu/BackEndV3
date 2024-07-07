@@ -53,4 +53,6 @@ public interface StoreService {
     Map<String, HoneyCake> getHoneyCake();
 
     List<HoneyCake> getHoneyCakeList();
+
+    Map<String, List<StorePerm>> getStorePermV2();
 }

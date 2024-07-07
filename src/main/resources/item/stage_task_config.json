@@ -1,11 +1,17 @@
 [
   {
-    "expCoefficient": 0.625,
+    "expCoefficient": 0.633,
     "sampleSize": 100
   },
   {
-    "expCoefficient": 0.625,
-    "sampleSize": 300
+    "expCoefficient": 0.633,
+    "sampleSize": 300,
+    "stageBlacklist": [
+      "act25side_07_perm",
+      "act25side_08_perm",
+      "act25side_09_perm",
+      "act25side_10_perm"
+    ]
   },
   {
     "expCoefficient": 0.72,

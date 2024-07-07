@@ -43,7 +43,7 @@ public class StageCalService {
         idGenerator = new IdGenerator(1L);
     }
 
-    public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO) {
+    public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO,Map<String, Integer> stageBlacklist) {
 
         //物品信息Map  <itemId,Item>
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
@@ -75,6 +75,12 @@ public class StageCalService {
 
 
         for (String stageId : matrixByStageId.keySet()) {
+
+            if(stageBlacklist.get(stageId)!=null){
+                Logger.info("黑名单关卡"+stageId);
+                continue;
+            }
+
             Stage stage = stageMap.get(stageId);
 
             List<PenguinMatrixDTO> stageDropList = matrixByStageId.get(stageId);
@@ -94,15 +100,7 @@ public class StageCalService {
             stageDropLMD.setTimes(1);
             stageDropList.add(stageDropLMD);
 
-//            if (stageId.startsWith("main_14")) {
-//                stageType = StageType.ACT;
-//                Logger.info("14章关卡——" + stageId + "转为SS模板");
-//            }
 
-            if(stageId.startsWith("main_14")){
-//                continue;
-                Logger.info("遇到一条14章关卡记录："+stage.getStageCode());
-            }
 
             if (StageType.ACT_REP.equals(stageType) || StageType.ACT.equals(stageType)) {
                 PenguinMatrixDTO stageDropStore = new PenguinMatrixDTO();

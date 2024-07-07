@@ -243,12 +243,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
         FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\",
-                "character_table_simple1.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
+                "character_table_simple.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
         FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\",
-                "character_list1.json", JsonMapper.toJSONString(list));
+                "character_list.json", JsonMapper.toJSONString(list));
 
         FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\",
-                "operator_item_cost_table1.json", JsonMapper.toJSONString(itemCostMap));
+                "operator_item_cost_table.json", JsonMapper.toJSONString(itemCostMap));
 
     }
 
@@ -369,7 +369,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         //干员中文名称
         String name = data.get("name").asText();
-
+        if("char_1001_amiya2".equals(charId)){
+            name = "阿米娅（近卫）";
+        }
+        if("char_1037_amiya3".equals(charId)){
+            name = "阿米娅（医疗）";
+        }
 
         //职业
         String profession = data.get("profession").asText();

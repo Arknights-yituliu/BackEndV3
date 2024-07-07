@@ -100,6 +100,18 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
+    @RedisCacheable(key = "Item:StorePerm", timeout = 86400)
+    public Map<String, List<StorePerm>> getStorePermV2() {
+        List<StorePerm> storePerms = storePermMapper.selectList(null);
+        Map<String, List<StorePerm>> collect = storePerms.stream().collect(Collectors.groupingBy(StorePerm::getStoreType));
+
+        List<Map<String,Object>> result = new ArrayList<>();
+
+
+        return null;
+    }
+
+    @Override
     public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel) {
         List<Item> items = itemService.getItemListCache(new StageParamDTO().getVersion());
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
@@ -240,19 +252,6 @@ public class StoreServiceImpl implements StoreService {
         honeyCakeQueryWrapper.orderByDesc("start");
         return honeyCakeMapper.selectList(honeyCakeQueryWrapper);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
