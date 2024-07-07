@@ -43,7 +43,7 @@ public class StageCalService {
         idGenerator = new IdGenerator(1L);
     }
 
-    public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO,Map<String, Integer> stageBlacklist) {
+    public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO) {
 
         //物品信息Map  <itemId,Item>
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
@@ -70,9 +70,8 @@ public class StageCalService {
 
         HashMap<String, Double> itemIterationValueMap = new HashMap<>();
 
-        long stageResultId = System.currentTimeMillis();
-        long stageResultDeatilId = System.currentTimeMillis();
 
+        Map<String,String> stageBlacklist = stageParamDTO.getStageBlacklist();
 
         for (String stageId : matrixByStageId.keySet()) {
 
@@ -88,7 +87,7 @@ public class StageCalService {
             double apCost = stage.getApCost();
             String stageType = stage.getStageType();
             //关卡效率
-            double stageEfficiency = 0.0;
+            double stageEfficiency;
             //关卡掉落物品价值总和
             double dropApValueSum = 0.0;
 

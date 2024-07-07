@@ -55,29 +55,29 @@ public class StageResultService {
         for (JsonNode config : stageTaskConfig) {
             int sampleSize = config.get("sampleSize").asInt();
             double expCoefficient = config.get("expCoefficient").asDouble();
-            Map<String, Integer> stageBlacklist = new HashMap<>();
+            Map<String, String> stageBlacklist = new HashMap<>();
             if(config.get("stageBlacklist")!=null){
                 JsonNode jsonNode = config.get("stageBlacklist");
                 for(JsonNode stageIdNode:jsonNode){
-                    stageBlacklist.put(stageIdNode.asText(),1);
+                    stageBlacklist.put(stageIdNode.asText(),stageIdNode.asText());
                 }
             }
             StageParamDTO stageParamDTO = new StageParamDTO();
             stageParamDTO.setSampleSize(sampleSize);
             stageParamDTO.setExpCoefficient(expCoefficient);
-
-            updateStageResult(stageParamDTO,stageBlacklist);
+            stageParamDTO.setStageBlacklist(stageBlacklist);
+            updateStageResult(stageParamDTO);
             Logger.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
         }
     }
 
-    public void updateStageResult(StageParamDTO stageParamDTO,Map<String, Integer> stageBlacklist) {
+    public void updateStageResult(StageParamDTO stageParamDTO) {
         List<Item> items = itemService.getItemList(stageParamDTO);   //找出对应版本的材料价值
         if (items == null || items.isEmpty()) {
             items = itemService.getBaseItemList();
         }
         items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
-        stageCalService.stageResultCal(items, stageParamDTO,stageBlacklist);      //用新材料价值计算新关卡效率
+        stageCalService.stageResultCal(items, stageParamDTO);      //用新材料价值计算新关卡效率
         Logger.info("V2关卡效率更新成功");
     }
 

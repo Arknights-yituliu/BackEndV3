@@ -3,6 +3,7 @@ package com.lhs.entity.dto.item;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Data
@@ -12,8 +13,8 @@ public class StageParamDTO {
     private Integer sampleSize = 300;  //样本量
     private Double lmdCoefficient = 1.0; //龙门币系数   龙门币价值 =  根据钱本计算的龙门币价值(0.0036) * 龙门币系数
     private Boolean calculateActivityStage = false; //是否计算活动关卡
-    private List<String> itemBlacklist; //材料黑名单，计算中不使用这些材料
-    private List<String> stageBlacklist;  //关卡黑名单，计算中不使用这些关卡
+    private Map<String,String> itemBlacklist; //材料黑名单，计算中不使用这些材料
+    private Map<String,String> stageBlacklist;  //关卡黑名单，计算中不使用这些关卡
 
     //  返回版本号
     public String getVersion(){
