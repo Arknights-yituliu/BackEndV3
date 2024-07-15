@@ -8,13 +8,13 @@ import com.lhs.common.util.*;
 
 import com.lhs.entity.dto.item.StageDropDTO;
 import com.lhs.entity.dto.item.StageDropDetailDTO;
-import com.lhs.entity.po.item.StageDrop;
-import com.lhs.entity.po.item.StageDropDetail;
+import com.lhs.entity.po.material.StageDrop;
+import com.lhs.entity.po.material.StageDropDetail;
 import com.lhs.entity.vo.item.StageDropDetailVO;
 import com.lhs.entity.vo.item.StageDropVO;
-import com.lhs.mapper.item.StageDropDetailMapper;
-import com.lhs.mapper.item.StageDropMapper;
-import com.lhs.mapper.item.service.StageDropDetailMapperService;
+import com.lhs.mapper.material.StageDropDetailMapper;
+import com.lhs.mapper.material.StageDropMapper;
+import com.lhs.mapper.material.service.StageDropDetailMapperService;
 import com.lhs.service.util.OSSService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;

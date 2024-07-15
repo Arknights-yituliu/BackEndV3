@@ -1,6 +1,6 @@
 package com.lhs.entity.vo.item;
 
-import com.lhs.entity.po.item.StageResult;
+import com.lhs.entity.po.material.StageResult;
 import lombok.Data;
 
 import java.util.List;

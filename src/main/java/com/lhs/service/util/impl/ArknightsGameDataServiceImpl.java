@@ -48,7 +48,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
      *
      * @return Map<模组id, 模组分支>
      */
-    @RedisCacheable(key = "Survey:EquipIdAndType", timeout = 86400)
+    @RedisCacheable(key = "Survey:EquipIdAndType" )
     @Override
     public Map<String, String> getEquipIdAndType() {
         String read = FileUtil.read(ConfigUtil.Item + "character_table_simple.json");

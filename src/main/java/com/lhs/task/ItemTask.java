@@ -2,7 +2,7 @@ package com.lhs.task;
 
 import com.lhs.service.maa.StageDropUploadService;
 import com.lhs.service.util.OSSService;
-import com.lhs.service.item.*;
+import com.lhs.service.material.*;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

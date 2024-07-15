@@ -1,5 +1,5 @@
 package com.lhs.entity.vo.item;
-import com.lhs.entity.po.item.StageDropDetail;
+import com.lhs.entity.po.material.StageDropDetail;
 import lombok.Data;
 
 @Data

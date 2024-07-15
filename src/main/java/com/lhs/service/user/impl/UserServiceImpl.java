@@ -698,9 +698,10 @@ public class UserServiceImpl implements UserService {
         if(!checkParamsValidity(newPassword)){
             throw new ServiceException(ResultCode.PASSWORD_IS_BLANK);
         }
+        checkPassWord(newPassword);
 
         newPassword = AES.encrypt(newPassword,ConfigUtil.Secret);
-        checkPassWord(newPassword);
+
         userInfo.setPassword(newPassword);
 
         surveyUserMapper.updateById(userInfo);

@@ -1,10 +1,9 @@
 package com.lhs.entity.vo.item;
 
 
-import com.lhs.entity.po.item.PackInfo;
+import com.lhs.entity.po.material.PackInfo;
 import lombok.Data;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Data

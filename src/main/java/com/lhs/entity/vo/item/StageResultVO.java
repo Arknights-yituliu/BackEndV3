@@ -1,8 +1,8 @@
 package com.lhs.entity.vo.item;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lhs.entity.po.item.StageResult;
-import com.lhs.entity.po.item.StageResultDetail;
+import com.lhs.entity.po.material.StageResult;
+import com.lhs.entity.po.material.StageResultDetail;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
