@@ -1,9 +1,9 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.survey.EmailRequestDTO;
-import com.lhs.entity.dto.survey.LoginDataDTO;
-import com.lhs.entity.dto.survey.UpdateUserDataDTO;
+import com.lhs.entity.dto.user.EmailRequestDTO;
+import com.lhs.entity.dto.user.LoginDataDTO;
+import com.lhs.entity.dto.user.UpdateUserDataDTO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;

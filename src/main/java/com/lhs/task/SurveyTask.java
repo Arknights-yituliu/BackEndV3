@@ -17,7 +17,7 @@ public class SurveyTask {
 
     @Scheduled(cron = "0 0 0/1 * * ? ")
     public void operatorStatistics(){
-        operatorStatisticsService.operatorStatistics();
+        operatorStatisticsService.statisticsOperatorData();
     }
 
 

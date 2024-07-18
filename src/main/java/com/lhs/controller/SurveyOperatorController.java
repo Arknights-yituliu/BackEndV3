@@ -1,14 +1,10 @@
 package com.lhs.controller;
 
-import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.FileType;
-import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.Result;
-import com.lhs.common.util.ResultCode;
-import com.lhs.entity.po.survey.OperatorPlan;
+import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.po.survey.OperatorData;
+import com.lhs.entity.po.survey.OperatorPlan;
 import com.lhs.entity.po.survey.OperatorDataVo;
-import com.lhs.entity.vo.survey.AKPlayerBindingListVO;
 import com.lhs.service.survey.*;
 import com.lhs.entity.vo.survey.OperatorPlanVO;
 
@@ -16,7 +12,6 @@ import com.lhs.service.util.ArknightsGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Comparator;
@@ -30,24 +25,25 @@ import java.util.Map;
 public class SurveyOperatorController {
     private final OperatorDataService operatorDataService;
 
-    private final OperatorPlanService operatorPlanService;
+
 
     private final ArknightsGameDataService arknightsGameDataService;
 
-    private final HypergryphService hypergryphService;
+    private final HypergryphService HypergryphService;
 
     private final OperatorStatisticsService operatorStatisticsService;
 
+    private final WarehouseInfoService warehouseInfoService;
+
     public SurveyOperatorController(OperatorDataService operatorDataService,
-                                    OperatorPlanService operatorPlanService,
                                     ArknightsGameDataService arknightsGameDataService,
                                     OperatorStatisticsService operatorStatisticsService,
-                                    HypergryphService hypergryphService) {
+                                    HypergryphService HypergryphService, WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
-        this.operatorPlanService = operatorPlanService;
         this.arknightsGameDataService = arknightsGameDataService;
         this.operatorStatisticsService = operatorStatisticsService;
-        this.hypergryphService = hypergryphService;
+        this.HypergryphService = HypergryphService;
+        this.warehouseInfoService = warehouseInfoService;
     }
 
     @Operation(summary ="上传干员练度调查表")
@@ -57,20 +53,33 @@ public class SurveyOperatorController {
         return Result.success(hashMap);
     }
 
+    @Operation(summary ="手动统计")
+    @GetMapping("/test")
+    public Result<Object> test() {
+        operatorStatisticsService.statisticsOperatorData();
+        return Result.success();
+    }
 
     @Operation(summary = "通过鹰角网络通行证获取凭证、密匙、玩家绑定数据")
     @PostMapping("/hg/player-binding")
     public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(@RequestBody Map<String,String> params) {
         String token = params.get("token");
-        return Result.success(hypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
+        return Result.success(HypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
     }
 
     @Operation(summary ="通过森空岛导入干员练度V2")
     @PostMapping("/operator/import/skland/v2")
     public Result<Object> importSurveyCharacterFormBySKLandV2(@RequestBody Map<String,String> params) {
+
         String token = params.get("token");
         String data = params.get("data");
         return Result.success(operatorDataService.importSKLandPlayerInfoV2(token, data));
+    }
+
+    @Operation(summary ="通过森空岛导入仓库材料")
+    @PostMapping("/warehouse-info/import/skland")
+    public Result<Object> importWarehouseInfoBySKLand(@RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {
+        return Result.success(warehouseInfoService.saveWarehouseInventoryInfo(warehouseInventoryAPIParams));
     }
 
     @Operation(summary ="用户干员练度重置")
@@ -81,26 +90,16 @@ public class SurveyOperatorController {
     }
 
 
-    @Operation(summary ="导入干员练度调查表")
-    @PostMapping("/operator/import/excel")
-    public Result<Object> importSurveyCharacterFormByExcel(MultipartFile file, @RequestParam String token) {
-
-        boolean checkFileType = FileUtil.checkFileType(file, FileType.ZIP.getValue());
-        if(!checkFileType) throw new ServiceException(ResultCode.FILE_NOT_IN_EXCEL_FORMAT);
-        long size = file.getSize();
-        if(size/1024>100) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        Map<String, Object> hashMap = operatorDataService.importExcel(file, token);
-        return Result.success(hashMap);
-    }
-
     @Operation(summary ="获取干员数据")
-    @PostMapping("/operator/table")
+    @PostMapping("/operator/info")
     public Result<Object> getOperatorTable(@RequestBody Map<String,String> params) {
         String token = params.get("token");
-        List<OperatorDataVo> surveyDataCharList = operatorDataService.getOperatorTable(token);
+        List<OperatorDataVo> surveyDataCharList = operatorDataService.getOperatorInfoByToken(token);
         surveyDataCharList.sort(Comparator.comparing(OperatorDataVo::getRarity).reversed());
         return Result.success(surveyDataCharList);
     }
+
+
 
     @Operation(summary ="干员练度调查表统计结果")
     @GetMapping("/operator/result")
@@ -113,51 +112,6 @@ public class SurveyOperatorController {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @Operation(summary ="导出干员练度调查表")
-    @GetMapping("/operator/export")
-    public void exportSurveyCharacterForm(HttpServletResponse response, @RequestParam String token) {
-        operatorDataService.exportSurveyOperatorForm(response,token);
-    }
-
-    @Operation(summary ="上传训练干员计划")
-    @PostMapping("/operator/plan/save")
-    public Result<Object> saveOperatorPlan(@RequestBody OperatorPlanVO OperatorPlanVo) {
-
-        return operatorPlanService.savePlan(OperatorPlanVo);
-    }
-
-    @Operation(summary ="获取训练干员计划")
-    @PostMapping("/operator/plan")
-    public Result<List<OperatorPlan>> getOperatorPlan(@RequestBody OperatorPlanVO OperatorPlanVo) {
-
-        return operatorPlanService.getPlan(OperatorPlanVo);
-    }
 
 
 

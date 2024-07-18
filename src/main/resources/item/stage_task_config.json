@@ -1,38 +1,26 @@
-[
-  {
-    "expCoefficient": 0.625,
-    "sampleSize": 100
-  },
-  {
-    "expCoefficient": 0.625,
-    "sampleSize": 300,
-    "stageBlacklist": [
-      "act25side_01_perm",
-      "act25side_02_perm",
-      "act25side_03_perm",
-      "act25side_04_perm",
-      "act25side_05_perm",
-      "act25side_06_perm",
-      "act25side_07_perm",
-      "act25side_08_perm",
-      "act25side_09_perm",
-      "act25side_10_perm"
-    ]
-  },
-  {
-    "expCoefficient": 0.72,
-    "sampleSize": 100
-  },
-  {
-    "expCoefficient": 0.72,
-    "sampleSize": 300
-  },
-  {
-    "expCoefficient": 0.0,
-    "sampleSize": 100
-  },
-  {
-    "expCoefficient": 0.0,
-    "sampleSize": 300
-  }
-]
+{
+  "expCoefficient": [
+    0,
+    0.633,
+    0.802,
+    0.833,
+    0.957
+  ],
+  "sampleSize": [
+    0,
+    100,
+    300
+  ],
+  "stageBlacklist": [
+    "act25side_01_perm",
+    "act25side_02_perm",
+    "act25side_03_perm",
+    "act25side_04_perm",
+    "act25side_05_perm",
+    "act25side_06_perm",
+    "act25side_07_perm",
+    "act25side_08_perm",
+    "act25side_09_perm",
+    "act25side_10_perm"
+  ]
+}

@@ -3,14 +3,10 @@ package com.lhs.entity.po.survey;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
 @TableName(value = "ak_player_bind_info_v2")
-@Table
 public class AkPlayerBindInfoV2 {
 
     @TableId

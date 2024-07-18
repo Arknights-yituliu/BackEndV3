@@ -50,6 +50,15 @@ public class ItemControllerV3 {
         return Result.success();
     }
 
+    @Operation(summary = "保存材料价值配置")
+    @GetMapping("/user/save-material-value-config")
+    public Result<String> saveMaterialValueConfig(@RequestParam Map<String,Object> params) {
+        String message = stageResultService.saveMaterialValueConfig(params);
+
+        return Result.success(message);
+    }
+
+
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @GetMapping("/stage/result")
     public Result<Map<String, Object>> getStageResultOld(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,

@@ -5,12 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.item.*;
+import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.mapper.material.MaterialValueConfigMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
+import com.lhs.service.user.UserService;
 import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -31,8 +35,10 @@ public class StageResultService {
     private final OSSService ossService;
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private final UserService userService;
+    private final MaterialValueConfigMapper materialValueConfigMapper;
 
-    public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate) {
+    public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate, UserService userService, MaterialValueConfigMapper materialValueConfigMapper) {
         this.stageResultDetailMapper = stageResultDetailMapper;
         this.stageResultMapper = stageResultMapper;
         this.itemService = itemService;
@@ -40,8 +46,10 @@ public class StageResultService {
         this.stageService = stageService;
         this.ossService = ossService;
         this.redisTemplate = redisTemplate;
-
+        this.userService = userService;
+        this.materialValueConfigMapper = materialValueConfigMapper;
     }
+
 
 
     public void updateStageResultByTaskConfig() {
@@ -52,22 +60,38 @@ public class StageResultService {
         }
 
         JsonNode stageTaskConfig = JsonMapper.parseJSONObject(read);
-        for (JsonNode config : stageTaskConfig) {
-            int sampleSize = config.get("sampleSize").asInt();
-            double expCoefficient = config.get("expCoefficient").asDouble();
-            Map<String, String> stageBlacklist = new HashMap<>();
-            if(config.get("stageBlacklist")!=null){
-                JsonNode jsonNode = config.get("stageBlacklist");
-                for(JsonNode stageIdNode:jsonNode){
-                    stageBlacklist.put(stageIdNode.asText(),stageIdNode.asText());
-                }
+
+        JsonNode expCoefficientNode = stageTaskConfig.get("expCoefficient");
+        JsonNode sampleSizeNode = stageTaskConfig.get("sampleSize");
+
+        Map<String, String> stageBlacklist = new HashMap<>();
+        if(stageTaskConfig.get("stageBlacklist")!=null){
+            JsonNode jsonNode = stageTaskConfig.get("stageBlacklist");
+            for(JsonNode stageIdNode:jsonNode){
+                stageBlacklist.put(stageIdNode.asText(),stageIdNode.asText());
             }
-            StageParamDTO stageParamDTO = new StageParamDTO();
-            stageParamDTO.setSampleSize(sampleSize);
-            stageParamDTO.setExpCoefficient(expCoefficient);
-            stageParamDTO.setStageBlacklist(stageBlacklist);
-            updateStageResult(stageParamDTO);
-            Logger.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
+        }
+
+        List<Double> expCoefficientList = new ArrayList<>();
+        List<Integer> sampleSizeList = new ArrayList<>();
+
+        for(JsonNode jsonNode:expCoefficientNode){
+            expCoefficientList.add(jsonNode.asDouble());
+        }
+
+        for(JsonNode jsonNode:sampleSizeNode){
+            sampleSizeList.add(jsonNode.asInt());
+        }
+
+        for (Double expCoefficient : expCoefficientList) {
+            for (Integer sampleSize : sampleSizeList) {
+                StageParamDTO stageParamDTO = new StageParamDTO();
+                stageParamDTO.setSampleSize(sampleSize);
+                stageParamDTO.setExpCoefficient(expCoefficient);
+                stageParamDTO.setStageBlacklist(stageBlacklist);
+                updateStageResult(stageParamDTO);
+                Logger.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
+            }
         }
     }
 
@@ -81,6 +105,38 @@ public class StageResultService {
         Logger.info("V2关卡效率更新成功");
     }
 
+
+    public String saveMaterialValueConfig(Map<String,Object> params){
+
+        Object oToken = params.get("token");
+        if(oToken==null){
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+
+        UserInfoVO userInfoByToken = userService.getUserInfoByToken(String.valueOf(oToken));
+        Long uid = userInfoByToken.getUid();
+
+        Object oConfig = params.get("config");
+
+        LambdaQueryWrapper<MaterialValueConfig> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(MaterialValueConfig::getUid,uid);
+        MaterialValueConfig materialValueConfigByUid = materialValueConfigMapper.selectOne(lambdaQueryWrapper);
+        long timeStamp = System.currentTimeMillis();
+        if(materialValueConfigByUid==null){
+            MaterialValueConfig materialValueConfig = new MaterialValueConfig();
+            materialValueConfig.setUid(uid);
+            materialValueConfig.setCreateTime(timeStamp);
+            materialValueConfig.setUpdateTime(timeStamp);
+            materialValueConfig.setConfig(String.valueOf(oConfig));
+            materialValueConfigMapper.insert(materialValueConfig);
+        }else {
+            materialValueConfigByUid.setUpdateTime(timeStamp);
+            materialValueConfigByUid.setConfig(String.valueOf(oConfig));
+            materialValueConfigMapper.updateById(materialValueConfigByUid);
+        }
+
+       return "更新成功";
+    }
 
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
     public Map<String, Object> getT3RecommendedStageV2(String version) {

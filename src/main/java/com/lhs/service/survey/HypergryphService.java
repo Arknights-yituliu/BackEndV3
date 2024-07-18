@@ -1,6 +1,6 @@
 package com.lhs.service.survey;
 
-import com.lhs.entity.vo.survey.AKPlayerBindingListVO;
+import com.lhs.entity.vo.survey.AkPlayerBindingListVO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,11 +9,12 @@ import java.util.Map;
 public interface HypergryphService {
 
 
-    AKPlayerBindingListVO getPlayerBindingsByHGToken(String token);
+    AkPlayerBindingListVO getPlayerBindingsByHGToken(String token);
 
     Map<String,Object> getCredAndTokenAndPlayerBindingsByHgToken(String hgToken);
 
-    AKPlayerBindingListVO getPlayerBindingsBySkland(HashMap<String, String> sklandCredAndToken);
+    AkPlayerBindingListVO getPlayerBindingsBySkland(HashMap<String, String> sklandCredAndToken);
+
 
 
 }

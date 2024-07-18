@@ -1,44 +1,37 @@
 package com.lhs.service.survey.impl;
 
-import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.context.AnalysisContext;
-import com.alibaba.excel.event.AnalysisEventListener;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
+import com.lhs.entity.dto.survey.OperatorDataDTO;
+import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.po.survey.*;
-import com.lhs.entity.vo.survey.OperatorExportExcelVO;
+import com.lhs.entity.po.user.AkPlayerBindInfo;
+import com.lhs.entity.po.user.UserExternalAccountBinding;
 
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.mapper.survey.OperatorDataMapper;
+import com.lhs.mapper.survey.SurveyOperatorDataMapper;
 import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.service.survey.OperatorDataService;
-import com.lhs.service.survey.SurveyUserService;
+import com.lhs.service.user.UserService;
 import com.lhs.service.util.ArknightsGameDataService;
 import com.lhs.service.util.OSSService;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 public class OperatorDataServiceImpl implements OperatorDataService {
 
-    private final OperatorDataMapper operatorDataMapper;
+    private final SurveyOperatorDataMapper surveyOperatorDataMapper;
     private final OperatorDataVoMapper operatorDataVoMapper;
 
-    private final SurveyUserService surveyUserService;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -48,37 +41,53 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper;
 
+    private final UserService userService;
+
     private final IdGenerator idGenerator;
 
-    public OperatorDataServiceImpl(OperatorDataMapper operatorDataMapper,
+    private final OperatorDataMapper operatorDataMapper;
+
+    public OperatorDataServiceImpl(SurveyOperatorDataMapper surveyOperatorDataMapper,
                                    OperatorDataVoMapper operatorDataVoMapper,
-                                   SurveyUserService surveyUserService,
                                    RedisTemplate<String, Object> redisTemplate, OSSService ossService,
                                    ArknightsGameDataService arknightsGameDataService,
-                                   AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper) {
-        this.operatorDataMapper = operatorDataMapper;
+                                   AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper,
+                                   UserService userService, OperatorDataMapper operatorDataMapper) {
+        this.surveyOperatorDataMapper = surveyOperatorDataMapper;
         this.operatorDataVoMapper = operatorDataVoMapper;
-        this.surveyUserService = surveyUserService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
         this.arknightsGameDataService = arknightsGameDataService;
         this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
+        this.userService = userService;
+        this.operatorDataMapper = operatorDataMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
 
     //    @TakeCount(name = "上传评分")
     @Override
-    public Map<String, Object> manualUploadOperator(String token, List<OperatorData> operatorDataList) {
-        UserInfoVO userInfo = surveyUserService.getUserInfo(token);
-        return saveOperatorData(userInfo, operatorDataList);
+    public Map<String, Object> manualUploadOperator(String token, List<OperatorData> surveyOperatorDataList) {
+        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        String akUid = String.valueOf(userInfo.getUid());
+        if(userInfo.getAkUid()!=null){
+            akUid = userInfo.getAkUid();
+        }
+        return saveOperatorData(String.valueOf(akUid), surveyOperatorDataList);
     }
 
 
     @Override
     public Map<String, Object> importSKLandPlayerInfoV2(String token, String dataStr) {
 
-        UserInfoVO userInfo = surveyUserService.getUserInfo(token);
+        //防止用户多次点击上传
+        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInterval:" + token, "done", 5, TimeUnit.SECONDS);
+
+        if (Boolean.FALSE.equals(done)) {
+            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
+        }
+
+        UserInfoVO userInfo = userService.getUserInfoByToken(token);
 
         List<OperatorData> operatorDataList = new ArrayList<>();
 
@@ -88,10 +97,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         String akNickName = userInfo.getUserName();
         String akUid = data.get("akUid").asText();
         String channelName = "无服务器";
-        int channelMasterId = 1;
-
-        Logger.info("服务器：" + data.get("channelName"));
-
+        int channelMasterId = 0;
 
         if (data.get("akNickName") != null) {
             akNickName = data.get("akNickName").asText();
@@ -105,8 +111,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             channelMasterId = data.get("channelMasterId").asInt();
         }
 
-
-        Logger.info("森空岛导入.ver2 {} uid：" + akUid);
+        Logger.info("森空岛导入v2 {} uid：" + akUid + "，服务器：" + data.get("channelName"));
 
         JsonNode chars = data.get("chars");
         JsonNode charInfoMap = data.get("charInfoMap");
@@ -179,162 +184,71 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                     }
                 }
             }
-//            System.out.println(surveyOperator);
             operatorDataList.add(operatorData);
         }
 
-        AkPlayerBindInfoV2 newAkPlayerBindInfo = new AkPlayerBindInfoV2();
-        newAkPlayerBindInfo.setId(idGenerator.nextId());
-        newAkPlayerBindInfo.setUid(userInfo.getUid());
-        newAkPlayerBindInfo.setAkNickName(akNickName);
-        newAkPlayerBindInfo.setAkUid(akUid);
-        newAkPlayerBindInfo.setLastActiveTime(System.currentTimeMillis());
-        newAkPlayerBindInfo.setDeleteFlag(false);
-        newAkPlayerBindInfo.setDefaultFlag(true);
-        newAkPlayerBindInfo.setChannelName(channelName);
-        newAkPlayerBindInfo.setChannelMasterId(channelMasterId);
-        userBindPlayerUid(newAkPlayerBindInfo);
+        AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
+        akPlayerBindInfoDTO.setAkNickName(akNickName);
+        akPlayerBindInfoDTO.setAkUid(akUid);
+        akPlayerBindInfoDTO.setChannelName(channelName);
+        akPlayerBindInfoDTO.setChannelMasterId(channelMasterId);
+
+
+        userService.saveBindInfo(userInfo, akPlayerBindInfoDTO);
+
         userInfo.setAkUid(akUid);
-        System.out.println(newAkPlayerBindInfo);
 
-        return saveOperatorData(userInfo, operatorDataList);
-    }
-
-
-    /**
-     * 用户通过森空岛导入时绑定明日方舟玩家uid
-     *
-     * @param newAkPlayerBindInfo 明日方舟玩家信息
-     */
-    private void userBindPlayerUid(AkPlayerBindInfoV2 newAkPlayerBindInfo) {
-
-        QueryWrapper<AkPlayerBindInfoV2> userQueryWrapper = new QueryWrapper<>();
-        userQueryWrapper.eq("uid", newAkPlayerBindInfo.getUid());
-
-        List<AkPlayerBindInfoV2> akPlayerBindInfoV2List = akPlayerBindInfoV2Mapper.selectList(userQueryWrapper);
-
-
-        //该账号名下没有绑定明日方舟uid，新建一条绑定数据
-        if (akPlayerBindInfoV2List == null) {
-            akPlayerBindInfoV2Mapper.insert(newAkPlayerBindInfo);
-            return;
-        }
-
-        //是否已经有绑定账号
-        boolean isBindingAkAccount = false;
-        //查看该账号名下绑定的方舟uid是否和当前导入的方舟uid一致，一致则更新
-        for (AkPlayerBindInfoV2 oldBindInfo : akPlayerBindInfoV2List) {
-            if (oldBindInfo.getAkUid().equals(newAkPlayerBindInfo.getAkUid())) {
-                newAkPlayerBindInfo.setId(oldBindInfo.getId());
-                isBindingAkAccount = true;
-                break;
-            }
-        }
-
-
-
-        if (isBindingAkAccount) {
-            int i = akPlayerBindInfoV2Mapper.updateById(newAkPlayerBindInfo);
-        } else {
-            //如果名下绑定的方舟uid都不符合，新增一条
-            akPlayerBindInfoV2Mapper.insert(newAkPlayerBindInfo);
-        }
-
-        //将该账号名下，所有除当前方舟uid之外其他方舟uid的默认标记设为false
-        LambdaUpdateWrapper<AkPlayerBindInfoV2> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(AkPlayerBindInfoV2::getUid, newAkPlayerBindInfo.getUid())
-                .ne(AkPlayerBindInfoV2::getAkUid, newAkPlayerBindInfo.getAkUid())
-                .set(AkPlayerBindInfoV2::getDefaultFlag, false);
-        int updateRows = akPlayerBindInfoV2Mapper.update(null, updateWrapper);
-    }
-
-
-    private Map<String, OperatorData> getLastOperatorData(UserInfoVO userInfoVO) {
-
-        //查询用户的干员数据，条件为账号的uid和默认的方舟uid
-        QueryWrapper<OperatorData> lastQueryWrapper = new QueryWrapper<>();
-        lastQueryWrapper.eq("uid", userInfoVO.getUid())
-                .eq("ak_uid", userInfoVO.getAkUid());
-        //用户的干员数据
-        List<OperatorData> lastOperatorDataListData = operatorDataMapper.selectList(lastQueryWrapper);
-
-        //将集合转为map，方便对比
-        Map<String, OperatorData> lastOperatorDataMap = new HashMap<>();
-        for (OperatorData operatorData : lastOperatorDataListData) {
-            //如果map中已经存在这个干员的id，说明有数据重复，删除该条数据
-            if (lastOperatorDataMap.get(operatorData.getCharId()) != null) {
-                QueryWrapper<OperatorData> idQueryWrapper = new QueryWrapper<OperatorData>()
-                        .eq("id", operatorData.getId());
-                operatorDataMapper.delete(idQueryWrapper);
-            } else {  //如果是森空岛数据，先将map中的数据全部设为false
-                lastOperatorDataMap.put(operatorData.getCharId(), operatorData);
-            }
-        }
-
-        return lastOperatorDataMap;
+        return saveOperatorData(akUid, operatorDataList);
     }
 
 
     /**
      * 保存干员数据
      *
-     * @param userInfo         用户信息
-     * @param operatorDataList 干员练度调查表
+     * @param akUid  明日方舟玩家uid
+     * @param surveyOperatorDataList 干员练度调查表
      * @return 成功信息
      */
-    private HashMap<String, Object> saveOperatorData(UserInfoVO userInfo, List<OperatorData> operatorDataList) {
-        //防止用户多次点击上传
-        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInterval:" + userInfo.getUid(), "done", 5, TimeUnit.SECONDS);
+    private Map<String, Object> saveOperatorData(String akUid, List<OperatorData> surveyOperatorDataList) {
 
-        if (Boolean.FALSE.equals(done)) {
-            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
-        }
-
-        //用户唯一id
-        long surveyUserId = userInfo.getUid();
         //本次修改影响的数据行数
         int affectedRows = 0;
-        //获取用户的干员练度数据在几号表
-        String tableName = "survey_operator_" + surveyUserService.getTableIndex(surveyUserId);
-        //新增数据
-        List<OperatorData> insertOperatorDataList = new ArrayList<>();
 
-        Map<String, OperatorData> lastOperatorDataMap = getLastOperatorData(userInfo);
-        Logger.info("用户上次上传的森空岛干员数据" + lastOperatorDataMap.size() + "条；来自森空岛干员数据" + operatorDataList.size() + "条；本次导入的方舟uid为：" + userInfo.getAkUid());
+        //新增数据
+        List<OperatorData> insertSurveyOperatorDataList = new ArrayList<>();
+
+        Map<String, OperatorData> lastOperatorDataMap = getLastOperatorDataMap(akUid);
+
 
         //循环上传的干员练度
-        for (OperatorData operatorData : operatorDataList) {
+        for (OperatorData operatorData : surveyOperatorDataList) {
 
             //和老数据进行对比
-            OperatorData lastOperatorDataData = lastOperatorDataMap.get(operatorData.getCharId());
+            OperatorData lastSurveyOperatorDataData = lastOperatorDataMap.get(operatorData.getCharId());
             //为空则新增
             //更新数据条数
             operatorData.setOwn(true);
-            operatorData.setAkUid(userInfo.getAkUid());
-            operatorData.setUid(surveyUserId);
+            operatorData.setAkUid(akUid);
 
             checkOperatorDataValidity(operatorData);
 
-            if (lastOperatorDataData == null) {
+            if (lastSurveyOperatorDataData == null) {
                 operatorData.setId(idGenerator.nextId());
-                insertOperatorDataList.add(operatorData);  //加入批量插入集合
+                insertSurveyOperatorDataList.add(operatorData);  //加入批量插入集合
             } else {
                 //如果数据存在，进行更新
-                operatorData.setId(lastOperatorDataData.getId());
-                protectManuallyUploadedData(operatorData, lastOperatorDataData);
-                operatorDataMapper.updateByUid(tableName, operatorData); //更新数据
+                operatorData.setId(lastSurveyOperatorDataData.getId());
+                protectManuallyUploadedData(operatorData, lastSurveyOperatorDataData);
+                operatorDataMapper.updateById(operatorData); //更新数据
             }
             affectedRows++;  //新增数据条数
         }
 
-        try {
-            if (!insertOperatorDataList.isEmpty()) {
-                operatorDataMapper.insertBatch(tableName, insertOperatorDataList);  //批量插入
-            }
-        } catch (Exception e) {
-            redisTemplate.delete("SurveyOperatorInterval:" + surveyUserId);
-            throw new RuntimeException(e);
+
+        if (!insertSurveyOperatorDataList.isEmpty()) {
+            operatorDataMapper.insertBatch(insertSurveyOperatorDataList);  //批量插入
         }
+
 
         Date date = new Date();
         //更新用户最后一次上传时间
@@ -344,7 +258,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-        HashMap<String, Object> hashMap = new HashMap<>();
+        Map<String, Object> hashMap = new HashMap<>();
         hashMap.put("affectedRows", affectedRows);
         hashMap.put("updateTime", simpleDateFormat.format(date));
         hashMap.put("registered", false);
@@ -352,24 +266,58 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
 
-    private void protectManuallyUploadedData(OperatorData newOperatorData, OperatorData oldOperatorData) {
+
+
+
+
+    /**
+     *
+     * @param akUid 明日方舟玩家uid
+     * @return 上次保存的干员数据
+     */
+    private Map<String, OperatorData> getLastOperatorDataMap(String akUid) {
+
+        //查询用户的干员数据，条件为账号的uid和默认的方舟uid
+        LambdaQueryWrapper<OperatorData> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OperatorData::getAkUid,akUid);
+        //用户的干员数据
+        List<OperatorData> lastSurveyOperatorDataListData = operatorDataMapper.selectList(queryWrapper);
+
+        //将集合转为map，方便对比
+        Map<String, OperatorData> lastOperatorDataMap = new HashMap<>();
+        for (OperatorData surveyOperatorData : lastSurveyOperatorDataListData) {
+            //如果map中已经存在这个干员的id，说明有数据重复，删除该条数据
+            if (lastOperatorDataMap.get(surveyOperatorData.getCharId()) != null) {
+                LambdaQueryWrapper<OperatorData> idQueryWrapper = new LambdaQueryWrapper<>();
+                idQueryWrapper.eq(OperatorData::getId, surveyOperatorData.getId());
+                operatorDataMapper.delete(idQueryWrapper);
+            } else {  //如果是森空岛数据，先将map中的数据全部设为false
+                lastOperatorDataMap.put(surveyOperatorData.getCharId(), surveyOperatorData);
+            }
+        }
+
+        return lastOperatorDataMap;
+    }
+
+    private void protectManuallyUploadedData(OperatorData newData, OperatorData lastData) {
         //检查干员旧数据的模组等级大于新导入的模组等级时，保留旧数据的等级
-        if (oldOperatorData.getModX() > newOperatorData.getModX()) {
-            newOperatorData.setModX(oldOperatorData.getModX());
-            Logger.info(newOperatorData.getCharId() + "X模组被手动设置等级了");
+        if (lastData.getModX() > newData.getModX()) {
+            newData.setModX(lastData.getModX());
+            Logger.info(newData.getCharId() + "X模组被手动设置等级了");
         }
-        if (oldOperatorData.getModY() > newOperatorData.getModY()) {
-            newOperatorData.setModY(oldOperatorData.getModY());
-            Logger.info(newOperatorData.getCharId() + "Y模组被手动设置等级了");
+        if (lastData.getModY() > newData.getModY()) {
+            newData.setModY(lastData.getModY());
+            Logger.info(newData.getCharId() + "Y模组被手动设置等级了");
         }
-        if (oldOperatorData.getModD() > newOperatorData.getModD()) {
-            newOperatorData.setModD(oldOperatorData.getModD());
-            Logger.info(newOperatorData.getCharId() + "D模组被手动设置等级了");
+        if (lastData.getModD() > newData.getModD()) {
+            newData.setModD(lastData.getModD());
+            Logger.info(newData.getCharId() + "D模组被手动设置等级了");
         }
     }
 
     /**
      * 对新老干员数据进行检查，是否有非法数据
+     *
      * @param operatorData 新干员数据
      */
     private void checkOperatorDataValidity(OperatorData operatorData) {
@@ -385,7 +333,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         }
 
         if (operatorData.getRarity() < 6) {
-            if(!operatorData.getCharId().contains("amiya")){
+            if (!operatorData.getCharId().contains("amiya")) {
                 operatorData.setSkill3(0);
             }
         }
@@ -401,7 +349,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             operatorData.setModD(0);
         }
 
-
         if (operatorData.getMainSkill() == null) {
             operatorData.setMainSkill(1);
         }
@@ -414,73 +361,34 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     }
 
-    @Override
-    public Map<String, Object> importExcel(MultipartFile file, String token) {
-        List<OperatorData> list = new ArrayList<>();
-        try {
-            EasyExcel.read(file.getInputStream(), OperatorExportExcelVO.class, new AnalysisEventListener<OperatorExportExcelVO>() {
-                public void invoke(OperatorExportExcelVO operatorExportExcelVo, AnalysisContext analysisContext) {
-                    OperatorData operatorData = new OperatorData();
-                    BeanUtils.copyProperties(operatorExportExcelVo, operatorData);
-                    list.add(operatorData);
-                }
-
-                public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-
-                }
-
-            }).sheet().doRead();
-
-        } catch (IOException e) {
-            Logger.error(e.getMessage());
-        }
-
-
-        return saveOperatorData(surveyUserService.getUserInfo(token), list);
-    }
-
 
     @Override
     public Result<Object> operatorDataReset(String token) {
-        UserInfoVO userInfoVO = surveyUserService.getUserInfo(token);
 
-        QueryWrapper<OperatorData> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid", userInfoVO.getUid());
 
-        int delete = operatorDataMapper.delete(queryWrapper);
-
-        return Result.success("重置了" + delete + "条数据");
+        return Result.success("重置了" + "条数据");
     }
 
 
     @Override
-    public List<OperatorDataVo> getOperatorTable(String token) {
+    public List<OperatorDataVo> getOperatorInfoByToken(String token) {
 
         //查询用户信息
-        UserInfoVO userInfo = surveyUserService.getUserInfo(token);
+        UserInfoVO userInfo = userService.getUserInfoByToken(token);
         Logger.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
         //保存的干员数据
         List<OperatorDataVo> operatorDataVoList = new ArrayList<>();
         //查询当前用户的默认方舟uid的干员数据
-        QueryWrapper<OperatorData> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid", userInfo.getUid())
-                .eq("ak_uid", userInfo.getAkUid());
-        List<OperatorData> operatorDataList = operatorDataMapper.selectList(queryWrapper);
+        LambdaQueryWrapper<OperatorData> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OperatorData::getAkUid, userInfo.getAkUid());
+        List<OperatorData> surveyOperatorDataList = operatorDataMapper.selectList(queryWrapper);
 
-
-        if (operatorDataList == null || operatorDataList.isEmpty()) {
-            QueryWrapper<OperatorData> queryWrapperNew = new QueryWrapper<>();
-            queryWrapperNew.eq("uid", userInfo.getUid())
-                    .eq("ak_uid", "0");
-            operatorDataList = operatorDataMapper.selectList(queryWrapperNew);
-        }
-
-        if (operatorDataList == null || operatorDataList.isEmpty()) {
+        if (surveyOperatorDataList == null || surveyOperatorDataList.isEmpty()) {
             return operatorDataVoList;
         }
 
         //转换为前端要展示的格式
-        operatorDataList.forEach(e -> {
+        surveyOperatorDataList.forEach(e -> {
             OperatorDataVo build = OperatorDataVo.builder()
                     .charId(e.getCharId())
                     .level(e.getLevel())
@@ -503,36 +411,23 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
     @Override
-    public void exportSurveyOperatorForm(HttpServletResponse response, String token) {
+    public Map<String, Object> saveOperatorDataByRhodes(OperatorDataDTO operatorDataDTO) {
 
-        UserInfo userInfo = surveyUserService.getSurveyUserByToken(token);
-        //拿到这个用户的干员练度数据存在了哪个表
+        String uid = operatorDataDTO.getUid();
+        String nickName = operatorDataDTO.getNickName();
+        String channelName = operatorDataDTO.getChannelName();
+        Integer channelMasterId = operatorDataDTO.getChannelMasterId();
+        List<OperatorData> operatorDataList = operatorDataDTO.getOperatorDataList();
 
-        //用户之前上传的数据
-        QueryWrapper<OperatorData> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("uid", userInfo.getId());
-        List<OperatorData> operatorDataList =
-                operatorDataMapper.selectList(queryWrapper);
+        AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
+        akPlayerBindInfo.setId(idGenerator.nextId());
+        akPlayerBindInfo.setAkUid(uid);
+        akPlayerBindInfo.setAkNickName(nickName);
+        akPlayerBindInfo.setChannelName(channelName);
+        akPlayerBindInfo.setChannelMasterId(channelMasterId);
+        userService.saveAkPlayerBindInfo(akPlayerBindInfo);
 
-        List<OperatorExportExcelVO> listVo = new ArrayList<>();
-
-
-        List<OperatorTable> operatorInfo = arknightsGameDataService.getOperatorTable();
-
-        Map<String, OperatorTable> operatorTableMap = operatorInfo.stream()
-                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
-
-        for (OperatorData operatorData : operatorDataList) {
-            OperatorExportExcelVO operatorExportExcelVo = new OperatorExportExcelVO();
-            operatorExportExcelVo.copy(operatorData);
-            String name = operatorTableMap.get(operatorData.getCharId()) == null ? "未录入" : operatorTableMap.get(operatorData.getCharId()).getName();
-            operatorExportExcelVo.setName(name);
-            listVo.add(operatorExportExcelVo);
-        }
-
-        String userName = userInfo.getUserName();
-
-        ExcelUtil.exportExcel(response, listVo, OperatorExportExcelVO.class, userName);
+        return saveOperatorData(uid, operatorDataList);
     }
 
 

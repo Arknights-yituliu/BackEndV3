@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.survey;
+package com.lhs.entity.dto.user;
 
 import lombok.Data;
 

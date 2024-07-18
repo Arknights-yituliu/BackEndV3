@@ -1,13 +1,12 @@
 package com.lhs.service.survey.impl;
 
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.HttpRequestUtil;
-import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Logger;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
-import com.lhs.entity.vo.survey.AKPlayerBindingListVO;
+import com.lhs.entity.vo.survey.AkPlayerBindingListVO;
+import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.service.survey.HypergryphService;
 import org.springframework.stereotype.Service;
 
@@ -28,9 +27,17 @@ public class HypergryphServiceImpl implements HypergryphService {
     private final static String PLAYER_INFO_URL = "/api/v1/game/player/info";
     private final static String PLAYER_BINDING_URL = "/api/v1/game/player/binding";
 
+    private final AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper;
+    private final IdGenerator idGenerator;
+
+    public HypergryphServiceImpl(AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper) {
+        this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
+        this.idGenerator = new IdGenerator(1L);
+    }
+
 
     @Override
-    public AKPlayerBindingListVO getPlayerBindingsByHGToken(String hgToken) {
+    public AkPlayerBindingListVO getPlayerBindingsByHGToken(String hgToken) {
 
         HashMap<String, String> sklandCredAndToken = getSklandCredAndToken(hgToken);
         return getPlayerBindingsBySkland(sklandCredAndToken);
@@ -43,18 +50,18 @@ public class HypergryphServiceImpl implements HypergryphService {
         Map<String, Object> result = new HashMap<>();
         String cred = sklandCredAndToken.get("cred");
         String sklandToken = sklandCredAndToken.get("sklandToken");
-        AKPlayerBindingListVO playerBindingsBySkland = getPlayerBindingsBySkland(sklandCredAndToken);
+        AkPlayerBindingListVO playerBindingsBySkland = getPlayerBindingsBySkland(sklandCredAndToken);
 
-        result.put("cred",cred);
-        result.put("token",sklandToken);
-        result.put("playerBindingList",playerBindingsBySkland.getPlayerBindingList());
+        result.put("cred", cred);
+        result.put("token", sklandToken);
+        result.put("playerBindingList", playerBindingsBySkland.getPlayerBindingList());
 
         return result;
     }
 
 
     @Override
-    public AKPlayerBindingListVO getPlayerBindingsBySkland(HashMap<String, String> sklandCredAndToken) {
+    public AkPlayerBindingListVO getPlayerBindingsBySkland(HashMap<String, String> sklandCredAndToken) {
 
         String timestamp = String.valueOf((System.currentTimeMillis() - 800) / 1000);
 
@@ -78,7 +85,7 @@ public class HypergryphServiceImpl implements HypergryphService {
 
         List<PlayerBinding> playerBindingList = new ArrayList<>();
 
-        AKPlayerBindingListVO akPlayerBindingListVO = new AKPlayerBindingListVO();
+        AkPlayerBindingListVO akPlayerBindingListVO = new AkPlayerBindingListVO();
 
         if (code == 0) {
             JsonNode data = playerBindingResponse.get("data");
@@ -105,7 +112,6 @@ public class HypergryphServiceImpl implements HypergryphService {
                         playerBinding.setChannelMasterId(channelMasterId);
                         playerBinding.setChannelName(channelName);
                         playerBindingList.add(playerBinding);
-
 
 
                         if (uid.equals(defaultUid)) {
@@ -142,7 +148,10 @@ public class HypergryphServiceImpl implements HypergryphService {
 
 
 
-    private HashMap<String,String> getSklandCredAndToken(String hgToken){
+
+
+
+    private HashMap<String, String> getSklandCredAndToken(String hgToken) {
         HashMap<Object, Object> requestParams = new HashMap<>();
         requestParams.put("token", hgToken);
         requestParams.put("appCode", "4ca99fa6b56cc2ba");
@@ -172,8 +181,8 @@ public class HypergryphServiceImpl implements HypergryphService {
         String sklandToken = credResponse.get("token").asText();
 
         HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("cred",cred);
-        hashMap.put("sklandToken",sklandToken);
+        hashMap.put("cred", cred);
+        hashMap.put("sklandToken", sklandToken);
 
         return hashMap;
     }

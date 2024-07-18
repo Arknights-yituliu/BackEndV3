@@ -235,6 +235,9 @@ public class RecruitTagUploadService {
         List<RecruitStatistics> recruitStatistics = recruitDataMapper.selectRecruitStatistics();
         Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream().collect(Collectors.toMap(RecruitStatistics::getStatisticalItem, RecruitStatistics::getStatisticalResult));
         Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
+        if(lastStatisticsTime == null) {
+            lastStatisticsTime = System.currentTimeMillis();
+        }
         long lastTime = Long.parseLong(String.valueOf(lastStatisticsTime));
         HashMap<String, Object> hashMap = new HashMap<>(recruitStatisticsMap);
         hashMap.put("createTime", Long.valueOf(String.valueOf(lastTime)));

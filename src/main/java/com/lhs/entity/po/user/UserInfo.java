@@ -1,4 +1,4 @@
-package com.lhs.entity.po.survey;
+package com.lhs.entity.po.user;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;

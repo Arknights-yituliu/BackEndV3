@@ -7,16 +7,19 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
-import com.lhs.entity.dto.survey.EmailRequestDTO;
-import com.lhs.entity.dto.survey.LoginDataDTO;
-import com.lhs.entity.dto.survey.UpdateUserDataDTO;
+import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
+import com.lhs.entity.dto.user.EmailRequestDTO;
+import com.lhs.entity.dto.user.LoginDataDTO;
+import com.lhs.entity.dto.user.UpdateUserDataDTO;
 import com.lhs.entity.dto.util.EmailFormDTO;
-import com.lhs.entity.po.survey.AkPlayerBindInfoV2;
-import com.lhs.entity.po.survey.UserInfo;
-import com.lhs.entity.vo.survey.AKPlayerBindingListVO;
+import com.lhs.entity.po.user.AkPlayerBindInfo;
+import com.lhs.entity.po.user.UserExternalAccountBinding;
+import com.lhs.entity.po.user.UserInfo;
+import com.lhs.entity.vo.survey.AkPlayerBindingListVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
-import com.lhs.mapper.survey.SurveyUserMapper;
+import com.lhs.mapper.user.AkPlayerBindInfoMapper;
+import com.lhs.mapper.user.UserExternalAccountBindingMapper;
+import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.survey.HypergryphService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.Email163Service;
@@ -32,31 +35,36 @@ import java.util.concurrent.TimeUnit;
 public class UserServiceImpl implements UserService {
 
 
-    private final SurveyUserMapper surveyUserMapper;
+    private final UserInfoMapper userInfoMapper;
 
     private final RedisTemplate<String, String> redisTemplate;
 
     private final Email163Service email163Service;
 
-    private final AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper;
 
     private final OSSService ossService;
 
     private final IdGenerator idGenerator;
-    private final HypergryphService hypergryphService;
+    private final HypergryphService HypergryphService;
 
-    public UserServiceImpl(SurveyUserMapper surveyUserMapper,
+    private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
+
+    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
+
+    public UserServiceImpl(UserInfoMapper userInfoMapper,
                            RedisTemplate<String, String> redisTemplate,
                            Email163Service email163Service,
                            OSSService ossService,
-                           AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper,
-                           HypergryphService hypergryphService) {
-        this.surveyUserMapper = surveyUserMapper;
+                           HypergryphService HypergryphService,
+                           UserExternalAccountBindingMapper userExternalAccountBindingMapper,
+                           AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
+        this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
         this.email163Service = email163Service;
         this.ossService = ossService;
-        this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
-        this.hypergryphService = hypergryphService;
+        this.HypergryphService = HypergryphService;
+        this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
+        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         idGenerator = new IdGenerator(1L);
     }
 
@@ -116,7 +124,7 @@ public class UserServiceImpl implements UserService {
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getUserName, userName);
-        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
         if (userInfo != null) {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
@@ -142,14 +150,14 @@ public class UserServiceImpl implements UserService {
         if(checkParamsValidity(email)){
             LambdaQueryWrapper<UserInfo> emailQueryWrapper = new LambdaQueryWrapper<>();
             emailQueryWrapper.eq(UserInfo::getEmail,email);
-            UserInfo userInfoByEmail = surveyUserMapper.selectOne(emailQueryWrapper);
+            UserInfo userInfoByEmail = userInfoMapper.selectOne(emailQueryWrapper);
             if(userInfoByEmail!=null){
                 throw new ServiceException(ResultCode.EMAIL_REGISTERED);
             }
             userInfoNew.setEmail(email);
         }
 
-        surveyUserMapper.insert(userInfoNew);
+        userInfoMapper.insert(userInfoNew);
 
         return userInfoNew;
     }
@@ -175,7 +183,7 @@ public class UserServiceImpl implements UserService {
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
-        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
         if (userInfo != null) {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
@@ -195,7 +203,7 @@ public class UserServiceImpl implements UserService {
         userInfoNew.setStatus(1);
         userInfoNew.setDeleteFlag(false);
 
-        surveyUserMapper.insert(userInfoNew);
+        userInfoMapper.insert(userInfoNew);
 
         return userInfoNew;
     }
@@ -259,7 +267,7 @@ public class UserServiceImpl implements UserService {
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
 
-        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
         //查询用户是否存在
         if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
@@ -270,75 +278,75 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserInfo loginByHGToken(LoginDataDTO loginDataDTO, String ipAddress) {
-        Logger.info("用户使用token登录");
-        String hgToken = loginDataDTO.getHgToken();
-        if (!checkParamsValidity(hgToken)) {
-            throw new ServiceException(ResultCode.PARAM_IS_INVALID);
-        }
-        //获取默认的方舟绑定信息和方舟绑定信息列表
-        AKPlayerBindingListVO akPlayerBindingListVO = hypergryphService.getPlayerBindingsByHGToken(hgToken);
-        //默认的方舟绑定信息
-        PlayerBinding playerBinding = akPlayerBindingListVO.getPlayerBinding();
-        //默认的方舟uid
-        String akUid = playerBinding.getUid();
-        //根据默认的方舟uid查询本地的绑定信息表中是否存在这个uid的记录
-        LambdaQueryWrapper<AkPlayerBindInfoV2> akPlayerBindInfoV2LambdaQueryWrapper = new LambdaQueryWrapper<>();
-        akPlayerBindInfoV2LambdaQueryWrapper.eq(AkPlayerBindInfoV2::getAkUid, akUid);
-        List<AkPlayerBindInfoV2> akPlayerBindInfoV2List = akPlayerBindInfoV2Mapper
-                .selectList(akPlayerBindInfoV2LambdaQueryWrapper);
+//        Logger.info("用户使用token登录");
+//        String hgToken = loginDataDTO.getHgToken();
+//        if (!checkParamsValidity(hgToken)) {
+//            throw new ServiceException(ResultCode.PARAM_IS_INVALID);
+//        }
+//        //获取默认的方舟绑定信息和方舟绑定信息列表
+//        AkPlayerBindingListVO akPlayerBindingListVO = HypergryphService.getPlayerBindingsByHGToken(hgToken);
+//        //默认的方舟绑定信息
+//        PlayerBinding playerBinding = akPlayerBindingListVO.getPlayerBinding();
+//        //默认的方舟uid
+//        String akUid = playerBinding.getUid();
+//        //根据默认的方舟uid查询本地的绑定信息表中是否存在这个uid的记录
+//        LambdaQueryWrapper<AkPlayerBindInfo> akPlayerBindInfoV2LambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        akPlayerBindInfoV2LambdaQueryWrapper.eq(AkPlayerBindInfo::getAkUid, akUid);
+//        List<AkPlayerBindInfo> akPlayerBindInfoV2List = akPlayerBindInfoMapper
+//                .selectList(akPlayerBindInfoV2LambdaQueryWrapper);
+//
+//        //如果查询到记录
+//        if (!akPlayerBindInfoV2List.isEmpty()) {
+//            AkPlayerBindInfo akPlayerBindInfo = akPlayerBindInfoV2List.get(0);
+//            //根据本地的绑定信息表最后活跃的账号进行查询
+//            for (AkPlayerBindInfo element : akPlayerBindInfoV2List) {
+//                if (akPlayerBindInfo.getUpdateTime() < element.getUpdateTime()) {
+//                    akPlayerBindInfo = element;
+//                }
+//            }
+//            //根据这最后一个信息进行查询
+//            LambdaQueryWrapper<UserInfo> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+//            userLambdaQueryWrapper.eq(UserInfo::getId, akPlayerBindInfo.getUid());
+//            UserInfo userInfo = userInfoMapper.selectOne(userLambdaQueryWrapper);
+//            if (userInfo != null) {
+//                return userInfo;
+//            }
+//        }
+//
+//        String nickName = playerBinding.getNickName();
+//        String[] split = nickName.split("#");
+//        nickName = split[0];
+//
+//        //一图流id 当前时间戳加随机4位数字
+//        long userId = idGenerator.nextId();
+//        //用户初始状态
+//        int status = 1;
+//        //当前时间
+//        Date date = new Date();
+//
+//        String userName = nickName + "ID" + userId;
+//
+//        UserInfo userInfoNew = UserInfo.builder()
+//                .id(userId)
+//                .ip(ipAddress)
+//                .createTime(date)
+//                .updateTime(date)
+//                .deleteFlag(false)
+//                .status(1)
+//                .avatar("char_377_gdglow")
+//                .build();
+//
+//        LambdaQueryWrapper<UserInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        lambdaQueryWrapper.eq(UserInfo::getUserName, userName);
+//        List<UserInfo> userInfos = userInfoMapper.selectList(lambdaQueryWrapper);
+//        if (userInfos.isEmpty()) {
+//            userInfoNew.setUserName(userName);
+//        }
+//
+//
+//        userInfoMapper.insert(userInfoNew);
 
-        //如果查询到记录
-        if (!akPlayerBindInfoV2List.isEmpty()) {
-            AkPlayerBindInfoV2 akPlayerBindInfoV2 = akPlayerBindInfoV2List.get(0);
-            //根据本地的绑定信息表最后活跃的账号进行查询
-            for (AkPlayerBindInfoV2 element : akPlayerBindInfoV2List) {
-                if (akPlayerBindInfoV2.getLastActiveTime() < element.getLastActiveTime()) {
-                    akPlayerBindInfoV2 = element;
-                }
-            }
-            //根据这最后一个信息进行查询
-            LambdaQueryWrapper<UserInfo> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userLambdaQueryWrapper.eq(UserInfo::getId, akPlayerBindInfoV2.getUid());
-            UserInfo userInfo = surveyUserMapper.selectOne(userLambdaQueryWrapper);
-            if (userInfo != null) {
-                return userInfo;
-            }
-        }
-
-        String nickName = playerBinding.getNickName();
-        String[] split = nickName.split("#");
-        nickName = split[0];
-
-        //一图流id 当前时间戳加随机4位数字
-        long userId = idGenerator.nextId();
-        //用户初始状态
-        int status = 1;
-        //当前时间
-        Date date = new Date();
-
-        String userName = nickName + "ID" + userId;
-
-        UserInfo userInfoNew = UserInfo.builder()
-                .id(userId)
-                .ip(ipAddress)
-                .createTime(date)
-                .updateTime(date)
-                .deleteFlag(false)
-                .status(1)
-                .avatar("char_377_gdglow")
-                .build();
-
-        LambdaQueryWrapper<UserInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(UserInfo::getUserName, userName);
-        List<UserInfo> userInfos = surveyUserMapper.selectList(lambdaQueryWrapper);
-        if (userInfos.isEmpty()) {
-            userInfoNew.setUserName(userName);
-        }
-
-
-        surveyUserMapper.insert(userInfoNew);
-
-        return userInfoNew;
+        return null;
     }
 
     private UserInfo loginByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
@@ -360,7 +368,7 @@ public class UserServiceImpl implements UserService {
         lambdaQueryWrapper.eq(UserInfo::getUserName, userName)
                 .or()
                 .eq(UserInfo::getEmail, userName);
-        UserInfo userInfo = surveyUserMapper.selectOne(lambdaQueryWrapper);
+        UserInfo userInfo = userInfoMapper.selectOne(lambdaQueryWrapper);
 
         if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
@@ -385,6 +393,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfoVO getUserInfoByToken(String token) {
 
+        Logger.info("要检验的用户token {} "+token);
         if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
@@ -399,17 +408,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfo getDBUserInfoByToken(String token) {
-        if (token == null || "undefined".equals(token)) {
+        if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
+
         Long yituliuId = decryptToken(token);
 
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", yituliuId);
-        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper); //查询用户
+        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper); //查询用户
 
-        if (userInfo == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        if (userInfo.getStatus() < 0) throw new ServiceException(ResultCode.USER_FORBIDDEN);
+        if (userInfo == null){
+            throw new ServiceException(ResultCode.USER_NOT_EXIST);
+        }
+        if (userInfo.getStatus() < 0) {
+            throw new ServiceException(ResultCode.USER_FORBIDDEN);
+        }
 
         return userInfo;
     }
@@ -443,9 +457,9 @@ public class UserServiceImpl implements UserService {
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", emailAddress);
         //查询是否有绑定这个邮箱的用户
-        UserInfo userInfoByEmail = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
 
-        System.out.println(emailAddress);
+
         if (userInfoByEmail != null) {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
@@ -473,7 +487,7 @@ public class UserServiceImpl implements UserService {
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("email", emailAddress);
         //查询是否有绑定这个邮箱的用户
-        UserInfo userInfoByEmail = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
         if (userInfoByEmail == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
@@ -619,7 +633,7 @@ public class UserServiceImpl implements UserService {
         //查询更新的用户名是否有同名的
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name", userName);
-        if (surveyUserMapper.selectOne(queryWrapper) != null) {
+        if (userInfoMapper.selectOne(queryWrapper) != null) {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
@@ -650,7 +664,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void backupSurveyUser(UserInfo userInfo) {
         userInfo.setUpdateTime(new Date());
-        surveyUserMapper.updateById(userInfo);  //更新用户表
+        userInfoMapper.updateById(userInfo);  //更新用户表
 
         Long id = userInfo.getId();
         ossService.upload(JsonMapper.toJSONString(userInfo), "survey/user/info/" + id + ".json");
@@ -689,7 +703,7 @@ public class UserServiceImpl implements UserService {
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getId,userId);
-        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
         if(userInfo==null){
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
@@ -704,12 +718,83 @@ public class UserServiceImpl implements UserService {
 
         userInfo.setPassword(newPassword);
 
-        surveyUserMapper.updateById(userInfo);
+        userInfoMapper.updateById(userInfo);
         String token = tokenGenerator(userInfo);
         HashMap<String, String> result = new HashMap<>();
         result.put("token", token);
 
         return result;
+
+    }
+
+    @Override
+    public Boolean saveUserExternalAccountBinding(UserExternalAccountBinding userExternalAccountBinding) {
+
+        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserExternalAccountBinding::getAkUid,userExternalAccountBinding.getAkUid())
+                .eq(UserExternalAccountBinding::getUid,userExternalAccountBinding.getUid());
+        UserExternalAccountBinding existsData = userExternalAccountBindingMapper.selectOne(queryWrapper);
+        long timeStamp = System.currentTimeMillis();
+        userExternalAccountBinding.setUpdateTime(timeStamp);
+
+        boolean insert = false;
+        Logger.info("要添加的外部账号绑定信息 {} "+ userExternalAccountBinding);
+        if(existsData==null){
+            userExternalAccountBinding.setId(idGenerator.nextId());
+            userExternalAccountBinding.setCreateTime(timeStamp);
+            userExternalAccountBinding.setDeleteFlag(false);
+            int row = userExternalAccountBindingMapper.insert(userExternalAccountBinding);
+            insert = row>0;
+        }else {
+            userExternalAccountBinding.setId(existsData.getId());
+            userExternalAccountBinding.setCreateTime(existsData.getCreateTime());
+            int i = userExternalAccountBindingMapper.updateById(userExternalAccountBinding);
+        }
+
+        return insert;
+    }
+
+    @Override
+    public AkPlayerBindInfo getAkPlayerBindInfo(String akUid, Long uid) {
+        //根据一图流用户uid和明日方舟玩家uid查询是否导入过森空岛数据
+        LambdaQueryWrapper<AkPlayerBindInfo> bindQueryWrapper = new LambdaQueryWrapper<>();
+        bindQueryWrapper.eq(AkPlayerBindInfo::getAkUid, akUid);
+        return akPlayerBindInfoMapper.selectOne(bindQueryWrapper);
+    }
+
+    @Override
+    public void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo) {
+
+        LambdaQueryWrapper<AkPlayerBindInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AkPlayerBindInfo::getAkUid,akPlayerBindInfo.getAkUid());
+        AkPlayerBindInfo oldInfo = akPlayerBindInfoMapper.selectOne(queryWrapper);
+        akPlayerBindInfo.setUpdateTime(System.currentTimeMillis());
+        Logger.info("要添加的明日方舟账号绑定信息，id为"+akPlayerBindInfo);
+        if(oldInfo==null){
+            akPlayerBindInfo.setId(idGenerator.nextId());
+            akPlayerBindInfo.setDeleteFlag(false);
+            akPlayerBindInfoMapper.insert(akPlayerBindInfo);
+
+        }else {
+            akPlayerBindInfo.setId(oldInfo.getId());
+            akPlayerBindInfoMapper.updateById(akPlayerBindInfo);
+        }
+
+    }
+
+    @Override
+    public void saveBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO) {
+        UserExternalAccountBinding userExternalAccountBinding = new UserExternalAccountBinding();
+        userExternalAccountBinding.setId(idGenerator.nextId());
+
+        userExternalAccountBinding.setUid(userInfoVO.getUid());
+        userExternalAccountBinding.setAkUid(akPlayerBindInfoDTO.getAkUid());
+
+        saveUserExternalAccountBinding(userExternalAccountBinding);
+
+        AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
+        akPlayerBindInfo.copyByAkPlayerBindInfoDTO(akPlayerBindInfoDTO);
+        saveAkPlayerBindInfo(akPlayerBindInfo);
 
     }
 
@@ -730,7 +815,7 @@ public class UserServiceImpl implements UserService {
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
-        UserInfo userInfo = surveyUserMapper.selectOne(queryWrapper);
+        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
         if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_BIND_EMAIL);
         }
@@ -749,7 +834,7 @@ public class UserServiceImpl implements UserService {
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("cred", split[0]);
         hashMap.put("token", split[1]);
-        AKPlayerBindingListVO akPlayerBindingListVO = hypergryphService.getPlayerBindingsBySkland(hashMap);
+        AkPlayerBindingListVO akPlayerBindingListVO = HypergryphService.getPlayerBindingsBySkland(hashMap);
         return getUserInfoBySkland(akPlayerBindingListVO);
     }
 
@@ -760,39 +845,40 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID);
         }
         //获取默认的方舟绑定信息和方舟绑定信息列表
-        AKPlayerBindingListVO akPlayerBindingListVO = hypergryphService.getPlayerBindingsByHGToken(hgToken);
+        AkPlayerBindingListVO akPlayerBindingListVO = HypergryphService.getPlayerBindingsByHGToken(hgToken);
         return getUserInfoBySkland(akPlayerBindingListVO);
     }
 
-    private HashMap<String, String> getUserInfoBySkland(AKPlayerBindingListVO akPlayerBindingListVO) {
+    private HashMap<String, String> getUserInfoBySkland(AkPlayerBindingListVO akPlayerBindingListVO) {
         //默认的方舟绑定信息
         PlayerBinding playerBinding = akPlayerBindingListVO.getPlayerBinding();
         //默认的方舟uid
         String akUid = playerBinding.getUid();
         //根据默认的方舟uid查询本地的绑定信息表中是否存在这个uid的记录
-        LambdaQueryWrapper<AkPlayerBindInfoV2> akPlayerBindInfoV2LambdaQueryWrapper = new LambdaQueryWrapper<>();
-        akPlayerBindInfoV2LambdaQueryWrapper.eq(AkPlayerBindInfoV2::getAkUid, akUid);
-        List<AkPlayerBindInfoV2> akPlayerBindInfoV2List = akPlayerBindInfoV2Mapper
-                .selectList(akPlayerBindInfoV2LambdaQueryWrapper);
+
+        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserExternalAccountBinding::getAkUid, akUid);
+        List<UserExternalAccountBinding> externalAccountBindingList = userExternalAccountBindingMapper.
+                selectList(queryWrapper);
 
         //如果查询到曾经导入过
-        if (akPlayerBindInfoV2List.isEmpty()) {
+        if (externalAccountBindingList.isEmpty()) {
             throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
         }
 
-        AkPlayerBindInfoV2 akPlayerBindInfoV2 = akPlayerBindInfoV2List.get(0);
+        UserExternalAccountBinding externalAccountBinding = externalAccountBindingList.get(0);
         //根据本地的绑定信息表最后活跃的账号进行查询
-        for (AkPlayerBindInfoV2 element : akPlayerBindInfoV2List) {
-            if (akPlayerBindInfoV2.getLastActiveTime() < element.getLastActiveTime()) {
-                akPlayerBindInfoV2 = element;
+        for (UserExternalAccountBinding element : externalAccountBindingList) {
+            if (externalAccountBinding.getUpdateTime() < element.getUpdateTime()) {
+                externalAccountBinding = element;
             }
         }
 
 
         //根据这最后一个信息进行查询
         LambdaQueryWrapper<UserInfo> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userLambdaQueryWrapper.eq(UserInfo::getId, akPlayerBindInfoV2.getUid());
-        UserInfo userInfo = surveyUserMapper.selectOne(userLambdaQueryWrapper);
+        userLambdaQueryWrapper.eq(UserInfo::getId, externalAccountBinding.getUid());
+        UserInfo userInfo = userInfoMapper.selectOne(userLambdaQueryWrapper);
 
         if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_BIND_UID);
@@ -918,7 +1004,7 @@ public class UserServiceImpl implements UserService {
 
     private UserInfoVO getUserDataVO(UserInfo userInfo) {
         UserInfoVO userInfoVO = new UserInfoVO();
-//        response.setUid(surveyUser.getId());
+        userInfoVO.setUid(userInfo.getId());
         userInfoVO.setUserName(userInfo.getUserName());
         userInfoVO.setStatus(userInfo.getStatus());
         userInfoVO.setEmail(userInfo.getEmail());
@@ -926,9 +1012,12 @@ public class UserServiceImpl implements UserService {
         userInfoVO.setAkUid("0");
         userInfoVO.setAkNickName(userInfo.getUserName());
 
-        QueryWrapper<AkPlayerBindInfoV2> akPlayerBindInfoQueryWrapper = new QueryWrapper<>();
-        akPlayerBindInfoQueryWrapper.eq("uid", userInfo.getId()).orderByDesc("last_active_time");
-        List<AkPlayerBindInfoV2> akPlayerBindInfoV2List = akPlayerBindInfoV2Mapper.selectList(akPlayerBindInfoQueryWrapper);
+        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserExternalAccountBinding::getUid, userInfo.getId()).orderByDesc(UserExternalAccountBinding::getUpdateTime);
+        List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
+                .selectList(queryWrapper);
+
+
 
 
         if (userInfo.getPassword() != null) {
@@ -938,20 +1027,13 @@ public class UserServiceImpl implements UserService {
             userInfoVO.setHasEmail(true);
         }
 
-        if (akPlayerBindInfoV2List.isEmpty()) {
+        if (externalAccountBindings.isEmpty()) {
             return userInfoVO;
         }
 
-        Logger.info("用户绑定了" + akPlayerBindInfoV2List.size() + "条方舟uid");
-        for (AkPlayerBindInfoV2 akPlayerBindInfo : akPlayerBindInfoV2List) {
+        Logger.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
 
-            if (akPlayerBindInfo.getDefaultFlag()) {
-                userInfoVO.setAkUid(akPlayerBindInfo.getAkUid());
-                userInfoVO.setAkNickName(akPlayerBindInfo.getAkNickName());
-            }
-        }
-
-        userInfoVO.setAkUid(akPlayerBindInfoV2List.get(0).getAkUid());
+        userInfoVO.setAkUid(externalAccountBindings.get(0).getAkUid());
 
         return userInfoVO;
     }

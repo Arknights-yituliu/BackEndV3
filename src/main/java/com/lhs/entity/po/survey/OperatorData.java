@@ -2,20 +2,14 @@ package com.lhs.entity.po.survey;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.*;
+import lombok.Data;
 
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@TableName("survey_operator_1")
+@TableName
 public class OperatorData {
 
     @TableId
-
     private Long id;
-
-    private Long uid;
 
     private String akUid;
 
@@ -44,4 +38,23 @@ public class OperatorData {
     private Integer modY;
 
     private Integer modD;
+
+
+    public void copyBySurveyOperatorData(SurveyOperatorData surveyOperatorData){
+        this.id = surveyOperatorData.getId();
+        this.akUid = surveyOperatorData.getAkUid();
+        this.charId = surveyOperatorData.getCharId();
+        this.own = surveyOperatorData.getOwn();
+        this.level = surveyOperatorData.getLevel();
+        this.elite = surveyOperatorData.getElite();
+        this.potential = surveyOperatorData.getPotential();
+        this.rarity = surveyOperatorData.getRarity();
+        this.mainSkill = surveyOperatorData.getMainSkill();
+        this.skill1 = surveyOperatorData.getSkill1();
+        this.skill2 = surveyOperatorData.getSkill2();
+        this.skill3 = surveyOperatorData.getSkill3();
+        this.modX = surveyOperatorData.getModX();
+        this.modY = surveyOperatorData.getModY();
+        this.modD = surveyOperatorData.getModD();
+    }
 }

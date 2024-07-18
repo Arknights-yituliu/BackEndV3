@@ -9,9 +9,12 @@ import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.PenguinMatrixDTO;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.material.*;
+import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.mapper.material.MaterialValueConfigMapper;
 import com.lhs.mapper.material.QuantileMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
+import com.lhs.service.user.UserService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -32,15 +35,33 @@ public class StageCalService {
     private final StageResultDetailMapper stageResultDetailMapper;
     private final IdGenerator idGenerator;
 
+    private final UserService userService;
 
-    public StageCalService(StageService stageService, QuantileMapper quantileMapper, ItemService itemService, StageResultMapper stageResultMapper, RedisTemplate<String, Object> redisTemplate, StageResultDetailMapper stageResultDetailMapper) {
+    private final MaterialValueConfigMapper materialValueConfigMapper;
+
+    public StageCalService(StageService stageService, QuantileMapper quantileMapper, ItemService itemService, StageResultMapper stageResultMapper, RedisTemplate<String, Object> redisTemplate, StageResultDetailMapper stageResultDetailMapper, UserService userService, MaterialValueConfigMapper materialValueConfigMapper) {
         this.stageService = stageService;
         this.quantileMapper = quantileMapper;
         this.itemService = itemService;
         this.stageResultMapper = stageResultMapper;
         this.redisTemplate = redisTemplate;
         this.stageResultDetailMapper = stageResultDetailMapper;
+        this.userService = userService;
+        this.materialValueConfigMapper = materialValueConfigMapper;
         idGenerator = new IdGenerator(1L);
+    }
+
+    public void saveMaterialValueConfig(Map<String,Object> requestParams){
+        Object oToken = requestParams.get("token");
+        if(oToken==null){
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+
+        UserInfoVO userInfoByToken = userService.getUserInfoByToken(String.valueOf(oToken));
+        Long uid = userInfoByToken.getUid();
+
+        MaterialValueConfig materialValueConfig = new MaterialValueConfig();
+
     }
 
     public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO) {

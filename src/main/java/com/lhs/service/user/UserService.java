@@ -1,9 +1,12 @@
 package com.lhs.service.user;
 
-import com.lhs.entity.dto.survey.EmailRequestDTO;
-import com.lhs.entity.dto.survey.LoginDataDTO;
-import com.lhs.entity.dto.survey.UpdateUserDataDTO;
-import com.lhs.entity.po.survey.UserInfo;
+import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
+import com.lhs.entity.dto.user.EmailRequestDTO;
+import com.lhs.entity.dto.user.LoginDataDTO;
+import com.lhs.entity.dto.user.UpdateUserDataDTO;
+import com.lhs.entity.po.user.AkPlayerBindInfo;
+import com.lhs.entity.po.user.UserExternalAccountBinding;
+import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -69,4 +72,13 @@ public interface UserService {
      * @return 临时凭证
      */
     HashMap<String, String> resetAccount(LoginDataDTO loginDataDTO);
+
+    Boolean saveUserExternalAccountBinding(UserExternalAccountBinding accountBinding);
+
+    AkPlayerBindInfo getAkPlayerBindInfo(String akUid, Long uid);
+
+    void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo);
+
+
+    void saveBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
 }

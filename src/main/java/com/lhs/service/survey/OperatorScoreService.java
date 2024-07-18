@@ -2,11 +2,13 @@ package com.lhs.service.survey;
 
 import com.lhs.entity.po.survey.OperatorScore;
 import com.lhs.entity.po.survey.OperatorScoreStatistics;
-import com.lhs.entity.po.survey.UserInfo;
+import com.lhs.entity.po.user.UserInfo;
+import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.OperatorScoreMapper;
 import com.lhs.entity.vo.survey.OperatorScoreVO;
 import com.lhs.entity.vo.survey.OperatorScoreStatisticsVO;
 
+import com.lhs.service.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,13 +25,13 @@ import java.util.stream.Collectors;
 public class OperatorScoreService {
 
 
-    private OperatorScoreMapper operatorScoreMapper;
-    private SurveyUserService surveyUserService;
+    private final OperatorScoreMapper operatorScoreMapper;
+    private final UserService userService;
     private final RedisTemplate<String,Object> redisTemplate;
 
-    public OperatorScoreService(OperatorScoreMapper operatorScoreMapper, SurveyUserService surveyUserService, RedisTemplate<String, Object> redisTemplate) {
+    public OperatorScoreService(OperatorScoreMapper operatorScoreMapper, UserService userService, RedisTemplate<String, Object> redisTemplate) {
         this.operatorScoreMapper = operatorScoreMapper;
-        this.surveyUserService = surveyUserService;
+        this.userService = userService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -43,15 +45,15 @@ public class OperatorScoreService {
 //    @TakeCount(name = "上传评分")
     public HashMap<Object, Object> uploadScoreForm(String token, List<OperatorScore> operatorScoreList) {
 
-        UserInfo userInfo = surveyUserService.getSurveyUserByToken(token);
-        long uid = userInfo.getId();
-        String tableName = "survey_score_" + surveyUserService.getTableIndex(userInfo.getId());  //拿到这个用户的干员练度数据存在了哪个表
+        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        long uid = userInfo.getUid();
+        String tableName = "survey_score_";  //拿到这个用户的干员练度数据存在了哪个表
 
         int affectedRows = 0;
 
         //用户之前上传的数据
         List<OperatorScore> operatorScores
-                = operatorScoreMapper.selectSurveyScoreByUid(tableName, userInfo.getId());
+                = operatorScoreMapper.selectSurveyScoreByUid(tableName, userInfo.getUid());
 
         //用户之前上传的数据转为map方便对比
         Map<String, OperatorScore> oldDataCollectById = operatorScores.stream()
@@ -82,8 +84,7 @@ public class OperatorScoreService {
 
         if (insertList.size() > 0) operatorScoreMapper.insertBatchSurveyScore(tableName, insertList);  //批量插入
         Date date = new Date();
-        userInfo.setUpdateTime(date);   //更新用户最后一次上传时间
-        surveyUserService.backupSurveyUser(userInfo);
+
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 

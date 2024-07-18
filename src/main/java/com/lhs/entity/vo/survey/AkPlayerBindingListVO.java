@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class AKPlayerBindingListVO {
+public class AkPlayerBindingListVO {
     private PlayerBinding playerBinding;
     private List<PlayerBinding> playerBindingList;
 }
