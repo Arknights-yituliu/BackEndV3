@@ -166,7 +166,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //                if (rarity == 6) endPath = avatar6;
 //                if (rarity == 5) endPath = avatar5;
 //                if (rarity < 5) endPath = avatar4;
-                endPath = "C:\\VCProject\\resources\\avatar\\";
+                endPath = "C:\\VCProject\\ak-resources\\image\\avatar\\";
 
                 File tmpFile = new File(endPath);//获取文件夹路径
 
