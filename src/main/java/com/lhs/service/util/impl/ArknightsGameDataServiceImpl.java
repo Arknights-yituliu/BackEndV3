@@ -34,6 +34,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
 
     private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
+    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -48,7 +49,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
      *
      * @return Map<模组id, 模组分支>
      */
-    @RedisCacheable(key = "Survey:EquipIdAndType" )
+    @RedisCacheable(key = "Survey:EquipIdAndType")
     @Override
     public Map<String, String> getEquipIdAndType() {
         String read = FileUtil.read(ConfigUtil.Item + "character_table_simple.json");
@@ -73,7 +74,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
 
-
     /**
      * 返回一个干员信息的集合 里面主要用到干员的获取方式和实装时间
      *
@@ -86,8 +86,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         if (operatorTableList == null) throw new ServiceException(ResultCode.DATA_NONE);
         return operatorTableList;
     }
-
-
 
 
     @Override
@@ -201,13 +199,13 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         Map<String, Object> operatorInfoSimpleMap = new HashMap<>();
         Map<String, Object> itemCostMap = new HashMap<>();
-        
+
         Map<String, OperatorTable> obtainApproachMap = getOperatorTable().stream()
                 .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
         Map<Object, String> skillMap = getSkillMap();
         Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap();
-        
+
         while (characterTableFields.hasNext()) {
             String charId = characterTableFields.next().getKey();
 
@@ -224,8 +222,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
             Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap, obtainApproachMap);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
-            itemCostMap.put(charId,operatorItemCost);
-            operatorInfoSimpleMap.put(charId,operatorInfo);
+            itemCostMap.put(charId, operatorItemCost);
+            operatorInfoSimpleMap.put(charId, operatorInfo);
         }
 
         while (patchCharsFields.hasNext()) {
@@ -234,8 +232,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
             Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap, obtainApproachMap);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
-            itemCostMap.put(charId,operatorItemCost);
-            operatorInfoSimpleMap.put(charId,operatorInfo);
+            itemCostMap.put(charId, operatorItemCost);
+            operatorInfoSimpleMap.put(charId, operatorInfo);
         }
 
 
@@ -261,7 +259,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         JsonNode uniequip_table = JsonMapper.parseJSONObject(uniequip_tableText);
         JsonNode equipDict = uniequip_table.get("equipDict");
         Iterator<Map.Entry<String, JsonNode>> equipDictElements = equipDict.fields();
-
 
 
         while (equipDictElements.hasNext()) {
@@ -300,7 +297,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 tempMap.put("uniEquipIcon", uniEquipIcon);
                 tempMap.put("typeIcon", typeIcon);
                 tempMap.put("uniEquipName", uniEquipName);
-                tempMap.put("itemCost",itemCostMapList);
+                tempMap.put("itemCost", itemCostMapList);
                 maps.add(tempMap);
                 equipInfoMap.put(charId, maps);
             } else {
@@ -313,7 +310,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 tempMap.put("uniEquipIcon", uniEquipIcon);
                 tempMap.put("typeIcon", typeIcon);
                 tempMap.put("uniEquipName", uniEquipName);
-                tempMap.put("itemCost",itemCostMapList);
+                tempMap.put("itemCost", itemCostMapList);
                 maps.add(tempMap);
                 equipInfoMap.put(charId, maps);
             }
@@ -369,10 +366,10 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         //干员中文名称
         String name = data.get("name").asText();
-        if("char_1001_amiya2".equals(charId)){
+        if ("char_1001_amiya2".equals(charId)) {
             name = "阿米娅（近卫）";
         }
-        if("char_1037_amiya3".equals(charId)){
+        if ("char_1037_amiya3".equals(charId)) {
             name = "阿米娅（医疗）";
         }
 
@@ -429,10 +426,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
 
-
-
-
-    private Map<String,Object> getOperatorItemCost(String charId,JsonNode data, Map<Object, String> skillMap, Map<String, List<Map<String, Object>>> equipMap){
+    private Map<String, Object> getOperatorItemCost(String charId, JsonNode data, Map<Object, String> skillMap, Map<String, List<Map<String, Object>>> equipMap) {
         Map<String, Object> operator = new HashMap<>();
         JsonNode phases = data.get("phases");
         List<HashMap<String, Integer>> eliteList = new ArrayList<>();
@@ -484,12 +478,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         operator.put("skills", skillsList);
         operator.put("elite", eliteList);
 
-        if(equipMap.get(charId)!=null){
+        if (equipMap.get(charId) != null) {
             List<Map<String, Object>> list = equipMap.get(charId);
-            for(Map<String, Object> item :list){
+            for (Map<String, Object> item : list) {
                 String typeName2 = String.valueOf(item.get("typeName2"));
                 Object o = item.get("itemCost");
-                operator.put("mod"+typeName2,o);
+                operator.put("mod" + typeName2, o);
             }
         }
 
@@ -555,7 +549,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        Map<String, List<BuildingData>> collect = buildingDataList.stream()
 //                .collect(Collectors.groupingBy(BuildingData::getRoomType));
         buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
-        FileUtil.save("C:/VCProject/frontend-v2-plus/src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
 
     }
 
@@ -590,13 +584,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     private String replaceDescription(String str) {
         Map<String, String> classMap = new HashMap<String, String>();
-
-        Map<String, String> spliceClassMap = new HashMap<>();
-        spliceClassMap.put("<@cc.vup>", "<span class='cc-vup'>");
-        spliceClassMap.put("<@cc.kw>", "<span class='cc-kw'>");
-        spliceClassMap.put("<@cc.vdown>", "<span class='cc-vdown'>");
-        spliceClassMap.put("<@cc.rem>", "<span class='cc-rem'>");
-        spliceClassMap.put("</>", "</span>");
 
         classMap.put("<$cc.tag.durin>", "<span class='cc-tag-durin'>");
         classMap.put("<$cc.tag.op>", "<span class='cc-tag-op'>"); //作业平台
@@ -665,10 +652,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         classMap.put("<$cc.bd.costdrop>", "<span class='cc-bd-costdrop'>"); //心情落差
 
-
-        for (String key : spliceClassMap.keySet()) {
-            str = str.replace(key, spliceClassMap.get(key));
-        }
+        str = replaceDescriptionBase(str);
 
 //        for (String key : classMap.keySet()) {
 //            str = str.replace(key, "<span class='cc-base'>");
@@ -682,5 +666,61 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         System.out.println(str);
 
         return str;
+    }
+
+    private String replaceDescriptionBase(String description) {
+        Map<String, String> spliceClassMap = new HashMap<>();
+        spliceClassMap.put("<@cc.vup>", "<span class='cc-vup'>");
+        spliceClassMap.put("<@cc.kw>", "<span class='cc-kw'>");
+        spliceClassMap.put("<@cc.vdown>", "<span class='cc-vdown'>");
+        spliceClassMap.put("<@cc.rem>", "<span class='cc-rem'>");
+        spliceClassMap.put("</>", "</span>");
+        spliceClassMap.put("\n", "<br>");
+
+        for (Map.Entry<String, String> entry : spliceClassMap.entrySet()) {
+            description = description.replace(entry.getKey(), entry.getValue());
+        }
+
+        Pattern pattern = Pattern.compile("<\\$cc[^>]+>");
+        Matcher matcher = pattern.matcher(description);
+        description = matcher.replaceAll("<span class='cc-base'>");
+
+        return description;
+    }
+
+    @Override
+    public void getTermDescriptionTable() {
+        String read = FileUtil.read(GAME_DATA + "excel/gamedata_const.json");
+        JsonNode rootNode = JsonMapper.parseJSONObject(read);
+        JsonNode termDescriptionDict = rootNode.get("termDescriptionDict");
+
+        if (termDescriptionDict != null) {
+            Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
+            FileUtil.save(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+        }
+    }
+
+    private Map<String, Map<String, String>> createTermDescriptionJson(JsonNode termDescriptionDict) {
+        Map<String, Map<String, String>> termDescriptionMap = new HashMap<>();
+
+        Iterator<Map.Entry<String, JsonNode>> fields = termDescriptionDict.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            String termId = entry.getKey();
+
+            if (termId.startsWith("cc")) { // 仅添加键名以cc开头的节点
+                JsonNode termData = entry.getValue();
+                String termName = termData.get("termName").asText();
+                String description = replaceDescriptionBase(termData.get("description").asText());
+
+                Map<String, String> termEntry = new HashMap<>();
+                termEntry.put("termName", termName);
+                termEntry.put("description", description);
+
+                termDescriptionMap.put(termName, termEntry);
+            }
+        }
+
+        return termDescriptionMap;
     }
 }

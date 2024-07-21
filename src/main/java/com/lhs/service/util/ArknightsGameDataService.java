@@ -19,6 +19,8 @@ public interface ArknightsGameDataService {
 
     void getBuildingTable();
 
+    void getTermDescriptionTable();
+
     void getPortrait();
 
     void getAvatar();
