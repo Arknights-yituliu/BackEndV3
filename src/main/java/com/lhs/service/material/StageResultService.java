@@ -51,7 +51,6 @@ public class StageResultService {
     }
 
 
-
     public void updateStageResultByTaskConfig() {
         String read = FileUtil.read(ConfigUtil.Item + "stage_task_config.json");
         if (read == null) {
@@ -65,21 +64,21 @@ public class StageResultService {
         JsonNode sampleSizeNode = stageTaskConfig.get("sampleSize");
 
         Map<String, String> stageBlacklist = new HashMap<>();
-        if(stageTaskConfig.get("stageBlacklist")!=null){
+        if (stageTaskConfig.get("stageBlacklist") != null) {
             JsonNode jsonNode = stageTaskConfig.get("stageBlacklist");
-            for(JsonNode stageIdNode:jsonNode){
-                stageBlacklist.put(stageIdNode.asText(),stageIdNode.asText());
+            for (JsonNode stageIdNode : jsonNode) {
+                stageBlacklist.put(stageIdNode.asText(), stageIdNode.asText());
             }
         }
 
         List<Double> expCoefficientList = new ArrayList<>();
         List<Integer> sampleSizeList = new ArrayList<>();
 
-        for(JsonNode jsonNode:expCoefficientNode){
+        for (JsonNode jsonNode : expCoefficientNode) {
             expCoefficientList.add(jsonNode.asDouble());
         }
 
-        for(JsonNode jsonNode:sampleSizeNode){
+        for (JsonNode jsonNode : sampleSizeNode) {
             sampleSizeList.add(jsonNode.asInt());
         }
 
@@ -106,10 +105,10 @@ public class StageResultService {
     }
 
 
-    public String saveMaterialValueConfig(Map<String,Object> params){
+    public String saveMaterialValueConfig(Map<String, Object> params) {
 
         Object oToken = params.get("token");
-        if(oToken==null){
+        if (oToken == null) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 
@@ -119,23 +118,23 @@ public class StageResultService {
         Object oConfig = params.get("config");
 
         LambdaQueryWrapper<MaterialValueConfig> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(MaterialValueConfig::getUid,uid);
+        lambdaQueryWrapper.eq(MaterialValueConfig::getUid, uid);
         MaterialValueConfig materialValueConfigByUid = materialValueConfigMapper.selectOne(lambdaQueryWrapper);
         long timeStamp = System.currentTimeMillis();
-        if(materialValueConfigByUid==null){
+        if (materialValueConfigByUid == null) {
             MaterialValueConfig materialValueConfig = new MaterialValueConfig();
             materialValueConfig.setUid(uid);
             materialValueConfig.setCreateTime(timeStamp);
             materialValueConfig.setUpdateTime(timeStamp);
             materialValueConfig.setConfig(String.valueOf(oConfig));
             materialValueConfigMapper.insert(materialValueConfig);
-        }else {
+        } else {
             materialValueConfigByUid.setUpdateTime(timeStamp);
             materialValueConfigByUid.setConfig(String.valueOf(oConfig));
             materialValueConfigMapper.updateById(materialValueConfigByUid);
         }
 
-       return "更新成功";
+        return "更新成功";
     }
 
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
@@ -266,29 +265,29 @@ public class StageResultService {
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
-        List<String> stageIdList = stageList.stream()
-                .map(Stage::getStageId)
-                .toList();
-
 
         //根据itemType将关卡主要掉落信息分组
-        Map<String, List<StageResult>> commonMapByItemType = stageResultMapper
+        List<StageResult> stageResultList = stageResultMapper
                 .selectList(new QueryWrapper<StageResult>()
                         .eq("version", version)
                         .ge("end_time", new Date())
                         .ge("stage_efficiency", 0.5)
-                        .ne("item_series", "empty"))
-                .stream()
+                        .ne("item_series", "empty"));
+        Map<String, List<StageResult>> commonMapByItemType = stageResultList.stream()
                 .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
 
-        //查找关卡的详细掉落信息
-        Map<String, StageResultDetail> detailMapByStageId = stageResultDetailMapper
-                .selectList(new QueryWrapper<StageResultDetail>()
-                        .ge("end_time", new Date())
-                        .eq("version", version))
-                .stream()
-                .filter(e -> e.getRatioRank() == 0)
-                .collect(Collectors.toMap((StageResultDetail::getStageId), Function.identity()));
+        for (StageResult stageResult : stageResultList){
+            System.out.println(stageResult);
+        }
+
+            //查找关卡的详细掉落信息
+            Map<String, StageResultDetail> detailMapByStageId = stageResultDetailMapper
+                    .selectList(new QueryWrapper<StageResultDetail>()
+                            .ge("end_time", new Date())
+                            .eq("version", version))
+                    .stream()
+                    .filter(e -> e.getRatioRank() == 0)
+                    .collect(Collectors.toMap((StageResultDetail::getStageId), Function.identity()));
 
         //要返回前端的数据集合
         List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
@@ -470,8 +469,6 @@ public class StageResultService {
 //                    Log.error("不是搓玉用的材料");
             }
         }
-
-
 
 
         double orundumPerAp = (knockRating_30012 * 5 + knockRating_30011 * 5 / 3 +

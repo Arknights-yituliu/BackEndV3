@@ -46,7 +46,7 @@ public class ItemTask {
     /**
      * 拉取企鹅的关卡表
      */
-    @Scheduled(cron = "0 0 0/3 * * ? ")
+    @Scheduled(cron = "0 0 0/3 * * ?")
     public void pullPenguinStagesApi() {
         stageService.getPenguinStagesDropData();
     }

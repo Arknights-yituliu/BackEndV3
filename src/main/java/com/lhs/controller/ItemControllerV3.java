@@ -74,7 +74,7 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取搓玉推荐关卡")
     @GetMapping("/stage/orundum")
-    public Result<List<OrundumPerApResultVO>> getStageResultOrundum(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<List<OrundumPerApResultVO>> getStageResultOrundum(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                                     @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);

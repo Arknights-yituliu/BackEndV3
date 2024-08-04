@@ -226,6 +226,7 @@ public class StageCalService {
             stageResult.setId(idGenerator.nextId());
             stageResult.setStageId(stageId);
             stageResult.setStageCode(stage.getStageCode());
+
             stageResult.setSecondaryItemId(secondaryItemId);
             stageResult.setEndTime(stage.getEndTime());
             stageResult.setVersion(version);
