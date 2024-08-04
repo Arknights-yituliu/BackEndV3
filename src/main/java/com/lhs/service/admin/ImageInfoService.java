@@ -11,4 +11,6 @@ public interface ImageInfoService {
 
     List<ImageInfo> listImageInfo(String imageType);
 
+    String saveImageFiles(List<MultipartFile> files, String path);
 }
+

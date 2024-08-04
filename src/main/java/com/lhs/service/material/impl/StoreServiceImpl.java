@@ -40,7 +40,7 @@ public class StoreServiceImpl implements StoreService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final OSSService ossService;
+
 
     private final StorePermMapperService storePermMapperService;
 
@@ -50,14 +50,13 @@ public class StoreServiceImpl implements StoreService {
     private final COSService cosService;
     public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
                             HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
-                            OSSService ossService, StorePermMapperService storePermMapperService,
-                            PackInfoMapper packInfoMapper,COSService cosService) {
+                            StorePermMapperService storePermMapperService, PackInfoMapper packInfoMapper,
+                            COSService cosService) {
         this.storePermMapper = storePermMapper;
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
         this.honeyCakeMapper = honeyCakeMapper;
         this.redisTemplate = redisTemplate;
-        this.ossService = ossService;
         this.storePermMapperService = storePermMapperService;
         this.packInfoMapper = packInfoMapper;
         this.idGenerator = new IdGenerator(1L);
@@ -85,7 +84,7 @@ public class StoreServiceImpl implements StoreService {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-        ossService.upload(JsonMapper.toJSONString(storePermList), "backup/store/" + yyyyMMdd + "/perm " + yyyyMMddHHmm + ".json");
+
         Logger.info("常驻商店更新成功");
     }
 
@@ -129,7 +128,6 @@ public class StoreServiceImpl implements StoreService {
         ActivityStoreData act_name = storeActMapper.selectOne(new QueryWrapper<ActivityStoreData>().eq("act_name", actName));
         ActivityStoreData build = ActivityStoreData.builder()
                 .actName(actName)
-                .imageLink(activityStoreDataVo.getImageLink())
                 .endTime(new Date(activityStoreDataVo.getEndTime()))
                 .result(JsonMapper.toJSONString(activityStoreDataVo))
                 .build();
@@ -150,30 +148,12 @@ public class StoreServiceImpl implements StoreService {
 
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-        ossService.upload(JsonMapper.toJSONString(activityStoreDataVo), "backup/store/" + yyyyMMdd + "/act " + yyyyMMddHHmm + ".json");
+
         return message;
     }
 
-    @Override
-    public String uploadActivityBackgroundImage(MultipartFile file) {
-        if (file == null) {
-            throw new ServiceException(ResultCode.FILE_IS_NULL);
-        }
 
-        file.getOriginalFilename();
 
-        String fileName = "";
-        if (file.getOriginalFilename() != null) {
-            String[] split = file.getOriginalFilename().split("\\.");
-            fileName = idGenerator.nextId() + "." + split[1];
-        } else {
-            throw new ServiceException(ResultCode.FILE_IS_NULL);
-        }
-
-        cosService.uploadFile(file,"/image/store/"+fileName);
-
-        return "https://cos.yituliu.cn/image/store/" + fileName;
-    }
 
 
     public List<ActivityStoreDataVO> getActivityStoreDataNoCache() {
@@ -184,7 +164,6 @@ public class StoreServiceImpl implements StoreService {
         activityStoreData.forEach(e -> {
             String result = e.getResult();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
-            activityStoreDataVo.setImageLink(e.getImageLink());
             activityStoreDataVOList.add(activityStoreDataVo);
         });
         return activityStoreDataVOList;
@@ -200,7 +179,6 @@ public class StoreServiceImpl implements StoreService {
         activityStoreData.forEach(e -> {
             String result = e.getResult();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
-            activityStoreDataVo.setImageLink(e.getImageLink());
             activityStoreDataVOList.add(activityStoreDataVo);
         });
         return activityStoreDataVOList;
@@ -215,7 +193,6 @@ public class StoreServiceImpl implements StoreService {
         activityStoreData.forEach(activity -> {
             String result = activity.getResult();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
-            activityStoreDataVo.setImageLink(activity.getImageLink());
             activityStoreDataVOList.add(activityStoreDataVo);
         });
         return activityStoreDataVOList;

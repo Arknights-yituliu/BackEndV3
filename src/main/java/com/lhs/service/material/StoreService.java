@@ -38,14 +38,6 @@ public interface StoreService {
      */
     String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel);
 
-    /**
-     * 上传活动商店性价比图片
-     *
-     * @param file 图片文件
-     * @return 图片链接
-     */
-    String uploadActivityBackgroundImage(MultipartFile file);
-
 
     void updateHoneyCake(List<HoneyCake> honeyCakeList);
 

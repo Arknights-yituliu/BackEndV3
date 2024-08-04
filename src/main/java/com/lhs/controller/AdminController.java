@@ -157,12 +157,6 @@ public class AdminController {
         return Result.success(message);
     }
 
-    @Operation(summary = "上传商店背景图片")
-    @PostMapping("/admin/store/activity/uploadImage")
-    public Result<String> uploadActivityImage(@RequestParam("file") MultipartFile file) {
-        return Result.success(storeService.uploadActivityBackgroundImage(file));
-    }
-
 
     @Operation(summary = "活动商店历史数据")
     @GetMapping("/store/act/history")
@@ -171,11 +165,18 @@ public class AdminController {
         return Result.success(list);
     }
 
-    @Operation(summary = "上传图片服务")
+//    @Operation(summary = "上传图片服务")
+//    @PostMapping("/admin/upload/image")
+//    public Result<String> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("path") String path, @RequestParam("imageName") String imageName) {
+//        imageInfoService.saveImage(file,path,imageName);
+//        return Result.success("上传成功");
+//    }
+
+    @Operation(summary = "批量上传图片服务")
     @PostMapping("/admin/upload/image")
-    public Result<String> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("path") String path, @RequestParam("imageName") String imageName) {
-        imageInfoService.saveImage(file,path,imageName);
-        return Result.success("上传成功");
+    public Result<String> uploadImageFiles(@RequestParam("files") List<MultipartFile> files, @RequestParam("path") String path) {
+
+        return Result.success(imageInfoService.saveImageFiles(files,path));
     }
 
     @Operation(summary = "获取礼包自定义材料表")
