@@ -595,7 +595,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         spliceClassMap.put("<@cc.vup>", "<span class='cc-vup'>");
         spliceClassMap.put("<@cc.kw>", "<span class='cc-kw'>");
         spliceClassMap.put("<@cc.vdown>", "<span class='cc-vdown'>");
-        spliceClassMap.put("<@cc.rem>", "<span class='cc-rem'>");
+        spliceClassMap.put("<@cc.rem>", "<span gamedata_const class='cc-rem'>");
         spliceClassMap.put("</>", "</span>");
 
         classMap.put("<$cc.tag.durin>", "<span class='cc-tag-durin'>");

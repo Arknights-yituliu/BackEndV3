@@ -4,11 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
-import com.lhs.entity.dto.survey.OperatorDataDTO;
+import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.po.survey.*;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
-import com.lhs.entity.po.user.UserExternalAccountBinding;
 
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
@@ -201,6 +200,33 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return saveOperatorData(akUid, operatorDataList);
     }
 
+
+    @Override
+    public Object importSKLandPlayerInfoV3(PlayerInfoDTO playerInfoDTO) {
+
+        String token = playerInfoDTO.getToken();
+
+        //防止用户多次点击上传
+        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInterval:" + token, "done", 5, TimeUnit.SECONDS);
+        if (Boolean.FALSE.equals(done)) {
+            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
+        }
+
+        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        List<OperatorData> operatorDataList = playerInfoDTO.getOperatorDataList();
+
+        String akUid = playerInfoDTO.getUid();
+
+        AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
+        akPlayerBindInfoDTO.setAkNickName(playerInfoDTO.getNickName());
+        akPlayerBindInfoDTO.setAkUid(akUid);
+        akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
+        akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
+        userService.saveBindInfo(userInfo, akPlayerBindInfoDTO);
+        userInfo.setAkUid(akUid);
+
+        return saveOperatorData(akUid, operatorDataList);
+    }
 
     /**
      * 保存干员数据
@@ -411,13 +437,13 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
     @Override
-    public Map<String, Object> saveOperatorDataByRhodes(OperatorDataDTO operatorDataDTO) {
+    public Map<String, Object> saveOperatorDataByRhodes(PlayerInfoDTO playerInfoDTO) {
 
-        String uid = operatorDataDTO.getUid();
-        String nickName = operatorDataDTO.getNickName();
-        String channelName = operatorDataDTO.getChannelName();
-        Integer channelMasterId = operatorDataDTO.getChannelMasterId();
-        List<OperatorData> operatorDataList = operatorDataDTO.getOperatorDataList();
+        String uid = playerInfoDTO.getUid();
+        String nickName = playerInfoDTO.getNickName();
+        String channelName = playerInfoDTO.getChannelName();
+        Integer channelMasterId = playerInfoDTO.getChannelMasterId();
+        List<OperatorData> operatorDataList = playerInfoDTO.getOperatorDataList();
 
         AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
         akPlayerBindInfo.setId(idGenerator.nextId());
@@ -429,6 +455,8 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
         return saveOperatorData(uid, operatorDataList);
     }
+
+
 
 
 }

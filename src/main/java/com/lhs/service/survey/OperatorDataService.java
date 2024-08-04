@@ -1,10 +1,8 @@
 package com.lhs.service.survey;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.survey.OperatorDataDTO;
+import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.po.survey.*;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.*;
 
@@ -42,6 +40,7 @@ public interface OperatorDataService  {
     List<OperatorDataVo> getOperatorInfoByToken(String token);
 
 
-    Map<String, Object> saveOperatorDataByRhodes(OperatorDataDTO operatorDataDTO);
+    Map<String, Object> saveOperatorDataByRhodes(PlayerInfoDTO playerInfoDTO);
 
+    Object importSKLandPlayerInfoV3(PlayerInfoDTO playerInfoDTO);
 }

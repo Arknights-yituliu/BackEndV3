@@ -1,19 +1,17 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
+import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.po.survey.OperatorData;
-import com.lhs.entity.po.survey.OperatorPlan;
 import com.lhs.entity.po.survey.OperatorDataVo;
 import com.lhs.service.survey.*;
-import com.lhs.entity.vo.survey.OperatorPlanVO;
 
 import com.lhs.service.util.ArknightsGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -74,6 +72,14 @@ public class SurveyOperatorController {
         String token = params.get("token");
         String data = params.get("data");
         return Result.success(operatorDataService.importSKLandPlayerInfoV2(token, data));
+    }
+
+
+    @Operation(summary ="通过森空岛导入干员练度V3")
+    @PostMapping("/operator/import/skland/v3")
+    public Result<Object> importSurveyCharacterFormBySKLandV3(@RequestBody PlayerInfoDTO playerInfoDTO) {
+
+        return Result.success(operatorDataService.importSKLandPlayerInfoV3(playerInfoDTO));
     }
 
     @Operation(summary ="通过森空岛导入仓库材料")

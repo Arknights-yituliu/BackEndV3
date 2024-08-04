@@ -1,8 +1,7 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.item.StageParamDTO;
-import com.lhs.entity.dto.survey.OperatorDataDTO;
+import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,9 +25,9 @@ public class RhodesAsstController {
 
     @Operation(summary = "获取蓝材料推荐关卡按效率倒序")
     @PostMapping("/operator/info/upload")
-    public Result<Map<String, Object>> getStageResultT3(@RequestBody OperatorDataDTO operatorDataDTO) {
+    public Result<Map<String, Object>> getStageResultT3(@RequestBody PlayerInfoDTO playerInfoDTO) {
 
-        operatorDataService.saveOperatorDataByRhodes(operatorDataDTO);
+        operatorDataService.saveOperatorDataByRhodes(playerInfoDTO);
 
         return Result.success();
     }
