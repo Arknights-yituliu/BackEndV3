@@ -7,9 +7,11 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.item.StageParamDTO;
 import com.lhs.entity.po.admin.HoneyCake;
+import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.item.*;
 import com.lhs.mapper.admin.HoneyCakeMapper;
+import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.mapper.material.*;
 import com.lhs.mapper.material.service.StorePermMapperService;
 import com.lhs.service.material.ItemService;
@@ -48,10 +50,11 @@ public class StoreServiceImpl implements StoreService {
     private final IdGenerator idGenerator;
 
     private final COSService cosService;
+    private final ImageInfoMapper imageInfoMapper;
     public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
                             HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
                             StorePermMapperService storePermMapperService, PackInfoMapper packInfoMapper,
-                            COSService cosService) {
+                            COSService cosService, ImageInfoMapper imageInfoMapper) {
         this.storePermMapper = storePermMapper;
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
@@ -59,6 +62,7 @@ public class StoreServiceImpl implements StoreService {
         this.redisTemplate = redisTemplate;
         this.storePermMapperService = storePermMapperService;
         this.packInfoMapper = packInfoMapper;
+        this.imageInfoMapper = imageInfoMapper;
         this.idGenerator = new IdGenerator(1L);
         this.cosService = cosService;
     }
@@ -154,16 +158,21 @@ public class StoreServiceImpl implements StoreService {
 
 
 
-
-
     public List<ActivityStoreDataVO> getActivityStoreDataNoCache() {
         QueryWrapper<ActivityStoreData> queryWrapper = new QueryWrapper<>();
         queryWrapper.ge("end_time", new Date());
         List<ActivityStoreData> activityStoreData = storeActMapper.selectList(queryWrapper);
         List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
+
         activityStoreData.forEach(e -> {
             String result = e.getResult();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
+            LambdaQueryWrapper<ImageInfo> imageInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            imageInfoLambdaQueryWrapper.eq(ImageInfo::getImageName,activityStoreDataVo.getActName());
+            ImageInfo imageInfo = imageInfoMapper.selectOne(imageInfoLambdaQueryWrapper);
+            if(imageInfo!=null){
+                activityStoreDataVo.setImageLink(imageInfo.getImageLink());
+            }
             activityStoreDataVOList.add(activityStoreDataVo);
         });
         return activityStoreDataVOList;
@@ -172,16 +181,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @RedisCacheable(key = "Item:StoreAct")
     public List<ActivityStoreDataVO> getActivityStoreData() {
-        QueryWrapper<ActivityStoreData> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ge("end_time", new Date());
-        List<ActivityStoreData> activityStoreData = storeActMapper.selectList(queryWrapper);
-        List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
-        activityStoreData.forEach(e -> {
-            String result = e.getResult();
-            ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
-            activityStoreDataVOList.add(activityStoreDataVo);
-        });
-        return activityStoreDataVOList;
+        return getActivityStoreDataNoCache();
     }
 
     @Override
@@ -193,6 +193,12 @@ public class StoreServiceImpl implements StoreService {
         activityStoreData.forEach(activity -> {
             String result = activity.getResult();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
+            LambdaQueryWrapper<ImageInfo> imageInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            imageInfoLambdaQueryWrapper.eq(ImageInfo::getImageName,activityStoreDataVo.getActName());
+            ImageInfo imageInfo = imageInfoMapper.selectOne(imageInfoLambdaQueryWrapper);
+            if(imageInfo!=null){
+                activityStoreDataVo.setImageLink(imageInfo.getImageLink());
+            }
             activityStoreDataVOList.add(activityStoreDataVo);
         });
         return activityStoreDataVOList;

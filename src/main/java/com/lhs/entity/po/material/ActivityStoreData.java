@@ -18,6 +18,5 @@ public class ActivityStoreData {
     @TableId
     private String actName;
     private Date endTime;
-    private String imageLink;
     private String result;
 }
