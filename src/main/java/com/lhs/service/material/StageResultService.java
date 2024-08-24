@@ -535,7 +535,7 @@ public class StageResultService {
                                                          Map<String, Item> itemMap) {
 
 
-        stageList.sort(Comparator.comparing(Stage::getStageId).reversed());
+        stageList.sort(Comparator.comparing(Stage::getStageId));
 
         List<ActStageResultVO> actStageResultVOList = new ArrayList<>();
         for (Stage stage : stageList) {
