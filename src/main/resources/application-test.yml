@@ -3,7 +3,7 @@ server:
   port: 10012
 
 spring:
-#  数据库配置
+  #  数据库配置
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,21 +19,21 @@ spring:
       ddl-auto: update
     open-in-view: false
   data:
-  #reids配置
-   redis:
-     #  redis所在服务器ip
-     host: 127.0.0.1
-     #  redis默认端口
-     port: 6379
-     # password: 有redis密码就放开这个属性填入密码
-     database: 0
-     connect-timeout: 1800000
-     lettuce:
-       pool:
-         max-active: 20
-         max-wait: -1
-         max-idle: 5
-         min-idle: 0
+    #reids配置
+    redis:
+      #  redis所在服务器ip
+      host: 127.0.0.1
+      #  redis默认端口
+      port: 6379
+      # password: 有redis密码就放开这个属性填入密码
+      database: 0
+      connect-timeout: 1800000
+      lettuce:
+        pool:
+          max-active: 20
+          max-wait: -1
+          max-idle: 5
+          min-idle: 0
 
 #资源路径
 resourcesPath:
@@ -69,7 +69,7 @@ skland:
 
 #  是否开启swagger文档
 swagger2:
-   enable: true
+  enable: true
 
 
 

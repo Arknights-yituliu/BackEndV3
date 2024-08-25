@@ -34,6 +34,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
 
     private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
+    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -48,7 +49,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
      *
      * @return Map<模组id, 模组分支>
      */
-    @RedisCacheable(key = "Survey:EquipIdAndType" )
+    @RedisCacheable(key = "Survey:EquipIdAndType")
     @Override
     public Map<String, String> getEquipIdAndType() {
         String read = FileUtil.read(ConfigUtil.Item + "character_table_simple.json");
@@ -73,7 +74,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
 
-
     /**
      * 返回一个干员信息的集合 里面主要用到干员的获取方式和实装时间
      *
@@ -86,8 +86,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         if (operatorTableList == null) throw new ServiceException(ResultCode.DATA_NONE);
         return operatorTableList;
     }
-
-
 
 
     @Override
@@ -201,13 +199,13 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         Map<String, Object> operatorInfoSimpleMap = new HashMap<>();
         Map<String, Object> itemCostMap = new HashMap<>();
-        
+
         Map<String, OperatorTable> obtainApproachMap = getOperatorTable().stream()
                 .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
         Map<Object, String> skillMap = getSkillMap();
         Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap();
-        
+
         while (characterTableFields.hasNext()) {
             String charId = characterTableFields.next().getKey();
 
@@ -224,8 +222,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
             Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap, obtainApproachMap);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
-            itemCostMap.put(charId,operatorItemCost);
-            operatorInfoSimpleMap.put(charId,operatorInfo);
+            itemCostMap.put(charId, operatorItemCost);
+            operatorInfoSimpleMap.put(charId, operatorInfo);
         }
 
         while (patchCharsFields.hasNext()) {
@@ -234,8 +232,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
             Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap, obtainApproachMap);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
-            itemCostMap.put(charId,operatorItemCost);
-            operatorInfoSimpleMap.put(charId,operatorInfo);
+            itemCostMap.put(charId, operatorItemCost);
+            operatorInfoSimpleMap.put(charId, operatorInfo);
         }
 
 
@@ -261,7 +259,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         JsonNode uniequip_table = JsonMapper.parseJSONObject(uniequip_tableText);
         JsonNode equipDict = uniequip_table.get("equipDict");
         Iterator<Map.Entry<String, JsonNode>> equipDictElements = equipDict.fields();
-
 
 
         while (equipDictElements.hasNext()) {
@@ -300,7 +297,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 tempMap.put("uniEquipIcon", uniEquipIcon);
                 tempMap.put("typeIcon", typeIcon);
                 tempMap.put("uniEquipName", uniEquipName);
-                tempMap.put("itemCost",itemCostMapList);
+                tempMap.put("itemCost", itemCostMapList);
                 maps.add(tempMap);
                 equipInfoMap.put(charId, maps);
             } else {
@@ -313,7 +310,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 tempMap.put("uniEquipIcon", uniEquipIcon);
                 tempMap.put("typeIcon", typeIcon);
                 tempMap.put("uniEquipName", uniEquipName);
-                tempMap.put("itemCost",itemCostMapList);
+                tempMap.put("itemCost", itemCostMapList);
                 maps.add(tempMap);
                 equipInfoMap.put(charId, maps);
             }
@@ -369,10 +366,10 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         //干员中文名称
         String name = data.get("name").asText();
-        if("char_1001_amiya2".equals(charId)){
+        if ("char_1001_amiya2".equals(charId)) {
             name = "阿米娅（近卫）";
         }
-        if("char_1037_amiya3".equals(charId)){
+        if ("char_1037_amiya3".equals(charId)) {
             name = "阿米娅（医疗）";
         }
 
@@ -429,10 +426,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
 
-
-
-
-    private Map<String,Object> getOperatorItemCost(String charId,JsonNode data, Map<Object, String> skillMap, Map<String, List<Map<String, Object>>> equipMap){
+    private Map<String, Object> getOperatorItemCost(String charId, JsonNode data, Map<Object, String> skillMap, Map<String, List<Map<String, Object>>> equipMap) {
         Map<String, Object> operator = new HashMap<>();
         JsonNode phases = data.get("phases");
         List<HashMap<String, Integer>> eliteList = new ArrayList<>();
@@ -484,12 +478,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         operator.put("skills", skillsList);
         operator.put("elite", eliteList);
 
-        if(equipMap.get(charId)!=null){
+        if (equipMap.get(charId) != null) {
             List<Map<String, Object>> list = equipMap.get(charId);
-            for(Map<String, Object> item :list){
+            for (Map<String, Object> item : list) {
                 String typeName2 = String.valueOf(item.get("typeName2"));
                 Object o = item.get("itemCost");
-                operator.put("mod"+typeName2,o);
+                operator.put("mod" + typeName2, o);
             }
         }
 
@@ -538,9 +532,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                     buildingData.setBuffName(buffName);
                     buildingData.setBuffColor(buffColor);
                     buildingData.setTextColor(textColor);
-                    if (name.equals("假日威龙陈")) {
-                        System.out.println(description);
-                    }
+//                    if (name.equals("假日威龙陈")) {
+//                        System.out.println(description);
+//                    }
                     buildingData.setTimestamp(characterTableMap.get(charId).getUpdateTime().getTime());
                     buildingData.setDescription(replaceDescription(description));
                     buildingData.setRoomType(roomType);
@@ -555,7 +549,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        Map<String, List<BuildingData>> collect = buildingDataList.stream()
 //                .collect(Collectors.groupingBy(BuildingData::getRoomType));
         buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
-        FileUtil.save("C:/VCProject/frontend-v2-plus/src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
 
     }
 
@@ -589,98 +583,144 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
     private String replaceDescription(String str) {
-        Map<String, String> classMap = new HashMap<String, String>();
+//        Map<String, String> classMap = new HashMap<String, String>();
+//
+//        classMap.put("<$cc.tag.durin>", "<span class='cc-tag-durin'>");
+//        classMap.put("<$cc.tag.op>", "<span class='cc-tag-op'>"); //作业平台
+//        classMap.put("<$cc.tag.mh>", "<span class='cc-tag-mh'>");
+//        classMap.put("<$cc.tag.knight>", "<span class='cc-tag-knight'>"); //骑士
+//
+//        classMap.put("<$cc.bd_b1>", "<span class='cc-bd-b1'>"); //人间烟火
+//        classMap.put("<$cc.bd_a1>", "<span class='cc-bd-a1'>"); //感知信息
+//        classMap.put("<$cc.bd_A>", "<span class='cc-bd-A'>"); //感知信息
+//        classMap.put("<$cc.bd_C>", "<span class='cc-bd-C'>"); //巫术结晶
+//        classMap.put("<$cc.bd_B>", "<span class='cc-bd-B'>"); //人间烟火
+//        classMap.put("<$cc.bd_malist>", "<span class='cc-bd-malist'>"); //工程机器人
+//        classMap.put("<$cc.bd_a1_a1>", "<span class='cc-bd-a1-a1'>");  //记忆碎片
+//        classMap.put("<$cc.bd_a1_a2>", "<span class='cc-bd-a1-a2'>");  //梦境
+//        classMap.put("<$cc.bd_a1_a3>", "<span class='cc-bd-a1-a3'>");  //小节
+//        classMap.put("<$cc.bd_ash>", "<span class='cc-bd-ash'>"); //彩六
+//        classMap.put("<$cc.bd_tachanka>", "<span class='cc-bd-tachanka'>");  //彩六
+//        classMap.put("<$cc.bd_felyne>", "<span class='cc-bd-felyne'>");  //彩六
+//
+//
+//        classMap.put("<$cc.t.strong2>", "<span class='cc-t-strong2'>"); //强调
+//        classMap.put("<$cc.t.flow_gold>", "<span class='cc-t-flow-gold'>");//赤金线
+//
+//        classMap.put("<$cc.c.room3>", "<span class='cc-c-room3'>");
+//        classMap.put("<$cc.c.room1>", "<span class='cc-c-room1'>");
+//        classMap.put("<$cc.c.room2>", "<span class='cc-c-room2'>");
+//        classMap.put("<$cc.c.skill>", "<span class='cc-c-skill'>");
+//        classMap.put("<$cc.c.abyssal2_3>", "<span class='cc-c-abyssal2_3'>");
+//        classMap.put("<$cc.c.abyssal2_1>", "<span class='cc-c-abyssal2_1'>"); //深海猎人
+//        classMap.put("<$cc.c.abyssal2_2>", "<span class='cc-c-abyssal2_2'>"); //深海猎人
+//        classMap.put("<$cc.c.sui2_1>", "<span class='cc-c-sui2_1'>"); //深海猎人
+//        classMap.put("<$cc.c.sui2_2>", "<span class='cc-c-sui2_2'>"); //深海猎人
+//
+//        classMap.put("<$cc.m.var1>", "<span class='cc-m-var1'>");
+//
+//
+//        classMap.put("<$cc.sk.manu1>", "<span class='cc-sk-manu1'>"); //标准化类技能
+//        classMap.put("<$cc.sk.manu2>", "<span class='cc-sk-manu2'>"); //莱茵科技类技能
+//        classMap.put("<$cc.sk.manu3>", "<span class='cc-sk-manu3'>"); //红松骑士团类
+//        classMap.put("<$cc.sk.manu4>", "<span class='cc-sk-manu4'>"); //金属工艺类技能
+//
+//
+//        classMap.put("<$cc.w.ncdeer1>", "<span class='cc-bd-ncdeer1'>");  //九色鹿
+//        classMap.put("<$cc.w.ncdeer2>", "<span class='cc-bd-ncdeer2'>");  //九色鹿
+//
+//        classMap.put("<$cc.g.glasgow>", "<span class='cc-g-glasgow'>"); //格拉斯哥帮
+//        classMap.put("<$cc.g.bs>", "<span class='cc-g-bs'>"); //黑钢
+//        classMap.put("<$cc.g.sm>", "<span class='cc-g-sm'>"); //萨米
+//        classMap.put("<$cc.g.lgd>", "<span class='cc-g-lgd'>"); //近卫局
+//        classMap.put("<$cc.g.lda>", "<span class='cc-g-lda'>"); //鲤氏
+//        classMap.put("<$cc.g.sp>", "<span class='cc-g-sp'>"); //异格
+//        classMap.put("<$cc.g.R6>", "<span class='cc-g-R6'>"); //彩六
+//        classMap.put("<$cc.g.ussg>", "<span class='cc-g-ussg'>"); //彩六
+//        classMap.put("<$cc.g.abyssal>", "<span class='cc-g-abyssal'>"); //深海猎人
+//        classMap.put("<$cc.g.knight>", "<span class='cc-g-lda'>"); //骑士
+//        classMap.put("<$cc.g.mh>", "<span class='cc-g-mh'>"); //怪物猎人
+//        classMap.put("<$cc.g.op>", "<span class='cc-g-op'>"); //异格
+//        classMap.put("<$cc.g.rh>", "<span class='cc-g-rh'>"); //彩六
+//        classMap.put("<$cc.g.psk>", "<span class='cc-g-psk'>"); //怪物猎人
+//        classMap.put("<$cc.g.karlan>", "<span class='cc-g-karlan'>"); //喀兰
+//        classMap.put("<$cc.g.sui>", "<span class='cc-g-sui'>"); //岁
+//
+//        classMap.put("<$cc.gvial>", "<span class='cc-gvial'>"); //彩六
+//        classMap.put("<$cc.t.accmuguard1>", "<span class='cc-t-accmuguard1'>");
+//
+//
+//        classMap.put("<$cc.bd.costdrop>", "<span class='cc-bd-costdrop'>"); //心情落差
 
+        str = replaceDescriptionBase(str);
+
+        // 匹配术语标签
+        Pattern pattern = Pattern.compile("<\\$cc\\.([\\w.]+)>");
+        Matcher matcher = pattern.matcher(str);
+        StringBuilder sb = new StringBuilder();
+
+        while (matcher.find()) {
+            String replacement = "<span class='cc-" + matcher.group(1).replace('.', '-') + "'>";
+            matcher.appendReplacement(sb, replacement);
+        }
+        matcher.appendTail(sb);
+        str = sb.toString();
+
+        return str;
+    }
+
+    private String replaceDescriptionBase(String description) {
+        // 匹配常规标签
         Map<String, String> spliceClassMap = new HashMap<>();
         spliceClassMap.put("<@cc.vup>", "<span class='cc-vup'>");
         spliceClassMap.put("<@cc.kw>", "<span class='cc-kw'>");
         spliceClassMap.put("<@cc.vdown>", "<span class='cc-vdown'>");
         spliceClassMap.put("<@cc.rem>", "<span gamedata_const class='cc-rem'>");
         spliceClassMap.put("</>", "</span>");
+        spliceClassMap.put("\n", "<br>");
 
-        classMap.put("<$cc.tag.durin>", "<span class='cc-tag-durin'>");
-        classMap.put("<$cc.tag.op>", "<span class='cc-tag-op'>"); //作业平台
-        classMap.put("<$cc.tag.mh>", "<span class='cc-tag-mh'>");
-        classMap.put("<$cc.tag.knight>", "<span class='cc-tag-knight'>"); //骑士
-
-        classMap.put("<$cc.bd_b1>", "<span class='cc-bd-b1'>"); //人间烟火
-        classMap.put("<$cc.bd_a1>", "<span class='cc-bd-a1'>"); //感知信息
-        classMap.put("<$cc.bd_A>", "<span class='cc-bd-A'>"); //感知信息
-        classMap.put("<$cc.bd_C>", "<span class='cc-bd-C'>"); //巫术结晶
-        classMap.put("<$cc.bd_B>", "<span class='cc-bd-B'>"); //人间烟火
-        classMap.put("<$cc.bd_malist>", "<span class='cc-bd-malist'>"); //工程机器人
-        classMap.put("<$cc.bd_a1_a1>", "<span class='cc-bd-a1-a1'>");  //记忆碎片
-        classMap.put("<$cc.bd_a1_a2>", "<span class='cc-bd-a1-a2'>");  //梦境
-        classMap.put("<$cc.bd_a1_a3>", "<span class='cc-bd-a1-a3'>");  //小节
-        classMap.put("<$cc.bd_ash>", "<span class='cc-bd-ash'>"); //彩六
-        classMap.put("<$cc.bd_tachanka>", "<span class='cc-bd-tachanka'>");  //彩六
-        classMap.put("<$cc.bd_felyne>", "<span class='cc-bd-felyne'>");  //彩六
-
-
-        classMap.put("<$cc.t.strong2>", "<span class='cc-t-strong2'>"); //强调
-        classMap.put("<$cc.t.flow_gold>", "<span class='cc-t-flow-gold'>");//赤金线
-
-        classMap.put("<$cc.c.room3>", "<span class='cc-c-room3'>");
-        classMap.put("<$cc.c.room1>", "<span class='cc-c-room1'>");
-        classMap.put("<$cc.c.room2>", "<span class='cc-c-room2'>");
-        classMap.put("<$cc.c.skill>", "<span class='cc-c-skill'>");
-        classMap.put("<$cc.c.abyssal2_3>", "<span class='cc-c-abyssal2_3'>");
-        classMap.put("<$cc.c.abyssal2_1>", "<span class='cc-c-abyssal2_1'>"); //深海猎人
-        classMap.put("<$cc.c.abyssal2_2>", "<span class='cc-c-abyssal2_2'>"); //深海猎人
-        classMap.put("<$cc.c.sui2_1>", "<span class='cc-c-sui2_1'>"); //深海猎人
-        classMap.put("<$cc.c.sui2_2>", "<span class='cc-c-sui2_2'>"); //深海猎人
-
-        classMap.put("<$cc.m.var1>", "<span class='cc-m-var1'>");
-
-
-        classMap.put("<$cc.sk.manu1>", "<span class='cc-sk-manu1'>"); //标准化类技能
-        classMap.put("<$cc.sk.manu2>", "<span class='cc-sk-manu2'>"); //莱茵科技类技能
-        classMap.put("<$cc.sk.manu3>", "<span class='cc-sk-manu3'>"); //红松骑士团类
-        classMap.put("<$cc.sk.manu4>", "<span class='cc-sk-manu4'>"); //金属工艺类技能
-
-
-        classMap.put("<$cc.w.ncdeer1>", "<span class='cc-bd-ncdeer1'>");  //九色鹿
-        classMap.put("<$cc.w.ncdeer2>", "<span class='cc-bd-ncdeer2'>");  //九色鹿
-
-        classMap.put("<$cc.g.glasgow>", "<span class='cc-g-glasgow'>"); //格拉斯哥帮
-        classMap.put("<$cc.g.bs>", "<span class='cc-g-bs'>"); //黑钢
-        classMap.put("<$cc.g.sm>", "<span class='cc-g-sm'>"); //萨米
-        classMap.put("<$cc.g.lgd>", "<span class='cc-g-lgd'>"); //近卫局
-        classMap.put("<$cc.g.lda>", "<span class='cc-g-lda'>"); //鲤氏
-        classMap.put("<$cc.g.sp>", "<span class='cc-g-sp'>"); //异格
-        classMap.put("<$cc.g.R6>", "<span class='cc-g-R6'>"); //彩六
-        classMap.put("<$cc.g.ussg>", "<span class='cc-g-ussg'>"); //彩六
-        classMap.put("<$cc.g.abyssal>", "<span class='cc-g-abyssal'>"); //深海猎人
-        classMap.put("<$cc.g.knight>", "<span class='cc-g-lda'>"); //骑士
-        classMap.put("<$cc.g.mh>", "<span class='cc-g-mh'>"); //怪物猎人
-        classMap.put("<$cc.g.op>", "<span class='cc-g-op'>"); //异格
-        classMap.put("<$cc.g.rh>", "<span class='cc-g-rh'>"); //彩六
-        classMap.put("<$cc.g.psk>", "<span class='cc-g-psk'>"); //怪物猎人
-        classMap.put("<$cc.g.karlan>", "<span class='cc-g-karlan'>"); //喀兰
-        classMap.put("<$cc.g.sui>", "<span class='cc-g-sui'>"); //岁
-
-        classMap.put("<$cc.gvial>", "<span class='cc-gvial'>"); //彩六
-        classMap.put("<$cc.t.accmuguard1>", "<span class='cc-t-accmuguard1'>");
-
-
-        classMap.put("<$cc.bd.costdrop>", "<span class='cc-bd-costdrop'>"); //心情落差
-
-
-        for (String key : spliceClassMap.keySet()) {
-            str = str.replace(key, spliceClassMap.get(key));
+        for (Map.Entry<String, String> entry : spliceClassMap.entrySet()) {
+            description = description.replace(entry.getKey(), entry.getValue());
         }
 
-//        for (String key : classMap.keySet()) {
-//            str = str.replace(key, "<span class='cc-base'>");
-//        }
+        return description;
+    }
 
-        String pattern = "<\\$cc[^>]+>";
-        String replacement = "<span class='cc-base'>";
-        Pattern compile = Pattern.compile(pattern);
-        Matcher matcher = compile.matcher(str);
-        str = matcher.replaceAll(replacement);
-        System.out.println(str);
 
-        return str;
+    @Override
+    public void getTermDescriptionTable() {
+        String read = FileUtil.read(GAME_DATA + "excel/gamedata_const.json");
+        JsonNode rootNode = JsonMapper.parseJSONObject(read);
+        JsonNode termDescriptionDict = rootNode.get("termDescriptionDict");
+
+        if (termDescriptionDict != null) {
+            Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
+            FileUtil.save(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+        }
+    }
+
+    private Map<String, Map<String, String>> createTermDescriptionJson(JsonNode termDescriptionDict) {
+        Map<String, Map<String, String>> termDescriptionMap = new HashMap<>();
+
+        Iterator<Map.Entry<String, JsonNode>> fields = termDescriptionDict.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            String termId = entry.getKey();
+
+            if (termId.startsWith("cc")) { // 仅添加键名以cc开头的节点
+                JsonNode termData = entry.getValue();
+                String termName = termData.get("termName").asText();
+                String description = replaceDescriptionBase(termData.get("description").asText());
+
+                Map<String, String> termEntry = new HashMap<>();
+                termId = termId.replace(".", "-");
+                termEntry.put("termName", termName);
+                termEntry.put("description", description);
+
+                termDescriptionMap.put(termId, termEntry);
+            }
+        }
+
+        return termDescriptionMap;
     }
 }
