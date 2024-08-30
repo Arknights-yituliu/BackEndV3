@@ -660,7 +660,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         StringBuilder sb = new StringBuilder();
 
         while (matcher.find()) {
-            String replacement = "<span class='cc-" + matcher.group(1).replace('.', '-') + "'>";
+            String replacement = "<span data-termId='cc-" + matcher.group(1).replace('.', '-') + "' class='cc-base'>";
             matcher.appendReplacement(sb, replacement);
         }
         matcher.appendTail(sb);
