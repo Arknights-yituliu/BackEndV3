@@ -35,6 +35,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
     private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
+//    private final static String GAME_DATA = "GAME_DATA测试路径";
+//    private final static String JSON_BUILD = "JSON_BUILD测试路径";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -494,6 +496,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     public void getBuildingTable() {
         String read = FileUtil.read(GAME_DATA + "excel/building_data.json");
         String read1 = FileUtil.read(GAME_DATA + "excel/character_table.json");
+//        测试路径
+//        String read = FileUtil.read(GAME_DATA + "building_data.json");
+//        String read1 = FileUtil.read(GAME_DATA + "character_table.json");
 
 
         List<OperatorTable> operatorTable = getOperatorTable();
@@ -535,7 +540,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //                    if (name.equals("假日威龙陈")) {
 //                        System.out.println(description);
 //                    }
-                    buildingData.setTimestamp(characterTableMap.get(charId).getUpdateTime().getTime());
+                    buildingData.setTimestamp(characterTableMap.get(charId).getUpdateTime().getTime()); //分离测试需剔除依赖项
                     buildingData.setDescription(replaceDescription(description));
                     buildingData.setRoomType(roomType);
                     buildingData.setName(name);
@@ -690,6 +695,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     @Override
     public void getTermDescriptionTable() {
         String read = FileUtil.read(GAME_DATA + "excel/gamedata_const.json");
+//        String read = FileUtil.read(GAME_DATA + "gamedata_const.json");
         JsonNode rootNode = JsonMapper.parseJSONObject(read);
         JsonNode termDescriptionDict = rootNode.get("termDescriptionDict");
 
@@ -711,6 +717,18 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 JsonNode termData = entry.getValue();
                 String termName = termData.get("termName").asText();
                 String description = replaceDescriptionBase(termData.get("description").asText());
+
+                // 将术语中的术语标签替换为常规标签，防止渲染错误（术语提示文本框中无法再提示术语）
+                Pattern pattern = Pattern.compile("<\\$cc\\.([\\w.]+)>");
+                Matcher matcher = pattern.matcher(description);
+                StringBuilder sb = new StringBuilder();
+
+                while (matcher.find()) {
+                    String replacement = "<span class='cc-base'>";
+                    matcher.appendReplacement(sb, replacement);
+                }
+                matcher.appendTail(sb);
+                description = sb.toString();
 
                 Map<String, String> termEntry = new HashMap<>();
                 termId = termId.replace(".", "-");
