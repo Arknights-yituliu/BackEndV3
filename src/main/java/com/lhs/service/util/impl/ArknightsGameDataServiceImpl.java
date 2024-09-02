@@ -35,8 +35,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
     private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
-//    private final static String GAME_DATA = "GAME_DATA测试路径";
-//    private final static String JSON_BUILD = "JSON_BUILD测试路径";
+    // 测试路径
+//    private final static String GAME_DATA = "C:/Users/22509/Downloads/";
+//    private final static String JSON_BUILD = "C:/Users/22509/Downloads/";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -342,8 +343,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         return skillMap;
     }
 
-    private Map<String, Object> getOperatorInfo(String charId, JsonNode data, Map<Object, String> skillMap, Map<String, List<Map<String, Object>>> equipMap,
-                                                Map<String, OperatorTable> characterObtainApproachMap) {
+    private Map<String, Object> getOperatorInfo(String charId, JsonNode data, Map<Object, String> skillMap,
+                                                Map<String, List<Map<String, Object>>> equipMap, Map<String, OperatorTable> characterObtainApproachMap) {
 
         Map<String, Object> operatorInfo = new HashMap<>();
 
@@ -553,7 +554,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 //        Map<String, List<BuildingData>> collect = buildingDataList.stream()
 //                .collect(Collectors.groupingBy(BuildingData::getRoomType));
-        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
+//        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
+        Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
         FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
 
     }
