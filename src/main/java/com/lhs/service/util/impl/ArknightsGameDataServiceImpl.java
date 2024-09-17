@@ -743,4 +743,116 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         return termDescriptionMap;
     }
+
+    @Override
+    public void getSandboxFoodsTable() {
+        String read = FileUtil.read(GAME_DATA + "excel/sandbox_perm_table.json");
+//        String read = FileUtil.read(GAME_DATA + "sandbox_perm_table.json");
+        JsonNode rootNode = JsonMapper.parseJSONObject(read);
+        JsonNode v2FoodsDetail = rootNode.get("detail").get("SANDBOX_V2").get("sandbox_1");
+        JsonNode v2ItemData = rootNode.get("itemData");
+
+        if (v2FoodsDetail != null) {
+            Map<String, Object> foodsMap = createFoodsDataJson(v2FoodsDetail.get("foodMatData"), v2FoodsDetail.get("foodData"), v2ItemData);
+            FileUtil.save(JSON_BUILD, "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
+        }
+    }
+
+    private Map<String, Object> createFoodsDataJson(JsonNode foodMatDataNode, JsonNode foodDataNode, JsonNode itemData) {
+        Map<String, Object> foodsDataMap = new HashMap<>();
+        Map<String, Map<String, Object>> foodMatData = new HashMap<>();
+        List<Map<String, Object>> foodData = new ArrayList<>();
+        foodsDataMap.put("foodMatData", foodMatData); //食材信息表
+        foodsDataMap.put("foodData", foodData); //食物信息表
+
+        //获取食材信息
+        Iterator<Map.Entry<String, JsonNode>> foodMatDataFields = foodMatDataNode.fields();
+
+        while (foodMatDataFields.hasNext()) {
+            Map<String, Object> foodMatInformation = new HashMap<>(); //每一个食材的详细信息
+            Map.Entry<String, JsonNode> foodMat = foodMatDataFields.next();
+            String foodMatId = foodMat.getKey();
+            JsonNode foodMatItem = itemData.get(foodMatId);
+            JsonNode foodMatValue = foodMat.getValue();
+
+            //食物属性
+            foodMatInformation.put("name", foodMatItem.get("itemName").asText());
+            foodMatInformation.put("buffDesc", foodMatValue.hasNonNull("buffDesc") ? foodMatValue.get("buffDesc").asText() : "");
+            foodMatInformation.put("obtainApproach", foodMatItem.get("obtainApproach").asText().replace("\n", "<br>"));
+
+            Map<String, Map<String, Object>> foodMatData1 = (Map<String, Map<String, Object>>) foodsDataMap.get("foodMatData");
+            foodMatData1.put(foodMatId, foodMatInformation);
+        }
+
+        // 获取食物信息
+        Iterator<Map.Entry<String, JsonNode>> foodDataFields = foodDataNode.fields();
+
+        while (foodDataFields.hasNext()) {
+            Map<String, Object> foodInformation = new HashMap<>(); //每一个食物的详细信息
+            Map.Entry<String, JsonNode> food = foodDataFields.next();
+            String foodId = food.getKey();
+            JsonNode foodItem = itemData.get(foodId);
+            JsonNode foodValue = food.getValue();
+
+            //食物编号
+            foodInformation.put("id", foodId);
+
+            //食物属性
+            List<String> foodAttributes = new ArrayList<>();
+            JsonNode attributes = foodValue.get("attributes");
+            for (JsonNode attribute : attributes) {
+                foodAttributes.add(attribute.asText());
+            }
+            foodInformation.put("attributes", foodAttributes);
+
+            //食物配方
+            JsonNode recipes = foodValue.get("recipes");
+            List<Map<String, Object>> foodRecipes = new ArrayList<>();
+            for (JsonNode recipe : recipes) {
+                Map<String, Object> foodRecipe = new HashMap<>();
+                foodRecipe.put("foodId", recipe.get("foodId").asText());
+                JsonNode mats = recipe.get("mats");
+                List<String> matList = new ArrayList<>();
+                for (JsonNode mat : mats) {
+                    matList.add(mat.asText());
+                }
+                foodRecipe.put("mats", matList);
+                foodRecipes.add(foodRecipe);
+            }
+            foodInformation.put("recipes", foodRecipes);
+
+            //食物变体
+            JsonNode variants = foodValue.get("variants");
+            List<Map<String, String>> foodVariants = new ArrayList<>();
+            for (JsonNode variant : variants) {
+                Map<String, String> foodVariant = new HashMap<>();
+                foodVariant.put("name", variant.get("name").asText());
+                foodVariant.put("usage", variant.get("usage").asText());
+                foodVariants.add(foodVariant);
+            }
+            foodInformation.put("variants", foodVariants);
+
+            //食物名称
+            foodInformation.put("name", foodItem.get("itemName").asText());
+
+            //食物用途（展示增强后的效果）
+            foodInformation.put("usage", variants.get(variants.size() - 2).get("usage").asText());
+
+            //使用调味料后持续时长（添加2个调味料获得增强效果，1个调味料延长5天）
+            int duration = foodValue.get("duration").asInt();
+            if (duration == -1) {
+                if (!recipes.isEmpty()) {
+                    foodInformation.put("duration", "持续时间无限");
+                } else {
+                    foodInformation.put("duration", "持续时间无限，无法使用调味料进行效果增强");
+                }
+            } else {
+                foodInformation.put("duration", duration + 10);
+            }
+
+            List<Map<String, Object>> foodData1 = (List<Map<String, Object>>) foodsDataMap.get("foodData");
+            foodData1.add(foodInformation);
+        }
+        return foodsDataMap;
+    }
 }
