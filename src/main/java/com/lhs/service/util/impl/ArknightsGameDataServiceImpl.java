@@ -495,13 +495,14 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     @Override
     public void getBuildingTable() {
+        //读取基建相关解包文件
         String read = FileUtil.read(GAME_DATA + "excel/building_data.json");
         String read1 = FileUtil.read(GAME_DATA + "excel/character_table.json");
 //        测试路径
 //        String read = FileUtil.read(GAME_DATA + "building_data.json");
 //        String read1 = FileUtil.read(GAME_DATA + "character_table.json");
 
-
+        //获取干员部分信息
         List<OperatorTable> operatorTable = getOperatorTable();
 
         Map<String, OperatorTable> characterTableMap = operatorTable.stream()

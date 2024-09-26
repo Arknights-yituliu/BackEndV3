@@ -9,11 +9,8 @@ import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
-import com.qcloud.cos.exception.CosClientException;
-import com.qcloud.cos.exception.CosServiceException;
 import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.model.*;
-import com.qcloud.cos.model.ciModel.persistence.OriginalInfo;
 import com.qcloud.cos.region.Region;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,8 +51,8 @@ public class COSServiceImpl implements COSService {
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, file);
         PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest);
-        OriginalInfo originalInfo = putObjectResult.getCiUploadResult().getOriginalInfo();
-        System.out.println(originalInfo);
+        String requestId = putObjectResult.getRequestId();
+        System.out.println(requestId);
     }
 
     private void uploadCOS(MultipartFile file, String bucketPath)  {
@@ -76,7 +73,8 @@ public class COSServiceImpl implements COSService {
 
     }
 
-    private COSClient createCOSClient(){
+    @Override
+    public COSClient createCOSClient(){
         String secretId = ConfigUtil.CosSecretId;
         String secretKey = ConfigUtil.CosSecretKey;
         COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
