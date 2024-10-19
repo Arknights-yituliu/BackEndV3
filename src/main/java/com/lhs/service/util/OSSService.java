@@ -21,7 +21,7 @@ public class OSSService {
     @Value("${aliyun.accessKeySecret}")
     private  String AccessKeySecret;
     @Value("${aliyun.bakBucketName}")
-    private  String  BakBucketName;
+    private  String BakBucketName;
 
     /**
      *
