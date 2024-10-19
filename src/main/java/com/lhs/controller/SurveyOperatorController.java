@@ -82,6 +82,13 @@ public class SurveyOperatorController {
         return Result.success(operatorDataService.importSKLandPlayerInfoV3(playerInfoDTO));
     }
 
+    @Operation(summary ="通过森空岛导入干员练度V2")
+    @PostMapping("/operator/report")
+    public Result<Object> characterDataReport(@RequestBody Map<String,String> params) {
+
+        return Result.success(operatorDataService.operatorDataReport());
+    }
+
     @Operation(summary ="通过森空岛导入仓库材料")
     @PostMapping("/warehouse-info/import/skland")
     public Result<Object> importWarehouseInfoBySKLand(@RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {

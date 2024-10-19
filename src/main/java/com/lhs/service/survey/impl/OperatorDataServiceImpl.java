@@ -228,6 +228,13 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return saveOperatorData(akUid, operatorDataList);
     }
 
+    @Override
+    public Object operatorDataReport() {
+
+
+        return null;
+    }
+
     /**
      * 保存干员数据
      *
