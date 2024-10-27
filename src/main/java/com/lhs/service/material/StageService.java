@@ -6,7 +6,7 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.*;
 import com.lhs.entity.po.material.Stage;
 
-import com.lhs.entity.vo.item.ZoneTableVO;
+import com.lhs.entity.vo.material.ZoneTableVO;
 import com.lhs.mapper.material.StageMapper;
 import com.lhs.service.util.OSSService;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,6 @@
-package com.lhs.entity.vo.item;
+package com.lhs.entity.vo.material;
 
 
-import com.lhs.common.util.StageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

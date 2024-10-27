@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.item.StageDropDTO;
+import com.lhs.entity.dto.material.StageDropDTO;
 import com.lhs.service.maa.StageDropUploadService;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.maa.ScheduleService;

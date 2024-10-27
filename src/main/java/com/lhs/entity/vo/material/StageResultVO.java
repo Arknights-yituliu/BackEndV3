@@ -1,4 +1,4 @@
-package com.lhs.entity.vo.item;
+package com.lhs.entity.vo.material;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lhs.entity.po.material.StageResult;

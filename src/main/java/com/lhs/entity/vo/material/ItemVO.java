@@ -1,4 +1,4 @@
-package com.lhs.entity.vo.item;
+package com.lhs.entity.vo.material;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.AllArgsConstructor;

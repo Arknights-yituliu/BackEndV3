@@ -1,8 +1,7 @@
-package com.lhs.entity.dto.item;
+package com.lhs.entity.dto.material;
 
 import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
 
 

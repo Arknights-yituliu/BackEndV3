@@ -1,7 +1,7 @@
-package com.lhs.entity.vo.item;
+package com.lhs.entity.vo.material;
 
 
-import com.lhs.entity.dto.item.ActTagAreaDTO;
+import com.lhs.entity.dto.material.ActTagAreaDTO;
 import lombok.Data;
 
 import java.util.List;

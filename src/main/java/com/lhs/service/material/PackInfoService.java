@@ -11,8 +11,8 @@ import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.PackContent;
 import com.lhs.entity.po.material.PackInfo;
 import com.lhs.entity.po.material.PackItem;
-import com.lhs.entity.vo.item.PackContentVO;
-import com.lhs.entity.vo.item.PackInfoVO;
+import com.lhs.entity.vo.material.PackContentVO;
+import com.lhs.entity.vo.material.PackInfoVO;
 import com.lhs.mapper.material.PackContentMapper;
 import com.lhs.mapper.material.PackInfoMapper;
 import com.lhs.mapper.material.PackItemMapper;
@@ -218,18 +218,48 @@ public class PackInfoService {
     }
 
     private void packPromotionRatioCalc(PackInfoVO packInfoVO, Map<String, Double> itemValue) {
+
+        //源石性价比基准
+        double eachOriginalOriginiumPrice = 648 / 185.0;
+        //抽卡性价比基准
+        double eachOriginalDrawPrice = 648.0 / 185 / 0.3;
+
+        double draws = 0.0;
         double drawPrice = 0.0; //每一抽价格
         double packedOriginiumPrice = 0.0; //每源石（折算物资后）价格
         double drawEfficiency = 0.0; //氪金性价比
         double packEfficiency = 0.0; //综合性价比
-        double packedOriginium = 0.0;
-        double draws = 0.0;
+        double packedOriginium = 0.0; //每源石（折算物资后）价格
+        double totalOfOrundum = 0.0; //等效合成玉总数
 
-        double totalOfOrundum = packInfoVO.getOrundum() + packInfoVO.getOriginium() * 180
+        double drawsKernel = 0.0;
+        double drawPriceKernel = 0.0; //每一抽价格（含蓝票）
+        double packedOriginiumPriceKernel = 0.0; //每源石（折算物资后）价格（含蓝票）
+        double drawEfficiencyKernel = 0.0; //氪金性价比（含蓝票）
+        double packEfficiencyKernel = 0.0; //综合性价比（含蓝票）
+        double packedOriginiumKernel = 0.0; //每源石（折算物资后）价格（含蓝票）
+        double totalOfOrundumKernel = 0.0; //等效合成玉总数（含蓝票）
+
+        //礼包内的物品的集合
+        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
+        double apCount = 0.0;
+
+        totalOfOrundum =packInfoVO.getOrundum() + packInfoVO.getOriginium() * 180
                 + packInfoVO.getGachaTicket() * 600 + packInfoVO.getTenGachaTicket() * 6000;
 
-        double eachOriginalOriginiumPrice = 648 / 185.0;
-        double eachOriginalDrawPrice = 648.0 / 185 / 0.3;
+        if (packContentVOList != null) {
+            for (PackContentVO packContentVO : packContentVOList) {
+                if (itemValue.get(packContentVO.getItemId()) != null) {
+                    if(packContentVO.getItemId().equals("classic_gacha")){
+                        totalOfOrundumKernel+=packContentVO.getQuantity()*600;
+                    }
+                    if(packContentVO.getItemId().equals("classic_gacha_10")){
+                        totalOfOrundumKernel+=packContentVO.getQuantity()*6000;
+                    }
+                    apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
+                }
+            }
+        }
 
         if (totalOfOrundum > 0) {
             //计算共计多少抽
@@ -244,21 +274,34 @@ public class PackInfoService {
             packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
             //计算综合性价比
             packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
+
+            //计算共计多少抽
+            drawsKernel = totalOfOrundumKernel / 600;
+            //计算等效多少源石 1源石 = 180合成玉
+            packedOriginiumKernel += totalOfOrundumKernel / 180;
+            //计算每一抽的价格
+            drawPriceKernel = packInfoVO.getPrice() / drawsKernel;
+            //计算抽卡性价比
+            drawEfficiencyKernel = eachOriginalDrawPrice / drawPriceKernel;
+            //计算每个源石的价格
+            packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
+            //计算综合性价比
+            packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPriceKernel;
         }
 
-        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
+
         //当这个礼包的物品不为空时
         if (packContentVOList != null) {
-            double apCount = 0.0;
-            for (PackContentVO packContentVO : packContentVOList) {
-                if (itemValue.get(packContentVO.getItemId()) != null) {
-                    apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
-                }
-            }
             packedOriginium += apCount / 135;
             if (packedOriginium > 0) {
                 packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
                 packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
+            }
+
+            packedOriginiumKernel += apCount / 135;
+            if (packedOriginiumKernel > 0) {
+                packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
+                packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPrice;
             }
         }
 
@@ -268,6 +311,13 @@ public class PackInfoService {
         packInfoVO.setDrawEfficiency(drawEfficiency);
         packInfoVO.setPackedOriginium(packedOriginium);
         packInfoVO.setPackEfficiency(packEfficiency);
+
+        packInfoVO.setDrawsKernel(drawsKernel);
+        packInfoVO.setDrawPriceKernel(drawPriceKernel);
+        packInfoVO.setPackedOriginiumPriceKernel(packedOriginiumPriceKernel);
+        packInfoVO.setDrawEfficiencyKernel(drawEfficiencyKernel);
+        packInfoVO.setPackedOriginiumKernel(packedOriginiumKernel);
+        packInfoVO.setPackEfficiencyKernel(packEfficiencyKernel);
     }
 
     public String deletePackInfoById(String id) {

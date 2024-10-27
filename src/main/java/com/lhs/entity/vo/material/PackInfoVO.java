@@ -1,4 +1,4 @@
-package com.lhs.entity.vo.item;
+package com.lhs.entity.vo.material;
 
 
 import com.lhs.entity.po.material.PackInfo;
@@ -26,6 +26,12 @@ public class PackInfoVO {
     private Double packedOriginiumPrice; //每源石（折算物资后）价格
     private Double drawEfficiency; //氪金性价比
     private Double packEfficiency; //综合性价比
+    private Double drawsKernel;  //总抽数（含蓝票）
+    private Double drawPriceKernel; //每一抽价格（含蓝票）
+    private Double packedOriginiumKernel; //礼包内物品折算为源石的价值（含蓝票）
+    private Double packedOriginiumPriceKernel; //每源石（折算物资后）价格（含蓝票）
+    private Double drawEfficiencyKernel; //氪金性价比（含蓝票）
+    private Double packEfficiencyKernel; //综合性价比（含蓝票）
     private List<PackContentVO> packContent;  //礼包非抽卡道具内容
     private Long start;
     private Long end;

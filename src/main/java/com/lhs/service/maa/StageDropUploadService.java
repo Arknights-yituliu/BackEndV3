@@ -6,12 +6,12 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.*;
 
-import com.lhs.entity.dto.item.StageDropDTO;
-import com.lhs.entity.dto.item.StageDropDetailDTO;
+import com.lhs.entity.dto.material.StageDropDTO;
+import com.lhs.entity.dto.material.StageDropDetailDTO;
 import com.lhs.entity.po.material.StageDrop;
 import com.lhs.entity.po.material.StageDropDetail;
-import com.lhs.entity.vo.item.StageDropDetailVO;
-import com.lhs.entity.vo.item.StageDropVO;
+import com.lhs.entity.vo.material.StageDropDetailVO;
+import com.lhs.entity.vo.material.StageDropVO;
 import com.lhs.mapper.material.StageDropDetailMapper;
 import com.lhs.mapper.material.StageDropMapper;
 import com.lhs.mapper.material.service.StageDropDetailMapperService;

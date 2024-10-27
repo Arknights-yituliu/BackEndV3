@@ -2,7 +2,7 @@ package com.lhs.entity.po.material;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.lhs.entity.vo.item.PackInfoVO;
+import com.lhs.entity.vo.material.PackInfoVO;
 import lombok.Data;
 
 import java.util.Date;

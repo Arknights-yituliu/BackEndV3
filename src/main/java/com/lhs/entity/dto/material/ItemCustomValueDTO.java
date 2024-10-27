@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.item;
+package com.lhs.entity.dto.material;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 

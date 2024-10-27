@@ -15,16 +15,16 @@ import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.material.ItemIterationValue;
 import com.lhs.entity.po.material.WorkShopProducts;
-import com.lhs.entity.dto.item.StageParamDTO;
+import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.mapper.material.ItemIterationValueMapper;
 import com.lhs.mapper.material.ItemMapper;
 import com.lhs.entity.po.material.Item;
 
 import com.lhs.mapper.material.WorkShopProductsMapper;
-import com.lhs.entity.dto.item.CompositeTableDTO;
-import com.lhs.entity.dto.item.ItemCostDTO;
+import com.lhs.entity.dto.material.CompositeTableDTO;
+import com.lhs.entity.dto.material.ItemCostDTO;
 
-import com.lhs.entity.vo.item.ItemVO;
+import com.lhs.entity.vo.material.ItemVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
