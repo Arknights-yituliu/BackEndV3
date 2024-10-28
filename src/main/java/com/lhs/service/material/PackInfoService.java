@@ -240,12 +240,16 @@ public class PackInfoService {
         double packedOriginiumKernel = 0.0; //每源石（折算物资后）价格（含蓝票）
         double totalOfOrundumKernel = 0.0; //等效合成玉总数（含蓝票）
 
+
+
         //礼包内的物品的集合
         List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
         double apCount = 0.0;
 
         totalOfOrundum =packInfoVO.getOrundum() + packInfoVO.getOriginium() * 180
                 + packInfoVO.getGachaTicket() * 600 + packInfoVO.getTenGachaTicket() * 6000;
+
+        totalOfOrundumKernel = totalOfOrundum;
 
         if (packContentVOList != null) {
             for (PackContentVO packContentVO : packContentVOList) {
@@ -301,7 +305,7 @@ public class PackInfoService {
             packedOriginiumKernel += apCount / 135;
             if (packedOriginiumKernel > 0) {
                 packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
-                packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPrice;
+                packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPriceKernel;
             }
         }
 
