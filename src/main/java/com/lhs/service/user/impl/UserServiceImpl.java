@@ -68,6 +68,15 @@ public class UserServiceImpl implements UserService {
         idGenerator = new IdGenerator(1L);
     }
 
+    @Override
+    public String extractToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.replace("Bearer ", "");
+        }
+        throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+    }
+
 
     @Override
     public HashMap<String, Object> registerV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO) {
@@ -391,14 +400,14 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserInfoVO getUserInfoByToken(String token) {
+    public UserInfoVO getUserInfoVOByToken(String token) {
 
         Logger.info("要检验的用户token {} "+token);
         if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 
-        UserInfo userInfo = getDBUserInfoByToken(token);
+        UserInfo userInfo = getUserInfoPOByToken(token);
         //用户信息 包括凭证，用户名，用户状态等
         UserInfoVO userInfoVO = getUserDataVO(userInfo);
         userInfoVO.setToken(token);
@@ -407,7 +416,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserInfo getDBUserInfoByToken(String token) {
+    public UserInfo getUserInfoPOByToken(String token) {
         if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
@@ -512,7 +521,7 @@ public class UserServiceImpl implements UserService {
         String emailAddress = emailRequestDto.getEmail();
         String token = emailRequestDto.getToken();  //用户凭证
         //变更邮箱
-        getDBUserInfoByToken(token);
+        getUserInfoPOByToken(token);
 
         Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
         String subject = "一图流邮箱变更验证码";
@@ -533,7 +542,7 @@ public class UserServiceImpl implements UserService {
 
         String property = updateUserDataDto.getProperty();
         String token = updateUserDataDto.getToken();
-        UserInfo userInfoByToken = getDBUserInfoByToken(token);
+        UserInfo userInfoByToken = getUserInfoPOByToken(token);
 
         if ("email".equals(property)) {
             return updateOrBindEmail(userInfoByToken, updateUserDataDto);

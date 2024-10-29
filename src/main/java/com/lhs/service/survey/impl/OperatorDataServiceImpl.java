@@ -67,7 +67,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     //    @TakeCount(name = "上传评分")
     @Override
     public Map<String, Object> manualUploadOperator(String token, List<OperatorData> surveyOperatorDataList) {
-        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
         String akUid = String.valueOf(userInfo.getUid());
         if(userInfo.getAkUid()!=null){
             akUid = userInfo.getAkUid();
@@ -86,7 +86,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
         }
 
-        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
 
         List<OperatorData> operatorDataList = new ArrayList<>();
 
@@ -212,7 +212,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
         }
 
-        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
         List<OperatorData> operatorDataList = playerInfoDTO.getOperatorDataList();
 
         String akUid = playerInfoDTO.getUid();
@@ -407,7 +407,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     public List<OperatorDataVo> getOperatorInfoByToken(String token) {
 
         //查询用户信息
-        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
         Logger.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
         //保存的干员数据
         List<OperatorDataVo> operatorDataVoList = new ArrayList<>();

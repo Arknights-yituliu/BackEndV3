@@ -22,6 +22,8 @@ public interface UserService {
      */
     HashMap<String, Object> loginV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO);
 
+    String extractToken(HttpServletRequest request);
+
     /**
      * 调查站注册
      * @param httpServletRequest  请求体
@@ -41,14 +43,14 @@ public interface UserService {
      * @param token 用户登录后获得的凭证
      * @return 用户信息
      */
-    UserInfoVO getUserInfoByToken(String token);
+    UserInfoVO getUserInfoVOByToken(String token);
 
     /**
      * 通过token获取用户数据内的信息
      * @param token 用户登录后获得的凭证
      * @return 用户信息
      */
-    UserInfo getDBUserInfoByToken(String token);
+    UserInfo getUserInfoPOByToken(String token);
 
     /**
      * 更新用户信息
@@ -81,4 +83,7 @@ public interface UserService {
 
 
     void saveBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
+
+
+
 }

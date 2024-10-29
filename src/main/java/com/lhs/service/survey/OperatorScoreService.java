@@ -2,7 +2,6 @@ package com.lhs.service.survey;
 
 import com.lhs.entity.po.survey.OperatorScore;
 import com.lhs.entity.po.survey.OperatorScoreStatistics;
-import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.OperatorScoreMapper;
 import com.lhs.entity.vo.survey.OperatorScoreVO;
@@ -45,7 +44,7 @@ public class OperatorScoreService {
 //    @TakeCount(name = "上传评分")
     public HashMap<Object, Object> uploadScoreForm(String token, List<OperatorScore> operatorScoreList) {
 
-        UserInfoVO userInfo = userService.getUserInfoByToken(token);
+        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
         long uid = userInfo.getUid();
         String tableName = "survey_score_";  //拿到这个用户的干员练度数据存在了哪个表
 

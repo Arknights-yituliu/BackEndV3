@@ -1,12 +1,9 @@
 package com.lhs.service.survey;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.po.survey.WarehouseInfo;
-import com.lhs.entity.po.user.AkPlayerBindInfo;
-import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.WarehouseInfoMapper;
 import com.lhs.mapper.survey.service.WarehouseInfoMapperService;
@@ -54,7 +51,7 @@ public class WarehouseInfoService {
         //玩家仓库信息
         List<WarehouseInfo> warehouseInfoList = params.getList();
         //一图流用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoByToken(token);
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(token);
         //一图流用户uid
         Long uid = userInfoByToken.getUid();
 

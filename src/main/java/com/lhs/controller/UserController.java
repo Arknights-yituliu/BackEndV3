@@ -44,7 +44,7 @@ public class UserController {
     @GetMapping("/info")
     public Result<UserInfoVO> getUserInfo(@RequestParam String token) {
 
-        UserInfoVO response = userService.getUserInfoByToken(token);
+        UserInfoVO response = userService.getUserInfoVOByToken(token);
         return Result.success(response);
     }
 

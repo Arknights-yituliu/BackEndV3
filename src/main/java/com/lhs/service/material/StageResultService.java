@@ -112,7 +112,7 @@ public class StageResultService {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 
-        UserInfoVO userInfoByToken = userService.getUserInfoByToken(String.valueOf(oToken));
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(String.valueOf(oToken));
         Long uid = userInfoByToken.getUid();
 
         Object oConfig = params.get("config");

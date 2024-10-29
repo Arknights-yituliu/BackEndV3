@@ -34,5 +34,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/survey/register/**"); //拦截
 //                .excludePathPatterns(); //放行
 
+        registry.addInterceptor(new SurveyInterceptor(redisTemplate))
+                .addPathPatterns("/**"); //拦截
+//                .excludePathPatterns(); //放行
+
     }
 }
