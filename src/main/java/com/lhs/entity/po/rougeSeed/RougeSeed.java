@@ -11,7 +11,7 @@ import java.util.Date;
 public class RougeSeed{
     @TableId
     private Long seedId;
-    private Long seed;
+    private String seed;
     private Integer rating;
     private String rougeVersion;
     private String rougeTheme;

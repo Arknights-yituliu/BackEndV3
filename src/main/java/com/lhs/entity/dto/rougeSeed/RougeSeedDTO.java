@@ -9,9 +9,8 @@ import java.util.List;
 @Data
 public class RougeSeedDTO {
     private Long seedId;
-    private Long seed;
+    private String seed;
     private Long uid;
-    private Integer rating;
     private String rougeVersion;
     private String rougeTheme;
     private String squad;

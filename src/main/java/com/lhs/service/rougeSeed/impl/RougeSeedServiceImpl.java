@@ -98,6 +98,7 @@ public class RougeSeedServiceImpl implements RougeSeedService {
         LambdaUpdateWrapper<RougeSeedTag> tagLambdaQueryWrapper = new LambdaUpdateWrapper<>();
         //根据更新时间对种子的旧tag进行逻辑删除,更新的逻辑太费劲，每天定时用脚本对标记删除的tag进行删除
         tagLambdaQueryWrapper.eq(RougeSeedTag::getCreateTime,lastTimeStamp)
+                .eq(RougeSeedTag::getSeedId,rougeSeedByPO.getSeedId())
                 .set(RougeSeedTag::getDeleteFlag,true);
         //最后执行tag的逻辑删除
         int deleteRow = rougeSeedTagMapper.update(null,tagLambdaQueryWrapper);
@@ -150,6 +151,7 @@ public class RougeSeedServiceImpl implements RougeSeedService {
             rougeSeedTag.setSeedId(rougeSeedIdByPO);
             rougeSeedTag.setTag(tag);
             rougeSeedTag.setCreateTime(currentTimeStamp);
+            rougeSeedTag.setDeleteFlag(false);
             rougeSeedTagList.add(rougeSeedTag);
         }
         //批量插入种子tag
