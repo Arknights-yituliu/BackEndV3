@@ -1,20 +1,19 @@
-package com.lhs.entity.po.rougeSeed;
+package com.lhs.entity.po.rogueSeed;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
 @TableName
-public class RougeSeed{
+public class RogueSeed {
     @TableId
     private Long seedId;
     private String seed;
     private Integer rating;
-    private String rougeVersion;
-    private String rougeTheme;
+    private Integer ratingPerson;
+    private String rogueVersion;
+    private String rogueTheme;
     private String squad;
     private String operatorTeam;
     private String description;

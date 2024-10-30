@@ -1,13 +1,11 @@
-package com.lhs.entity.po.rougeSeed;
+package com.lhs.entity.po.rogueSeed;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
 @TableName
-public class RougeSeedTag {
+public class RogueSeedTag {
     private Long tagId;
     private Long seedId;
     private String tag;

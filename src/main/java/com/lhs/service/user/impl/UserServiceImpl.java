@@ -23,7 +23,6 @@ import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.survey.HypergryphService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.Email163Service;
-import com.lhs.service.util.LogService;
 import com.lhs.service.util.OSSService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -51,7 +50,7 @@ public class UserServiceImpl implements UserService {
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
-    private final LogService logService;
+
 
     public UserServiceImpl(UserInfoMapper userInfoMapper,
                            RedisTemplate<String, String> redisTemplate,
@@ -59,7 +58,7 @@ public class UserServiceImpl implements UserService {
                            OSSService ossService,
                            HypergryphService HypergryphService,
                            UserExternalAccountBindingMapper userExternalAccountBindingMapper,
-                           AkPlayerBindInfoMapper akPlayerBindInfoMapper, LogService logService) {
+                           AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
         this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
         this.email163Service = email163Service;
@@ -67,14 +66,13 @@ public class UserServiceImpl implements UserService {
         this.HypergryphService = HypergryphService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
-        this.logService = logService;
         idGenerator = new IdGenerator(1L);
     }
 
     @Override
     public String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        logService.printLog("获取的用户token{}"+header);
+        Logger.info("获取的用户token{}"+header);
         if (header != null && header.startsWith("Bearer ")) {
             return header.replace("Bearer ", "");
         }
