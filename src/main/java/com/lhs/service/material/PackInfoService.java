@@ -37,10 +37,7 @@ public class PackInfoService {
     private final PackContentMapperService packContentMapperService;
     private final ImageInfoService imageInfoService;
 
-    public PackInfoService(PackInfoMapper packInfoMapper, PackContentMapper packContentMapper,
-                           RedisTemplate<String, Object> redisTemplate, COSService cosService,
-                           PackContentMapperService packContentMapperService,
-                           PackItemMapper packItemMapper,ImageInfoService imageInfoService) {
+    public PackInfoService(PackInfoMapper packInfoMapper, PackContentMapper packContentMapper, RedisTemplate<String, Object> redisTemplate, COSService cosService, PackContentMapperService packContentMapperService, PackItemMapper packItemMapper, ImageInfoService imageInfoService) {
         this.packInfoMapper = packInfoMapper;
         this.packContentMapper = packContentMapper;
         this.idGenerator = new IdGenerator(1L);
@@ -61,19 +58,17 @@ public class PackInfoService {
     public List<PackInfoVO> listAllPackInfo() {
         //查询所有礼包
         LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
-        packInfoQueryWrapper.eq(PackInfo::getDeleteFlag,false);
+        packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
         List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
 
         //根据上面内容id的集合对礼包内容进行查询
         List<PackContent> packContentList = packContentMapper.selectList(null);
 
         //查询出来的礼包内容根据packId进行一个分组
-        Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream()
-                .collect(Collectors.groupingBy(PackContent::getContentId));
+        Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream().collect(Collectors.groupingBy(PackContent::getContentId));
 
         //将礼包价值表转为map对象，方便使用
-        Map<String, Double> itemValueMap = packItemMapper.selectList(null)
-                .stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
+        Map<String, Double> itemValueMap = packItemMapper.selectList(null).stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
 
         List<PackInfoVO> VOList = new ArrayList<>();
 
@@ -119,7 +114,7 @@ public class PackInfoService {
             int deleteRows = packContentMapper.deleteById(oldContentId);
             //如果旧礼包存在则根据id更新
             packInfoMapper.updateById(packInfo);
-            message = "更新礼包成功，删除了"+deleteRows+"条内容数据";
+            message = "更新礼包成功，删除了" + deleteRows + "条内容数据";
         }
 
         //礼包id
@@ -188,7 +183,7 @@ public class PackInfoService {
         QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", id);
         int delete = packItemMapper.delete(queryWrapper);
-        return "删除了"+delete+"条物品数据";
+        return "删除了" + delete + "条物品数据";
     }
 
 
@@ -224,13 +219,15 @@ public class PackInfoService {
         //抽卡性价比基准
         double eachOriginalDrawPrice = 648.0 / 185 / 0.3;
 
+        //System.out.println(packInfoVO.getOfficialName());
+
         double draws = 0.0;
         double drawPrice = 0.0; //每一抽价格
         double packedOriginiumPrice = 0.0; //每源石（折算物资后）价格
         double drawEfficiency = 0.0; //氪金性价比
         double packEfficiency = 0.0; //综合性价比
         double packedOriginium = 0.0; //每源石（折算物资后）价格
-        double totalOfOrundum = 0.0; //等效合成玉总数
+
 
         double drawsKernel = 0.0;
         double drawPriceKernel = 0.0; //每一抽价格（含蓝票）
@@ -238,67 +235,76 @@ public class PackInfoService {
         double drawEfficiencyKernel = 0.0; //氪金性价比（含蓝票）
         double packEfficiencyKernel = 0.0; //综合性价比（含蓝票）
         double packedOriginiumKernel = 0.0; //每源石（折算物资后）价格（含蓝票）
-        double totalOfOrundumKernel = 0.0; //等效合成玉总数（含蓝票）
+
 
         //礼包内的物品的集合
         List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
         double apCount = 0.0;
-
-        totalOfOrundum =packInfoVO.getOrundum() + packInfoVO.getOriginium() * 180
-                + packInfoVO.getGachaTicket() * 600 + packInfoVO.getTenGachaTicket() * 6000;
-
+        //抽数
+        draws = (double) packInfoVO.getOrundum() / 600 + packInfoVO.getOriginium() * 0.3 + packInfoVO.getGachaTicket() + packInfoVO.getTenGachaTicket() * 10;
+        //System.out.println("黄抽抽数 {} "+draws);
+        //礼包物资转为理智
         if (packContentVOList != null) {
             for (PackContentVO packContentVO : packContentVOList) {
+                //判断是否有不存在物品表中的物品
                 if (itemValue.get(packContentVO.getItemId()) != null) {
-                    if(packContentVO.getItemId().equals("classic_gacha")){
-                        totalOfOrundumKernel+=packContentVO.getQuantity()*600;
+                    //蓝票单独计算
+                    if (packContentVO.getItemId().equals("classic_gacha")) {
+                        drawsKernel += packContentVO.getQuantity();
                     }
-                    if(packContentVO.getItemId().equals("classic_gacha_10")){
-                        totalOfOrundumKernel+=packContentVO.getQuantity()*6000;
+                    if (packContentVO.getItemId().equals("classic_gacha_10")) {
+                        drawsKernel += packContentVO.getQuantity() * 10;
                     }
+        //System.out.println(packContentVO.getItemName()+" {} "+itemValue.get(packContentVO.getItemId())+" * "+packContentVO.getQuantity());
                     apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
                 }
             }
         }
 
-        if (totalOfOrundum > 0) {
-            //计算共计多少抽
-            draws = totalOfOrundum / 600;
-            //计算等效多少源石 1源石 = 180合成玉
-            packedOriginium += totalOfOrundum / 180;
+
+        if (draws > 0) {
+            //计算仅抽卡时等效多少源石 1源石 = 180合成玉
+            packedOriginium = draws * 600 / 180;
+        //System.out.println("礼包黄抽等效源石 {} "+packedOriginium);
             //计算每一抽的价格
             drawPrice = packInfoVO.getPrice() / draws;
             //计算抽卡性价比
             drawEfficiency = eachOriginalDrawPrice / drawPrice;
-            //计算每个源石的价格
+            //计算仅抽卡时的源石性价比
             packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
-            //计算综合性价比
+            //计算将所有物资转换为源石后的综合性价比
             packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
 
-            //计算共计多少抽
-            drawsKernel = totalOfOrundumKernel / 600;
-            //计算等效多少源石 1源石 = 180合成玉
-            packedOriginiumKernel += totalOfOrundumKernel / 180;
+            //计算仅抽卡时等效多少源石 1源石 = 180合成玉
+            packedOriginiumKernel = packedOriginium + drawsKernel * 502.3 / 180;
+            //蓝票共计多少抽
+            drawsKernel += draws;
+        //System.out.println("礼包蓝抽+黄抽等效源石{} "+packedOriginiumKernel);
             //计算每一抽的价格
             drawPriceKernel = packInfoVO.getPrice() / drawsKernel;
             //计算抽卡性价比
             drawEfficiencyKernel = eachOriginalDrawPrice / drawPriceKernel;
-            //计算每个源石的价格
+            //计算仅抽卡时的源石性价比
             packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
-            //计算综合性价比
+            //计算将所有物资转换为源石后的综合性价比
             packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPriceKernel;
         }
 
 
+        //System.out.println("礼包除四项抽卡物资等效源石（含蓝抽） {} "+apCount / 135);
         //当这个礼包的物品不为空时
         if (packContentVOList != null) {
+            //抽卡资源等效的源石再加上物资等效的源石
             packedOriginium += apCount / 135;
             if (packedOriginium > 0) {
                 packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
                 packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
             }
 
+        //System.out.println("礼包所有物资等效源石 {} "+packedOriginium);
+            //抽卡资源等效的源石再加上物资等效的源石
             packedOriginiumKernel += apCount / 135;
+        //System.out.println("礼包所有物资等效源石（含蓝抽） {} "+packedOriginiumKernel);
             if (packedOriginiumKernel > 0) {
                 packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
                 packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPrice;
@@ -325,6 +331,6 @@ public class PackInfoService {
         packInfo.setId(Long.parseLong(id));
         packInfo.setDeleteFlag(true);
         int delete = packInfoMapper.updateById(packInfo);
-        return "删除了"+delete+"条礼包数据";
+        return "删除了" + delete + "条礼包数据";
     }
 }

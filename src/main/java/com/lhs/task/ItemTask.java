@@ -69,10 +69,10 @@ public class ItemTask {
 
 
 //    @Scheduled(cron = "0/10 * * * * ?")
-    @Scheduled(cron = "0 0/5 * * * ?")
-    public void exportMAAStageDropData() {
-       stageDropUploadService.exportData();
-    }
+//    @Scheduled(cron = "0 0/5 * * * ?")
+//    public void exportMAAStageDropData() {
+//       stageDropUploadService.exportData();
+//    }
 
 
     /**
