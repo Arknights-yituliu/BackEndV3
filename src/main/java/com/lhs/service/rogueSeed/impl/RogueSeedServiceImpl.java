@@ -47,7 +47,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
 
-
     @Override
     public Map<String, Object> saveOrUpdateRogueSeed(RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest) {
 
@@ -57,11 +56,11 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         Long uid = userInfoByToken.getUid();
 
         //判断前端传来的数据对象是否有种子id
-        if(rogueSeedDTO.getSeedId()!=null){
+        if (rogueSeedDTO.getSeedId() != null) {
             //判断前端传来的种子id是否存在了数据库中
             RogueSeed rogueSeedByPO = rogueSeedMapper.selectById(rogueSeedDTO.getSeedId());
             //如果存在则对数据库中的种子更新
-            if(rogueSeedByPO !=null){
+            if (rogueSeedByPO != null) {
                 return updateRogueSeed(rogueSeedByPO, rogueSeedDTO);
             }
         }
@@ -75,28 +74,36 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         //返回执行结果方便调试
         Map<String, Object> response = new HashMap<>();
-        response.put("seed_affected_rows",insertRow);
-        response.put("tag_affected_rows",insertBatchRow);
+        response.put("seed_affected_rows", insertRow);
+        response.put("tag_affected_rows", insertBatchRow);
         return response;
     }
 
     @Override
-    public List<RogueSeedPageVO> listRogueSeed(RogueSeedPageRequest rogueSeedDTO) {
+    public List<RogueSeedPageVO> listRogueSeed(RogueSeedPageRequest rogueSeedPageRequest) {
         LambdaQueryWrapper<RogueSeedTag> tagLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        if(rogueSeedDTO.getKeyWord()!=null){
-            tagLambdaQueryWrapper.in(RogueSeedTag::getTag, rogueSeedDTO.getKeyWord());
+        if (rogueSeedPageRequest.getKeyWords() != null) {
+            for (String keyword : rogueSeedPageRequest.getKeyWords()) {
+                tagLambdaQueryWrapper.eq(RogueSeedTag::getTag,keyword);
+            }
         }
         List<RogueSeedTag> rogueSeedTagList = rogueSeedTagMapper.selectList(tagLambdaQueryWrapper);
         Set<Long> seedIdSet = rogueSeedTagList.stream().map(RogueSeedTag::getSeedId).collect(Collectors.toSet());
         LambdaQueryWrapper<RogueSeed> seedLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        seedLambdaQueryWrapper.in(RogueSeed::getSeedId,seedIdSet);
+        if(!seedIdSet.isEmpty()){
+            seedLambdaQueryWrapper.in(RogueSeed::getSeedId, seedIdSet);
+        }
 
-        if("rating".equals(rogueSeedDTO.getOrderBy())){
+
+        if ("rating".equals(rogueSeedPageRequest.getOrderBy())) {
             seedLambdaQueryWrapper.orderByDesc(RogueSeed::getRating);
         }
-        if("createTime".equals(rogueSeedDTO.getOrderBy())){
+
+        if ("createTime".equals(rogueSeedPageRequest.getOrderBy())) {
             seedLambdaQueryWrapper.orderByDesc(RogueSeed::getCreateTime);
         }
+
+        seedLambdaQueryWrapper.last("limit "+rogueSeedPageRequest.getPageNum()+","+rogueSeedPageRequest.getPageSize());
 
         List<RogueSeed> rogueSeeds = rogueSeedMapper.selectList(seedLambdaQueryWrapper);
 
@@ -104,9 +111,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         return createRogueSeedVOList(rogueSeeds);
     }
 
-    private List<RogueSeedPageVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList){
+    private List<RogueSeedPageVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList) {
         List<RogueSeedPageVO> voList = new ArrayList<>();
-        for(RogueSeed item:rogueSeedList){
+        for (RogueSeed item : rogueSeedList) {
             RogueSeedPageVO rogueSeedPageVO = new RogueSeedPageVO();
             rogueSeedPageVO.setSeedId(item.getSeedId());
             rogueSeedPageVO.setSeed(item.getSeed());
@@ -128,11 +135,12 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     /**
      * 更新种子信息
+     *
      * @param rogueSeedByPO 数据库中的种子对象
-     * @param rogueSeedDTO 前端传来的数据对象
+     * @param rogueSeedDTO  前端传来的数据对象
      * @return
      */
-    private Map<String,Object> updateRogueSeed(RogueSeed rogueSeedByPO, RogueSeedDTO rogueSeedDTO){
+    private Map<String, Object> updateRogueSeed(RogueSeed rogueSeedByPO, RogueSeedDTO rogueSeedDTO) {
         //获取种子的更新时间，根据种子的上次更新时间去将旧tag删除
         long lastTimeStamp = rogueSeedByPO.getUpdateTime();
         //更新种子信息对象
@@ -145,26 +153,27 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         //创建种子tag的查询器
         LambdaUpdateWrapper<RogueSeedTag> tagLambdaQueryWrapper = new LambdaUpdateWrapper<>();
         //根据更新时间对种子的旧tag进行逻辑删除,更新的逻辑太费劲，每天定时用脚本对标记删除的tag进行删除
-        tagLambdaQueryWrapper.eq(RogueSeedTag::getCreateTime,lastTimeStamp)
+        tagLambdaQueryWrapper.eq(RogueSeedTag::getCreateTime, lastTimeStamp)
                 .eq(RogueSeedTag::getSeedId, rogueSeedByPO.getSeedId())
-                .set(RogueSeedTag::getDeleteFlag,true);
+                .set(RogueSeedTag::getDeleteFlag, true);
         //最后执行tag的逻辑删除
-        int deleteRow = rogueSeedTagMapper.update(null,tagLambdaQueryWrapper);
+        int deleteRow = rogueSeedTagMapper.update(null, tagLambdaQueryWrapper);
 
         //返回执行结果方便调试
         Map<String, Object> response = new HashMap<>();
-        response.put("seed_affected_rows",insertRow);
-        response.put("tag_affected_rows",insertBatchRow);
-        response.put("delete_tag_affected_rows",deleteRow);
+        response.put("seed_affected_rows", insertRow);
+        response.put("tag_affected_rows", insertBatchRow);
+        response.put("delete_tag_affected_rows", deleteRow);
         return response;
     }
 
     /**
      * 将前端传来的数据对象赋给数据库中的种子对象
-     * @param rogueSeed 数据库中的种子对象
+     *
+     * @param rogueSeed    数据库中的种子对象
      * @param rogueSeedDTO 前端传来的数据对象
      */
-    private void updateRogueSeedByRogueSeedPO(RogueSeed rogueSeed, RogueSeedDTO rogueSeedDTO){
+    private void updateRogueSeedByRogueSeedPO(RogueSeed rogueSeed, RogueSeedDTO rogueSeedDTO) {
         long currentTimeMillis = System.currentTimeMillis();
         rogueSeed.setSeed(rogueSeedDTO.getSeed());
         rogueSeed.setRogueVersion(rogueSeedDTO.getRogueVersion());
@@ -180,11 +189,12 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     /**
      * 保存种子tag信息
-     * @param rogueSeed 种子对象
+     *
+     * @param rogueSeed    种子对象
      * @param rogueSeedDTO 前端传来的数据对象
      * @return 保存的tag条数
      */
-    private Integer saveRogueSeedTag(RogueSeed rogueSeed, RogueSeedDTO rogueSeedDTO){
+    private Integer saveRogueSeedTag(RogueSeed rogueSeed, RogueSeedDTO rogueSeedDTO) {
         //获取种子id
         Long rogueSeedIdByPO = rogueSeed.getSeedId();
         //获取种子更新时间
@@ -193,7 +203,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         List<RogueSeedTag> rogueSeedTagList = new ArrayList<>();
         //将前端传来的tag转为tag对象集合
         List<String> tags = rogueSeedDTO.getTags();
-        for(String tag:tags){
+        for (String tag : tags) {
             RogueSeedTag rogueSeedTag = new RogueSeedTag();
             rogueSeedTag.setTagId(idGenerator.nextId());
             rogueSeedTag.setSeedId(rogueSeedIdByPO);
@@ -206,7 +216,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         return rogueSeedTagMapper.insertBatch(rogueSeedTagList);
     }
 
-    private void createNewRogueSeedByRogueSeedDTO(RogueSeed target, RogueSeedDTO resource){
+    private void createNewRogueSeedByRogueSeedDTO(RogueSeed target, RogueSeedDTO resource) {
         long currentTimeMillis = System.currentTimeMillis();
         target.setSeedId(idGenerator.nextId());
         target.setSeed(resource.getSeed());
@@ -217,7 +227,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         target.setSquad(resource.getSquad());
         target.setOperatorTeam(resource.getOperatorTeam());
         target.setDescription(resource.getDescription());
-        target.setTags(String.join(",",resource.getTags()));
+        target.setTags(String.join(",", resource.getTags()));
         target.setSummaryImageLink(resource.getSummaryImageLink());
         target.setCreateTime(currentTimeMillis);
         target.setUpdateTime(currentTimeMillis);

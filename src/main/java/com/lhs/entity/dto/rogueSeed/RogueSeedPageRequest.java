@@ -9,5 +9,5 @@ public class RogueSeedPageRequest {
     private Integer pageSize;
     private Integer pageNum;
     private String orderBy;
-    private List<String> keyWord;
+    private List<String> keyWords;
 }

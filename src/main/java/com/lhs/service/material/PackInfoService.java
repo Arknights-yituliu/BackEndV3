@@ -275,11 +275,15 @@ public class PackInfoService {
             //计算将所有物资转换为源石后的综合性价比
             packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
 
+
+        }
+
+        if(drawsKernel>0){
             //计算仅抽卡时等效多少源石 1源石 = 180合成玉
             packedOriginiumKernel = packedOriginium + drawsKernel * 502.3 / 180;
             //蓝票共计多少抽
             drawsKernel += draws;
-        //System.out.println("礼包蓝抽+黄抽等效源石{} "+packedOriginiumKernel);
+            //System.out.println("礼包蓝抽+黄抽等效源石{} "+packedOriginiumKernel);
             //计算每一抽的价格
             drawPriceKernel = packInfoVO.getPrice() / drawsKernel;
             //计算抽卡性价比
@@ -289,7 +293,6 @@ public class PackInfoService {
             //计算将所有物资转换为源石后的综合性价比
             packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPriceKernel;
         }
-
 
         //System.out.println("礼包除四项抽卡物资等效源石（含蓝抽） {} "+apCount / 135);
         //当这个礼包的物品不为空时
