@@ -221,98 +221,129 @@ public class PackInfoService {
 
         //System.out.println(packInfoVO.getOfficialName());
 
-        double draws = 0.0;
+        double draws = 0.0;//抽数
         double drawPrice = 0.0; //每一抽价格
         double packedOriginiumPrice = 0.0; //每源石（折算物资后）价格
-        double drawEfficiency = 0.0; //氪金性价比
+        double drawEfficiency = 0.0; //仅抽卡性价比
         double packEfficiency = 0.0; //综合性价比
-        double packedOriginium = 0.0; //每源石（折算物资后）价格
+        double packedOriginium = 0.0; //礼包总价值折合成源石
 
 
-        double drawsKernel = 0.0;
-        double drawPriceKernel = 0.0; //每一抽价格（含蓝票）
-        double packedOriginiumPriceKernel = 0.0; //每源石（折算物资后）价格（含蓝票）
-        double drawEfficiencyKernel = 0.0; //氪金性价比（含蓝票）
-        double packEfficiencyKernel = 0.0; //综合性价比（含蓝票）
-        double packedOriginiumKernel = 0.0; //每源石（折算物资后）价格（含蓝票）
+        double drawsKernel = 0.0;//抽数（含蓝抽）
+        double drawPriceKernel = 0.0; //每一抽价格（含蓝抽）
+        double packedOriginiumPriceKernel = 0.0; //每源石（折算物资后）价格（含蓝抽）
+        double drawEfficiencyKernel = 0.0; //仅抽卡性价比（含蓝抽）
+        double packEfficiencyKernel = 0.0; //综合性价比（含蓝抽）
+        double packedOriginiumKernel = 0.0; //礼包总价值折合成源石（含蓝抽）
 
+        double apCount = 0.0;//总价值（理智）
+        double apCountKernel = 0.0;//总价值（理智，含蓝抽）
 
         //礼包内的物品的集合
         List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
-        double apCount = 0.0;
-        //抽数
+        //直接计算抽数
         draws = (double) packInfoVO.getOrundum() / 600 + packInfoVO.getOriginium() * 0.3 + packInfoVO.getGachaTicket() + packInfoVO.getTenGachaTicket() * 10;
+        apCount += draws * 450;
+        drawsKernel += draws;
+        apCountKernel += apCount;
         //System.out.println("黄抽抽数 {} "+draws);
         //礼包物资转为理智
         if (packContentVOList != null) {
             for (PackContentVO packContentVO : packContentVOList) {
                 //判断是否有不存在物品表中的物品
                 if (itemValue.get(packContentVO.getItemId()) != null) {
-                    //蓝票单独计算
+                    //蓝抽单独计算
                     if (packContentVO.getItemId().equals("classic_gacha")) {
                         drawsKernel += packContentVO.getQuantity();
-                    }
-                    if (packContentVO.getItemId().equals("classic_gacha_10")) {
+                    }else if (packContentVO.getItemId().equals("classic_gacha_10")) {
                         drawsKernel += packContentVO.getQuantity() * 10;
+                    }else{
+                        apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
                     }
         //System.out.println(packContentVO.getItemName()+" {} "+itemValue.get(packContentVO.getItemId())+" * "+packContentVO.getQuantity());
-                    apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
+                    apCountKernel += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
+                    //两不耽误，各算各的
                 }
             }
         }
 
+        //总价值计算
+        packedOriginium = apCount / 135;//总源石
+        packedOriginiumKernel += apCountKernel / 135;//总源石（含蓝抽）
 
+        //每源石花费计算
+        packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
+        packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
+        //综合性价比计算
+        packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
+        packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPriceKernel;
+        
+        //抽卡性价比计算
         if (draws > 0) {
-            //计算仅抽卡时等效多少源石 1源石 = 180合成玉
-            packedOriginium = draws * 600 / 180;
-        //System.out.println("礼包黄抽等效源石 {} "+packedOriginium);
             //计算每一抽的价格
             drawPrice = packInfoVO.getPrice() / draws;
             //计算抽卡性价比
             drawEfficiency = eachOriginalDrawPrice / drawPrice;
-            //计算仅抽卡时的源石性价比
-            packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
-            //计算将所有物资转换为源石后的综合性价比
-            packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
-
-
         }
 
-        if(drawsKernel>0){
-            //计算仅抽卡时等效多少源石 1源石 = 180合成玉
-            packedOriginiumKernel = packedOriginium + drawsKernel * 502.3 / 180;
-            //蓝票共计多少抽
-            drawsKernel += draws;
-            //System.out.println("礼包蓝抽+黄抽等效源石{} "+packedOriginiumKernel);
+        //抽卡性价比计算(含蓝抽)
+        if (drawsKernel > 0) {
             //计算每一抽的价格
             drawPriceKernel = packInfoVO.getPrice() / drawsKernel;
             //计算抽卡性价比
             drawEfficiencyKernel = eachOriginalDrawPrice / drawPriceKernel;
-            //计算仅抽卡时的源石性价比
-            packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
-            //计算将所有物资转换为源石后的综合性价比
-            packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPriceKernel;
         }
 
-        //System.out.println("礼包除四项抽卡物资等效源石（含蓝抽） {} "+apCount / 135);
-        //当这个礼包的物品不为空时
-        if (packContentVOList != null) {
-            //抽卡资源等效的源石再加上物资等效的源石
-            packedOriginium += apCount / 135;
-            if (packedOriginium > 0) {
-                packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
-                packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
-            }
+        //抽卡性价比计算
+        // if (draws > 114514) {
+        //     //计算仅抽卡时等效多少源石 1源石 = 180合成玉
+        //     // packedOriginium = draws * 600 / 180;
+        //     //System.out.println("礼包黄抽等效源石 {} "+packedOriginium);
+        //     //计算每一抽的价格
+        //     drawPrice = packInfoVO.getPrice() / draws;
+        //     //计算抽卡性价比
+        //     drawEfficiency = eachOriginalDrawPrice / drawPrice;
+        //     //计算仅抽卡时的源石性价比
+        //     packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
+        //     //计算将所有物资转换为源石后的综合性价比
+        //     packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
+        // }
 
-        //System.out.println("礼包所有物资等效源石 {} "+packedOriginium);
-            //抽卡资源等效的源石再加上物资等效的源石
-            packedOriginiumKernel += apCount / 135;
-        //System.out.println("礼包所有物资等效源石（含蓝抽） {} "+packedOriginiumKernel);
-            if (packedOriginiumKernel > 0) {
-                packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
-                packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPrice;
-            }
-        }
+        // if(drawsKernel>114514){
+        //     //计算仅抽卡时等效多少源石 1源石 = 180合成玉
+        //     packedOriginiumKernel = packedOriginium + drawsKernel * 502.3 / 180;
+        //     //蓝抽共计多少抽
+        //     drawsKernel += draws;
+        //     //System.out.println("礼包蓝抽+黄抽等效源石{} "+packedOriginiumKernel);
+        //     //计算每一抽的价格
+        //     drawPriceKernel = packInfoVO.getPrice() / drawsKernel;
+        //     //计算抽卡性价比
+        //     drawEfficiencyKernel = eachOriginalDrawPrice / drawPriceKernel;
+        //     //计算仅抽卡时的源石性价比
+        //     packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
+        //     //计算将所有物资转换为源石后的综合性价比
+        //     packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPriceKernel;
+        // }
+
+        // //System.out.println("礼包除四项抽卡物资等效源石（含蓝抽） {} "+apCount / 135);
+        // //当这个礼包的物品不为空时
+        // if (packContentVOList != null) {
+        //     //抽卡资源等效的源石再加上物资等效的源石
+        //     packedOriginium += apCount / 135;
+        //     if (packedOriginium > 0) {
+        //         packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
+        //         packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
+        //     }
+
+        // //System.out.println("礼包所有物资等效源石 {} "+packedOriginium);
+        //     //抽卡资源等效的源石再加上物资等效的源石
+        //     packedOriginiumKernel += apCount / 135;
+        // //System.out.println("礼包所有物资等效源石（含蓝抽） {} "+packedOriginiumKernel);
+        //     if (packedOriginiumKernel > 0) {
+        //         packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
+        //         packEfficiencyKernel = eachOriginalOriginiumPrice / packedOriginiumPrice;
+        //     }
+        // }
 
         packInfoVO.setDraws(draws);
         packInfoVO.setDrawPrice(drawPrice);
