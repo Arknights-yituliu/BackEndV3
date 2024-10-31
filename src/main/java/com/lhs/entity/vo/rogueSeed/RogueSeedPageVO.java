@@ -11,6 +11,7 @@ public class RogueSeedPageVO {
     private String rogueVersion;
     private Integer rating;
     private Integer ratingPerson;
+    private Integer difficulty;
     private String rogueTheme;
     private String squad;
     private List<String> operatorTeam;

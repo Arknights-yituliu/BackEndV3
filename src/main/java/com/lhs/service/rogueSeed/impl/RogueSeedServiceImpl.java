@@ -118,6 +118,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedPageVO.setSeedId(item.getSeedId());
             rogueSeedPageVO.setSeed(item.getSeed());
             rogueSeedPageVO.setRogueVersion(item.getRogueVersion());
+            rogueSeedPageVO.setDifficulty(item.getDifficulty());
             rogueSeedPageVO.setRogueTheme(item.getRogueTheme());
             rogueSeedPageVO.setRating(item.getRating());
             rogueSeedPageVO.setRatingPerson(item.getRatingPerson());
@@ -180,6 +181,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeed.setRogueTheme(rogueSeedDTO.getRogueTheme());
         rogueSeed.setSquad(rogueSeedDTO.getSquad());
         rogueSeed.setOperatorTeam(rogueSeedDTO.getOperatorTeam());
+        rogueSeed.setDifficulty(rogueSeedDTO.getDifficulty());
         rogueSeed.setDescription(rogueSeedDTO.getDescription());
         rogueSeed.setTags(String.join(",", rogueSeedDTO.getTags()));
         rogueSeed.setSummaryImageLink(rogueSeedDTO.getSummaryImageLink());
@@ -222,6 +224,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         target.setSeed(resource.getSeed());
         target.setRating(0);
         target.setRatingPerson(0);
+        target.setDifficulty(resource.getDifficulty());
         target.setRogueVersion(resource.getRogueVersion());
         target.setRogueTheme(resource.getRogueTheme());
         target.setSquad(resource.getSquad());

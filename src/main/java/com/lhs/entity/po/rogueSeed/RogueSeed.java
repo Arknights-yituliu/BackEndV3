@@ -13,6 +13,7 @@ public class RogueSeed {
     private Integer rating;
     private Integer ratingPerson;
     private String rogueVersion;
+    private Integer difficulty;
     private String rogueTheme;
     private String squad;
     private String operatorTeam;

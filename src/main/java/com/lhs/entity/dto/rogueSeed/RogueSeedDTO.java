@@ -12,6 +12,7 @@ public class RogueSeedDTO {
     private Long uid;
     private String rogueVersion;
     private String rogueTheme;
+    private Integer difficulty;
     private String squad;
     private String operatorTeam;
     private String description;
