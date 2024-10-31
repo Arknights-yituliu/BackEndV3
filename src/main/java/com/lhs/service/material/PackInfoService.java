@@ -272,7 +272,9 @@ public class PackInfoService {
         packedOriginiumKernel += apCountKernel / 135;//总源石（含蓝抽）
 
         //每源石花费计算
-        packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
+        if (packedOriginium > 0) {
+            packedOriginiumPrice = packInfoVO.getPrice() / packedOriginium;
+        }
         packedOriginiumPriceKernel = packInfoVO.getPrice() / packedOriginiumKernel;
         //综合性价比计算
         packEfficiency = eachOriginalOriginiumPrice / packedOriginiumPrice;
