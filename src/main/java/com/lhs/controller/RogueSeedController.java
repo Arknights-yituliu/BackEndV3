@@ -9,7 +9,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,12 @@ public class RogueSeedController {
     public Result<Map<String,Object>> collectLog(@RequestBody RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.saveOrUpdateRogueSeed(rogueSeedDTO,httpServletRequest));
     }
+
+    @PostMapping("/auth/rogue-seed/settlement-chart")
+    public Result<Map<String,Object>> collectLog(@RequestParam("file") MultipartFile multipartFile, HttpServletRequest httpServletRequest){
+        return Result.success(rogueSeedService.uploadSettlementChart(multipartFile,httpServletRequest));
+    }
+
 
     @PostMapping("/auth/rogue-seed/list")
     public Result<List<RogueSeedPageVO>> collectLog(@RequestBody RogueSeedPageRequest rogueSeedDTO){

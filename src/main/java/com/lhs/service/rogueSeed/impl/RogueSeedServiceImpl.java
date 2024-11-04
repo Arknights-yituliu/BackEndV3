@@ -18,6 +18,7 @@ import com.lhs.service.util.COSService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.*;
@@ -109,6 +110,18 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
 
         return createRogueSeedVOList(rogueSeeds);
+    }
+
+    @Override
+    public Map<String, Object> uploadSettlementChart(MultipartFile multipartFile, HttpServletRequest httpServletRequest) {
+
+        String imageName = idGenerator.nextId()+".jpg";
+        String bucketPath = "rouge-seed/settlement-chart/"+imageName;
+        cosService.uploadFile(multipartFile,bucketPath);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("imagePath",bucketPath);
+        return response;
     }
 
     private List<RogueSeedPageVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList) {
@@ -222,7 +235,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         long currentTimeMillis = System.currentTimeMillis();
         target.setSeedId(idGenerator.nextId());
         target.setSeed(resource.getSeed());
-        target.setRating(0);
+        target.setRating(0.0);
         target.setRatingPerson(0);
         target.setDifficulty(resource.getDifficulty());
         target.setRogueVersion(resource.getRogueVersion());
