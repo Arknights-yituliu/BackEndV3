@@ -16,4 +16,6 @@ public interface RogueSeedService {
     List<RogueSeedPageVO> listRogueSeed(RogueSeedPageRequest rogueSeedDTO);
 
     Map<String, Object> uploadSettlementChart(MultipartFile multipartFile, HttpServletRequest httpServletRequest);
+
+    Map<String, Object> rogueSeedRating(Double rating, HttpServletRequest httpServletRequest);
 }

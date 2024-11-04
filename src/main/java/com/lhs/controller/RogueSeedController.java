@@ -26,18 +26,23 @@ public class RogueSeedController {
     }
 
     @PostMapping("/auth/rogue-seed/upload")
-    public Result<Map<String,Object>> collectLog(@RequestBody RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
+    public Result<Map<String,Object>> uploadSeed(@RequestBody RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.saveOrUpdateRogueSeed(rogueSeedDTO,httpServletRequest));
     }
 
     @PostMapping("/auth/rogue-seed/settlement-chart")
-    public Result<Map<String,Object>> collectLog(@RequestParam("file") MultipartFile multipartFile, HttpServletRequest httpServletRequest){
+    public Result<Map<String,Object>> uploadSeedSettlementChart(@RequestParam("file") MultipartFile multipartFile, HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.uploadSettlementChart(multipartFile,httpServletRequest));
     }
 
+    @PostMapping("/auth/rogue-seed/rating")
+    public Result<Map<String,Object>> rating(@RequestParam Double rating, HttpServletRequest httpServletRequest){
+        return Result.success(rogueSeedService.rogueSeedRating(rating,httpServletRequest));
+    }
 
-    @PostMapping("/auth/rogue-seed/list")
-    public Result<List<RogueSeedPageVO>> collectLog(@RequestBody RogueSeedPageRequest rogueSeedDTO){
+
+    @PostMapping("/auth/rogue-seed/page")
+    public Result<List<RogueSeedPageVO>> seedPage(@RequestBody RogueSeedPageRequest rogueSeedDTO){
         return Result.success(rogueSeedService.listRogueSeed(rogueSeedDTO));
     }
 }

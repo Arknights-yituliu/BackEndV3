@@ -124,6 +124,18 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         return response;
     }
 
+    @Override
+    public Map<String, Object> rogueSeedRating(Double rating, HttpServletRequest httpServletRequest) {
+        //根据token拿到用户信息
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(userService.extractToken(httpServletRequest));
+        //获取用户uid
+        Long uid = userInfoByToken.getUid();
+
+
+
+        return null;
+    }
+
     private List<RogueSeedPageVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList) {
         List<RogueSeedPageVO> voList = new ArrayList<>();
         for (RogueSeed item : rogueSeedList) {
