@@ -13,26 +13,26 @@ public class ItemTask {
 
 
     private final ItemService itemService;
-
     private final StoreService storeService;
     private final StageResultService stageResultService;
     private final OSSService ossService;
     private final StageService stageService;
-
     private final StageDropUploadService stageDropUploadService;
+    private final PackInfoService packInfoService;
 
     public ItemTask(ItemService itemService,
                     StoreService storeService,
                     StageResultService stageResultService,
                     OSSService ossService,
                     StageService stageService,
-                    StageDropUploadService stageDropUploadService) {
+                    StageDropUploadService stageDropUploadService, PackInfoService packInfoService) {
         this.itemService = itemService;
         this.storeService = storeService;
         this.stageResultService = stageResultService;
         this.ossService = ossService;
         this.stageService = stageService;
         this.stageDropUploadService = stageDropUploadService;
+        this.packInfoService = packInfoService;
     }
 
     /**
@@ -74,11 +74,16 @@ public class ItemTask {
 //       stageDropUploadService.exportData();
 //    }
 
+    @Scheduled(cron = "0 1 * * * ?")
+    public void updateStorePackInfo(){
+          packInfoService.uploadPackInfoPageToCos();
+    }
+
 
     /**
      * 备份关卡计算结果
      */
-    @Scheduled(cron = "0 5/10 * * * ?")
+//    @Scheduled(cron = "0 5/10 * * * ?")
     public void backupStageResult() {
         stageResultService.backupStageResult();
     }
@@ -86,7 +91,7 @@ public class ItemTask {
     /**
      * 更新常驻商店性价比
      */
-    @Scheduled(cron = "0 0 0/1 * * ?")
+//    @Scheduled(cron = "0 0 0/1 * * ?")
     public void updateStorePerm() {
         storeService.updateStorePerm();
     }

@@ -15,15 +15,33 @@ import com.qcloud.cos.region.Region;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 @Service
 public class COSServiceImpl implements COSService {
     @Override
     public void uploadFile(File file, String bucketPath) {
         uploadCOS(file, bucketPath);
+    }
+
+    @Override
+    public void uploadJson(String text, String bucketPath) {
+        try {
+            File file = convertJsonStringToFile(text);
+            uploadFile(file,bucketPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
+    private File convertJsonStringToFile(String jsonString) throws IOException {
+        File tempFile = File.createTempFile("json", ".tmp");
+        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+            fos.write(jsonString.getBytes());
+        }
+        return tempFile;
     }
 
     @Override
@@ -52,7 +70,7 @@ public class COSServiceImpl implements COSService {
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, file);
         PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest);
         String requestId = putObjectResult.getRequestId();
-        System.out.println(requestId);
+        cosClient.shutdown();
     }
 
     private void uploadCOS(MultipartFile file, String bucketPath)  {
@@ -70,7 +88,7 @@ public class COSServiceImpl implements COSService {
         objectMetadata.setContentLength(file.getSize());
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, inputStream,objectMetadata);
         cosClient.putObject(putObjectRequest);
-
+        cosClient.shutdown();
     }
 
     @Override

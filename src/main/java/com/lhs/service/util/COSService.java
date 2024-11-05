@@ -9,6 +9,8 @@ public interface COSService {
 
    void uploadFile(File file, String bucketPath);
 
+    void uploadJson(String text, String bucketPath);
+
    void uploadFile(MultipartFile multipartFile, String bucketPath);
 
     COSClient createCOSClient();
