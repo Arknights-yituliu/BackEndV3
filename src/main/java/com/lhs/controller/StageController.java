@@ -5,7 +5,7 @@ import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.entity.po.admin.HoneyCake;
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
-import com.lhs.task.ItemTask;
+import com.lhs.task.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -27,16 +27,16 @@ public class StageController {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final ItemTask itemTask;
+    private final TaskService taskService;
 
 
-    public StageController(ItemService itemService, StageService stageService, StoreService storeService, StageResultService stageResultService, RedisTemplate<String, Object> redisTemplate, ItemTask itemTask) {
+    public StageController(ItemService itemService, StageService stageService, StoreService storeService, StageResultService stageResultService, RedisTemplate<String, Object> redisTemplate, TaskService taskService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;
         this.stageResultService = stageResultService;
         this.redisTemplate = redisTemplate;
-        this.itemTask = itemTask;
+        this.taskService = taskService;
     }
 
 

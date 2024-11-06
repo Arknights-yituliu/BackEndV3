@@ -40,8 +40,9 @@ public class PackInfoService {
     public PackInfoService(PackInfoMapper packInfoMapper, PackContentMapper packContentMapper, RedisTemplate<String, Object> redisTemplate, COSService cosService, PackContentMapperService packContentMapperService, PackItemMapper packItemMapper, ImageInfoService imageInfoService) {
         this.packInfoMapper = packInfoMapper;
         this.packContentMapper = packContentMapper;
-        this.idGenerator = new IdGenerator(1L);
         this.redisTemplate = redisTemplate;
+        this.idGenerator = new IdGenerator(1L);
+
         this.cosService = cosService;
         this.packContentMapperService = packContentMapperService;
         this.packItemMapper = packItemMapper;

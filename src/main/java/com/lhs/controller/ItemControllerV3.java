@@ -7,7 +7,7 @@ import com.lhs.entity.po.material.Stage;
 import com.lhs.entity.po.material.StorePerm;
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
-import com.lhs.task.ItemTask;
+import com.lhs.task.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,17 +28,17 @@ public class ItemControllerV3 {
     private final StoreService storeService;
     private final PackInfoService packInfoService;
 
-    private final ItemTask itemTask;
+    private final TaskService taskService;
 
     private final StageResultService stageResultService;
 
     public ItemControllerV3(ItemService itemService, StageService stageService, StoreService storeService,
-                            ItemTask itemTask, StageResultService stageResultService,
+                            TaskService taskService, StageResultService stageResultService,
                             PackInfoService packInfoService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;
-        this.itemTask = itemTask;
+        this.taskService = taskService;
         this.stageResultService = stageResultService;
         this.packInfoService = packInfoService;
     }
@@ -46,7 +46,7 @@ public class ItemControllerV3 {
     @Operation(summary = "手动更新")
     @GetMapping("/stage/update")
     public Result<Map<String, List<Stage>>> updateStageResult() {
-        itemTask.updateStageResult();
+        taskService.updateStageResult();
         return Result.success();
     }
 

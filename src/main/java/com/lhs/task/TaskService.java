@@ -1,6 +1,7 @@
 package com.lhs.task;
 
 import com.lhs.service.maa.StageDropUploadService;
+import com.lhs.service.rogueSeed.RogueSeedService;
 import com.lhs.service.util.OSSService;
 import com.lhs.service.material.*;
 
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 
-public class ItemTask {
+public class TaskService {
 
 
     private final ItemService itemService;
@@ -19,13 +20,16 @@ public class ItemTask {
     private final StageService stageService;
     private final StageDropUploadService stageDropUploadService;
     private final PackInfoService packInfoService;
+    private final RogueSeedService rogueSeedService;
 
-    public ItemTask(ItemService itemService,
-                    StoreService storeService,
-                    StageResultService stageResultService,
-                    OSSService ossService,
-                    StageService stageService,
-                    StageDropUploadService stageDropUploadService, PackInfoService packInfoService) {
+    public TaskService(ItemService itemService,
+                       StoreService storeService,
+                       StageResultService stageResultService,
+                       OSSService ossService,
+                       StageService stageService,
+                       StageDropUploadService stageDropUploadService,
+                       PackInfoService packInfoService,
+                       RogueSeedService rogueSeedService) {
         this.itemService = itemService;
         this.storeService = storeService;
         this.stageResultService = stageResultService;
@@ -33,6 +37,7 @@ public class ItemTask {
         this.stageService = stageService;
         this.stageDropUploadService = stageDropUploadService;
         this.packInfoService = packInfoService;
+        this.rogueSeedService = rogueSeedService;
     }
 
     /**
@@ -95,5 +100,11 @@ public class ItemTask {
     public void updateStorePerm() {
         storeService.updateStorePerm();
     }
+
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void rogueSeedPageTask(){
+        rogueSeedService.uploadRogueSeedPage();
+    }
+
 
 }

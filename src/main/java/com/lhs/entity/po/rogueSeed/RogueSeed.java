@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 @TableName
 public class RogueSeed {
@@ -21,8 +23,8 @@ public class RogueSeed {
     private Long uid;
     private String tags;
     private String summaryImageLink;
-    private Long createTime;
-    private Long updateTime;
+    private Date createTime;
+    private Date updateTime;
     private Boolean deleteFlag;
 
 }

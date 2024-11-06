@@ -1,16 +1,20 @@
 package com.lhs.service.rogueSeed.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
+import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.ResultCode;
 import com.lhs.common.util.TextUtil;
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
-import com.lhs.entity.dto.rogueSeed.RogueSeedPageRequest;
+import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
 import com.lhs.entity.po.rogueSeed.RogueSeed;
+import com.lhs.entity.po.rogueSeed.RogueSeedRating;
 import com.lhs.entity.po.rogueSeed.RogueSeedTag;
 import com.lhs.entity.vo.rogueSeed.RogueSeedPageVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.rogueSeed.RogueSeedMapper;
+import com.lhs.mapper.rogueSeed.RogueSeedRatingMapper;
 import com.lhs.mapper.rogueSeed.RogueSeedTagMapper;
 import com.lhs.service.rogueSeed.RogueSeedService;
 import com.lhs.service.user.UserService;
@@ -22,28 +26,33 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class RogueSeedServiceImpl implements RogueSeedService {
 
     private final UserService userService;
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private final COSService cosService;
 
     private final RogueSeedMapper rogueSeedMapper;
     private final RogueSeedTagMapper rogueSeedTagMapper;
+    private final RogueSeedRatingMapper rogueSeedRatingMapper;
 
     private final IdGenerator idGenerator;
 
-    public RogueSeedServiceImpl(UserService userService, RedisTemplate<String, String> redisTemplate, COSService cosService, RogueSeedMapper rogueSeedMapper, RogueSeedTagMapper rogueSeedTagMapper) {
+    public RogueSeedServiceImpl(UserService userService,
+                                RedisTemplate<String, Object> redisTemplate,
+                                COSService cosService,
+                                RogueSeedMapper rogueSeedMapper,
+                                RogueSeedTagMapper rogueSeedTagMapper, RogueSeedRatingMapper rogueSeedRatingMapper) {
         this.userService = userService;
         this.redisTemplate = redisTemplate;
         this.cosService = cosService;
         this.rogueSeedMapper = rogueSeedMapper;
         this.rogueSeedTagMapper = rogueSeedTagMapper;
+        this.rogueSeedRatingMapper = rogueSeedRatingMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -81,60 +90,95 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
     @Override
-    public List<RogueSeedPageVO> listRogueSeed(RogueSeedPageRequest rogueSeedPageRequest) {
-        LambdaQueryWrapper<RogueSeedTag> tagLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        if (rogueSeedPageRequest.getKeyWords() != null) {
-            for (String keyword : rogueSeedPageRequest.getKeyWords()) {
-                tagLambdaQueryWrapper.eq(RogueSeedTag::getTag,keyword);
-            }
-        }
-        List<RogueSeedTag> rogueSeedTagList = rogueSeedTagMapper.selectList(tagLambdaQueryWrapper);
-        Set<Long> seedIdSet = rogueSeedTagList.stream().map(RogueSeedTag::getSeedId).collect(Collectors.toSet());
-        LambdaQueryWrapper<RogueSeed> seedLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        if(!seedIdSet.isEmpty()){
-            seedLambdaQueryWrapper.in(RogueSeed::getSeedId, seedIdSet);
-        }
+    public void uploadRogueSeedPage() {
+        long currentTimeMillis = System.currentTimeMillis();
+        List<RogueSeed> rogueSeedList = rogueSeedMapper.selectList(null);
+        Map<String, Object> response = new HashMap<>();
+        List<RogueSeedPageVO> rogueSeedVOList = createRogueSeedVOList(rogueSeedList);
+        response.put("list", rogueSeedVOList);
+        response.put("updateTime", currentTimeMillis);
+        cosService.uploadJson(JsonMapper.toJSONString(response), "/rogue-seed/page/" + currentTimeMillis + ".json");
+        redisTemplate.opsForValue().set("RougeSeedPageTag", currentTimeMillis);
+    }
 
-
-        if ("rating".equals(rogueSeedPageRequest.getOrderBy())) {
-            seedLambdaQueryWrapper.orderByDesc(RogueSeed::getRating);
-        }
-
-        if ("createTime".equals(rogueSeedPageRequest.getOrderBy())) {
-            seedLambdaQueryWrapper.orderByDesc(RogueSeed::getCreateTime);
-        }
-
-        seedLambdaQueryWrapper.last("limit "+rogueSeedPageRequest.getPageNum()+","+rogueSeedPageRequest.getPageSize());
-
-        List<RogueSeed> rogueSeeds = rogueSeedMapper.selectList(seedLambdaQueryWrapper);
-
-
-        return createRogueSeedVOList(rogueSeeds);
+    @Override
+    public String getRogueSeedPageTag() {
+        Object tag = redisTemplate.opsForValue().get("RougeSeedPageTag");
+        return tag != null ? tag.toString() : "NO_DATA";
     }
 
     @Override
     public Map<String, Object> uploadSettlementChart(MultipartFile multipartFile, HttpServletRequest httpServletRequest) {
 
-        String imageName = idGenerator.nextId()+".jpg";
-        String bucketPath = "rouge-seed/settlement-chart/"+imageName;
-        cosService.uploadFile(multipartFile,bucketPath);
+        String imageName = idGenerator.nextId() + ".jpg";
+        String bucketPath = "rogue-seed/settlement-chart/" + imageName;
+        cosService.uploadFile(multipartFile, bucketPath);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("imagePath",bucketPath);
+        response.put("imagePath", bucketPath);
         return response;
     }
 
     @Override
-    public Map<String, Object> rogueSeedRating(Double rating, HttpServletRequest httpServletRequest) {
+    public Map<String, Object> rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest) {
         //根据token拿到用户信息
         UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(userService.extractToken(httpServletRequest));
         //获取用户uid
         Long uid = userInfoByToken.getUid();
+        //如果传入的数据对象的赞踩为空，报错
+        if (rogueSeedRatingDTO.getRating() == null) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK);
+        }
+        //如果这个用户没有点赞过这个种子，新增一个点赞记录
+        if (rogueSeedRatingDTO.getRatingId() == null) {
+            return createNewRogueSeedRating(rogueSeedRatingDTO, uid);
+        }
+        //用户点赞后获得的唯一id
+        Long ratingId = rogueSeedRatingDTO.getRatingId();
+        //根据唯一id查出上次点赞记录
+        RogueSeedRating rogueSeedRatingByDB = rogueSeedRatingMapper.selectById(ratingId);
+        //查出的点赞记录如果不存在则进行新增点赞记录
+        if (rogueSeedRatingByDB == null) {
+            return createNewRogueSeedRating(rogueSeedRatingDTO, uid);
+        }
 
-
-
-        return null;
+        return updateRogueSeedRating(rogueSeedRatingDTO,rogueSeedRatingByDB);
     }
+
+    private Map<String, Object> updateRogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, RogueSeedRating rogueSeedRatingByDB) {
+        Map<String, Object> response = new HashMap<>();
+        RogueSeedRating rogueSeedRating = new RogueSeedRating();
+        if (rogueSeedRatingDTO.getRating().equals(rogueSeedRatingByDB.getRating())) {
+            rogueSeedRating.setRatingId(rogueSeedRatingByDB.getRatingId());
+            rogueSeedRating.setRating(rogueSeedRatingDTO.getRating());
+        } else {
+            rogueSeedRating.setRatingId(rogueSeedRatingByDB.getRatingId());
+            rogueSeedRating.setDeleteFlag(true);
+            response.put("deleteFlag", true);
+        }
+
+        rogueSeedRatingMapper.updateById(rogueSeedRating);
+
+        response.put("ratingId", rogueSeedRatingDTO.getRatingId());
+
+        return response;
+    }
+
+    private Map<String, Object> createNewRogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, Long uid) {
+        RogueSeedRating rogueSeedRating = new RogueSeedRating();
+        Long ratingId = idGenerator.nextId();
+        rogueSeedRating.setRatingId(ratingId);
+        rogueSeedRating.setRating(rogueSeedRatingDTO.getRating());
+        rogueSeedRating.setUid(uid);
+        rogueSeedRating.setSeedId(rogueSeedRatingDTO.getSeedId());
+        rogueSeedRating.setCreateTime(new Date());
+        rogueSeedRating.setDeleteFlag(false);
+        rogueSeedRatingMapper.insert(rogueSeedRating);
+        Map<String, Object> response = new HashMap<>();
+        response.put("ratingId", ratingId);
+        return response;
+    }
+
 
     private List<RogueSeedPageVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList) {
         List<RogueSeedPageVO> voList = new ArrayList<>();
@@ -152,7 +196,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedPageVO.setDescription(item.getDescription());
             rogueSeedPageVO.setTags(TextUtil.textToArray(item.getTags()));
             rogueSeedPageVO.setSummaryImageLink(item.getSummaryImageLink());
-            rogueSeedPageVO.setCreateTime(item.getCreateTime());
+            rogueSeedPageVO.setCreateTime(item.getCreateTime().getTime());
             voList.add(rogueSeedPageVO);
         }
         return voList;
@@ -168,7 +212,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
      */
     private Map<String, Object> updateRogueSeed(RogueSeed rogueSeedByPO, RogueSeedDTO rogueSeedDTO) {
         //获取种子的更新时间，根据种子的上次更新时间去将旧tag删除
-        long lastTimeStamp = rogueSeedByPO.getUpdateTime();
+        Date updateTime = rogueSeedByPO.getUpdateTime();
         //更新种子信息对象
         updateRogueSeedByRogueSeedPO(rogueSeedByPO, rogueSeedDTO);
         //更新种子信息
@@ -179,7 +223,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         //创建种子tag的查询器
         LambdaUpdateWrapper<RogueSeedTag> tagLambdaQueryWrapper = new LambdaUpdateWrapper<>();
         //根据更新时间对种子的旧tag进行逻辑删除,更新的逻辑太费劲，每天定时用脚本对标记删除的tag进行删除
-        tagLambdaQueryWrapper.eq(RogueSeedTag::getCreateTime, lastTimeStamp)
+        tagLambdaQueryWrapper.eq(RogueSeedTag::getCreateTime, updateTime)
                 .eq(RogueSeedTag::getSeedId, rogueSeedByPO.getSeedId())
                 .set(RogueSeedTag::getDeleteFlag, true);
         //最后执行tag的逻辑删除
@@ -200,7 +244,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
      * @param rogueSeedDTO 前端传来的数据对象
      */
     private void updateRogueSeedByRogueSeedPO(RogueSeed rogueSeed, RogueSeedDTO rogueSeedDTO) {
-        long currentTimeMillis = System.currentTimeMillis();
         rogueSeed.setSeed(rogueSeedDTO.getSeed());
         rogueSeed.setRogueVersion(rogueSeedDTO.getRogueVersion());
         rogueSeed.setRogueTheme(rogueSeedDTO.getRogueTheme());
@@ -210,7 +253,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeed.setDescription(rogueSeedDTO.getDescription());
         rogueSeed.setTags(String.join(",", rogueSeedDTO.getTags()));
         rogueSeed.setSummaryImageLink(rogueSeedDTO.getSummaryImageLink());
-        rogueSeed.setUpdateTime(currentTimeMillis);
+        rogueSeed.setUpdateTime(new Date());
         rogueSeed.setDeleteFlag(false);
     }
 
@@ -225,7 +268,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         //获取种子id
         Long rogueSeedIdByPO = rogueSeed.getSeedId();
         //获取种子更新时间
-        Long currentTimeStamp = rogueSeed.getUpdateTime();
+        Date updateTime = rogueSeed.getUpdateTime();
         //种子要存储的tag列表
         List<RogueSeedTag> rogueSeedTagList = new ArrayList<>();
         //将前端传来的tag转为tag对象集合
@@ -235,7 +278,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedTag.setTagId(idGenerator.nextId());
             rogueSeedTag.setSeedId(rogueSeedIdByPO);
             rogueSeedTag.setTag(tag);
-            rogueSeedTag.setCreateTime(currentTimeStamp);
+            rogueSeedTag.setCreateTime(updateTime);
             rogueSeedTag.setDeleteFlag(false);
             rogueSeedTagList.add(rogueSeedTag);
         }
@@ -244,7 +287,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
     private void createNewRogueSeedByRogueSeedDTO(RogueSeed target, RogueSeedDTO resource) {
-        long currentTimeMillis = System.currentTimeMillis();
+        Date date = new Date();
         target.setSeedId(idGenerator.nextId());
         target.setSeed(resource.getSeed());
         target.setRating(0.0);
@@ -257,8 +300,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         target.setDescription(resource.getDescription());
         target.setTags(String.join(",", resource.getTags()));
         target.setSummaryImageLink(resource.getSummaryImageLink());
-        target.setCreateTime(currentTimeMillis);
-        target.setUpdateTime(currentTimeMillis);
+        target.setCreateTime(date);
+        target.setUpdateTime(date);
         target.setDeleteFlag(false);
     }
 }
