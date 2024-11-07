@@ -470,7 +470,7 @@ https://backend.yituliu.cn/store/pack
 ### 路径：
 
 ```
-https://backend.yituliu.cn/survey/operator/table
+https://backend.yituliu.cn/survey/operator/info
 ```
 
 ### 参数：
