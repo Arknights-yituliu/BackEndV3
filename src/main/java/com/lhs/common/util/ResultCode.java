@@ -30,8 +30,6 @@ public enum ResultCode {
 	OPERATOR_QUANTITY_INVALID(10018,"干员数量需大于6且小于13位"),
 
 
-
-	
 	/* 用户错误：20001-29999*/
 	USER_NOT_LOGIN(20001, "用户未登录"),
 	PASSWORD_IS_BLANK(20002, "密码为空"),
@@ -50,10 +48,15 @@ public enum ResultCode {
 	USER_SIGN_IN_ERROR(20016, "登录失败，请向网站开发人员反馈"),
 	USER_PERMISSION_NO_ACCESS_OR_TIME_OUT(20017, "用户权限验证失败或操作超时"),
 	EMAIL_REGISTERED(20018,"邮箱已被注册"),
-
 	LOGIN_EXPIRATION(20019,"登录过期"),
-	
+
+
 	/* 业务错误：30001-39999 */
+
+	//肉鸽种子站相关报错
+	ROGUE_SEED_NOT_EXIST(30101, "肉鸽种子不存在"),
+	TOO_MANY_RATING_ROGUE_SEED(30102,"肉鸽评分次数过多"),
+
 	SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001, "业务逻辑出现问题"),
 	VERIFICATION_CODE_ERROR(30002, "验证码错误"),
 	VERIFICATION_CODE_NOT_EXIST(30003, "验证码不存在或已过期"),
@@ -61,6 +64,7 @@ public enum ResultCode {
 	OSS_UPLOAD_ERROR(30005, "OSS上传错误"),
 	EMAIL_SENT_TOO_FREQUENTLY(30006,"邮件发送间隔时间30秒"),
 	NOT_REPEAT_REQUESTS(30007,"不要重复请求"),
+
 
 
 	/* 系统错误：40001-49999 */

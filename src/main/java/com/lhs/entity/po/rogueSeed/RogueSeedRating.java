@@ -15,5 +15,5 @@ public class RogueSeedRating {
     private Long uid;
     private Integer rating;
     private Date createTime;
-    private Boolean deleteFlag;
+    private Date updateTime;
 }

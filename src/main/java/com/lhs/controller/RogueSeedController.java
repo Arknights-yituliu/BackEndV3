@@ -3,12 +3,14 @@ package com.lhs.controller;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
+import com.lhs.entity.vo.rogueSeed.RogueSeedRatingVO;
 import com.lhs.service.rogueSeed.RogueSeedService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,6 +37,10 @@ public class RogueSeedController {
         return Result.success(rogueSeedService.rogueSeedRating(rogueSeedRatingDTO,httpServletRequest));
     }
 
+    @GetMapping("/auth/rogue-seed/rating/list")
+    public Result<List<RogueSeedRatingVO>> ratingList(HttpServletRequest httpServletRequest){
+        return Result.success(rogueSeedService.listUserRougeSeedRating(httpServletRequest));
+    }
 
     @GetMapping("/rogue-seed/page-tag")
     public Result<String> getSeedPageTag(){

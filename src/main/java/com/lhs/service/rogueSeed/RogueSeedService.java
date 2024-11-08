@@ -2,9 +2,11 @@ package com.lhs.service.rogueSeed;
 
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
+import com.lhs.entity.vo.rogueSeed.RogueSeedRatingVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 public interface RogueSeedService {
@@ -19,4 +21,6 @@ public interface RogueSeedService {
     Map<String, Object> rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest);
 
     String getRogueSeedPageTag();
+
+    List<RogueSeedRatingVO> listUserRougeSeedRating(HttpServletRequest httpServletRequest);
 }

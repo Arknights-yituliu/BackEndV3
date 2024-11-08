@@ -6,6 +6,5 @@ import lombok.Data;
 public class RogueSeedRatingDTO {
     private Long ratingId;
     private Long seedId;
-    private Long uid;
     private Integer rating;
 }

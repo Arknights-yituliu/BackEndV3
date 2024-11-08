@@ -1,15 +1,17 @@
 package com.lhs.entity.vo.rogueSeed;
 
+import com.lhs.entity.po.rogueSeed.RogueSeedRatingStatistics;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class RogueSeedPageVO {
     private Long seedId;
     private String seed;
     private String rogueVersion;
-    private Double rating;
+    private RogueSeedRatingStatistics rating;
     private Integer ratingPerson;
     private Integer difficulty;
     private String rogueTheme;

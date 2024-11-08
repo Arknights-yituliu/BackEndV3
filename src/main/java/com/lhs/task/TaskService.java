@@ -101,7 +101,7 @@ public class TaskService {
         storeService.updateStorePerm();
     }
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/18 * * * ?")
     public void rogueSeedPageTask(){
         rogueSeedService.uploadRogueSeedPage();
     }
