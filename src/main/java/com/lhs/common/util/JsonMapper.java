@@ -38,6 +38,16 @@ public class JsonMapper {
     }
 
     /**===========================以下是从JSON中获取对象====================================*/
+    public static <T> T parseObject(String jsonString,  TypeReference<T> type) {
+        T t = null;
+        try {
+            t = objectMapper.readValue(jsonString, type);
+        } catch (JsonProcessingException e) {
+            Logger.error("JsonString转为自定义对象失败：{}"+ e.getMessage());
+        }
+        return t;
+    }
+
     public static <T> T parseObject(String jsonString, Class<T> object) {
         T t = null;
         try {

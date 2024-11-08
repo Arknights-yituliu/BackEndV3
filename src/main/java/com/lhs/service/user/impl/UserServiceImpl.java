@@ -3,6 +3,7 @@ package com.lhs.service.user.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
@@ -13,11 +14,13 @@ import com.lhs.entity.dto.user.LoginDataDTO;
 import com.lhs.entity.dto.user.UpdateUserDataDTO;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
+import com.lhs.entity.po.user.UserConfig;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.AkPlayerBindingListVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
+import com.lhs.mapper.user.UserConfigMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.survey.HypergryphService;
@@ -51,6 +54,8 @@ public class UserServiceImpl implements UserService {
 
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
 
+    private final UserConfigMapper userConfigMapper;
+
 
     public UserServiceImpl(UserInfoMapper userInfoMapper,
                            RedisTemplate<String, String> redisTemplate,
@@ -58,7 +63,7 @@ public class UserServiceImpl implements UserService {
                            OSSService ossService,
                            HypergryphService HypergryphService,
                            UserExternalAccountBindingMapper userExternalAccountBindingMapper,
-                           AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
+                           AkPlayerBindInfoMapper akPlayerBindInfoMapper, UserConfigMapper userConfigMapper) {
         this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
         this.email163Service = email163Service;
@@ -66,6 +71,7 @@ public class UserServiceImpl implements UserService {
         this.HypergryphService = HypergryphService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
+        this.userConfigMapper = userConfigMapper;
         idGenerator = new IdGenerator(1L);
     }
 
@@ -514,51 +520,29 @@ public class UserServiceImpl implements UserService {
         email163Service.sendSimpleEmail(emailFormDTO);
     }
 
-    /**
-     * 设置修改邮箱验证码的邮件信息
-     *
-     * @param emailRequestDto 邮件信息
-     */
-    private void sendVerificationCodeByToken(EmailRequestDTO emailRequestDto) {
-        String emailAddress = emailRequestDto.getEmail();
-        String token = emailRequestDto.getToken();  //用户凭证
-        //变更邮箱
-        getUserInfoPOByToken(token);
-
-        Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
-        String subject = "一图流邮箱变更验证码";
-        String text = "您本次变更邮箱验证码：" + code + ",验证码有效时间5分钟";
-
-        EmailFormDTO emailFormDTO = new EmailFormDTO();
-        emailFormDTO.setFrom("ark_yituliu@163.com");
-        emailFormDTO.setTo(emailAddress);
-        emailFormDTO.setSubject(subject);
-        emailFormDTO.setText(text);
-        email163Service.sendSimpleEmail(emailFormDTO);
-    }
-
-
 
     @Override
     public UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto) {
 
-        String property = updateUserDataDto.getProperty();
+        //兼容之前的命名
+        String action = updateUserDataDto.getProperty()==null?updateUserDataDto.getAction(): updateUserDataDto.getProperty();
+
         String token = updateUserDataDto.getToken();
         UserInfo userInfoByToken = getUserInfoPOByToken(token);
 
-        if ("email".equals(property)) {
+        if ("email".equals(action)) {
             return updateOrBindEmail(userInfoByToken, updateUserDataDto);
         }
 
-        if ("passWord".equals(property)) {
+        if ("passWord".equals(action)) {
             return updatePassWord(userInfoByToken, updateUserDataDto);
         }
 
-        if ("userName".equals(property)) {
+        if ("userName".equals(action)) {
             return updateUserName(userInfoByToken, updateUserDataDto);
         }
 
-        if ("avatar".equals(property)) {
+        if ("avatar".equals(action)) {
             return updateUserAvatar(userInfoByToken, updateUserDataDto);
         }
 
@@ -809,6 +793,34 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public void updateUserConfig(Map<String, Object> config,HttpServletRequest httpServletRequest) {
+
+        UserInfoVO userInfoVOByToken = getUserInfoVOByToken(extractToken(httpServletRequest));
+        Long uid = userInfoVOByToken.getUid();
+        UserConfig userConfig = userConfigMapper.selectById(uid);
+        Date date = new Date();
+        if(userConfig==null){
+            userConfig = new UserConfig();
+            String configText = JsonMapper.toJSONString(config);
+            userConfig.setConfig(configText);
+            userConfig.setUid(uid);
+            userConfig.setCreateTime(date);
+            userConfig.setUpdateTime(date);
+            userConfigMapper.insert(userConfig);
+        }else {
+            String oldConfig = userConfig.getConfig();
+            Map<String, Object> map = JsonMapper.parseObject(oldConfig, new TypeReference<>() {
+            });
+            map.putAll(config);
+            String newConfig = JsonMapper.toJSONString(map);
+            userConfig.setConfig(newConfig);
+            userConfig.setUpdateTime(date);
+            userConfigMapper.updateById(userConfig);
+        }
+
+    }
+
     private HashMap<String, String> retrieveAccountByEmail(LoginDataDTO loginDataDTO) {
         String email = loginDataDTO.getEmail();
         if (!checkParamsValidity(email)) {
@@ -1028,8 +1040,14 @@ public class UserServiceImpl implements UserService {
         List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
                 .selectList(queryWrapper);
 
-
-
+        //根据uid查询是否有自定义配置
+        UserConfig userConfig = userConfigMapper.selectById(userInfo.getId());
+        //不为空则为VO写入配置
+        if(userConfig!=null){
+            Map<String, Object> map = JsonMapper.parseObject(userConfig.getConfig(), new TypeReference<>() {
+            });
+            userInfoVO.setConfig(map);
+        }
 
         if (userInfo.getPassword() != null) {
             userInfoVO.setHasPassword(true);
@@ -1037,7 +1055,6 @@ public class UserServiceImpl implements UserService {
         if (userInfo.getEmail() != null) {
             userInfoVO.setHasEmail(true);
         }
-
         if (externalAccountBindings.isEmpty()) {
             return userInfoVO;
         }

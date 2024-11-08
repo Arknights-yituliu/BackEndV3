@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class UpdateUserDataDTO {
     private String property;
+    private String action;
     private String token;
     private String userName;
     private String email;

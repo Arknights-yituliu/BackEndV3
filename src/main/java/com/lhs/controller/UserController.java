@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @Tag(name ="一图流用户系统")
@@ -60,6 +61,13 @@ public class UserController {
     public Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserDataDTO updateUserDataDto) {
         UserInfoVO userInfoVO = userService.updateUserData(updateUserDataDto);
         return Result.success(userInfoVO);
+    }
+
+    @Operation(summary ="更新用户配置")
+    @GetMapping("/update/config")
+    public Result<String> updateUserConfig(HttpServletRequest httpServletRequest,@RequestBody Map<String,Object> config) {
+         userService.updateUserConfig(config,httpServletRequest);
+        return Result.success();
     }
 
 

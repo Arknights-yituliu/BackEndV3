@@ -11,6 +11,7 @@ import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public interface UserService {
 
@@ -85,5 +86,5 @@ public interface UserService {
     void saveBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
 
 
-
+    void updateUserConfig(Map<String, Object> config,HttpServletRequest httpServletRequest);
 }
