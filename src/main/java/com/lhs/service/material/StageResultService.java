@@ -96,7 +96,7 @@ public class StageResultService {
 
     public void updateStageResult(StageParamDTO stageParamDTO) {
         List<Item> items = itemService.getItemList(stageParamDTO);   //找出对应版本的材料价值
-        if (items == null || items.isEmpty()) {
+        if (items.isEmpty()) {
             items = itemService.getBaseItemList();
         }
         items = itemService.ItemValueCal(items, stageParamDTO);  //计算新的新材料价值
@@ -105,37 +105,7 @@ public class StageResultService {
     }
 
 
-    public String saveMaterialValueConfig(Map<String, Object> params) {
 
-        Object oToken = params.get("token");
-        if (oToken == null) {
-            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        }
-
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(String.valueOf(oToken));
-        Long uid = userInfoByToken.getUid();
-
-        Object oConfig = params.get("config");
-
-        LambdaQueryWrapper<MaterialValueConfig> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(MaterialValueConfig::getUid, uid);
-        MaterialValueConfig materialValueConfigByUid = materialValueConfigMapper.selectOne(lambdaQueryWrapper);
-        long timeStamp = System.currentTimeMillis();
-        if (materialValueConfigByUid == null) {
-            MaterialValueConfig materialValueConfig = new MaterialValueConfig();
-            materialValueConfig.setUid(uid);
-            materialValueConfig.setCreateTime(timeStamp);
-            materialValueConfig.setUpdateTime(timeStamp);
-            materialValueConfig.setConfig(String.valueOf(oConfig));
-            materialValueConfigMapper.insert(materialValueConfig);
-        } else {
-            materialValueConfigByUid.setUpdateTime(timeStamp);
-            materialValueConfigByUid.setConfig(String.valueOf(oConfig));
-            materialValueConfigMapper.updateById(materialValueConfigByUid);
-        }
-
-        return "更新成功";
-    }
 
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
     public Map<String, Object> getT3RecommendedStageV2(String version) {

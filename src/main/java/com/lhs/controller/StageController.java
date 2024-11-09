@@ -96,17 +96,8 @@ public class StageController {
         return Result.success(honeyCakeList);
     }
 
-    @Operation(summary = "材料表导出（Excel格式）")
-    @GetMapping("/item/export/excel")
-    public void exportItemExcel(HttpServletResponse response) {
-        itemService.exportItemExcel(response);
-    }
 
-    @Operation(summary = "材料表导出（Json格式）")
-    @GetMapping("/item/export/json")
-    public void exportItemJson(HttpServletResponse response) {
-        itemService.exportItemJson(response);
-    }
+
 
     @GetMapping("/stage/resetCache")
     public Result<List<String>> authResetCache() {
