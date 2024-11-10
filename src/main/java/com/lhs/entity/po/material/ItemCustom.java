@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 @Entity
 @TableName
-public class PackItem {
+public class ItemCustom {
     @Id
     @TableId
     private String id;

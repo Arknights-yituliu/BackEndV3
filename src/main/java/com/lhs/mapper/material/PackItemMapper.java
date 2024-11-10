@@ -1,9 +1,9 @@
 package com.lhs.mapper.material;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lhs.entity.po.material.PackItem;
+import com.lhs.entity.po.material.ItemCustom;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PackItemMapper extends BaseMapper<PackItem> {
+public interface PackItemMapper extends BaseMapper<ItemCustom> {
 }

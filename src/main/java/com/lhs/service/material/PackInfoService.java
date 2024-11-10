@@ -7,10 +7,12 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.ResultCode;
+import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.entity.po.admin.ImageInfo;
+import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.PackContent;
 import com.lhs.entity.po.material.PackInfo;
-import com.lhs.entity.po.material.PackItem;
+import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.material.PackContentVO;
 import com.lhs.entity.vo.material.PackInfoVO;
 import com.lhs.mapper.material.PackContentMapper;
@@ -35,14 +37,22 @@ public class PackInfoService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final COSService cosService;
     private final PackContentMapperService packContentMapperService;
+    private final ItemService itemService;
     private final ImageInfoService imageInfoService;
 
-    public PackInfoService(PackInfoMapper packInfoMapper, PackContentMapper packContentMapper, RedisTemplate<String, Object> redisTemplate, COSService cosService, PackContentMapperService packContentMapperService, PackItemMapper packItemMapper, ImageInfoService imageInfoService) {
+    public PackInfoService(PackInfoMapper packInfoMapper,
+                           PackContentMapper packContentMapper,
+                           RedisTemplate<String, Object> redisTemplate,
+                           COSService cosService,
+                           PackContentMapperService packContentMapperService,
+                           PackItemMapper packItemMapper,
+                           ItemService itemService,
+                           ImageInfoService imageInfoService) {
         this.packInfoMapper = packInfoMapper;
         this.packContentMapper = packContentMapper;
         this.redisTemplate = redisTemplate;
+        this.itemService = itemService;
         this.idGenerator = new IdGenerator(1L);
-
         this.cosService = cosService;
         this.packContentMapperService = packContentMapperService;
         this.packItemMapper = packItemMapper;
@@ -73,7 +83,7 @@ public class PackInfoService {
         Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream().collect(Collectors.groupingBy(PackContent::getContentId));
 
         //将礼包价值表转为map对象，方便使用
-        Map<String, Double> itemValueMap = packItemMapper.selectList(null).stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
+        Map<String, Double> itemValueMap = listPackItem().stream().collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
 
         List<PackInfoVO> VOList = new ArrayList<>();
 
@@ -164,28 +174,43 @@ public class PackInfoService {
     }
 
 
-    public PackItem saveOrUpdatePackItem(PackItem newPackItem) {
-        QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", newPackItem.getId());
-        PackItem packItem = packItemMapper.selectOne(queryWrapper);
-        if (packItem == null) {
-            newPackItem.setId(String.valueOf(idGenerator.nextId()));
-            packItemMapper.insert(newPackItem);
+    public ItemCustom saveOrUpdatePackItem(ItemCustom newItemCustom) {
+        QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", newItemCustom.getId());
+        ItemCustom itemCustom = packItemMapper.selectOne(queryWrapper);
+        if (itemCustom == null) {
+            newItemCustom.setId(String.valueOf(idGenerator.nextId()));
+            packItemMapper.insert(newItemCustom);
         } else {
-            packItemMapper.update(newPackItem, queryWrapper);
+            packItemMapper.update(newItemCustom, queryWrapper);
         }
-        return newPackItem;
+        return newItemCustom;
     }
 
 
-    public List<PackItem> listPackItem() {
-        return packItemMapper.selectList(null);
+    public List<ItemCustom> listPackItem() {
+
+        List<Item> itemList = itemService.getItemList(new StageParamDTO());
+        List<ItemCustom> itemCustomList = new ArrayList<>();
+        for(Item item:itemList){
+            ItemCustom itemCustom = new ItemCustom();
+            itemCustom.setId(item.getItemId());
+            itemCustom.setValue(item.getItemValueAp());
+            itemCustom.setName(item.getItemName());
+            itemCustom.setZoneIndex(item.getCardNum());
+            itemCustomList.add(itemCustom);
+        }
+
+        List<ItemCustom> itemCustoms = packItemMapper.selectList(null);
+        itemCustomList.addAll(itemCustoms);
+
+        return itemCustoms;
 
     }
 
 
     public String deletePackItemById(String id) {
-        QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", id);
         int delete = packItemMapper.delete(queryWrapper);
         return "删除了" + delete + "条物品数据";

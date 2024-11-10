@@ -35,13 +35,7 @@ public class Item {
     private String itemName; //物品名称
 
 
-    private Double itemValue; //物品价值 单位：绿票
-
-
     private Double itemValueAp; //物品价值 单位：理智
-
-
-    private String  type; //物品稀有度
 
 
     private Integer rarity; //物品稀有度
@@ -50,7 +44,7 @@ public class Item {
     private Integer cardNum;  //前端排序的用索引
 
 
-    private String version;  //经验书系数
+    private String version;  //版本
 
 
     private Double weight;   //加工站爆率

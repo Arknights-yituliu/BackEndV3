@@ -17,7 +17,7 @@ public class StageParamDTO {
 
     {
         version = "2024-11-09";
-        expCoefficient = 0.625;
+        expCoefficient = 0.633;
         sampleSize = 300;
         lmdCoefficient = 1.0;
     }

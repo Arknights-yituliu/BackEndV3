@@ -2,7 +2,7 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.po.admin.LogInfo;
-import com.lhs.entity.po.material.PackItem;
+import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
@@ -120,11 +120,12 @@ public class AdminController {
         return Result.success(packInfoService.listAllPackInfo());
     }
 
+
     @Operation(summary = "更新礼包材料表")
     @PostMapping("/admin/item/update")
-    public Result<PackItem> saveOrUpdatePackItem(@RequestBody PackItem newPackItem){
-        PackItem packItem = packInfoService.saveOrUpdatePackItem(newPackItem);
-        return Result.success(packItem);
+    public Result<ItemCustom> saveOrUpdatePackItem(@RequestBody ItemCustom newItemCustom){
+        ItemCustom itemCustom = packInfoService.saveOrUpdatePackItem(newItemCustom);
+        return Result.success(itemCustom);
     }
 
     @Operation(summary = "删除礼包材料")
@@ -181,8 +182,8 @@ public class AdminController {
 
     @Operation(summary = "获取礼包自定义材料表")
     @GetMapping("/store/pack/item/list")
-    public Result<List<PackItem>> getItemList() {
-        List<PackItem> packItemList = packInfoService.listPackItem();
-        return Result.success(packItemList);
+    public Result<List<ItemCustom>> getItemList() {
+        List<ItemCustom> itemCustomList = packInfoService.listPackItem();
+        return Result.success(itemCustomList);
     }
 }

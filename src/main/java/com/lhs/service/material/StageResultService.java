@@ -246,9 +246,7 @@ public class StageResultService {
         Map<String, List<StageResult>> commonMapByItemType = stageResultList.stream()
                 .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
 
-        for (StageResult stageResult : stageResultList){
-            System.out.println(stageResult);
-        }
+
 
             //查找关卡的详细掉落信息
             Map<String, StageResultDetail> detailMapByStageId = stageResultDetailMapper
