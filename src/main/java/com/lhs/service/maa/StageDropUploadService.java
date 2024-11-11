@@ -71,7 +71,9 @@ public class StageDropUploadService {
 
         long nowTimeStamp = System.currentTimeMillis();
         String authorization = httpServletRequest.getHeader("authorization");
-        if (authorization == null) return "请求头未携带企鹅物流账号";
+        if (authorization == null) {
+            return "请求头未携带企鹅物流账号";
+        }
 
         List<StageDropDetailDTO> drops = stageDropDTO.getDrops();
         if (stageDropDTO.getServer() == null || stageDropDTO.getSource() == null
@@ -81,13 +83,15 @@ public class StageDropUploadService {
 
 
         String[] auth = authorization.split(" ");
-        if (auth.length < 2) return "请求头未携带企鹅物流账号";
+        if (auth.length < 2) {
+            return "请求头未携带企鹅物流账号";
+        }
 
         String penguinId = auth[1];
-        Boolean lock = redisTemplate.opsForValue().setIfAbsent(penguinId, nowTimeStamp, 7, TimeUnit.SECONDS);
+        Boolean lock = redisTemplate.opsForValue().setIfAbsent(penguinId, nowTimeStamp, 5, TimeUnit.SECONDS);
 
         if (Boolean.FALSE.equals(lock)) {
-            return "已保存";
+            return "请勿重复上传";
         }
 
 

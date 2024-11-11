@@ -12,8 +12,9 @@ public class StageParamDTO {
     private Integer sampleSize;  //样本量
     private Double lmdCoefficient; //龙门币系数   龙门币价值 =  根据钱本计算的龙门币价值(0.0036) * 龙门币系数
     private Boolean calculateActivityStage = false; //是否计算活动关卡
-    private Map<String,String> itemBlacklist; //材料黑名单，计算中不使用这些材料
-    private Map<String,String> stageBlacklist;  //关卡黑名单，计算中不使用这些关卡
+    private Map<String, String> itemBlacklist; //材料黑名单，计算中不使用这些材料
+    private Map<String, String> stageBlacklist;  //关卡黑名单，计算中不使用这些关卡
+
 
     {
         version = "2024-11-09";
@@ -22,8 +23,16 @@ public class StageParamDTO {
         lmdCoefficient = 1.0;
     }
 
+    public Double getLMDValue() {
+        return 0.0036 * lmdCoefficient;
+    }
+
+    public Double getEXPValue() {
+        return 0.0036 * expCoefficient;
+    }
+
     //  返回版本号
-    public String getVersion(){
-        return version+"-"+ expCoefficient+"-"+sampleSize;
+    public String getVersion() {
+        return version + "-" + expCoefficient + "-" + sampleSize;
     }
 }

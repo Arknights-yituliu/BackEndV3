@@ -66,8 +66,13 @@ public class StageCalService {
 
     public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO) {
 
+        Integer sampleSize = stageParamDTO.getSampleSize();
+        String version = stageParamDTO.getVersion();
+
         //物品信息Map  <itemId,Item>
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
+
+
         //关卡信息Map <stageId,stage>
         Map<String, Stage> stageMap = stageService.getStageList(new QueryWrapper<Stage>()
                         .notLike("stage_id", "tough"))
@@ -76,8 +81,7 @@ public class StageCalService {
 
         JsonNode itemSeriesTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
 
-        Integer sampleSize = stageParamDTO.getSampleSize();
-        String version = stageParamDTO.getVersion();
+
 
         List<PenguinMatrixDTO> penguinMatrix = getPenguinMatrix(itemMap, stageMap, sampleSize);
 

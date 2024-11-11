@@ -1,6 +1,5 @@
 package com.lhs.service.material;
 
-import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.entity.po.material.ItemIterationValue;
 import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.entity.po.material.Item;
@@ -26,5 +25,5 @@ public interface ItemService  {
 
     List<Item> getBaseItemList();
 
-    void updateFixedItemValue();
+    void updateOriginalFixedItemValue(StageParamDTO stageParamDTO);
 }
