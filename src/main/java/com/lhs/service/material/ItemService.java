@@ -25,5 +25,7 @@ public interface ItemService  {
 
     List<Item> getBaseItemList();
 
-    void updateOriginalFixedItemValue(StageParamDTO stageParamDTO);
+    List<Item> updateFloatingValueItem(StageParamDTO stageParamDTO);
+
+    List<Item> getItemListCache(StageParamDTO stageParamDTO);
 }

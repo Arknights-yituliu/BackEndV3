@@ -9,6 +9,7 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.CompositeTableDTO;
+import com.lhs.entity.dto.material.FloatingValueItem;
 import com.lhs.entity.dto.material.ItemCostDTO;
 import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.entity.po.material.Item;
@@ -66,9 +67,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> ItemValueCal(List<Item> items, StageParamDTO stageParamDTO) {
 
-
-        Double expCoefficient = stageParamDTO.getExpCoefficient();
         Double lmdValue = stageParamDTO.getLMDValue();
+        Double EXPValue = stageParamDTO.getEXPValue();
         String version = stageParamDTO.getVersion();
 
         //上次迭代计算出的副产物价值
@@ -89,16 +89,16 @@ public class ItemServiceImpl implements ItemService {
             String itemId = item.getItemId();
             //设置经验书系数，经验书价值 = 龙门币价值 * 经验书系数
             if (itemId.equals("2004")) {
-                item.setItemValueAp(lmdValue * 2000 * expCoefficient);
+                item.setItemValueAp(EXPValue * 2000);
             }
             if (itemId.equals("2003")) {
-                item.setItemValueAp(lmdValue * 1000 * expCoefficient);
+                item.setItemValueAp(EXPValue * 1000);
             }
             if (itemId.equals("2002")) {
-                item.setItemValueAp(lmdValue * 400 * expCoefficient);
+                item.setItemValueAp(EXPValue * 400);
             }
             if (itemId.equals("2001")) {
-                item.setItemValueAp(lmdValue * 200 * expCoefficient);
+                item.setItemValueAp(EXPValue * 200);
             }
             if (itemId.equals("4001")) {
                 item.setItemValueAp(lmdValue);
@@ -179,10 +179,21 @@ public class ItemServiceImpl implements ItemService {
     @RedisCacheable(key = "Item:itemValue", params = "version")
     public List<Item> getItemListCache(String version) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        System.out.println(version);
-        itemQueryWrapper.in(Item::getVersion, version, "FIXED", "CHIP").orderByDesc(Item::getItemValueAp);
+        itemQueryWrapper.in(Item::getVersion, version).orderByDesc(Item::getItemValueAp);
+
         return itemMapper.selectList(itemQueryWrapper);
 
+    }
+
+    @RedisCacheable(key = "Item:itemValue", params = "version")
+    @Override
+    public List<Item> getItemListCache(StageParamDTO stageParamDTO) {
+        LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
+        itemQueryWrapper.in(Item::getVersion, stageParamDTO.getVersion()).orderByDesc(Item::getItemValueAp);
+        List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
+        List<Item> floatingValueItemList = updateFloatingValueItem(stageParamDTO);
+        itemList.addAll(floatingValueItemList);
+        return itemList;
     }
 
     /**
@@ -211,180 +222,35 @@ public class ItemServiceImpl implements ItemService {
     }
 
 
-    @Override
-    public void updateOriginalFixedItemValue(StageParamDTO stageParamDTO) {
-        LambdaQueryWrapper<Item> FIXEDLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        FIXEDLambdaQueryWrapper.eq(Item::getVersion, "FIXED");
-        List<Item> fixedItems = itemMapper.selectList(FIXEDLambdaQueryWrapper);
 
+
+
+    @Override
+    public List<Item> updateFloatingValueItem(StageParamDTO stageParamDTO) {
+        LambdaQueryWrapper<Item> itemLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        itemLambdaQueryWrapper.in(Item::getVersion, "FIXED","CHIP");
+        List<Item> itemList = itemMapper.selectList(itemLambdaQueryWrapper);
+
+        //龙门币价值
         Double LMDValue = stageParamDTO.getLMDValue();
+        //经验书价值
         Double EXPValue = stageParamDTO.getEXPValue();
 
-        //采购凭证  （关卡AP - 龙门币价值*关卡掉落*倍率*关卡AP)/掉落数
-        double itemValue_4006 = (30 - LMDValue * 12 * 30) / 21;
-        //无人机  经验书价值 * 经验书产出数量
-        double base_ap = EXPValue * 50 / 3;
-        //赤金  无人机/赤金产出数量（1/24)
-        double itemValue_3003 = base_ap * 24;
-        double itemValue_32001 = itemValue_4006 * 90;
-        double itemValue_3303 = (30 - LMDValue * 12 * 30) / (2 + 1.5 * (1.18 / 3 + 1.18 * 1.18 / 9));
-        double itemValue_3302 = 1.18 * itemValue_3303 / 3;
-        double itemValue_3301 = 1.18 * itemValue_3302 / 3;
-        double AP36 = 36 - 36 * LMDValue * 12;
-        double AP18 = 18 - 18 * LMDValue * 12;
+        FloatingValueItem floatingValueItem = new FloatingValueItem();
+        Map<String, Double> floatingValueItemMap = floatingValueItem.initValue(LMDValue, EXPValue, true);
 
-
-        for (Item item : fixedItems) {
-            if ("3003".equals(item.getItemId())) {
-                item.setItemValueAp(itemValue_3003);
-                itemMapper.updateById(item);
-                continue;
-            }
-
-            if ("3303".equals(item.getItemId())) {
-                item.setItemValueAp(itemValue_3303);
-                itemMapper.updateById(item);
-                continue;
-            }
-
-            if ("3302".equals(item.getItemId())) {
-                item.setItemValueAp(itemValue_3302);
-                itemMapper.updateById(item);
-                continue;
-            }
-
-            if ("3301".equals(item.getItemId())) {
-                item.setItemValueAp(itemValue_3301);
-                itemMapper.updateById(item);
-                continue;
-            }
-
-            if ("4006".equals(item.getItemId())) {
-                item.setItemValueAp(itemValue_4006);
-                itemMapper.updateById(item);
-                continue;
-            }
-
-            if ("32001".equals(item.getItemId())) {
-                item.setItemValueAp(itemValue_32001);
-                itemMapper.updateById(item);
-                continue;
-            }
-
-        }
-
-        LambdaQueryWrapper<Item> CHIPLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        CHIPLambdaQueryWrapper.eq(Item::getVersion, "CHIP");
-        List<Item> CHIPItems = itemMapper.selectList(CHIPLambdaQueryWrapper);
-
-
-        String regex32X1 = "^32\\d1$";
-        String regex32X2 = "^32\\d2$";
-        String regex32X3 = "^32\\d3$";
-        Pattern pattern32X1 = Pattern.compile(regex32X1);
-        Pattern pattern32X2 = Pattern.compile(regex32X2);
-        Pattern pattern32X3 = Pattern.compile(regex32X3);
-
-        for (Item item : CHIPItems) {
-            Matcher matcher32X1 = pattern32X1.matcher(item.getItemId());
-            Matcher matcher32X2 = pattern32X2.matcher(item.getItemId());
-            Matcher matcher32X3 = pattern32X3.matcher(item.getItemId());
-
-            //芯片
-            if (matcher32X1.matches()) {
-                item.setItemValueAp(AP18);
-                itemMapper.updateById(item);
-                continue;
-            }
-            //芯片组
-            if (matcher32X2.matches()) {
-                item.setItemValueAp(AP36);
-                itemMapper.updateById(item);
-                continue;
-            }
-
-            //双芯片
-            if (matcher32X3.matches()) {
-                double value = AP36 * 2 + base_ap * 20 + itemValue_32001;
-                item.setItemValueAp(value);
-                itemMapper.updateById(item);
-            }
-
-        }
-
-        LambdaQueryWrapper<Item> CHIP_LOW_OR_HEIGHT_VALUEQueryWrapper = new LambdaQueryWrapper<>();
-        CHIP_LOW_OR_HEIGHT_VALUEQueryWrapper.eq(Item::getVersion, "CHIP_LOW_OR_HEIGHT_VALUE");
-        List<Item> CHIP_LOW_OR_HEIGHT_VALUE = itemMapper.selectList(CHIP_LOW_OR_HEIGHT_VALUEQueryWrapper);
-
-
-        for (Item item : CHIP_LOW_OR_HEIGHT_VALUE) {
-
-
-            double CHIP1_HEIGHT_VALUE = (6 - 0.18) / 5 * AP18;
-
-            double CHIP1_LOW_VALUE = (4 + 0.18) / 5 * AP18;
-
-            double CHIP2_HEIGHT_VALUE = (6 - 0.18) / 5 * AP36;
-
-            double CHIP2_LOW_VALUE = (4 + 0.18) / 5 * AP36;
-
-            //强势芯片
-            if ("3231".equals(item.getItemId()) || "3221".equals(item.getItemId())) {
-                item.setItemValueAp(CHIP1_HEIGHT_VALUE);
-                itemMapper.updateById(item);
-            }
-            //弱势芯片
-            if ("3261".equals(item.getItemId()) || "3281".equals(item.getItemId())) {
-
-                item.setItemValueAp(CHIP1_LOW_VALUE);
-                itemMapper.updateById(item);
-            }
-            //均势芯片
-            if ("3271".equals(item.getItemId()) || "3211".equals(item.getItemId()) ||
-                    "3241".equals(item.getItemId()) || "3251".equals(item.getItemId())) {
-                item.setItemValueAp(AP18);
-                itemMapper.updateById(item);
-            }
-
-            //强势芯片组
-            if ("3232".equals(item.getItemId()) || "3222".equals(item.getItemId())) {
-                item.setItemValueAp(CHIP2_HEIGHT_VALUE);
-                itemMapper.updateById(item);
-            }
-            //弱势芯片组
-            if ("3262".equals(item.getItemId()) || "3282".equals(item.getItemId())) {
-                item.setItemValueAp(CHIP2_LOW_VALUE);
-                itemMapper.updateById(item);
-            }
-
-            //均势芯片组
-            if ("3272".equals(item.getItemId()) || "3212".equals(item.getItemId()) ||
-                    "3242".equals(item.getItemId()) || "3252".equals(item.getItemId())) {
-                item.setItemValueAp(AP36);
-                itemMapper.updateById(item);
-            }
-
-            //强势双芯片
-            if ("3233".equals(item.getItemId()) || "3223".equals(item.getItemId())) {
-                double value = CHIP2_HEIGHT_VALUE + base_ap * 20 + itemValue_32001;
-                item.setItemValueAp(value);
-                itemMapper.updateById(item);
-            }
-            //弱势双芯片
-            if ("3263".equals(item.getItemId()) || "3283".equals(item.getItemId())) {
-                double value = CHIP2_LOW_VALUE + base_ap * 20 + itemValue_32001;
-                item.setItemValueAp(value);
-                itemMapper.updateById(item);
-            }
-            //均势双芯片
-            if ("3273".equals(item.getItemId()) || "3213".equals(item.getItemId()) ||
-                    "3243".equals(item.getItemId()) || "3253".equals(item.getItemId())) {
-                double value = AP36 + base_ap * 20 + itemValue_32001;
-                item.setItemValueAp(value);
-                itemMapper.updateById(item);
+        for(Item item:itemList){
+            String itemId = item.getItemId();
+            if(floatingValueItemMap.get(itemId)!=null){
+                item.setItemValueAp(floatingValueItemMap.get(itemId));
             }
         }
+
+        return itemList;
     }
+
+
+
 
     private Map<String, Double> getItemIterationValue(String version) {
         //读取上次迭代计算出的副产物价值

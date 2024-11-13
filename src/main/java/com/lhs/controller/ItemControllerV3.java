@@ -129,7 +129,7 @@ public class ItemControllerV3 {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        List<Item> items = itemService.getItemListCache(stageParamDTO.getVersion());
+        List<Item> items = itemService.getItemListCache(stageParamDTO);
         return Result.success(items);
     }
 
