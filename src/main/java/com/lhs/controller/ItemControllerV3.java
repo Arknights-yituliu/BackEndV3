@@ -10,6 +10,7 @@ import com.lhs.service.material.*;
 import com.lhs.task.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -85,10 +86,16 @@ public class ItemControllerV3 {
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
         List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageParamDTO.getVersion());
-
-
         return Result.success(actStageVOList);
     }
+
+    @Operation(summary = "获取关卡信息")
+    @GetMapping("/stage/info")
+    public Result<List<Stage>> getStageInfo(){
+
+        return Result.success(stageService.getStageList(null));
+    }
+
 
     @Operation(summary = "查询新章的关卡效率")
     @GetMapping("/stage/chapter")
