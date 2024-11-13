@@ -30,6 +30,24 @@ public class StageService {
         return stageMapper.selectList(queryWrapper);
     }
 
+    public List<Map<String,Object>> getStageInfo(){
+           List<Map<String,Object>> list = new ArrayList<>();
+           List<Stage> stageList = stageMapper.selectList(null);
+           for(Stage item : stageList){
+               Map<String,Object> map = new HashMap<>();
+               map.put("stageId",item.getStageId());
+               map.put("stageCode",item.getStageCode());
+               map.put("zoneId",item.getZoneId());
+               map.put("zoneName",item.getZoneName());
+               map.put("apCost",item.getApCost());
+               map.put("type",item.getStageType());
+               map.put("start",item.getStartTime().getTime());
+               map.put("end",item.getEndTime().getTime());
+               list.add(map);
+           }
+           return list;
+    }
+
     public Map<String, Stage> getStageMapKeyIsStageId() {
         QueryWrapper<Stage> stageNewQueryWrapper = new QueryWrapper<>();
         stageNewQueryWrapper.notLike("stage_id", "tough");

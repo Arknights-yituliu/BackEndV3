@@ -56,13 +56,12 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @GetMapping("/stage/result")
-    public Result<Map<String, Object>> getStageResultOld(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<Map<String, Object>> getStageResultOld(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                       @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
         Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
-
         return Result.success(t3RecommendedStageV3);
     }
 
@@ -80,7 +79,7 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取历史活动关卡")
     @GetMapping("/stage/act")
-    public Result<List<ActStageVO>> getStageResultClosedActivities(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<List<ActStageVO>> getStageResultClosedActivities(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                                    @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
@@ -91,15 +90,14 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取关卡信息")
     @GetMapping("/stage/info")
-    public Result<List<Stage>> getStageInfo(){
-
-        return Result.success(stageService.getStageList(null));
+    public Result<Object> getStageInfo(){
+        return Result.success(stageService.getStageInfo());
     }
 
 
     @Operation(summary = "查询新章的关卡效率")
     @GetMapping("/stage/chapter")
-    public Result<List<StageResultVOV2>> getStageResultByZone(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<List<StageResultVOV2>> getStageResultByZone(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                               @RequestParam(required = false, defaultValue = "300") Integer sampleSize,
                                                               @RequestParam String zoneCode) {
 
@@ -120,7 +118,7 @@ public class ItemControllerV3 {
 
     @Operation(summary = "查询关卡详细信息")
     @GetMapping("/stage/detail")
-    public Result<Map<String, StageResultDetailVO>> getStageResultDetail(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<Map<String, StageResultDetailVO>> getStageResultDetail(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                                          @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
@@ -131,7 +129,7 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取物品价值表")
     @GetMapping("/item/value")
-    public Result<List<Item>> getItemValueV2(@RequestParam(required = false, defaultValue = "0.625") Double expCoefficient,
+    public Result<List<Item>> getItemValueV2(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                              @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
