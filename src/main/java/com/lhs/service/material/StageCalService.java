@@ -15,6 +15,7 @@ import com.lhs.mapper.material.QuantileMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
 import com.lhs.service.user.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -51,13 +52,10 @@ public class StageCalService {
         idGenerator = new IdGenerator(1L);
     }
 
-    public void saveMaterialValueConfig(Map<String,Object> requestParams){
-        Object oToken = requestParams.get("token");
-        if(oToken==null){
-            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        }
+    public void saveMaterialValueConfig(Map<String,Object> requestParams, HttpServletRequest httpServletRequest){
 
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(String.valueOf(oToken));
+
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(userService.extractToken(httpServletRequest));
         Long uid = userInfoByToken.getUid();
 
         MaterialValueConfig materialValueConfig = new MaterialValueConfig();
@@ -69,15 +67,15 @@ public class StageCalService {
         Integer sampleSize = stageParamDTO.getSampleSize();
         String version = stageParamDTO.getVersion();
 
-        //物品信息Map  <itemId,Item>
+        //物品信息  <itemId,Item>
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
-
-        //关卡信息Map <stageId,stage>
+        //关卡信息 <stageId,stage>
         Map<String, Stage> stageMap = stageService.getStageList(new QueryWrapper<Stage>()
                         .notLike("stage_id", "tough"))
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
+
 
         JsonNode itemSeriesTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
 

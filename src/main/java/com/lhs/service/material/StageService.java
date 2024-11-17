@@ -8,10 +8,8 @@ import com.lhs.entity.po.material.Stage;
 
 import com.lhs.entity.vo.material.ZoneTableVO;
 import com.lhs.mapper.material.StageMapper;
-import com.lhs.service.util.OSSService;
-import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
+import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -21,10 +19,13 @@ import java.util.stream.Collectors;
 @Service
 public class StageService {
 
-    @Resource
-    private StageMapper stageMapper;
-    @Resource
-    private OSSService ossService;
+
+    private final StageMapper stageMapper;
+
+    public StageService(StageMapper stageMapper) {
+        this.stageMapper = stageMapper;
+    }
+
 
     public List<Stage> getStageList(QueryWrapper<Stage> queryWrapper) {
         return stageMapper.selectList(queryWrapper);
