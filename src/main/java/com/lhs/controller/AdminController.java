@@ -1,6 +1,7 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
+import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.entity.po.admin.LogInfo;
 import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.dev.LoginVo;
@@ -116,8 +117,12 @@ public class AdminController {
 
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
-    public Result<List<PackInfoVO>> getPackList(){
-        return Result.success(packInfoService.listAllPackInfo());
+    public Result<List<PackInfoVO>> getPackList(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
+                                                @RequestParam(required = false, defaultValue = "300") Integer sampleSize){
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(expCoefficient);
+        stageParamDTO.setSampleSize(sampleSize);
+        return Result.success(packInfoService.listAllPackInfo(stageParamDTO));
     }
 
 

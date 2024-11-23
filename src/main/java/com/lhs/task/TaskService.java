@@ -79,7 +79,7 @@ public class TaskService {
 //       stageDropUploadService.exportData();
 //    }
 
-    @Scheduled(cron = "0 1 * * * ?")
+    @Scheduled(cron = "0 0 0/12 * * ?")
     public void updateStorePackInfo(){
           packInfoService.uploadPackInfoPageToCos();
     }

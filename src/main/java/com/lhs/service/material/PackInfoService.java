@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.entity.po.admin.ImageInfo;
@@ -65,12 +66,12 @@ public class PackInfoService {
         return packInfoTag!=null?packInfoTag.toString():"NO_DATA";
     }
 
-    public List<PackInfoVO> listPackInfo() {
-        return listAllPackInfo();
+    public List<PackInfoVO> listPackInfo(StageParamDTO stageParamDTO) {
+        return listAllPackInfo(stageParamDTO);
     }
 
 
-    public List<PackInfoVO> listAllPackInfo() {
+    public List<PackInfoVO> listAllPackInfo(StageParamDTO stageParamDTO) {
         //查询所有礼包
         LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
         packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
@@ -84,6 +85,11 @@ public class PackInfoService {
 
         //将礼包价值表转为map对象，方便使用
         Map<String, Double> itemValueMap = listPackItem().stream().collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
+
+        List<Item> itemList = itemService.getItemList(stageParamDTO);
+        for(Item item:itemList){
+            itemValueMap.put(item.getItemId(),item.getItemValueAp());
+        }
 
         List<PackInfoVO> VOList = new ArrayList<>();
 
@@ -339,13 +345,17 @@ public class PackInfoService {
     }
 
     public void uploadPackInfoPageToCos(){
-        List<PackInfoVO> packInfoVOS = listPackInfo();
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setSampleSize(300);
+        stageParamDTO.setExpCoefficient(0.633);
+        List<PackInfoVO> packInfoVOS = listPackInfo(stageParamDTO);
         Map<String,Object> response = new HashMap<>();
         long timeStamp = System.currentTimeMillis();
         response.put("data",packInfoVOS);
         response.put("update",timeStamp);
         String jsonString = JsonMapper.toJSONString(response);
         cosService.uploadJson(jsonString,"/store/pack/"+timeStamp+".json");
+        Logger.info("上传礼包性价比数据成 {} tag"+timeStamp);
         redisTemplate.opsForValue().set("PackInfoTag",timeStamp);
     }
 

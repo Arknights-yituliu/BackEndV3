@@ -155,8 +155,13 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
-    public Result<List<PackInfoVO>> listPackInfo(){
-        List<PackInfoVO> list =  packInfoService.listPackInfo();
+    public Result<List<PackInfoVO>> listPackInfo(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
+                                                 @RequestParam(required = false, defaultValue = "300") Integer sampleSize){
+        StageParamDTO stageParamDTO = new StageParamDTO();
+        stageParamDTO.setExpCoefficient(expCoefficient);
+        stageParamDTO.setSampleSize(sampleSize);
+
+        List<PackInfoVO> list =  packInfoService.listPackInfo(stageParamDTO);
         return Result.success(list);
     }
 
