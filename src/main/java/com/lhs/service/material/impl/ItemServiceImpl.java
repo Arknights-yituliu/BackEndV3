@@ -83,8 +83,12 @@ public class ItemServiceImpl implements ItemService {
         Map<String, Item> itemValueMap = new HashMap<>();
 
         for (Item item : items) {
-            item.setVersion(version);
+            if("FIXED".equals(item.getVersion())||"CHIP".equals(item.getVersion())){
+                continue;
+            }
+
             item.setId(idGenerator.nextId());
+            item.setVersion(version);
 
             String itemId = item.getItemId();
             //设置经验书系数，经验书价值 = 龙门币价值 * 经验书系数
@@ -113,6 +117,7 @@ public class ItemServiceImpl implements ItemService {
         //根据加工站合成表计算新价值
         compositeTableDTO.forEach(table -> {
             Item item = itemValueMap.get(table.getId());
+
             Integer rarity = item.getRarity();
             double itemValueNew = 0.0;
             if (table.getResolve()) {
@@ -135,7 +140,7 @@ public class ItemServiceImpl implements ItemService {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version", version);
         int delete = itemMapper.delete(itemQueryWrapper);
-
+        items = items.stream().filter(e->version.equals(e.getVersion())).toList();
         saveByProductValue(items, version);  //保存新的材料价值表的加工站副产物平均产出价值
         itemMapperService.saveBatch(items);  //更新材料表
 
@@ -169,22 +174,14 @@ public class ItemServiceImpl implements ItemService {
         itemIterationValueMapper.delete(queryWrapper);
     }
 
+
+
     /**
      * 获取材料表（外部API用，有缓存）
      *
-     * @param version 物品价值的版本号
+     * @param stageParamDTO 关卡参数，用于拼接版本号
      * @return 材料信息表
      */
-    @Override
-    @RedisCacheable(key = "Item:itemValue", params = "version")
-    public List<Item> getItemListCache(String version) {
-        LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.in(Item::getVersion, version).orderByDesc(Item::getItemValueAp);
-
-        return itemMapper.selectList(itemQueryWrapper);
-
-    }
-
     @RedisCacheable(key = "Item:itemValue", params = "version")
     @Override
     public List<Item> getItemListCache(StageParamDTO stageParamDTO) {
@@ -206,7 +203,16 @@ public class ItemServiceImpl implements ItemService {
     public List<Item> getItemList(StageParamDTO stageParamDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
         itemQueryWrapper.eq(Item::getVersion, stageParamDTO.getVersion());
-        return itemMapper.selectList(itemQueryWrapper);
+        List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
+        if(itemList.isEmpty()){
+            itemQueryWrapper.clear();
+            itemQueryWrapper.eq(Item::getVersion, "ORIGINAL");
+            itemList = itemMapper.selectList(itemQueryWrapper);
+        }
+
+        List<Item> floatingValueItemList = updateFloatingValueItem(stageParamDTO);
+        itemList.addAll(floatingValueItemList);
+        return itemList;
     }
 
     /**

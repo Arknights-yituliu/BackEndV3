@@ -14,7 +14,7 @@ public interface RogueSeedService {
     Map<String,Object> saveOrUpdateRogueSeed(RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest);
 
 
-    void uploadRogueSeedPage();
+    void uploadRogueSeedPageToCOS();
 
     Map<String, Object> uploadSettlementChart(MultipartFile multipartFile, HttpServletRequest httpServletRequest);
 

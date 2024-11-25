@@ -141,9 +141,9 @@ public class AdminController {
     }
 
     @Operation(summary = "清除礼包缓存数据")
-    @GetMapping("/admin/pack/clearCache")
+    @GetMapping("/admin/pack/reset")
     public Result<Object> clearPackCache(){
-        String message = packInfoService.clearPackInfoCache();
+        String message = packInfoService.resetPackInfoCache();
         return Result.success(message);
     }
 

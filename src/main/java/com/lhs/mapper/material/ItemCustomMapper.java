@@ -5,5 +5,5 @@ import com.lhs.entity.po.material.ItemCustom;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PackItemMapper extends BaseMapper<ItemCustom> {
+public interface ItemCustomMapper extends BaseMapper<ItemCustom> {
 }

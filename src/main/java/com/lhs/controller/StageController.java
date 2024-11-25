@@ -51,7 +51,7 @@ public class StageController {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
-        Map<String, Object> hashMap = stageResultService.getT3RecommendedStageV2(stageParamDTO.getVersion());
+        Map<String, Object> hashMap = stageResultService.getT3RecommendedStageV2(stageParamDTO);
         return Result.success(hashMap);
     }
 
@@ -76,7 +76,7 @@ public class StageController {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
-        List<RecommendedStageVO> recommendedStageVOList = stageResultService.getT2RecommendedStage(stageParamDTO.getVersion());
+        List<RecommendedStageVO> recommendedStageVOList = stageResultService.getT2RecommendedStage(stageParamDTO);
 
         return Result.success(recommendedStageVOList);
     }
@@ -129,7 +129,7 @@ public class StageController {
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
 
-        return Result.success(stageResultService.getT2RecommendedStageV1(stageParamDTO.getVersion()));
+        return Result.success(stageResultService.getT2RecommendedStageV1(stageParamDTO));
     }
 
     @Operation(summary = "获取历史活动关卡v1")
@@ -140,7 +140,7 @@ public class StageController {
         stageParamDTO.setSampleSize(sampleSize);
         stageParamDTO.setExpCoefficient(expCoefficient);
 
-        return Result.success(stageResultService.getHistoryActStage(stageParamDTO.getVersion()));
+        return Result.success(stageResultService.getHistoryActStage(stageParamDTO));
     }
 
 }

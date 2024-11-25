@@ -18,9 +18,6 @@ public interface ItemService  {
 
     void deleteItemIterationValue(String version);
 
-
-    List<Item> getItemListCache(String version);
-
     List<Item> getItemList(StageParamDTO stageParamDTO);
 
     List<Item> getBaseItemList();
@@ -28,4 +25,6 @@ public interface ItemService  {
     List<Item> updateFloatingValueItem(StageParamDTO stageParamDTO);
 
     List<Item> getItemListCache(StageParamDTO stageParamDTO);
+
+
 }

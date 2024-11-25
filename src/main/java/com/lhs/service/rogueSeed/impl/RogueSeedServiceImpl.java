@@ -94,7 +94,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
     @Override
-    public void uploadRogueSeedPage() {
+    public void uploadRogueSeedPageToCOS() {
         long currentTimeMillis = System.currentTimeMillis();
         List<RogueSeed> rogueSeedList = rogueSeedMapper.selectList(null);
         List<RogueSeedRatingStatistics> rogueSeedRatingStatistics = rogueSeedRatingStatisticsMapper.selectList(null);

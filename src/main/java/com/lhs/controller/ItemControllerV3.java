@@ -45,14 +45,17 @@ public class ItemControllerV3 {
     }
 
     @Operation(summary = "手动更新")
-    @GetMapping("/stage/update")
+    @GetMapping("/update/stage")
     public Result<Map<String, List<Stage>>> updateStageResult() {
         taskService.updateStageResult();
         return Result.success();
     }
-
-
-
+    @Operation(summary = "手动更新礼包性价比")
+    @GetMapping("/update/pack")
+    public Result<Map<String, List<Stage>>> updatePackInfo() {
+        taskService.updateStorePackInfo();
+        return Result.success();
+    }
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @GetMapping("/stage/result")
@@ -73,7 +76,7 @@ public class ItemControllerV3 {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageParamDTO.getVersion());
+        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageParamDTO);
         return Result.success(orundumPerApResultVOList);
     }
 
@@ -84,7 +87,7 @@ public class ItemControllerV3 {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageParamDTO.getVersion());
+        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageParamDTO);
         return Result.success(actStageVOList);
     }
 
@@ -123,7 +126,7 @@ public class ItemControllerV3 {
         StageParamDTO stageParamDTO = new StageParamDTO();
         stageParamDTO.setExpCoefficient(expCoefficient);
         stageParamDTO.setSampleSize(sampleSize);
-        Map<String, StageResultDetailVO> allStageResult = stageResultService.getAllStageResult(stageParamDTO.getVersion());
+        Map<String, StageResultDetailVO> allStageResult = stageResultService.getAllStageResult(stageParamDTO);
         return Result.success(allStageResult);
     }
 
