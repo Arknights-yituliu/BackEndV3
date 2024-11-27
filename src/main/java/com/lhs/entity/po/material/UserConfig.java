@@ -6,7 +6,7 @@ import lombok.Data;
 
 @TableName
 @Data
-public class MaterialValueConfig {
+public class UserConfig {
 
     @TableId
     private Long uid;

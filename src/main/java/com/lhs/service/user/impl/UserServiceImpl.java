@@ -835,7 +835,6 @@ public class UserServiceImpl implements UserService {
         //检查验证码
         email163Service.compareVerificationCode(verificationCode, "CODE:CODE." + email);
 
-
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
         UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);

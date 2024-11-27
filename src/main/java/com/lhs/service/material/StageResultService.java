@@ -5,16 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.material.*;
-import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.mapper.material.MaterialValueConfigMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
-import com.lhs.service.user.UserService;
 import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -35,10 +31,8 @@ public class StageResultService {
     private final OSSService ossService;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final UserService userService;
-    private final MaterialValueConfigMapper materialValueConfigMapper;
 
-    public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate, UserService userService, MaterialValueConfigMapper materialValueConfigMapper) {
+    public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate) {
         this.stageResultDetailMapper = stageResultDetailMapper;
         this.stageResultMapper = stageResultMapper;
         this.itemService = itemService;
@@ -46,8 +40,6 @@ public class StageResultService {
         this.stageService = stageService;
         this.ossService = ossService;
         this.redisTemplate = redisTemplate;
-        this.userService = userService;
-        this.materialValueConfigMapper = materialValueConfigMapper;
     }
 
 
