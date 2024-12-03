@@ -137,6 +137,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             operatorData.setModX(0);
             operatorData.setModY(0);
             operatorData.setModD(0);
+            operatorData.setModA(0);
 
             JsonNode skills = chars.get(i).get("skills");
             for (int j = 0; j < skills.size(); j++) {
@@ -170,6 +171,9 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                     if ("D".equals(type)) {
                         operatorData.setModD(equipLevel);
                     }
+                    if ("A".equals(type)) {
+                        operatorData.setModA(equipLevel);
+                    }
                 }
                 if (equipLevel > 1) {
                     if ("X".equals(type)) {
@@ -180,6 +184,9 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                     }
                     if ("D".equals(type)) {
                         operatorData.setModD(equipLevel);
+                    }
+                    if ("A".equals(type)) {
+                        operatorData.setModA(equipLevel);
                     }
                 }
             }

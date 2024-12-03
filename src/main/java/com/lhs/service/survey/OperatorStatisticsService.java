@@ -101,6 +101,7 @@ public class OperatorStatisticsService {
                     .modX(JsonMapper.toJSONString(v.getModX()))
                     .modY(JsonMapper.toJSONString(v.getModY()))
                     .modD(JsonMapper.toJSONString(v.getModD()))
+                    .modA(JsonMapper.toJSONString(v.getModA()))
                     .potential(JsonMapper.toJSONString(v.getPotential()))
                     .build();
             statisticsOperatorList.add(build);
@@ -151,6 +152,7 @@ public class OperatorStatisticsService {
             Map<Integer, Long> collectByModX = new HashMap<>();
             Map<Integer, Long> collectByModY = new HashMap<>();
             Map<Integer, Long> collectByModD = new HashMap<>();
+            Map<Integer, Long> collectByModA = new HashMap<>();
 
             for (OperatorData surveyOperatorData : list) {
                 collectByElite.merge(surveyOperatorData.getElite(), 1L, Long::sum);
@@ -161,6 +163,7 @@ public class OperatorStatisticsService {
                 collectByModX.merge(surveyOperatorData.getModX(), 1L, Long::sum);
                 collectByModY.merge(surveyOperatorData.getModY(), 1L, Long::sum);
                 collectByModD.merge(surveyOperatorData.getModD(), 1L, Long::sum);
+                collectByModA.merge(surveyOperatorData.getModA(), 1L, Long::sum);
             }
 
 
@@ -176,6 +179,7 @@ public class OperatorStatisticsService {
                 mergeLastData(lastData.getModX(), collectByModX);
                 mergeLastData(lastData.getModY(), collectByModY);
                 mergeLastData(lastData.getModD(), collectByModD);
+                mergeLastData(lastData.getModA(), collectByModA);
             }
 
             //存入dto对象进行暂存
@@ -191,6 +195,7 @@ public class OperatorStatisticsService {
                     .modX(collectByModX)
                     .modY(collectByModY)
                     .modD(collectByModD)
+                    .modA(collectByModA)
                     .build();
             tmpResult.put(charId, build);
         });
@@ -234,6 +239,7 @@ public class OperatorStatisticsService {
                     .modX(splitCalculation(item.getModX(), item.getOwn(), "modX"))
                     .modY(splitCalculation(item.getModY(), item.getOwn(), "modY"))
                     .modD(splitCalculation(item.getModD(), item.getOwn(), "modD"))
+                    .modA(splitCalculation(item.getModA(), item.getOwn(), "modA"))
                     .build();
             operatorStatisticsResultVOList.add(build);
         });

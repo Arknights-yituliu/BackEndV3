@@ -22,5 +22,6 @@ public class OperatorStatisticsDTO {
     private Map<Integer,Long> modX;
     private Map<Integer,Long> modY;
     private Map<Integer,Long> modD;
+    private Map<Integer,Long> modA;
     private Map<Integer,Long> potential;
 }

@@ -26,6 +26,6 @@ public class OperatorStatistics {
     private String modX;
     private String modY;
     private String modD;
-
+    private String modA;
 
 }

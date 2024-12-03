@@ -39,6 +39,8 @@ public class OperatorData {
 
     private Integer modD;
 
+    private Integer modA;
+
 
     public void copyBySurveyOperatorData(SurveyOperatorData surveyOperatorData){
         this.id = surveyOperatorData.getId();
@@ -56,5 +58,6 @@ public class OperatorData {
         this.modX = surveyOperatorData.getModX();
         this.modY = surveyOperatorData.getModY();
         this.modD = surveyOperatorData.getModD();
+        this.modA = surveyOperatorData.getModA();
     }
 }
