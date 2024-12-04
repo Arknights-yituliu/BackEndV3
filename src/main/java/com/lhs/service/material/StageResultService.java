@@ -9,7 +9,6 @@ import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.material.*;
-import com.lhs.mapper.material.MaterialValueConfigMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
 import com.lhs.service.user.UserService;
@@ -34,9 +33,15 @@ public class StageResultService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final UserService userService;
-    private final MaterialValueConfigMapper materialValueConfigMapper;
 
-    public StageResultService(StageResultDetailMapper stageResultDetailMapper, StageResultMapper stageResultMapper, ItemService itemService, StageCalService stageCalService, StageService stageService, OSSService ossService, RedisTemplate<String, Object> redisTemplate, UserService userService, MaterialValueConfigMapper materialValueConfigMapper) {
+    public StageResultService(StageResultDetailMapper stageResultDetailMapper,
+                              StageResultMapper stageResultMapper,
+                              ItemService itemService,
+                              StageCalService stageCalService,
+                              StageService stageService,
+                              OSSService ossService,
+                              RedisTemplate<String, Object> redisTemplate,
+                              UserService userService) {
         this.stageResultDetailMapper = stageResultDetailMapper;
         this.stageResultMapper = stageResultMapper;
         this.itemService = itemService;
@@ -45,7 +50,7 @@ public class StageResultService {
         this.ossService = ossService;
         this.redisTemplate = redisTemplate;
         this.userService = userService;
-        this.materialValueConfigMapper = materialValueConfigMapper;
+
     }
 
 

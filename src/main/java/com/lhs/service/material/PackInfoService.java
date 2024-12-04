@@ -17,7 +17,7 @@ import com.lhs.entity.vo.material.PackContentVO;
 import com.lhs.entity.vo.material.PackInfoVO;
 import com.lhs.mapper.material.PackContentMapper;
 import com.lhs.mapper.material.PackInfoMapper;
-import com.lhs.mapper.material.PackItemMapper;
+import com.lhs.mapper.material.ItemCustomMapper;
 import com.lhs.mapper.material.service.PackContentMapperService;
 import com.lhs.service.admin.ImageInfoService;
 import com.lhs.service.util.COSService;
@@ -32,7 +32,7 @@ public class PackInfoService {
 
     private final PackInfoMapper packInfoMapper;
     private final PackContentMapper packContentMapper;
-    private final PackItemMapper packItemMapper;
+    private final ItemCustomMapper itemCustomMapper;
     private final IdGenerator idGenerator;
     private final RedisTemplate<String, Object> redisTemplate;
     private final COSService cosService;
@@ -45,7 +45,7 @@ public class PackInfoService {
                            RedisTemplate<String, Object> redisTemplate,
                            COSService cosService,
                            PackContentMapperService packContentMapperService,
-                           PackItemMapper packItemMapper,
+                           ItemCustomMapper itemCustomMapper,
                            ItemService itemService,
                            ImageInfoService imageInfoService) {
         this.packInfoMapper = packInfoMapper;
@@ -55,7 +55,7 @@ public class PackInfoService {
         this.idGenerator = new IdGenerator(1L);
         this.cosService = cosService;
         this.packContentMapperService = packContentMapperService;
-        this.packItemMapper = packItemMapper;
+        this.itemCustomMapper = itemCustomMapper;
         this.imageInfoService = imageInfoService;
     }
 
@@ -65,12 +65,12 @@ public class PackInfoService {
         return packInfoTag!=null?packInfoTag.toString():"NO_DATA";
     }
 
-    public List<PackInfoVO> listPackInfo() {
-        return listAllPackInfo();
+    public List<PackInfoVO> listPackInfo(StageConfigDTO stageConfigDTO) {
+        return listAllPackInfo(stageConfigDTO);
     }
 
 
-    public List<PackInfoVO> listAllPackInfo() {
+    public List<PackInfoVO> listAllPackInfo(StageConfigDTO stageConfigDTO) {
         //查询所有礼包
         LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
         packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
@@ -83,7 +83,7 @@ public class PackInfoService {
         Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream().collect(Collectors.groupingBy(PackContent::getContentId));
 
         //将礼包价值表转为map对象，方便使用
-        Map<String, Double> itemValueMap = listPackItem().stream().collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
+        Map<String, Double> itemValueMap = listPackItem(stageConfigDTO).stream().collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
 
         List<PackInfoVO> VOList = new ArrayList<>();
 
@@ -177,20 +177,20 @@ public class PackInfoService {
     public ItemCustom saveOrUpdatePackItem(ItemCustom newItemCustom) {
         QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", newItemCustom.getId());
-        ItemCustom itemCustom = packItemMapper.selectOne(queryWrapper);
+        ItemCustom itemCustom = itemCustomMapper.selectOne(queryWrapper);
         if (itemCustom == null) {
             newItemCustom.setId(String.valueOf(idGenerator.nextId()));
-            packItemMapper.insert(newItemCustom);
+            itemCustomMapper.insert(newItemCustom);
         } else {
-            packItemMapper.update(newItemCustom, queryWrapper);
+            itemCustomMapper.update(newItemCustom, queryWrapper);
         }
         return newItemCustom;
     }
 
 
-    public List<ItemCustom> listPackItem() {
+    public List<ItemCustom> listPackItem(StageConfigDTO stageConfigDTO) {
 
-        List<Item> itemList = itemService.getItemList(new StageConfigDTO());
+        List<Item> itemList = itemService.getItemList(stageConfigDTO);
         List<ItemCustom> itemCustomList = new ArrayList<>();
         for(Item item:itemList){
             ItemCustom itemCustom = new ItemCustom();
@@ -201,10 +201,10 @@ public class PackInfoService {
             itemCustomList.add(itemCustom);
         }
 
-        List<ItemCustom> itemCustoms = packItemMapper.selectList(null);
+        List<ItemCustom> itemCustoms = itemCustomMapper.selectList(null);
         itemCustomList.addAll(itemCustoms);
 
-        return itemCustoms;
+        return itemCustomList;
 
     }
 
@@ -212,7 +212,7 @@ public class PackInfoService {
     public String deletePackItemById(String id) {
         QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", id);
-        int delete = packItemMapper.delete(queryWrapper);
+        int delete = itemCustomMapper.delete(queryWrapper);
         return "删除了" + delete + "条物品数据";
     }
 
@@ -338,8 +338,8 @@ public class PackInfoService {
         packInfoVO.setPackEfficiencyKernel(packEfficiencyKernel);
     }
 
-    public void uploadPackInfoPageToCos(){
-        List<PackInfoVO> packInfoVOS = listPackInfo();
+    public void uploadPackInfoPageToCos(StageConfigDTO stageConfigDTO){
+        List<PackInfoVO> packInfoVOS = listPackInfo(stageConfigDTO);
         Map<String,Object> response = new HashMap<>();
         long timeStamp = System.currentTimeMillis();
         response.put("data",packInfoVOS);

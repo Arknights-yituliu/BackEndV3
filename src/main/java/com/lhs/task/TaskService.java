@@ -1,5 +1,6 @@
 package com.lhs.task;
 
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.service.maa.StageDropUploadService;
 import com.lhs.service.rogueSeed.RogueSeedService;
 import com.lhs.service.util.OSSService;
@@ -81,7 +82,8 @@ public class TaskService {
 
     @Scheduled(cron = "0 0/1 * * * ?")
     public void updateStorePackInfo(){
-          packInfoService.uploadPackInfoPageToCos();
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        packInfoService.uploadPackInfoPageToCos(stageConfigDTO);
     }
 
 
@@ -103,7 +105,7 @@ public class TaskService {
 
     @Scheduled(cron = "0 0/18 * * * ?")
     public void rogueSeedPageTask(){
-        rogueSeedService.uploadRogueSeedPage();
+        rogueSeedService.uploadRogueSeedPageToCOS();
     }
 
 

@@ -10,9 +10,7 @@ import com.lhs.service.material.*;
 import com.lhs.task.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -51,8 +49,6 @@ public class ItemControllerV3 {
     }
 
 
-
-
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @GetMapping("/stage/result")
     public Result<Map<String, Object>> getStageResultOld(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
@@ -60,6 +56,13 @@ public class ItemControllerV3 {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setSampleSize(sampleSize);
         stageConfigDTO.setExpCoefficient(expCoefficient);
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO.getVersion());
+        return Result.success(t3RecommendedStageV3);
+    }
+
+    @Operation(summary = "获取每种材料系列的关卡计算结果")
+    @PostMapping("/stage/result/custom")
+    public Result<Map<String, Object>> getStageResultOld(@RequestBody StageConfigDTO stageConfigDTO) {
         Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO.getVersion());
         return Result.success(t3RecommendedStageV3);
     }
@@ -154,8 +157,12 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
-    public Result<List<PackInfoVO>> listPackInfo(){
-        List<PackInfoVO> list =  packInfoService.listPackInfo();
+    public Result<List<PackInfoVO>> listPackInfo(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
+                                                 @RequestParam(required = false, defaultValue = "300") Integer sampleSize){
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        stageConfigDTO.setSampleSize(sampleSize);
+        List<PackInfoVO> list =  packInfoService.listPackInfo(stageConfigDTO);
         return Result.success(list);
     }
 

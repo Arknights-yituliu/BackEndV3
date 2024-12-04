@@ -1,7 +1,7 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.material.StageParamDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.LogInfo;
 import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.dev.LoginVo;
@@ -119,10 +119,10 @@ public class AdminController {
     @GetMapping("/dev/store/pack")
     public Result<List<PackInfoVO>> getPackList(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                 @RequestParam(required = false, defaultValue = "300") Integer sampleSize){
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        stageParamDTO.setSampleSize(sampleSize);
-        return Result.success(packInfoService.listAllPackInfo(stageParamDTO));
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        stageConfigDTO.setSampleSize(sampleSize);
+        return Result.success(packInfoService.listAllPackInfo(stageConfigDTO));
     }
 
 
@@ -143,8 +143,9 @@ public class AdminController {
     @Operation(summary = "清除礼包缓存数据")
     @GetMapping("/admin/pack/reset")
     public Result<Object> clearPackCache(){
-        String message = packInfoService.resetPackInfoCache();
-        return Result.success(message);
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        packInfoService.uploadPackInfoPageToCos(stageConfigDTO);
+        return Result.success();
     }
 
 
@@ -188,7 +189,7 @@ public class AdminController {
     @Operation(summary = "获取礼包自定义材料表")
     @GetMapping("/store/pack/item/list")
     public Result<List<ItemCustom>> getItemList() {
-        List<ItemCustom> itemCustomList = packInfoService.listPackItem();
+        List<ItemCustom> itemCustomList = packInfoService.listPackItem(new StageConfigDTO());
         return Result.success(itemCustomList);
     }
 }
