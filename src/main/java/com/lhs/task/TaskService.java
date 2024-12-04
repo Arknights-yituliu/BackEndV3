@@ -1,6 +1,5 @@
 package com.lhs.task;
 
-import com.lhs.entity.dto.material.StageParamDTO;
 import com.lhs.service.maa.StageDropUploadService;
 import com.lhs.service.rogueSeed.RogueSeedService;
 import com.lhs.service.util.OSSService;
@@ -80,19 +79,19 @@ public class TaskService {
 //       stageDropUploadService.exportData();
 //    }
 
-    /**
-     * 更新商店礼包性价比到COS
-     */
-    @Scheduled(cron = "0 0 0/12 * * ?")
-    public void updateStorePackInfo() {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setSampleSize(300);
-        stageParamDTO.setExpCoefficient(0.633);
-        packInfoService.uploadPackInfoPageToCos(stageParamDTO);
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void updateStorePackInfo(){
+          packInfoService.uploadPackInfoPageToCos();
     }
 
 
-
+    /**
+     * 备份关卡计算结果
+     */
+//    @Scheduled(cron = "0 5/10 * * * ?")
+    public void backupStageResult() {
+        stageResultService.backupStageResult();
+    }
 
     /**
      * 更新常驻商店性价比
@@ -102,14 +101,10 @@ public class TaskService {
         storeService.updateStorePerm();
     }
 
-    /**
-     * 上传种子表到COS
-     */
     @Scheduled(cron = "0 0/18 * * * ?")
-    public void rogueSeedPageTask() {
-        rogueSeedService.uploadRogueSeedPageToCOS();
+    public void rogueSeedPageTask(){
+        rogueSeedService.uploadRogueSeedPage();
     }
-
 
 
 }

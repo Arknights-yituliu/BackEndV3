@@ -11,7 +11,7 @@ import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.CompositeTableDTO;
 import com.lhs.entity.dto.material.FloatingValueItem;
 import com.lhs.entity.dto.material.ItemCostDTO;
-import com.lhs.entity.dto.material.StageParamDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.ItemIterationValue;
 import com.lhs.entity.po.material.WorkShopProducts;
@@ -27,8 +27,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,11 +63,11 @@ public class ItemServiceImpl implements ItemService {
      */
     @Transactional
     @Override
-    public List<Item> ItemValueCal(List<Item> items, StageParamDTO stageParamDTO) {
+    public List<Item> ItemValueCal(List<Item> items, StageConfigDTO stageConfigDTO) {
 
-        Double lmdValue = stageParamDTO.getLMDValue();
-        Double EXPValue = stageParamDTO.getEXPValue();
-        String version = stageParamDTO.getVersion();
+        Double lmdValue = stageConfigDTO.getLMDValue();
+        Double EXPValue = stageConfigDTO.getEXPValue();
+        String version = stageConfigDTO.getVersion();
 
         //上次迭代计算出的副产物价值
         Map<String, Double> itemIterationValue = getItemIterationValue(version);
@@ -83,12 +81,8 @@ public class ItemServiceImpl implements ItemService {
         Map<String, Item> itemValueMap = new HashMap<>();
 
         for (Item item : items) {
-            if("FIXED".equals(item.getVersion())||"CHIP".equals(item.getVersion())){
-                continue;
-            }
-
-            item.setId(idGenerator.nextId());
             item.setVersion(version);
+            item.setId(idGenerator.nextId());
 
             String itemId = item.getItemId();
             //设置经验书系数，经验书价值 = 龙门币价值 * 经验书系数
@@ -117,7 +111,6 @@ public class ItemServiceImpl implements ItemService {
         //根据加工站合成表计算新价值
         compositeTableDTO.forEach(table -> {
             Item item = itemValueMap.get(table.getId());
-
             Integer rarity = item.getRarity();
             double itemValueNew = 0.0;
             if (table.getResolve()) {
@@ -140,7 +133,7 @@ public class ItemServiceImpl implements ItemService {
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version", version);
         int delete = itemMapper.delete(itemQueryWrapper);
-        items = items.stream().filter(e->version.equals(e.getVersion())).toList();
+
         saveByProductValue(items, version);  //保存新的材料价值表的加工站副产物平均产出价值
         itemMapperService.saveBatch(items);  //更新材料表
 
@@ -174,21 +167,29 @@ public class ItemServiceImpl implements ItemService {
         itemIterationValueMapper.delete(queryWrapper);
     }
 
-
-
     /**
      * 获取材料表（外部API用，有缓存）
      *
-     * @param stageParamDTO 关卡参数，用于拼接版本号
+     * @param version 物品价值的版本号
      * @return 材料信息表
      */
+    @Override
+    @RedisCacheable(key = "Item:itemValue", params = "version")
+    public List<Item> getItemListCache(String version) {
+        LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
+        itemQueryWrapper.in(Item::getVersion, version).orderByDesc(Item::getItemValueAp);
+
+        return itemMapper.selectList(itemQueryWrapper);
+
+    }
+
     @RedisCacheable(key = "Item:itemValue", params = "version")
     @Override
-    public List<Item> getItemListCache(StageParamDTO stageParamDTO) {
+    public List<Item> getItemListCache(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.in(Item::getVersion, stageParamDTO.getVersion()).orderByDesc(Item::getItemValueAp);
+        itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersion()).orderByDesc(Item::getItemValueAp);
         List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
-        List<Item> floatingValueItemList = updateFloatingValueItem(stageParamDTO);
+        List<Item> floatingValueItemList = updateFloatingValueItem(stageConfigDTO);
         itemList.addAll(floatingValueItemList);
         return itemList;
     }
@@ -196,23 +197,14 @@ public class ItemServiceImpl implements ItemService {
     /**
      * 获取材料信息表
      *
-     * @param stageParamDTO 关卡计算参数
+     * @param stageConfigDTO 关卡计算参数
      * @return 材料信息表
      */
     @Override
-    public List<Item> getItemList(StageParamDTO stageParamDTO) {
+    public List<Item> getItemList(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.eq(Item::getVersion, stageParamDTO.getVersion());
-        List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
-        if(itemList.isEmpty()){
-            itemQueryWrapper.clear();
-            itemQueryWrapper.eq(Item::getVersion, "ORIGINAL");
-            itemList = itemMapper.selectList(itemQueryWrapper);
-        }
-
-        List<Item> floatingValueItemList = updateFloatingValueItem(stageParamDTO);
-        itemList.addAll(floatingValueItemList);
-        return itemList;
+        itemQueryWrapper.eq(Item::getVersion, stageConfigDTO.getVersion());
+        return itemMapper.selectList(itemQueryWrapper);
     }
 
     /**
@@ -232,15 +224,15 @@ public class ItemServiceImpl implements ItemService {
 
 
     @Override
-    public List<Item> updateFloatingValueItem(StageParamDTO stageParamDTO) {
+    public List<Item> updateFloatingValueItem(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemLambdaQueryWrapper = new LambdaQueryWrapper<>();
         itemLambdaQueryWrapper.in(Item::getVersion, "FIXED","CHIP");
         List<Item> itemList = itemMapper.selectList(itemLambdaQueryWrapper);
 
         //龙门币价值
-        Double LMDValue = stageParamDTO.getLMDValue();
+        Double LMDValue = stageConfigDTO.getLMDValue();
         //经验书价值
-        Double EXPValue = stageParamDTO.getEXPValue();
+        Double EXPValue = stageConfigDTO.getEXPValue();
 
         FloatingValueItem floatingValueItem = new FloatingValueItem();
         Map<String, Double> floatingValueItemMap = floatingValueItem.initValue(LMDValue, EXPValue, true);

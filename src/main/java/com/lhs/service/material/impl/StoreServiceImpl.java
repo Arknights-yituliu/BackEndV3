@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.*;
-import com.lhs.entity.dto.material.StageParamDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.HoneyCake;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.*;
@@ -70,7 +70,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public void updateStorePerm() {
         List<StorePerm> storePermList = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.getItemList(new StageParamDTO())
+        Map<String, Item> collect = itemService.getItemListCache(new StageConfigDTO().getVersion())
                 .stream()
                 .collect(Collectors.toMap(Item::getItemName, Function.identity()));
 
@@ -113,13 +113,8 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel) {
-        List<Item> items = itemService.getItemList(new StageParamDTO());
-
-
-
-        Map<String, Item> itemMap = items.stream().
-                collect(Collectors.toMap(Item::getItemName, Function.identity()));
-
+        List<Item> items = itemService.getItemListCache(new StageConfigDTO().getVersion());
+        Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
         String actName = activityStoreDataVo.getActName();
@@ -211,7 +206,7 @@ public class StoreServiceImpl implements StoreService {
     public void updateHoneyCake(List<HoneyCake> honeyCakeList) {
 
         for (HoneyCake honeyCake : honeyCakeList) {
-
+            System.out.println(honeyCake);
             QueryWrapper<HoneyCake> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("name", honeyCake.getName());
             HoneyCake honeyCakeOld = honeyCakeMapper.selectOne(queryWrapper);

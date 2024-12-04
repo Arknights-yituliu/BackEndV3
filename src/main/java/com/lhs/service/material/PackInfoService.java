@@ -3,10 +3,11 @@ package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Logger;
-import com.lhs.entity.dto.material.StageParamDTO;
+import com.lhs.common.util.ResultCode;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.PackContent;
@@ -16,7 +17,7 @@ import com.lhs.entity.vo.material.PackContentVO;
 import com.lhs.entity.vo.material.PackInfoVO;
 import com.lhs.mapper.material.PackContentMapper;
 import com.lhs.mapper.material.PackInfoMapper;
-import com.lhs.mapper.material.ItemCustomMapper;
+import com.lhs.mapper.material.PackItemMapper;
 import com.lhs.mapper.material.service.PackContentMapperService;
 import com.lhs.service.admin.ImageInfoService;
 import com.lhs.service.util.COSService;
@@ -31,7 +32,7 @@ public class PackInfoService {
 
     private final PackInfoMapper packInfoMapper;
     private final PackContentMapper packContentMapper;
-    private final ItemCustomMapper itemCustomMapper;
+    private final PackItemMapper packItemMapper;
     private final IdGenerator idGenerator;
     private final RedisTemplate<String, Object> redisTemplate;
     private final COSService cosService;
@@ -44,7 +45,7 @@ public class PackInfoService {
                            RedisTemplate<String, Object> redisTemplate,
                            COSService cosService,
                            PackContentMapperService packContentMapperService,
-                           ItemCustomMapper itemCustomMapper,
+                           PackItemMapper packItemMapper,
                            ItemService itemService,
                            ImageInfoService imageInfoService) {
         this.packInfoMapper = packInfoMapper;
@@ -54,7 +55,7 @@ public class PackInfoService {
         this.idGenerator = new IdGenerator(1L);
         this.cosService = cosService;
         this.packContentMapperService = packContentMapperService;
-        this.itemCustomMapper = itemCustomMapper;
+        this.packItemMapper = packItemMapper;
         this.imageInfoService = imageInfoService;
     }
 
@@ -64,12 +65,12 @@ public class PackInfoService {
         return packInfoTag!=null?packInfoTag.toString():"NO_DATA";
     }
 
-    public List<PackInfoVO> listPackInfo(StageParamDTO stageParamDTO) {
-        return listAllPackInfo(stageParamDTO);
+    public List<PackInfoVO> listPackInfo() {
+        return listAllPackInfo();
     }
 
 
-    public List<PackInfoVO> listAllPackInfo(StageParamDTO stageParamDTO) {
+    public List<PackInfoVO> listAllPackInfo() {
         //查询所有礼包
         LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
         packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
@@ -79,30 +80,20 @@ public class PackInfoService {
         List<PackContent> packContentList = packContentMapper.selectList(null);
 
         //查询出来的礼包内容根据packId进行一个分组
-        Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream()
-                .collect(Collectors.groupingBy(PackContent::getContentId));
+        Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream().collect(Collectors.groupingBy(PackContent::getContentId));
 
         //将礼包价值表转为map对象，方便使用
         Map<String, Double> itemValueMap = listPackItem().stream().collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
-
-        List<Item> itemList = itemService.getItemList(stageParamDTO);
-
-        for(Item item:itemList){
-            itemValueMap.put(item.getItemId(),item.getItemValueAp());
-        }
 
         List<PackInfoVO> VOList = new ArrayList<>();
 
         List<ImageInfo> imageInfoList = imageInfoService.listImageInfo("");
         Map<String, String> imageLinkMap = imageInfoList.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
 
-//        itemValueMap.forEach((k,v)-> System.out.println(k+"{}"+v));
-
         for (PackInfo packInfo : packInfoList) {
             PackInfoVO packInfoVO = getPackInfoVO(packInfo, mapPackContentByContentId.get(packInfo.getContentId()));
             packInfoVO.setImageLink(imageLinkMap.get(packInfo.getOfficialName()));
             VOList.add(packInfoVO);
-//            System.out.println(packInfoVO);
             packPromotionRatioCalc(packInfoVO, itemValueMap);
         }
         return VOList;
@@ -186,12 +177,12 @@ public class PackInfoService {
     public ItemCustom saveOrUpdatePackItem(ItemCustom newItemCustom) {
         QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", newItemCustom.getId());
-        ItemCustom itemCustom = itemCustomMapper.selectOne(queryWrapper);
+        ItemCustom itemCustom = packItemMapper.selectOne(queryWrapper);
         if (itemCustom == null) {
             newItemCustom.setId(String.valueOf(idGenerator.nextId()));
-            itemCustomMapper.insert(newItemCustom);
+            packItemMapper.insert(newItemCustom);
         } else {
-            itemCustomMapper.update(newItemCustom, queryWrapper);
+            packItemMapper.update(newItemCustom, queryWrapper);
         }
         return newItemCustom;
     }
@@ -199,7 +190,7 @@ public class PackInfoService {
 
     public List<ItemCustom> listPackItem() {
 
-        List<Item> itemList = itemService.getItemList(new StageParamDTO());
+        List<Item> itemList = itemService.getItemList(new StageConfigDTO());
         List<ItemCustom> itemCustomList = new ArrayList<>();
         for(Item item:itemList){
             ItemCustom itemCustom = new ItemCustom();
@@ -210,7 +201,7 @@ public class PackInfoService {
             itemCustomList.add(itemCustom);
         }
 
-        List<ItemCustom> itemCustoms = itemCustomMapper.selectList(null);
+        List<ItemCustom> itemCustoms = packItemMapper.selectList(null);
         itemCustomList.addAll(itemCustoms);
 
         return itemCustoms;
@@ -221,16 +212,16 @@ public class PackInfoService {
     public String deletePackItemById(String id) {
         QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", id);
-        int delete = itemCustomMapper.delete(queryWrapper);
+        int delete = packItemMapper.delete(queryWrapper);
         return "删除了" + delete + "条物品数据";
     }
 
 
-    public String resetPackInfoCache() {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setSampleSize(300);
-        stageParamDTO.setExpCoefficient(0.633);
-        uploadPackInfoPageToCos(stageParamDTO);
+    public String clearPackInfoCache() {
+        Boolean delete = redisTemplate.delete("Item:PackData");
+        if (Boolean.FALSE.equals(delete)) {
+            throw new ServiceException(ResultCode.REDIS_CLEAR_CACHE_ERROR);
+        }
         return "缓存清除成功";
     }
 
@@ -252,8 +243,6 @@ public class PackInfoService {
     }
 
     private void packPromotionRatioCalc(PackInfoVO packInfoVO, Map<String, Double> itemValue) {
-
-
 
         //源石性价比基准
         double eachOriginalOriginiumPrice = 648 / 185.0;
@@ -301,7 +290,7 @@ public class PackInfoService {
                     } else {
                         apCount += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
                     }
-//                    System.out.println(packContentVO.getItemName()+" {} "+itemValue.get(packContentVO.getItemId())+" * "+packContentVO.getQuantity());
+                    //System.out.println(packContentVO.getItemName()+" {} "+itemValue.get(packContentVO.getItemId())+" * "+packContentVO.getQuantity());
                     apCountKernel += itemValue.get(packContentVO.getItemId()) * packContentVO.getQuantity();
                     //两不耽误，各算各的
                 }
@@ -349,16 +338,14 @@ public class PackInfoService {
         packInfoVO.setPackEfficiencyKernel(packEfficiencyKernel);
     }
 
-    public void uploadPackInfoPageToCos(StageParamDTO stageParamDTO){
-
-        List<PackInfoVO> packInfoVOS = listPackInfo(stageParamDTO);
+    public void uploadPackInfoPageToCos(){
+        List<PackInfoVO> packInfoVOS = listPackInfo();
         Map<String,Object> response = new HashMap<>();
         long timeStamp = System.currentTimeMillis();
         response.put("data",packInfoVOS);
         response.put("update",timeStamp);
         String jsonString = JsonMapper.toJSONString(response);
         cosService.uploadJson(jsonString,"/store/pack/"+timeStamp+".json");
-        Logger.info("上传礼包性价比数据成 {} tag"+timeStamp);
         redisTemplate.opsForValue().set("PackInfoTag",timeStamp);
     }
 

@@ -7,11 +7,15 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
-import com.lhs.entity.dto.material.StageParamDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.*;
+import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.mapper.material.MaterialValueConfigMapper;
 import com.lhs.mapper.material.QuantileMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
+import com.lhs.service.user.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -28,29 +32,43 @@ public class StageCalService {
     private final ItemService itemService;
     private final StageResultMapper stageResultMapper;
     private final RedisTemplate<String, Object> redisTemplate;
+
     private final StageResultDetailMapper stageResultDetailMapper;
     private final IdGenerator idGenerator;
 
+    private final UserService userService;
 
+    private final MaterialValueConfigMapper materialValueConfigMapper;
 
-
-
-    public StageCalService(StageService stageService, QuantileMapper quantileMapper, ItemService itemService, StageResultMapper stageResultMapper, RedisTemplate<String, Object> redisTemplate, StageResultDetailMapper stageResultDetailMapper) {
+    public StageCalService(StageService stageService, QuantileMapper quantileMapper, ItemService itemService, StageResultMapper stageResultMapper, RedisTemplate<String, Object> redisTemplate, StageResultDetailMapper stageResultDetailMapper, UserService userService, MaterialValueConfigMapper materialValueConfigMapper) {
         this.stageService = stageService;
         this.quantileMapper = quantileMapper;
         this.itemService = itemService;
         this.stageResultMapper = stageResultMapper;
         this.redisTemplate = redisTemplate;
         this.stageResultDetailMapper = stageResultDetailMapper;
+        this.userService = userService;
+        this.materialValueConfigMapper = materialValueConfigMapper;
         idGenerator = new IdGenerator(1L);
     }
 
+    public void saveMaterialValueConfig(Map<String,Object> requestParams, HttpServletRequest httpServletRequest){
 
 
-    public void stageResultCal(List<Item> items, StageParamDTO stageParamDTO) {
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(userService.extractToken(httpServletRequest));
+        Long uid = userInfoByToken.getUid();
 
-        Integer sampleSize = stageParamDTO.getSampleSize();
-        String version = stageParamDTO.getVersion();
+        MaterialValueConfig materialValueConfig = new MaterialValueConfig();
+
+    }
+
+    private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
+
+
+    public void stageResultCal(List<Item> items, StageConfigDTO stageConfigDTO) {
+
+        Integer sampleSize = stageConfigDTO.getSampleSize();
+        String version = stageConfigDTO.getVersion();
 
         //物品信息  <itemId,Item>
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
@@ -61,27 +79,21 @@ public class StageCalService {
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
-
-        JsonNode itemSeriesTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
-
-
-
-        List<PenguinMatrixDTO> penguinMatrix = getPenguinMatrix(itemMap, stageMap, sampleSize);
-
-        Map<String, List<PenguinMatrixDTO>> matrixByStageId = penguinMatrix.stream()
-                .collect(Collectors.groupingBy(PenguinMatrixDTO::getStageId));
+        //获得一个企鹅物流掉落数据的集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
+        Map<String, List<PenguinMatrixDTO>>  groupByStageId = filterAndMergePenguinData(itemMap, stageMap, sampleSize);
 
         List<QuantileTable> quantileTables = quantileMapper.selectList(null);
 
         List<StageResultDetail> detailInsertList = new ArrayList<>();
+
         List<StageResult> commonInsertList = new ArrayList<>();
 
         HashMap<String, Double> itemIterationValueMap = new HashMap<>();
 
 
-        Map<String,String> stageBlacklist = stageParamDTO.getStageBlacklist();
+        Map<String,String> stageBlacklist = stageConfigDTO.getStageBlacklist();
 
-        for (String stageId : matrixByStageId.keySet()) {
+        for (String stageId : groupByStageId.keySet()) {
 
             if(stageBlacklist.get(stageId)!=null){
                 Logger.info("黑名单关卡"+stageId);
@@ -90,7 +102,7 @@ public class StageCalService {
 
             Stage stage = stageMap.get(stageId);
 
-            List<PenguinMatrixDTO> stageDropList = matrixByStageId.get(stageId);
+            List<PenguinMatrixDTO> stageDropList = groupByStageId.get(stageId);
             //关卡消耗体力
             double apCost = stage.getApCost();
             String stageType = stage.getStageType();
@@ -100,6 +112,7 @@ public class StageCalService {
             double dropApValueSum = 0.0;
 
 
+            //将关卡固定掉落的龙门币写入到掉落集合中
             PenguinMatrixDTO stageDropLMD = new PenguinMatrixDTO();
             stageDropLMD.setStageId(stageId);
             stageDropLMD.setItemId("4001");
@@ -108,7 +121,7 @@ public class StageCalService {
             stageDropList.add(stageDropLMD);
 
 
-
+            //将商店无限兑换区的龙门币视为掉落，写入掉落集合中
             if (StageType.ACT_REP.equals(stageType) || StageType.ACT.equals(stageType)) {
                 PenguinMatrixDTO stageDropStore = new PenguinMatrixDTO();
                 stageDropStore.setStageId(stageId);
@@ -119,8 +132,10 @@ public class StageCalService {
             }
 
 
+            //临时关卡详情集合
             List<StageResultDetail> temporaryList = new ArrayList<>();
 
+            //计算关卡掉落的一些详细信息
             for (PenguinMatrixDTO stageDrop : stageDropList) {
                 Item item = itemMap.get(stageDrop.getItemId());
 
@@ -132,7 +147,7 @@ public class StageCalService {
                 //关卡置信度
                 double sampleConfidence = sampleConfidence(stageDrop.getTimes(), apCost,
                         item.getItemValueAp(), knockRating, quantileTables);
-                //该条掉落记录的结果
+                //计算该条掉落的期望理智价值
                 double result = item.getItemValueAp() * knockRating;
                 //期望理智
                 double apExpect = apCost / knockRating;
@@ -152,7 +167,6 @@ public class StageCalService {
 
             }
 
-            temporaryList.sort(Comparator.comparing(StageResultDetail::getResult).reversed());
             //材料系列
             String itemSeries = "empty";
             String itemSeriesId = "empty";
@@ -160,17 +174,21 @@ public class StageCalService {
             String secondaryItemId = "empty";
             String mainItemName = "empty";
             Integer itemRarity = null;
+
+            //将这个临时集合倒序
+            temporaryList.sort(Comparator.comparing(StageResultDetail::getResult).reversed());
             for (int i = 0; i < temporaryList.size(); i++) {
                 StageResultDetail detail = temporaryList.get(i);
                 detail.setRatio(detail.getResult() / dropApValueSum);
                 detail.setRatioRank(i);
                 String itemId = detail.getItemId();
                 String itemName = detail.getItemName();
+                //占比最多的材料就是这关的主要掉落物
                 if (i == 0) {
                     //找到这个材料所属的材料系列
-                    if (itemSeriesTable.get(itemId) != null) {
-                        itemSeries = itemSeriesTable.get(itemId).get("series").asText();
-                        itemSeriesId = itemSeriesTable.get(itemId).get("seriesId").asText();
+                    if (ITEM_SERIES_TABLE.get(itemId) != null) {
+                        itemSeries = ITEM_SERIES_TABLE.get(itemId).get("series").asText();
+                        itemSeriesId = ITEM_SERIES_TABLE.get(itemId).get("seriesId").asText();
                         itemRarity = itemMap.get(itemId).getRarity();
                         mainItemName = itemName;
                     }
@@ -300,10 +318,18 @@ public class StageCalService {
             if (itemTypeNode.get(stageResultDetail.getItemName()) != null) {
                 JsonNode item = itemTypeNode.get(stageResultDetail.getItemName());
                 int rarity = item.get("rarity").asInt();
-                if (rarity == 1) rarity1Ratio = stageResultDetail.getResult() / apCost;
-                if (rarity == 2) rarity2Ratio = stageResultDetail.getResult() / apCost;
-                if (rarity == 3) rarity3Ratio = stageResultDetail.getResult() / apCost;
-                if (rarity == 4) rarity4Ratio = stageResultDetail.getResult() / apCost;
+                if (rarity == 1) {
+                    rarity1Ratio = stageResultDetail.getResult() / apCost;
+                }
+                if (rarity == 2) {
+                    rarity2Ratio = stageResultDetail.getResult() / apCost;
+                }
+                if (rarity == 3) {
+                    rarity3Ratio = stageResultDetail.getResult() / apCost;
+                }
+                if (rarity == 4) {
+                    rarity4Ratio = stageResultDetail.getResult() / apCost;
+                }
             }
         }
 
@@ -312,17 +338,22 @@ public class StageCalService {
         common.setLeT2Efficiency(rarity2Ratio + rarity1Ratio); //等级1-2的材料占比
     }
 
+
+
+
     /**
      * 企鹅物流关卡矩阵中的磨难与标准关卡合并掉落次数和样本量
      *
      * @return 合并完的企鹅数据
      */
-    private List<PenguinMatrixDTO> getPenguinMatrix(Map<String, Item> itemMap, Map<String, Stage> stageMap, Integer sampleSize) {
+    private  Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(Map<String, Item> itemMap, Map<String, Stage> stageMap, Integer sampleSize) {
         //获取企鹅物流关卡矩阵
         String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + "matrix auto.json");
-        if (penguinStageDataText == null) throw new ServiceException(ResultCode.DATA_NONE);
+        if (penguinStageDataText == null) {
+            throw new ServiceException(ResultCode.DATA_NONE);
+        }
         String matrixText = JsonMapper.parseJSONObject(penguinStageDataText).get("matrix").toPrettyString();
-        List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<List<PenguinMatrixDTO>>() {
+        List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<>() {
         });
 
         //将磨难关卡筛选出来
@@ -338,6 +369,7 @@ public class StageCalService {
             if (stageId.contains("tough")) {
                 continue;
             }
+
             if (toughStageMap.get(stageId + "." + element.getItemId()) != null) {
                 PenguinMatrixDTO toughItem = toughStageMap.get(stageId + "." + element.getItemId());
                 element.setQuantity(element.getQuantity() + toughItem.getQuantity());
@@ -373,7 +405,12 @@ public class StageCalService {
             mergeList.add(element);
 
         }
-        return mergeList;
+
+
+        Map<String, List<PenguinMatrixDTO>> groupByStageId = mergeList.stream()
+                .collect(Collectors.groupingBy(PenguinMatrixDTO::getStageId));
+
+        return groupByStageId;
     }
 
     private Double sampleConfidence(Integer penguinDataTimes, double apCost, double itemValue, double probability, List<QuantileTable> quantileTables) {

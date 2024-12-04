@@ -1,7 +1,7 @@
 package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lhs.entity.dto.material.StageParamDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.Stage;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,7 +30,7 @@ public class CustomItemService {
         this.redisTemplate = redisTemplate;
     }
 
-    public void CustomItemValue(StageParamDTO stageParamDTO){
+    public void CustomItemValue(StageConfigDTO stageConfigDTO){
         List<Item> baseItemList = itemService.getBaseItemList();
         Map<String, Stage> stageGroupByStageId = stageService.getStageList(new QueryWrapper<Stage>()
                 .notLike("stage_id", "tough"))

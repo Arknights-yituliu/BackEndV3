@@ -1,7 +1,7 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.material.StageParamDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.Stage;
 import com.lhs.entity.po.material.StorePerm;
@@ -10,7 +10,6 @@ import com.lhs.service.material.*;
 import com.lhs.task.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,26 +44,23 @@ public class ItemControllerV3 {
     }
 
     @Operation(summary = "手动更新")
-    @GetMapping("/update/stage")
+    @GetMapping("/stage/update")
     public Result<Map<String, List<Stage>>> updateStageResult() {
         taskService.updateStageResult();
         return Result.success();
     }
-    @Operation(summary = "手动更新礼包性价比")
-    @GetMapping("/update/pack")
-    public Result<Map<String, List<Stage>>> updatePackInfo() {
-        taskService.updateStorePackInfo();
-        return Result.success();
-    }
+
+
+
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @GetMapping("/stage/result")
     public Result<Map<String, Object>> getStageResultOld(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                       @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setSampleSize(sampleSize);
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setSampleSize(sampleSize);
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO.getVersion());
         return Result.success(t3RecommendedStageV3);
     }
 
@@ -73,10 +69,10 @@ public class ItemControllerV3 {
     @GetMapping("/stage/orundum")
     public Result<List<OrundumPerApResultVO>> getStageResultOrundum(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                                     @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        stageParamDTO.setSampleSize(sampleSize);
-        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageParamDTO);
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        stageConfigDTO.setSampleSize(sampleSize);
+        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageConfigDTO.getVersion());
         return Result.success(orundumPerApResultVOList);
     }
 
@@ -84,10 +80,10 @@ public class ItemControllerV3 {
     @GetMapping("/stage/act")
     public Result<List<ActStageVO>> getStageResultClosedActivities(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                                    @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        stageParamDTO.setSampleSize(sampleSize);
-        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageParamDTO);
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        stageConfigDTO.setSampleSize(sampleSize);
+        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageConfigDTO.getVersion());
         return Result.success(actStageVOList);
     }
 
@@ -104,11 +100,11 @@ public class ItemControllerV3 {
                                                               @RequestParam(required = false, defaultValue = "300") Integer sampleSize,
                                                               @RequestParam String zoneCode) {
 
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        stageParamDTO.setSampleSize(sampleSize);
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        stageConfigDTO.setSampleSize(sampleSize);
 
-        List<StageResultVOV2> stageByZoneName = stageResultService.getStageByZoneName(stageParamDTO, "main_" + zoneCode);
+        List<StageResultVOV2> stageByZoneName = stageResultService.getStageByZoneName(stageConfigDTO, "main_" + zoneCode);
         return Result.success(stageByZoneName);
     }
 
@@ -123,10 +119,10 @@ public class ItemControllerV3 {
     @GetMapping("/stage/detail")
     public Result<Map<String, StageResultDetailVO>> getStageResultDetail(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                                          @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        stageParamDTO.setSampleSize(sampleSize);
-        Map<String, StageResultDetailVO> allStageResult = stageResultService.getAllStageResult(stageParamDTO);
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        stageConfigDTO.setSampleSize(sampleSize);
+        Map<String, StageResultDetailVO> allStageResult = stageResultService.getAllStageResult(stageConfigDTO.getVersion());
         return Result.success(allStageResult);
     }
 
@@ -134,10 +130,10 @@ public class ItemControllerV3 {
     @GetMapping("/item/value")
     public Result<List<Item>> getItemValueV2(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                              @RequestParam(required = false, defaultValue = "300") Integer sampleSize) {
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        stageParamDTO.setSampleSize(sampleSize);
-        List<Item> items = itemService.getItemListCache(stageParamDTO);
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        stageConfigDTO.setExpCoefficient(expCoefficient);
+        stageConfigDTO.setSampleSize(sampleSize);
+        List<Item> items = itemService.getItemListCache(stageConfigDTO);
         return Result.success(items);
     }
 
@@ -158,13 +154,8 @@ public class ItemControllerV3 {
 
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
-    public Result<List<PackInfoVO>> listPackInfo(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
-                                                 @RequestParam(required = false, defaultValue = "300") Integer sampleSize){
-        StageParamDTO stageParamDTO = new StageParamDTO();
-        stageParamDTO.setExpCoefficient(expCoefficient);
-        stageParamDTO.setSampleSize(sampleSize);
-
-        List<PackInfoVO> list =  packInfoService.listPackInfo(stageParamDTO);
+    public Result<List<PackInfoVO>> listPackInfo(){
+        List<PackInfoVO> list =  packInfoService.listPackInfo();
         return Result.success(list);
     }
 

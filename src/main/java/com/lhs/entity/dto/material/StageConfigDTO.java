@@ -6,7 +6,7 @@ import java.util.Map;
 
 
 @Data
-public class StageParamDTO {
+public class StageConfigDTO {
     private String version;  //API版本
     private Double expCoefficient; //经验书的系数,经验书价值=龙门币(0.0036)*系数
     private Integer sampleSize;  //样本量
