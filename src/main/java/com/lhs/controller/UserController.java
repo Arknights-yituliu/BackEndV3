@@ -44,7 +44,6 @@ public class UserController {
     @Operation(summary ="根据token检查用户登录状态吗，返回用户信息")
     @GetMapping("/info")
     public Result<UserInfoVO> getUserInfo(@RequestParam String token) {
-
         UserInfoVO response = userService.getUserInfoVOByToken(token);
         return Result.success(response);
     }

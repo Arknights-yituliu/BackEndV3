@@ -2,8 +2,9 @@ package com.lhs.entity.dto.material;
 
 import lombok.Data;
 
+
 @Data
-public class StageTmpResultDTO {
+public class StageCalculationParametersDTO {
     //关卡掉落期望产出综合
     private Double countStageDropApValue;
     //关卡系列

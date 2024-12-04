@@ -75,7 +75,7 @@ public class ItemControllerV3 {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setExpCoefficient(expCoefficient);
         stageConfigDTO.setSampleSize(sampleSize);
-        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageConfigDTO.getVersion());
+        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageConfigDTO);
         return Result.success(orundumPerApResultVOList);
     }
 
@@ -86,7 +86,7 @@ public class ItemControllerV3 {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setExpCoefficient(expCoefficient);
         stageConfigDTO.setSampleSize(sampleSize);
-        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageConfigDTO.getVersion());
+        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageConfigDTO);
         return Result.success(actStageVOList);
     }
 
@@ -125,7 +125,7 @@ public class ItemControllerV3 {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setExpCoefficient(expCoefficient);
         stageConfigDTO.setSampleSize(sampleSize);
-        Map<String, StageResultDetailVO> allStageResult = stageResultService.getAllStageResult(stageConfigDTO.getVersion());
+        Map<String, StageResultDetailVO> allStageResult = stageResultService.getAllStageResult(stageConfigDTO);
         return Result.success(allStageResult);
     }
 

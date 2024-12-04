@@ -3,6 +3,7 @@ package com.lhs.service.material.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
@@ -58,12 +59,13 @@ public class ItemServiceImpl implements ItemService {
     /**
      * //根据蓝材料对应的常驻最高关卡效率En和旧蓝材料价值Vn计算新的蓝材料价值Vn+1  ，  Vn+1= Vn*1/En
      *
-     * @param items 材料信息表Vn
      * @return 新的材料信息表Vn+1
      */
     @Transactional
     @Override
-    public List<Item> ItemValueCal(List<Item> items, StageConfigDTO stageConfigDTO) {
+    public List<Item> calculatedItemValue( StageConfigDTO stageConfigDTO) {
+
+        List<Item> itemList = getItemList(stageConfigDTO);
 
         Double lmdValue = stageConfigDTO.getLMDValue();
         Double EXPValue = stageConfigDTO.getEXPValue();
@@ -80,7 +82,7 @@ public class ItemServiceImpl implements ItemService {
 
         Map<String, Item> itemValueMap = new HashMap<>();
 
-        for (Item item : items) {
+        for (Item item : itemList) {
             item.setVersion(version);
             item.setId(idGenerator.nextId());
 
@@ -132,14 +134,26 @@ public class ItemServiceImpl implements ItemService {
 
         QueryWrapper<Item> itemQueryWrapper = new QueryWrapper<>();
         itemQueryWrapper.eq("version", version);
-        int delete = itemMapper.delete(itemQueryWrapper);
+        itemMapper.delete(itemQueryWrapper);
 
-        saveByProductValue(items, version);  //保存新的材料价值表的加工站副产物平均产出价值
-        itemMapperService.saveBatch(items);  //更新材料表
+        saveByProductValue(itemList, version);  //保存新的材料价值表的加工站副产物平均产出价值
+        itemMapperService.saveBatch(itemList);  //更新材料表
 
-        return items;
+
+        List<Item> fixedItemValue = updateFixedItemValue(stageConfigDTO);
+
+        itemList.addAll(fixedItemValue);
+
+        return itemList;
     }
 
+    @Override
+    public void saveCustomItemValue(List<Item> itemList,String version) {
+        LambdaQueryWrapper<Item> itemLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        itemLambdaQueryWrapper.eq(Item::getVersion, version);
+        itemMapper.delete(itemLambdaQueryWrapper);
+        itemMapperService.saveBatch(itemList);
+    }
 
     /**
      * 保存材料价值迭代系数
@@ -167,21 +181,6 @@ public class ItemServiceImpl implements ItemService {
         itemIterationValueMapper.delete(queryWrapper);
     }
 
-    /**
-     * 获取材料表（外部API用，有缓存）
-     *
-     * @param version 物品价值的版本号
-     * @return 材料信息表
-     */
-    @Override
-    @RedisCacheable(key = "Item:itemValue", params = "version")
-    public List<Item> getItemListCache(String version) {
-        LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.in(Item::getVersion, version).orderByDesc(Item::getItemValueAp);
-
-        return itemMapper.selectList(itemQueryWrapper);
-
-    }
 
     @RedisCacheable(key = "Item:itemValue", params = "version")
     @Override
@@ -189,10 +188,12 @@ public class ItemServiceImpl implements ItemService {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
         itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersion()).orderByDesc(Item::getItemValueAp);
         List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
-        List<Item> floatingValueItemList = updateFloatingValueItem(stageConfigDTO);
+        List<Item> floatingValueItemList = updateFixedItemValue(stageConfigDTO);
         itemList.addAll(floatingValueItemList);
         return itemList;
     }
+
+
 
     /**
      * 获取材料信息表
@@ -203,30 +204,22 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> getItemList(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.eq(Item::getVersion, stageConfigDTO.getVersion());
-        return itemMapper.selectList(itemQueryWrapper);
-    }
-
-    /**
-     * 获取基础材料价值表
-     *
-     * @return 基础材料价值表
-     */
-    @Override
-    public List<Item> getBaseItemList() {
-        LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.eq(Item::getVersion, "ORIGINAL");
-        return itemMapper.selectList(itemQueryWrapper);
+        itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersion()).orderByDesc(Item::getItemValueAp);
+        List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
+        if (itemList.isEmpty()) {
+            itemQueryWrapper.clear();
+            itemQueryWrapper.eq(Item::getVersion, "ORIGINAL");
+            itemList = itemMapper.selectList(itemQueryWrapper);
+        }
+        return itemList;
     }
 
 
 
-
-
     @Override
-    public List<Item> updateFloatingValueItem(StageConfigDTO stageConfigDTO) {
+    public List<Item> updateFixedItemValue(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        itemLambdaQueryWrapper.in(Item::getVersion, "FIXED","CHIP");
+        itemLambdaQueryWrapper.in(Item::getVersion, "FIXED", "CHIP");
         List<Item> itemList = itemMapper.selectList(itemLambdaQueryWrapper);
 
         //龙门币价值
@@ -237,17 +230,15 @@ public class ItemServiceImpl implements ItemService {
         FloatingValueItem floatingValueItem = new FloatingValueItem();
         Map<String, Double> floatingValueItemMap = floatingValueItem.initValue(LMDValue, EXPValue, true);
 
-        for(Item item:itemList){
+        for (Item item : itemList) {
             String itemId = item.getItemId();
-            if(floatingValueItemMap.get(itemId)!=null){
+            if (floatingValueItemMap.get(itemId) != null) {
                 item.setItemValueAp(floatingValueItemMap.get(itemId));
             }
         }
 
         return itemList;
     }
-
-
 
 
     private Map<String, Double> getItemIterationValue(String version) {
@@ -303,7 +294,7 @@ public class ItemServiceImpl implements ItemService {
 
         QueryWrapper<WorkShopProducts> workShopProductsQueryWrapper = new QueryWrapper<>();
         workShopProductsQueryWrapper.eq("version", version);
-        int delete = workShopProductsMapper.delete(workShopProductsQueryWrapper);
+        workShopProductsMapper.delete(workShopProductsQueryWrapper);
 
         Map<Integer, List<Item>> collect = items.stream()
                 .filter(item -> item.getWeight() > 0)

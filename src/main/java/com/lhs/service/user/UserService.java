@@ -47,6 +47,13 @@ public interface UserService {
     UserInfoVO getUserInfoVOByToken(String token);
 
     /**
+     * 通过HttpServletRequest获取token，根据token拿到用户信息
+     * @param httpServletRequest 来自接口的请求信息
+     * @return 用户信息
+     */
+    UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest);
+
+    /**
      * 通过token获取用户数据内的信息
      * @param token 用户登录后获得的凭证
      * @return 用户信息

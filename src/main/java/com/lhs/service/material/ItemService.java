@@ -12,20 +12,19 @@ public interface ItemService  {
 
 
     @Transactional
-    List<Item> ItemValueCal(List<Item> items, StageConfigDTO stageConfigDTO);
+    List<Item> calculatedItemValue( StageConfigDTO stageConfigDTO);
 
     void saveItemIterationValue(List<ItemIterationValue> iterationValueList);
 
     void deleteItemIterationValue(String version);
 
+    List<Item> getItemListCache(StageConfigDTO stageConfigDTO);
 
-    List<Item> getItemListCache(String version);
+    void saveCustomItemValue(List<Item> itemList,String version);
 
     List<Item> getItemList(StageConfigDTO stageConfigDTO);
 
-    List<Item> getBaseItemList();
+    List<Item> updateFixedItemValue(StageConfigDTO stageConfigDTO);
 
-    List<Item> updateFloatingValueItem(StageConfigDTO stageConfigDTO);
 
-    List<Item> getItemListCache(StageConfigDTO stageConfigDTO);
 }

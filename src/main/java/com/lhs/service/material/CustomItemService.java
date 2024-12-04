@@ -30,16 +30,6 @@ public class CustomItemService {
         this.redisTemplate = redisTemplate;
     }
 
-    public void CustomItemValue(StageConfigDTO stageConfigDTO){
-        List<Item> baseItemList = itemService.getBaseItemList();
-        Map<String, Stage> stageGroupByStageId = stageService.getStageList(new QueryWrapper<Stage>()
-                .notLike("stage_id", "tough"))
-                .stream()
-                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
-
-//        for (int i = 0; i < 5; i++) {
-//            itemService.ItemValueCal(baseItemList,stageParamDTO);
-//            stageCalService.stageResultCal(baseItemList,stageParamDTO);
-//        }
+    public void CustomItemValue(StageConfigDTO stageConfigDTO) {
     }
 }

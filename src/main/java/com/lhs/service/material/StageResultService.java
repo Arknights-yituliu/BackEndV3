@@ -98,12 +98,9 @@ public class StageResultService {
     }
 
     public void updateStageResult(StageConfigDTO stageConfigDTO) {
-        List<Item> items = itemService.getItemList(stageConfigDTO);   //找出对应版本的材料价值
-        if (items.isEmpty()) {
-            items = itemService.getBaseItemList();
-        }
-        items = itemService.ItemValueCal(items, stageConfigDTO);  //计算新的新材料价值
-        stageCalService.stageResultCal(items, stageConfigDTO);      //用新材料价值计算新关卡效率
+
+        List<Item> itemList = itemService.calculatedItemValue(stageConfigDTO);  //计算新的新材料价值
+        stageCalService.calculatedStageEfficiency(itemList, stageConfigDTO);      //用新材料价值计算新关卡效率
         Logger.info("V2关卡效率更新成功");
     }
 
@@ -111,13 +108,13 @@ public class StageResultService {
 
 
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
-    public Map<String, Object> getT3RecommendedStageV2(String version) {
-
+    public Map<String, Object> getT3RecommendedStageV2(StageConfigDTO stageConfigDTO) {
+        String version = stageConfigDTO.getVersion();
         Map<String, Stage> stageMap = stageService.getStageList(null)
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
-        Map<String, Item> itemMap = itemService.getItemListCache(version)
+        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
                 .stream()
                 .collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
@@ -307,11 +304,13 @@ public class StageResultService {
 
 
     @RedisCacheable(key = "Item:Stage.T2.V2", params = "version")
-    public List<RecommendedStageVO> getT2RecommendedStage(String version) {
+    public List<RecommendedStageVO> getT2RecommendedStage(StageConfigDTO stageConfigDTO) {
 
         List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
 
-        Map<String, Item> itemMap = itemService.getItemListCache(version)
+        String version = stageConfigDTO.getVersion();
+
+        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
                 .stream()
                 .collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
@@ -371,10 +370,11 @@ public class StageResultService {
 
 
     @RedisCacheable(key = "Item:Stage.Orundum.V2")
-    public List<OrundumPerApResultVO> getOrundumRecommendedStage(String version) {
+    public List<OrundumPerApResultVO> getOrundumRecommendedStage(StageConfigDTO stageConfigDTO) {
+        String version = stageConfigDTO.getVersion();
         List<OrundumPerApResultVO> orundumPerApResultVOList = new ArrayList<>();
 
-        Map<String, Item> itemMap = itemService.getItemListCache(version)
+        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
                 .stream()
                 .collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
@@ -458,9 +458,9 @@ public class StageResultService {
 
 
     //    @RedisCacheable(key = "Item:Stage.ACT.V2", params = "version")
-    public List<ActStageVO> getHistoryActStage(String version) {
-
-        Map<String, Item> itemMap = itemService.getItemListCache(version)
+    public List<ActStageVO> getHistoryActStage(StageConfigDTO stageConfigDTO) {
+        String version = stageConfigDTO.getVersion();
+        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
                 .stream()
                 .collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
@@ -574,9 +574,10 @@ public class StageResultService {
     }
 
 
-    public Map<String, StageResultDetailVO> getAllStageResult(String version) {
+    public Map<String, StageResultDetailVO> getAllStageResult(StageConfigDTO stageConfigDTO) {
+        String version = stageConfigDTO.getVersion();
 
-        Map<String, Item> itemMap = itemService.getItemListCache(version)
+        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
                 .stream()
                 .collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
@@ -614,10 +615,10 @@ public class StageResultService {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setExpCoefficient(expCoefficient);
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
-        Map<String, Object> t3RecommendedStageV2 = getT3RecommendedStageV2(stageConfigDTO.getVersion());
+        Map<String, Object> t3RecommendedStageV2 = getT3RecommendedStageV2(stageConfigDTO);
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
 
-        List<Item> items = itemService.getItemList(stageConfigDTO);
+        List<Item> items = itemService.getItemListCache(stageConfigDTO);
 
         ossService.upload(JsonMapper.toJSONString(t3RecommendedStageV2), "backup/stage/" + yyyyMMdd + "/t3—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
         ossService.upload(JsonMapper.toJSONString(items), "backup/item/" + yyyyMMdd + "/item—" + expCoefficient + "—" + yyyyMMddHHmm + ".json");
@@ -772,9 +773,9 @@ public class StageResultService {
 
 
     @RedisCacheable(key = "Item:Stage.T2.V1", params = "version")
-    public List<List<StageResultVO>> getT2RecommendedStageV1(String version) {
-
-        Map<String, Item> itemMap = itemService.getItemListCache(version)
+    public List<List<StageResultVO>> getT2RecommendedStageV1(StageConfigDTO stageConfigDTO) {
+        String version = stageConfigDTO.getVersion();
+        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
                 .stream()
                 .collect(Collectors.toMap(Item::getItemId, Function.identity()));
 

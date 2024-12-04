@@ -190,7 +190,7 @@ public class PackInfoService {
 
     public List<ItemCustom> listPackItem(StageConfigDTO stageConfigDTO) {
 
-        List<Item> itemList = itemService.getItemList(stageConfigDTO);
+        List<Item> itemList = itemService.getItemListCache(stageConfigDTO);
         List<ItemCustom> itemCustomList = new ArrayList<>();
         for(Item item:itemList){
             ItemCustom itemCustom = new ItemCustom();

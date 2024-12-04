@@ -422,6 +422,12 @@ public class UserServiceImpl implements UserService {
         return userInfoVO;
     }
 
+    @Override
+    public UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest) {
+        String token = extractToken(httpServletRequest);
+        return getUserInfoVOByToken(token);
+    }
+
 
     @Override
     public UserInfo getUserInfoPOByToken(String token) {

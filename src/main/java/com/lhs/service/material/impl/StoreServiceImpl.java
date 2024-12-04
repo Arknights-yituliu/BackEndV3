@@ -70,7 +70,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public void updateStorePerm() {
         List<StorePerm> storePermList = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.getItemListCache(new StageConfigDTO().getVersion())
+        Map<String, Item> collect = itemService.getItemListCache(new StageConfigDTO())
                 .stream()
                 .collect(Collectors.toMap(Item::getItemName, Function.identity()));
 
@@ -113,7 +113,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel) {
-        List<Item> items = itemService.getItemListCache(new StageConfigDTO().getVersion());
+        List<Item> items = itemService.getItemListCache(new StageConfigDTO());
         Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
