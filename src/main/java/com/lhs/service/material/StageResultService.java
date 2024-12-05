@@ -2,6 +2,7 @@ package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
@@ -50,51 +51,24 @@ public class StageResultService {
         this.ossService = ossService;
         this.redisTemplate = redisTemplate;
         this.userService = userService;
-
     }
 
 
     public void updateStageResultByTaskConfig() {
-        String read = FileUtil.read(ConfigUtil.Item + "stage_task_config.json");
+        String read = FileUtil.read(ConfigUtil.Item + "stage_task_config_v2.json");
         if (read == null) {
             Logger.error("更新关卡配置文件为空");
             return;
         }
 
-        JsonNode stageTaskConfig = JsonMapper.parseJSONObject(read);
+        List<StageConfigDTO> stageConfigDTOList =  JsonMapper.parseObject(read, new TypeReference<>() {
+        });
 
-        JsonNode expCoefficientNode = stageTaskConfig.get("expCoefficient");
-        JsonNode sampleSizeNode = stageTaskConfig.get("sampleSize");
-
-        Map<String, String> stageBlacklist = new HashMap<>();
-        if (stageTaskConfig.get("stageBlacklist") != null) {
-            JsonNode jsonNode = stageTaskConfig.get("stageBlacklist");
-            for (JsonNode stageIdNode : jsonNode) {
-                stageBlacklist.put(stageIdNode.asText(), stageIdNode.asText());
-            }
+        for(StageConfigDTO stageConfigDTO:stageConfigDTOList){
+            updateStageResult(stageConfigDTO);
+            Logger.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
         }
 
-        List<Double> expCoefficientList = new ArrayList<>();
-        List<Integer> sampleSizeList = new ArrayList<>();
-
-        for (JsonNode jsonNode : expCoefficientNode) {
-            expCoefficientList.add(jsonNode.asDouble());
-        }
-
-        for (JsonNode jsonNode : sampleSizeNode) {
-            sampleSizeList.add(jsonNode.asInt());
-        }
-
-        for (Double expCoefficient : expCoefficientList) {
-            for (Integer sampleSize : sampleSizeList) {
-                StageConfigDTO stageConfigDTO = new StageConfigDTO();
-                stageConfigDTO.setSampleSize(sampleSize);
-                stageConfigDTO.setExpCoefficient(expCoefficient);
-                stageConfigDTO.setStageBlacklist(stageBlacklist);
-                updateStageResult(stageConfigDTO);
-                Logger.info("本次更新关卡，经验书系数为" + expCoefficient + "，样本数量为" + sampleSize);
-            }
-        }
     }
 
     public void updateStageResult(StageConfigDTO stageConfigDTO) {
@@ -105,8 +79,11 @@ public class StageResultService {
     }
 
 
-
-
+    /**
+     * 旧版API
+     * @param stageConfigDTO 关卡参数
+     * @return 关卡推荐数据
+     */
     @RedisCacheable(key = "Item:Stage.T3.V2", params = "version")
     public Map<String, Object> getT3RecommendedStageV2(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersion();
@@ -228,13 +205,9 @@ public class StageResultService {
 
 
     @RedisCacheable(key = "Item:Stage.T3.V3", params = "version")
-    public Map<String, Object> getT3RecommendedStageV3(String version) {
+    public Map<String, Object> getT3RecommendedStageV3(StageConfigDTO stageConfigDTO) {
 
-        List<Stage> stageList = stageService.getStageList(null);
-        Map<String, Stage> stageMap = stageList
-                .stream()
-                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
-
+        String version = stageConfigDTO.getVersion();
 
         //根据itemType将关卡主要掉落信息分组
         List<StageResult> stageResultList = stageResultMapper
@@ -243,6 +216,7 @@ public class StageResultService {
                         .ge("end_time", new Date())
                         .ge("stage_efficiency", 0.5)
                         .ne("item_series", "empty"));
+
         Map<String, List<StageResult>> commonMapByItemType = stageResultList.stream()
                 .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
 
@@ -258,6 +232,24 @@ public class StageResultService {
                     .collect(Collectors.toMap((StageResultDetail::getStageId), Function.identity()));
 
         //要返回前端的数据集合
+        List<RecommendedStageVO> recommendedStageVOList = createRecommendedStageVOList(commonMapByItemType, detailMapByStageId, version);
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("updateTime", redisTemplate.opsForValue().get("Item:updateTime"));
+        map.put("recommendedStageList", recommendedStageVOList);
+        return map;
+    }
+
+
+
+    public List<RecommendedStageVO> createRecommendedStageVOList(Map<String, List<StageResult>> commonMapByItemType,
+                                                                  Map<String, StageResultDetail> detailMapByStageId,
+                                                                  String version){
+        List<Stage> stageList = stageService.getStageList(null);
+        Map<String, Stage> stageMap = stageList
+                .stream()
+                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
+
         List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
 
         for (String itemSeriesId : commonMapByItemType.keySet()) {
@@ -269,16 +261,20 @@ public class StageResultService {
 
             List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
             for (StageResult common : commonListByItemId) {
+                Stage stage = stageMap.get(common.getStageId());
+                if (stage == null) {
+                    continue;
+                }
                 StageResultDetail detail = detailMapByStageId.get(common.getStageId());
-                if (detail == null) continue;
+                if (detail == null) {
+                    continue;
+                }
                 //将通用结果和详细结果复制到返回结果的实体类中
                 StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
                 stageResultVOV2.copyByStageResultCommon(common);
                 stageResultVOV2.copyByStageResultDetail(detail);
                 stageResultVOV2List.add(stageResultVOV2);
 
-                Stage stage = stageMap.get(common.getStageId());
-                if (stage == null) continue;
 
                 stageResultVOV2.setZoneName(stage.getZoneName());
             }
@@ -296,10 +292,8 @@ public class StageResultService {
 
         }
 
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("updateTime", redisTemplate.opsForValue().get("Item:updateTime"));
-        map.put("recommendedStageList", recommendedStageVOList);
-        return map;
+
+        return recommendedStageVOList;
     }
 
 

@@ -65,7 +65,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     public Map<String, Object> saveOrUpdateRogueSeed(RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest) {
 
         //根据token拿到用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(userService.extractToken(httpServletRequest));
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         //获取用户uid
         Long uid = userInfoByToken.getUid();
 
@@ -129,13 +129,13 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     @Override
     public Map<String, Object> rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest) {
-        String token = userService.extractToken(httpServletRequest);
-        rateLimiter.tryAcquire(token, 15, 30, ResultCode.TOO_MANY_RATING_ROGUE_SEED);
 
         //根据token拿到用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(token);
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         //获取用户uid
         Long uid = userInfoByToken.getUid();
+
+        rateLimiter.tryAcquire("Rating"+uid, 15, 30, ResultCode.TOO_MANY_RATING_ROGUE_SEED);
 
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getSeedId, rogueSeedRatingDTO.getSeedId())
@@ -162,9 +162,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     @Override
     public List<RogueSeedRatingVO> listUserRougeSeedRating(HttpServletRequest httpServletRequest) {
-        String token = userService.extractToken(httpServletRequest);
+
         //根据token拿到用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(token);
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         //获取用户uid
         Long uid = userInfoByToken.getUid();
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();

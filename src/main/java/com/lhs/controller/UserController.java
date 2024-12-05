@@ -4,6 +4,7 @@ import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.EmailRequestDTO;
 import com.lhs.entity.dto.user.LoginDataDTO;
 import com.lhs.entity.dto.user.UpdateUserDataDTO;
+import com.lhs.entity.dto.user.UserConfigDTO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,8 +65,8 @@ public class UserController {
 
     @Operation(summary ="更新用户配置")
     @GetMapping("/update/config")
-    public Result<String> updateUserConfig(HttpServletRequest httpServletRequest,@RequestBody Map<String,Object> config) {
-         userService.updateUserConfig(config,httpServletRequest);
+    public Result<String> updateUserConfig(HttpServletRequest httpServletRequest,@RequestBody UserConfigDTO userConfigDTO) {
+         userService.updateUserConfig(userConfigDTO);
         return Result.success();
     }
 

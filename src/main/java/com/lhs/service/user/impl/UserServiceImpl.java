@@ -8,10 +8,8 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
-import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
-import com.lhs.entity.dto.user.EmailRequestDTO;
-import com.lhs.entity.dto.user.LoginDataDTO;
-import com.lhs.entity.dto.user.UpdateUserDataDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.user.*;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
 import com.lhs.entity.po.user.UserConfig;
@@ -75,15 +73,7 @@ public class UserServiceImpl implements UserService {
         idGenerator = new IdGenerator(1L);
     }
 
-    @Override
-    public String extractToken(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        Logger.info("获取的用户token{}"+header);
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.replace("Bearer ", "");
-        }
-        throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-    }
+
 
 
     @Override
@@ -428,6 +418,15 @@ public class UserServiceImpl implements UserService {
         return getUserInfoVOByToken(token);
     }
 
+    @Override
+    public String extractToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        Logger.info("获取的用户token{}"+header);
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.replace("Bearer ", "");
+        }
+        throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+    }
 
     @Override
     public UserInfo getUserInfoPOByToken(String token) {
@@ -800,26 +799,38 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUserConfig(Map<String, Object> config,HttpServletRequest httpServletRequest) {
-
-        UserInfoVO userInfoVOByToken = getUserInfoVOByToken(extractToken(httpServletRequest));
-        Long uid = userInfoVOByToken.getUid();
+    public StageConfigDTO getUserStageConfig(HttpServletRequest request){
+        String uid = request.getHeader("uid");
         UserConfig userConfig = userConfigMapper.selectById(uid);
+        if(userConfig==null){
+           return new StageConfigDTO();
+        }
+        String config = userConfig.getConfig();
+        UserConfigDTO userConfigDTO = JsonMapper.parseObject(config, new TypeReference<>() {
+        });
+
+        return userConfigDTO.getStageConfig();
+    }
+
+    /**
+     * 保存用户或游客自定义配置
+     * @param userConfigDTO 用户配置数据传输对象
+     */
+    @Override
+    public void updateUserConfig(UserConfigDTO userConfigDTO) {
+        Long configId = userConfigDTO.getConfigId();
+        UserConfig userConfig = userConfigMapper.selectById(configId);
         Date date = new Date();
         if(userConfig==null){
             userConfig = new UserConfig();
-            String configText = JsonMapper.toJSONString(config);
+            String configText = JsonMapper.toJSONString(userConfigDTO);
             userConfig.setConfig(configText);
-            userConfig.setUid(uid);
+            userConfig.setUid(configId);
             userConfig.setCreateTime(date);
             userConfig.setUpdateTime(date);
             userConfigMapper.insert(userConfig);
         }else {
-            String oldConfig = userConfig.getConfig();
-            Map<String, Object> map = JsonMapper.parseObject(oldConfig, new TypeReference<>() {
-            });
-            map.putAll(config);
-            String newConfig = JsonMapper.toJSONString(map);
+            String newConfig = JsonMapper.toJSONString(userConfigDTO);
             userConfig.setConfig(newConfig);
             userConfig.setUpdateTime(date);
             userConfigMapper.updateById(userConfig);

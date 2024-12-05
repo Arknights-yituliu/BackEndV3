@@ -1,10 +1,7 @@
 {
   "expCoefficient": [
     0,
-    0.633,
-    0.802,
-    0.833,
-    0.957
+    0.633
   ],
   "sampleSize": [
     0,
@@ -12,6 +9,5 @@
     300
   ],
   "stageBlacklist": [
-
   ]
 }

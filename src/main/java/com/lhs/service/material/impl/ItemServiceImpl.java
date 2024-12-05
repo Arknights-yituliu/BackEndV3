@@ -3,7 +3,6 @@ package com.lhs.service.material.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
-import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
@@ -13,9 +12,11 @@ import com.lhs.entity.dto.material.CompositeTableDTO;
 import com.lhs.entity.dto.material.FloatingValueItem;
 import com.lhs.entity.dto.material.ItemCostDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.po.common.DataCache;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.ItemIterationValue;
 import com.lhs.entity.po.material.WorkShopProducts;
+import com.lhs.mapper.DataCacheMapper;
 import com.lhs.mapper.material.ItemIterationValueMapper;
 import com.lhs.mapper.material.ItemMapper;
 import com.lhs.mapper.material.WorkShopProductsMapper;
@@ -43,13 +44,18 @@ public class ItemServiceImpl implements ItemService {
 
     private final IdGenerator idGenerator;
 
+    private final DataCacheMapper dataCacheMapper;
+
     public ItemServiceImpl(ItemMapper itemMapper,
                            ItemIterationValueMapper itemIterationValueMapper,
-                           WorkShopProductsMapper workShopProductsMapper, ItemMapperService itemMapperService) {
+                           WorkShopProductsMapper workShopProductsMapper,
+                           ItemMapperService itemMapperService,
+                           DataCacheMapper dataCacheMapper) {
         this.itemMapper = itemMapper;
         this.itemIterationValueMapper = itemIterationValueMapper;
         this.workShopProductsMapper = workShopProductsMapper;
         this.itemMapperService = itemMapperService;
+        this.dataCacheMapper = dataCacheMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -63,7 +69,7 @@ public class ItemServiceImpl implements ItemService {
      */
     @Transactional
     @Override
-    public List<Item> calculatedItemValue( StageConfigDTO stageConfigDTO) {
+    public List<Item> calculatedItemValue(StageConfigDTO stageConfigDTO) {
 
         List<Item> itemList = getItemList(stageConfigDTO);
 
@@ -147,13 +153,7 @@ public class ItemServiceImpl implements ItemService {
         return itemList;
     }
 
-    @Override
-    public void saveCustomItemValue(List<Item> itemList,String version) {
-        LambdaQueryWrapper<Item> itemLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        itemLambdaQueryWrapper.eq(Item::getVersion, version);
-        itemMapper.delete(itemLambdaQueryWrapper);
-        itemMapperService.saveBatch(itemList);
-    }
+
 
     /**
      * 保存材料价值迭代系数
@@ -194,7 +194,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
 
-
     /**
      * 获取材料信息表
      *
@@ -205,6 +204,7 @@ public class ItemServiceImpl implements ItemService {
     public List<Item> getItemList(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
         itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersion()).orderByDesc(Item::getItemValueAp);
+
         List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
         if (itemList.isEmpty()) {
             itemQueryWrapper.clear();
@@ -213,7 +213,6 @@ public class ItemServiceImpl implements ItemService {
         }
         return itemList;
     }
-
 
 
     @Override

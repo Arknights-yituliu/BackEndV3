@@ -1,5 +1,6 @@
 package com.lhs.service.material;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,8 +11,10 @@ import com.lhs.entity.dto.material.PenguinMatrixDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.dto.material.StageCalculationParametersDTO;
 import com.lhs.entity.dto.material.StageResultTmpDTO;
+import com.lhs.entity.po.common.DataCache;
 import com.lhs.entity.po.material.*;
-import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.entity.vo.material.RecommendedStageVO;
+import com.lhs.mapper.DataCacheMapper;
 import com.lhs.mapper.material.QuantileMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
@@ -38,6 +41,8 @@ public class StageCalService {
     private final IdGenerator idGenerator;
 
     private final UserService userService;
+    private final DataCacheMapper dataCacheMapper;
+
 
 
     public StageCalService(StageService stageService,
@@ -46,7 +51,7 @@ public class StageCalService {
                            StageResultMapper stageResultMapper,
                            RedisTemplate<String, Object> redisTemplate,
                            StageResultDetailMapper stageResultDetailMapper,
-                           UserService userService) {
+                           UserService userService, DataCacheMapper dataCacheMapper) {
         this.stageService = stageService;
         this.quantileMapper = quantileMapper;
         this.itemService = itemService;
@@ -54,6 +59,8 @@ public class StageCalService {
         this.redisTemplate = redisTemplate;
         this.stageResultDetailMapper = stageResultDetailMapper;
         this.userService = userService;
+        this.dataCacheMapper = dataCacheMapper;
+
 
         idGenerator = new IdGenerator(1L);
     }
@@ -61,16 +68,42 @@ public class StageCalService {
 
     private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
 
-    public StageResultTmpDTO calculated(HttpServletRequest httpServletRequest){
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        Map<String, Object> config = userInfoVO.getConfig();
-        Object configObject = config.get("StageConfig");
-        StageConfigDTO stageConfigDTO = JsonMapper.parseObject(configObject.toString(), new TypeReference<>() {
-        });
+    public StageResultTmpDTO calculated(HttpServletRequest httpServletRequest) {
+        StageConfigDTO stageConfigDTO = userService.getUserStageConfig(httpServletRequest);
         StageResultTmpDTO stageResultTmpDTO = calculated(stageConfigDTO);
         List<Item> itemList = stageResultTmpDTO.getItemList();
-        itemService.saveCustomItemValue(itemList,stageConfigDTO.getVersion());
+        String version = stageConfigDTO.getVersion();
+        dataCache(version, itemList);
+        long timeStamp = System.currentTimeMillis();
+        List<StageResult> stageResultList = stageResultTmpDTO.getStageResultList();
+        Map<String, List<StageResult>> commonMapByItemType = stageResultList.stream()
+                .filter(e -> e.getEndTime().getTime() > timeStamp & e.getStageEfficiency() > 0.5 & !"empty".equals(e.getItemSeries()))
+                .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
+        List<StageResultDetail> stageResultDetailList = stageResultTmpDTO.getStageResultDetailList();
+        Map<String, StageResultDetail> detailMapByStageId = stageResultDetailList.stream()
+                .filter(e -> e.getEndTime().getTime() > timeStamp & e.getRatioRank() == 0)
+                .collect(Collectors.toMap((StageResultDetail::getStageId), Function.identity()));
 
+
+//        List<RecommendedStageVO> recommendedStageVOList = stageResultService.createRecommendedStageVOList(commonMapByItemType, detailMapByStageId, version);
+//        dataCache(version, recommendedStageVOList);
+
+        return stageResultTmpDTO;
+    }
+
+
+    public void dataCache(String key, Object value) {
+        LambdaQueryWrapper<DataCache> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(DataCache::getDataKey, key);
+        boolean exists = dataCacheMapper.exists(lambdaQueryWrapper);
+        DataCache dataCache = new DataCache();
+        dataCache.setDataKey(key);
+        dataCache.setDataValue(JsonMapper.toJSONString(value));
+        if (exists) {
+            dataCacheMapper.updateById(dataCache);
+        } else {
+            dataCacheMapper.insert(dataCache);
+        }
     }
 
     public StageResultTmpDTO calculated(StageConfigDTO stageConfigDTO) {
@@ -85,7 +118,7 @@ public class StageCalService {
                 limitFlag = limitFlag && Math.abs(1 - limit) < 0.00001;
             }
 
-            if(limitFlag){
+            if (limitFlag) {
                 return stageResultTmpDTO;
             }
         }
@@ -112,14 +145,14 @@ public class StageCalService {
         Map<String, List<PenguinMatrixDTO>> groupByStageId = filterAndMergePenguinData(itemMap, stageMap, sampleSize);
 
         //关卡黑名单字典
-        Map<String, String> stageBlacklist = stageConfigDTO.getStageBlacklist();
+        Map<String, String> stageBlackMap = stageConfigDTO.getStageBlacklist();
 
         StageResultTmpDTO stageResultTmpDTO = new StageResultTmpDTO();
 
         for (String stageId : groupByStageId.keySet()) {
 
             //如果当前关卡在关卡黑名单中，则跳过该关卡
-            if (stageBlacklist.get(stageId) != null) {
+            if (stageBlackMap.get(stageId) != null) {
                 Logger.info("黑名单关卡" + stageId);
                 continue;
             }
@@ -274,6 +307,10 @@ public class StageCalService {
         if (StageType.MAIN.equals(stageType) || StageType.ACT_PERM.equals(stageType)) {
             if (!"empty".equals(itemSeriesId)) {
                 Double maxStageEfficiency = stageResultTmpDTO.getItemIterationValueByItemSeriesId(itemSeriesId);
+                if(maxStageEfficiency==null){
+                    stageResultTmpDTO.putItemIterationValue(itemSeriesId, stageEfficiency);
+                    return;
+                }
                 if (maxStageEfficiency < stageEfficiency) {
                     stageResultTmpDTO.putItemIterationValue(itemSeriesId, stageEfficiency);
                 }

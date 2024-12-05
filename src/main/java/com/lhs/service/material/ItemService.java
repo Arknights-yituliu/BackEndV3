@@ -20,7 +20,6 @@ public interface ItemService  {
 
     List<Item> getItemListCache(StageConfigDTO stageConfigDTO);
 
-    void saveCustomItemValue(List<Item> itemList,String version);
 
     List<Item> getItemList(StageConfigDTO stageConfigDTO);
 

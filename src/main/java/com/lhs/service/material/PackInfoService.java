@@ -192,6 +192,7 @@ public class PackInfoService {
 
         List<Item> itemList = itemService.getItemListCache(stageConfigDTO);
         List<ItemCustom> itemCustomList = new ArrayList<>();
+
         for(Item item:itemList){
             ItemCustom itemCustom = new ItemCustom();
             itemCustom.setId(item.getItemId());

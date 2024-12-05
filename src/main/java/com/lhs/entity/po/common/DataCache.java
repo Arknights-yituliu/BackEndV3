@@ -6,8 +6,8 @@ import lombok.Data;
 
 @TableName
 @Data
-public class ServiceInfo {
+public class DataCache {
     @TableId
-    private String infoKey;
-    private String info;
+    private String dataKey;
+    private String dataValue;
 }

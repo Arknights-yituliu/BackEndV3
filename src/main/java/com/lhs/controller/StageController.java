@@ -56,14 +56,6 @@ public class StageController {
 
 
 
-    @Operation(summary = "自定义材料价值计算")
-    @GetMapping("/item/custom")
-    public Result<Map<String, Object>> customStageResult(@RequestBody StageConfigDTO stageConfigDTO) {
-
-        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO.getVersion());
-
-        return Result.success(t3RecommendedStageV3);
-    }
 
 
 

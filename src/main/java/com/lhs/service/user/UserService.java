@@ -1,9 +1,7 @@
 package com.lhs.service.user;
 
-import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
-import com.lhs.entity.dto.user.EmailRequestDTO;
-import com.lhs.entity.dto.user.LoginDataDTO;
-import com.lhs.entity.dto.user.UpdateUserDataDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.user.*;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.po.user.UserInfo;
@@ -60,6 +58,10 @@ public interface UserService {
      */
     UserInfo getUserInfoPOByToken(String token);
 
+    StageConfigDTO getUserStageConfig(HttpServletRequest request);
+
+    void updateUserConfig(UserConfigDTO userConfigDTO);
+
     /**
      * 更新用户信息
      * @param updateUserDataDto 要更新的内容
@@ -93,5 +95,5 @@ public interface UserService {
     void saveBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
 
 
-    void updateUserConfig(Map<String, Object> config,HttpServletRequest httpServletRequest);
+
 }

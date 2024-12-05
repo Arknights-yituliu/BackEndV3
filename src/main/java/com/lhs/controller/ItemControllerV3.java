@@ -56,14 +56,14 @@ public class ItemControllerV3 {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setSampleSize(sampleSize);
         stageConfigDTO.setExpCoefficient(expCoefficient);
-        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO.getVersion());
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO);
         return Result.success(t3RecommendedStageV3);
     }
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @PostMapping("/stage/result/custom")
     public Result<Map<String, Object>> getStageResultOld(@RequestBody StageConfigDTO stageConfigDTO) {
-        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO.getVersion());
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO);
         return Result.success(t3RecommendedStageV3);
     }
 
