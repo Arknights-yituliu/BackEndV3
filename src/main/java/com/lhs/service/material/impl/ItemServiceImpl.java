@@ -12,7 +12,6 @@ import com.lhs.entity.dto.material.CompositeTableDTO;
 import com.lhs.entity.dto.material.FloatingValueItem;
 import com.lhs.entity.dto.material.ItemCostDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
-import com.lhs.entity.po.common.DataCache;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.ItemIterationValue;
 import com.lhs.entity.po.material.WorkShopProducts;
@@ -75,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
 
         Double lmdValue = stageConfigDTO.getLMDValue();
         Double EXPValue = stageConfigDTO.getEXPValue();
-        String version = stageConfigDTO.getVersion();
+        String version = stageConfigDTO.getVersionCode();
 
         //上次迭代计算出的副产物价值
         Map<String, Double> itemIterationValue = getItemIterationValue(version);
@@ -186,7 +185,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> getItemListCache(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersion()).orderByDesc(Item::getItemValueAp);
+        itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersionCode()).orderByDesc(Item::getItemValueAp);
         List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
         List<Item> floatingValueItemList = updateFixedItemValue(stageConfigDTO);
         itemList.addAll(floatingValueItemList);
@@ -203,7 +202,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> getItemList(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
-        itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersion()).orderByDesc(Item::getItemValueAp);
+        itemQueryWrapper.in(Item::getVersion, stageConfigDTO.getVersionCode()).orderByDesc(Item::getItemValueAp);
 
         List<Item> itemList = itemMapper.selectList(itemQueryWrapper);
         if (itemList.isEmpty()) {

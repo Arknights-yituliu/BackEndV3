@@ -17,6 +17,7 @@ public class TaskService {
     private final ItemService itemService;
     private final StoreService storeService;
     private final StageResultService stageResultService;
+    private final StageCalService stageCalService;
     private final OSSService ossService;
     private final StageService stageService;
     private final StageDropUploadService stageDropUploadService;
@@ -26,7 +27,7 @@ public class TaskService {
     public TaskService(ItemService itemService,
                        StoreService storeService,
                        StageResultService stageResultService,
-                       OSSService ossService,
+                       StageCalService stageCalService, OSSService ossService,
                        StageService stageService,
                        StageDropUploadService stageDropUploadService,
                        PackInfoService packInfoService,
@@ -34,6 +35,7 @@ public class TaskService {
         this.itemService = itemService;
         this.storeService = storeService;
         this.stageResultService = stageResultService;
+        this.stageCalService = stageCalService;
         this.ossService = ossService;
         this.stageService = stageService;
         this.stageDropUploadService = stageDropUploadService;
@@ -62,7 +64,7 @@ public class TaskService {
      */
     @Scheduled(cron = "0 0/19 * * * ?")
     public void updateStageResult() {
-        stageResultService.updateStageResultByTaskConfig();
+        stageCalService.updateStageResultByTaskConfig();
     }
 
 //    @Scheduled(cron = "0 0/17 * * * ?")

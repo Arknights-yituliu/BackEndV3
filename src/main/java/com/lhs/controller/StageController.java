@@ -108,7 +108,7 @@ public class StageController {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setSampleSize(sampleSize);
         stageConfigDTO.setExpCoefficient(expCoefficient);
-        return Result.success(stageResultService.getT3RecommendedStageV1(stageConfigDTO.getVersion()));
+        return Result.success(stageResultService.getT3RecommendedStageV1(stageConfigDTO.getVersionCode()));
     }
 
     //    @TakeCount(name = "绿材料推荐关卡")

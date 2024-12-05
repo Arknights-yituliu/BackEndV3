@@ -2,15 +2,16 @@ package com.lhs.entity.dto.material;
 
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 
 @Data
 public class StageConfigDTO {
+
+    private Long id;
     //API版本
-    private String date;
+    private String version;
     //经验书的系数,经验书价值=龙门币(0.0036)*系数
     private Double expCoefficient;
     //样本量
@@ -27,11 +28,10 @@ public class StageConfigDTO {
     private Map<String, String> stageBlacklist;
     //强制指定某个材料的价值（例如无限池扭转醇）
     private Map<String, Double> customItemValue;
-    private Long id;
-
 
     {
-        date = "2024-11-09";
+        id = 202412050001L;
+        version = "v4";
         expCoefficient = 0.633;
         chipIsValueConsistent = true;
         calculateActivityStage = false;
@@ -49,7 +49,7 @@ public class StageConfigDTO {
     }
 
     //  返回版本号
-    public String getVersion() {
-        return date + "-" + id;
+    public String getVersionCode() {
+        return version + "-" + id;
     }
 }

@@ -14,6 +14,7 @@ import com.lhs.entity.dto.material.StageResultTmpDTO;
 import com.lhs.entity.po.common.DataCache;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.material.RecommendedStageVO;
+import com.lhs.entity.vo.material.StageResultVOV2;
 import com.lhs.mapper.DataCacheMapper;
 import com.lhs.mapper.material.QuantileMapper;
 import com.lhs.mapper.material.StageResultMapper;
@@ -68,12 +69,38 @@ public class StageCalService {
 
     private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
 
+    public void updateStageResultByTaskConfig() {
+        String read = FileUtil.read(ConfigUtil.Item + "stage_task_config_v2.json");
+        if (read == null) {
+            Logger.error("更新关卡配置文件为空");
+            return;
+        }
+
+        List<StageConfigDTO> stageConfigDTOList =  JsonMapper.parseObject(read, new TypeReference<>() {
+        });
+
+        for(StageConfigDTO stageConfigDTO:stageConfigDTOList){
+            updateStageResult(stageConfigDTO);
+            Logger.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
+        }
+
+    }
+
+    public void updateStageResult(StageConfigDTO stageConfigDTO) {
+
+        List<Item> itemList = itemService.calculatedItemValue(stageConfigDTO);  //计算新的新材料价值
+        StageResultTmpDTO stageResultTmpDTO = calculatedStageEfficiency(itemList, stageConfigDTO);//用新材料价值计算新关卡效率
+        Logger.info("关卡效率更新成功，版本号 {} "+stageConfigDTO.getVersionCode());
+        saveResultToDB(stageResultTmpDTO,stageConfigDTO.getVersionCode());
+    }
+
+
     public StageResultTmpDTO calculated(HttpServletRequest httpServletRequest) {
         StageConfigDTO stageConfigDTO = userService.getUserStageConfig(httpServletRequest);
         StageResultTmpDTO stageResultTmpDTO = calculated(stageConfigDTO);
         List<Item> itemList = stageResultTmpDTO.getItemList();
-        String version = stageConfigDTO.getVersion();
-        dataCache(version, itemList);
+        String version = stageConfigDTO.getVersionCode();
+        dataCache("Item"+version, itemList);
         long timeStamp = System.currentTimeMillis();
         List<StageResult> stageResultList = stageResultTmpDTO.getStageResultList();
         Map<String, List<StageResult>> commonMapByItemType = stageResultList.stream()
@@ -84,11 +111,65 @@ public class StageCalService {
                 .filter(e -> e.getEndTime().getTime() > timeStamp & e.getRatioRank() == 0)
                 .collect(Collectors.toMap((StageResultDetail::getStageId), Function.identity()));
 
-
-//        List<RecommendedStageVO> recommendedStageVOList = stageResultService.createRecommendedStageVOList(commonMapByItemType, detailMapByStageId, version);
-//        dataCache(version, recommendedStageVOList);
+        List<RecommendedStageVO> recommendedStageVOList = createRecommendedStageVOList(commonMapByItemType, detailMapByStageId, version);
+        dataCache("RecommendedStage"+version, recommendedStageVOList);
 
         return stageResultTmpDTO;
+    }
+
+
+    public List<RecommendedStageVO> createRecommendedStageVOList(Map<String, List<StageResult>> commonMapByItemType,
+                                                                 Map<String, StageResultDetail> detailMapByStageId,
+                                                                 String version){
+        List<Stage> stageList = stageService.getStageList(null);
+        Map<String, Stage> stageMap = stageList
+                .stream()
+                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
+
+        List<RecommendedStageVO> recommendedStageVOList = new ArrayList<>();
+
+        for (String itemSeriesId : commonMapByItemType.keySet()) {
+            //每次材料系的推荐关卡的通用掉落信息
+            List<StageResult> commonListByItemId = commonMapByItemType.get(itemSeriesId);
+            String itemSeries = commonListByItemId.get(0).getItemSeries();
+            //将通用掉落信息按效率倒序排列
+            commonListByItemId.sort(Comparator.comparing(StageResult::getStageEfficiency).reversed());
+
+            List<StageResultVOV2> stageResultVOV2List = new ArrayList<>();
+            for (StageResult common : commonListByItemId) {
+                Stage stage = stageMap.get(common.getStageId());
+                if (stage == null) {
+                    continue;
+                }
+                StageResultDetail detail = detailMapByStageId.get(common.getStageId());
+                if (detail == null) {
+                    continue;
+                }
+                //将通用结果和详细结果复制到返回结果的实体类中
+                StageResultVOV2 stageResultVOV2 = new StageResultVOV2();
+                stageResultVOV2.copyByStageResultCommon(common);
+                stageResultVOV2.copyByStageResultDetail(detail);
+                stageResultVOV2List.add(stageResultVOV2);
+
+
+                stageResultVOV2.setZoneName(stage.getZoneName());
+            }
+
+            RecommendedStageVO recommendedStageVo = new RecommendedStageVO();
+            recommendedStageVo.setItemSeriesId(itemSeriesId);
+            recommendedStageVo.setItemSeries(itemSeries);
+            recommendedStageVo.setItemType(itemSeries);
+            recommendedStageVo.setItemTypeId(itemSeriesId);
+            recommendedStageVo.setVersion(version);
+            recommendedStageVo.setStageResultList(stageResultVOV2List);
+
+
+            recommendedStageVOList.add(recommendedStageVo);
+
+        }
+
+
+        return recommendedStageVOList;
     }
 
 
@@ -130,7 +211,7 @@ public class StageCalService {
     public StageResultTmpDTO calculatedStageEfficiency(List<Item> itemList, StageConfigDTO stageConfigDTO) {
 
         Integer sampleSize = stageConfigDTO.getSampleSize();
-        String version = stageConfigDTO.getVersion();
+        String version = stageConfigDTO.getVersionCode();
 
         //物品信息  <itemId,Item>
         Map<String, Item> itemMap = itemList.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
@@ -188,23 +269,27 @@ public class StageCalService {
                     parametersDTO, stage, version);
         }
 
+        List<ItemIterationValue> iterationValueList = createIterationValueList(stageResultTmpDTO,
+                itemMap, version);
+        stageResultTmpDTO.setItemIterationValueList(iterationValueList);
 
         return stageResultTmpDTO;
     }
 
 
     private void saveResultToDB(StageResultTmpDTO stageResultTmpDTO,
-                                Map<String, Item> itemMap,
                                 String version) {
-        List<ItemIterationValue> iterationValueList = createIterationValueList(stageResultTmpDTO,
-                itemMap, version);
+
         stageResultDetailMapper.delete(new QueryWrapper<StageResultDetail>().eq("version", version));
         stageResultMapper.delete(new QueryWrapper<StageResult>().eq("version", version));
         itemService.deleteItemIterationValue(version);
-        itemService.saveItemIterationValue(iterationValueList);
 
         List<StageResultDetail> stageResultDetailList = stageResultTmpDTO.getStageResultDetailList();
         List<StageResult> stageResultList = stageResultTmpDTO.getStageResultList();
+        List<ItemIterationValue> itemIterationValueList = stageResultTmpDTO.getItemIterationValueList();
+
+
+        itemService.saveItemIterationValue(itemIterationValueList);
 
         List<StageResultDetail> insertList = new ArrayList<>();
         for (StageResultDetail stageResultDetail : stageResultDetailList) {
