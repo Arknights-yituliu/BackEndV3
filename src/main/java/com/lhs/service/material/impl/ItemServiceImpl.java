@@ -112,6 +112,12 @@ public class ItemServiceImpl implements ItemService {
             if (itemIterationValue.get(itemId) != null) {
                 item.setItemValueAp(item.getItemValueAp() / itemIterationValue.get(itemId));
             }
+
+            Map<String, Double> customItemValue = stageConfigDTO.getCustomItemValue();
+            Double value = customItemValue.get(itemId);
+            if(value!=null){
+                item.setItemValueAp(value);
+            }
             itemValueMap.put(itemId, item);
         }
 

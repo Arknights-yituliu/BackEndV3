@@ -30,7 +30,7 @@ public class StageConfigDTO {
     private Map<String, Double> customItemValue;
 
     {
-        id = 202412050001L;
+        id = 202412050002L;
         version = "v4";
         expCoefficient = 0.633;
         chipIsValueConsistent = true;
@@ -38,6 +38,7 @@ public class StageConfigDTO {
         sampleSize = 300;
         lmdCoefficient = 1.0;
         stageBlacklist =  new HashMap<>();
+        customItemValue = new HashMap<>();
     }
 
     public Double getLMDValue() {

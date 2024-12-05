@@ -183,7 +183,7 @@ public class StageResultService {
     }
 
 
-    @RedisCacheable(key = "Item:Stage.T3.V3", params = "version")
+    @RedisCacheable(key = "Item:Stage.T3.V3")
     public Map<String, Object> getT3RecommendedStageV3(StageConfigDTO stageConfigDTO) {
 
         String version = stageConfigDTO.getVersionCode();

@@ -41,12 +41,7 @@ public class ItemControllerV3 {
         this.packInfoService = packInfoService;
     }
 
-    @Operation(summary = "手动更新")
-    @GetMapping("/stage/update")
-    public Result<Map<String, List<Stage>>> updateStageResult() {
-        taskService.updateStageResult();
-        return Result.success();
-    }
+
 
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")
@@ -60,12 +55,6 @@ public class ItemControllerV3 {
         return Result.success(t3RecommendedStageV3);
     }
 
-    @Operation(summary = "获取每种材料系列的关卡计算结果")
-    @PostMapping("/stage/result/custom")
-    public Result<Map<String, Object>> getStageResultOld(@RequestBody StageConfigDTO stageConfigDTO) {
-        Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO);
-        return Result.success(t3RecommendedStageV3);
-    }
 
 
     @Operation(summary = "获取搓玉推荐关卡")

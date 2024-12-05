@@ -82,7 +82,7 @@ public class TaskService {
 //       stageDropUploadService.exportData();
 //    }
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0 0/12 * * ?")
     public void updateStorePackInfo(){
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         packInfoService.uploadPackInfoPageToCos(stageConfigDTO);

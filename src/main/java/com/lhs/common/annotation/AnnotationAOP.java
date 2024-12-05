@@ -111,7 +111,7 @@ public class AnnotationAOP {
         String[] params = redisCacheable.params().split(",");
 
         for (String param : params) {
-              if(argMap.get(param)!=null)  redisKey.append(".").append(argMap.get(param));
+              if(argMap.get(param)!=null)  redisKey.append(".").append(argMap.get(param).toString());
         }
 
         Object cache = "";

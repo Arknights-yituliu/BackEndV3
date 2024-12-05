@@ -3,5 +3,13 @@
     "id": 202412050001,
     "expCoefficient": 0.633,
     "sampleSize": 300
+  },
+  {
+    "id": 202412050002,
+    "expCoefficient": 0.633,
+    "sampleSize": 300,
+    "customItemValue": {
+      "30073": 1.8
+    }
   }
 ]
