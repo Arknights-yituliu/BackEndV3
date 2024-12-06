@@ -15,7 +15,7 @@ import jakarta.persistence.Id;
 
 
 @Data
-@TableName("config")   //用于存储最终的等效理智/绿票价值
+@TableName("item")   //用于存储最终的等效理智/绿票价值
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
