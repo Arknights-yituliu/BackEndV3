@@ -139,7 +139,7 @@ public class StageDropUploadService {
 
     @RedisCacheable(key = "ItemTable", timeout = 604800)
     private JsonNode getItemTable() {
-        return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item+"drop_table.json"));
+        return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config +"drop_table.json"));
 //        return JsonMapper.parseJSONObject(FileUtil.read("src/main/resources/item/drop_table.json"));
     }
 

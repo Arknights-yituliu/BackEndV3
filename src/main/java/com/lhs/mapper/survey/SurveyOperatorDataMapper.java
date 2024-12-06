@@ -14,7 +14,7 @@ public interface SurveyOperatorDataMapper extends BaseMapper<SurveyOperatorData>
     Integer insertBatch(@Param("tableName") String tableName,
                         @Param("list") List<SurveyOperatorData> characterList);
 
-    void updateByUid(@Param("tableName") String tableName, @Param("item") SurveyOperatorData surveyOperatorData);
+    void updateByUid(@Param("tableName") String tableName, @Param("config") SurveyOperatorData surveyOperatorData);
 
 
 }

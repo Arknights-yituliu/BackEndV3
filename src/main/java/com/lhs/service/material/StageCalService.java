@@ -67,10 +67,10 @@ public class StageCalService {
     }
 
 
-    private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_series_table.json"));
+    private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config + "item_series_table.json"));
 
     public void updateStageResultByTaskConfig() {
-        String read = FileUtil.read(ConfigUtil.Item + "stage_task_config_v2.json");
+        String read = FileUtil.read(ConfigUtil.Config + "stage_task_config_v2.json");
         if (read == null) {
             Logger.error("更新关卡配置文件为空");
             return;
@@ -550,7 +550,7 @@ public class StageCalService {
         }
 
         //获取材料的上下位材料
-        JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Item + "item_type_table.json"));
+        JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config + "item_type_table.json"));
         JsonNode itemTypeNode = itemTypeTable.get(itemType);
 
         //该系材料的每种等级材料在关卡中的占比

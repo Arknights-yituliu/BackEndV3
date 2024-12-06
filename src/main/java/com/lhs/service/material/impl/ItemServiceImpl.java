@@ -287,7 +287,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private List<CompositeTableDTO> getCompositeTable() {
-        String compositeTableText = FileUtil.read(ConfigUtil.Item + "composite_table.v2.json");
+        String compositeTableText = FileUtil.read(ConfigUtil.Config + "composite_table.v2.json");
         //读取加工站材料合成表
         if (compositeTableText == null) throw new ServiceException(ResultCode.DATA_NONE);
 

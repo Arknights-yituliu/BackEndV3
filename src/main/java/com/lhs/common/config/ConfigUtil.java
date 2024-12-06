@@ -10,8 +10,8 @@ public class ConfigUtil implements InitializingBean {
 
     @Value("${resourcesPath.penguin}")
     private String penguin;  //    企鹅物流数据文件路径
-    @Value("${resourcesPath.item}")
-    private String item;  //    材料相关数据文件路径
+    @Value("${resourcesPath.config}")
+    private String config;  //    材料相关数据文件路径
 
     @Value("${resourcesPath.schedule}")
     private String schedule;  //    排班文件路径
@@ -41,7 +41,7 @@ public class ConfigUtil implements InitializingBean {
     private String cosSecretKey;
 
     public static String Penguin;
-    public static String Item;
+    public static String Config;
 
     public static String Schedule;
 
@@ -63,7 +63,7 @@ public class ConfigUtil implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         Penguin = penguin;
-        Item = item;
+        Config = config;
         Resources = resources;
 
 

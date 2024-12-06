@@ -139,7 +139,7 @@ public class StoreServiceImpl implements StoreService {
         if (o != null) {
             text = String.valueOf(o);
         } else {
-            String read = FileUtil.read(ConfigUtil.Item + "store_perm_table.json");
+            String read = FileUtil.read(ConfigUtil.Config + "store_perm_table.json");
             if (read == null) {
                 throw new ServiceException(ResultCode.FILE_NOT_EXIST);
             }

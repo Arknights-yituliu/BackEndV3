@@ -55,7 +55,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     @RedisCacheable(key = "Survey:EquipIdAndType")
     @Override
     public Map<String, String> getEquipIdAndType() {
-        String read = FileUtil.read(ConfigUtil.Item + "character_table_simple.json");
+        String read = FileUtil.read(ConfigUtil.Config + "character_table_simple.json");
         if (read == null) throw new ServiceException(ResultCode.FILE_NOT_EXIST);
         JsonNode characterTableSimple = JsonMapper.parseJSONObject(read);
         Map<String, String> uniEquipIdAndType = new HashMap<>();
