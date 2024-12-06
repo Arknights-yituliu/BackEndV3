@@ -116,7 +116,6 @@ public class StoreServiceImpl implements StoreService {
         for(String type:storePermTable.keySet()){
             List<StorePermVO> storePermVOList = storePermTable.get(type);
             for(StorePermVO item:storePermVOList){
-
                 double value = itemMapCache.get(item.getItemId()).getItemValueAp();
                 int quantity = item.getQuantity();
                 double cost = item.getCost();

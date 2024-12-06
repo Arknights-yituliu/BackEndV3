@@ -199,7 +199,7 @@ public class ItemServiceImpl implements ItemService {
         return itemList;
     }
 
-    @RedisCacheable(key = "Item:itemValueMap")
+
     @Override
     public Map<String, Item> getItemMapCache(StageConfigDTO stageConfigDTO) {
         List<Item> itemListCache = getItemListCache(stageConfigDTO);
