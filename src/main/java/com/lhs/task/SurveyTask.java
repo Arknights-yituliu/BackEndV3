@@ -15,10 +15,7 @@ public class SurveyTask {
         this.operatorStatisticsService = operatorStatisticsService;
     }
 
-    @Scheduled(cron = "0 0 0/1 * * ? ")
-    public void operatorStatistics(){
-        operatorStatisticsService.statisticsOperatorData();
-    }
+
 
 
 }

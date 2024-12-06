@@ -179,8 +179,13 @@ public class StageService {
             JsonNode existence = JsonMapper.parseJSONObject(jsonNode.get("existence").toPrettyString());
             JsonNode existenceCN = existence.get("CN");
 
-            if(existenceCN.get("openTime")!=null)openTime = new Date(existenceCN.get("openTime").asLong());
-            if(existenceCN.get("closeTime")!=null)  endTime = new Date(existenceCN.get("closeTime").asLong());
+            if(existenceCN.get("openTime")!=null){
+                openTime = new Date(existenceCN.get("openTime").asLong());
+            }
+
+            if(existenceCN.get("closeTime")!=null)  {
+                endTime = new Date(existenceCN.get("closeTime").asLong());
+            }
 
             Stage stage = new Stage();
             stage.setStageId(stageId);

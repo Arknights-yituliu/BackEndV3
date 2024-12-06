@@ -40,6 +40,7 @@ public class PackInfoService {
     private final ItemService itemService;
     private final ImageInfoService imageInfoService;
 
+
     public PackInfoService(PackInfoMapper packInfoMapper,
                            PackContentMapper packContentMapper,
                            RedisTemplate<String, Object> redisTemplate,
@@ -160,7 +161,8 @@ public class PackInfoService {
         //批量保存
         packContentMapperService.saveBatch(packContentList);
 
-        redisTemplate.delete("Item:PackData");
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        uploadPackInfoPageToCos(stageConfigDTO);
 
         return message;
     }

@@ -3,6 +3,7 @@ package com.lhs.task;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.service.maa.StageDropUploadService;
 import com.lhs.service.rogueSeed.RogueSeedService;
+import com.lhs.service.survey.OperatorStatisticsService;
 import com.lhs.service.util.OSSService;
 import com.lhs.service.material.*;
 
@@ -24,6 +25,8 @@ public class TaskService {
     private final PackInfoService packInfoService;
     private final RogueSeedService rogueSeedService;
 
+    private final OperatorStatisticsService operatorStatisticsService;
+
     public TaskService(ItemService itemService,
                        StoreService storeService,
                        StageResultService stageResultService,
@@ -31,7 +34,7 @@ public class TaskService {
                        StageService stageService,
                        StageDropUploadService stageDropUploadService,
                        PackInfoService packInfoService,
-                       RogueSeedService rogueSeedService) {
+                       RogueSeedService rogueSeedService, OperatorStatisticsService operatorStatisticsService) {
         this.itemService = itemService;
         this.storeService = storeService;
         this.stageResultService = stageResultService;
@@ -41,6 +44,7 @@ public class TaskService {
         this.stageDropUploadService = stageDropUploadService;
         this.packInfoService = packInfoService;
         this.rogueSeedService = rogueSeedService;
+        this.operatorStatisticsService = operatorStatisticsService;
     }
 
     /**
@@ -110,5 +114,8 @@ public class TaskService {
         rogueSeedService.uploadRogueSeedPageToCOS();
     }
 
-
+    @Scheduled(cron = "0 0 0/1 * * ? ")
+    public void operatorStatistics(){
+        operatorStatisticsService.statisticsOperatorData();
+    }
 }

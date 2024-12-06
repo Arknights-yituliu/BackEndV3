@@ -56,19 +56,6 @@ public class ItemControllerV4 {
         return Result.success(t3RecommendedStageV3);
     }
 
-    @Operation(summary = "获取常驻商店性价比")
-    @PostMapping("/custom/store/perm")
-    public Result<Map<String, List<StorePermVO>>> getStorePermData(@RequestBody StageConfigDTO stageConfigDTO) {
-        Map<String, List<StorePermVO>> storePermMap = storeService.getStorePermMap(stageConfigDTO);
-        return Result.success(storePermMap);
-    }
-
-    @Operation(summary = "获取礼包商店性价比")
-    @PostMapping("/custom/store/pack")
-    public Result<Map<String, List<StorePermVO>>> getStorePackData(@RequestBody StageConfigDTO stageConfigDTO) {
-        return Result.success();
-    }
-
     @Operation(summary = "获取物品价值表")
     @PostMapping("/custom/item/value")
     public Result<List<Item>> getItemValueV2(@RequestBody StageConfigDTO stageConfigDTO) {
@@ -96,4 +83,20 @@ public class ItemControllerV4 {
         List<ActivityStoreDataVO> activityStoreDataVOList = storeService.getActivityStoreData(stageConfigDTO);
         return Result.success(activityStoreDataVOList);
     }
+
+    @Operation(summary = "获取常驻商店性价比")
+    @PostMapping("/custom/store/perm")
+    public Result<Map<String, List<StorePermVO>>> getStorePermData(@RequestBody StageConfigDTO stageConfigDTO) {
+        Map<String, List<StorePermVO>> storePermMap = storeService.getStorePermMap(stageConfigDTO);
+        return Result.success(storePermMap);
+    }
+
+    @Operation(summary = "获取礼包商店性价比")
+    @PostMapping("/custom/store/pack")
+    public Result<List<PackInfoVO>> getStorePackData(@RequestBody StageConfigDTO stageConfigDTO) {
+        List<PackInfoVO> packInfoVOS = packInfoService.listPackInfo(stageConfigDTO);
+        return Result.success(packInfoVOS);
+    }
+
+
 }
