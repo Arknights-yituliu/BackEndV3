@@ -1,9 +1,11 @@
 package com.lhs.service.material;
 
 
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.HoneyCake;
 import com.lhs.entity.po.material.StorePerm;
 import com.lhs.entity.vo.material.ActivityStoreDataVO;
+import com.lhs.entity.vo.material.StorePermVO;
 
 import java.util.*;
 
@@ -13,13 +15,14 @@ public interface StoreService {
 
     Map<String, List<StorePerm>> getStorePerm();
 
+    Map<String,List<StorePermVO>> getStorePermMap(StageConfigDTO stageConfigDTO);
 
     /**
      * 获得当前未关闭的活动商店性价比
      *
      * @return 活动商店性价比
      */
-    List<ActivityStoreDataVO> getActivityStoreData();
+    List<ActivityStoreDataVO> getActivityStoreData(StageConfigDTO stageConfigDTO);
 
     /**
      * 获取活动商店性价比历史数据
@@ -40,10 +43,10 @@ public interface StoreService {
 
     void updateHoneyCake(List<HoneyCake> honeyCakeList);
 
-    //    @RedisCacheable(key = "HoneyCake",timeout=86400)
+
     Map<String, HoneyCake> getHoneyCake();
 
     List<HoneyCake> getHoneyCakeList();
 
-    Map<String, List<StorePerm>> getStorePermV2();
+
 }

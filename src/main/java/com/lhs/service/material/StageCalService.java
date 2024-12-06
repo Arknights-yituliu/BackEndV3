@@ -83,8 +83,9 @@ public class StageCalService {
             updateStageResult(stageConfigDTO);
             Logger.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
         }
-
     }
+
+
 
     public void updateStageResult(StageConfigDTO stageConfigDTO) {
 

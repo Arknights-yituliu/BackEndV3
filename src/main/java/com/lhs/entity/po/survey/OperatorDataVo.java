@@ -25,4 +25,5 @@ public class OperatorDataVo {
     private Integer modX;
     private Integer modY;
     private Integer modD;
+    private Integer modA;
 }

@@ -443,6 +443,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                     .modX(e.getModX())
                     .modY(e.getModY())
                     .modD(e.getModD())
+                    .modA(e.getModA())
                     .build();
             operatorDataVoList.add(build);
         });

@@ -137,12 +137,13 @@ public class ItemControllerV3 {
     }
 
     //    @TakeCount(name = "活动商店性价比")
-    @Operation(summary = "获取活动商店性价比")
-    @GetMapping("/store/act")
-    public Result<List<ActivityStoreDataVO>> getStoreActData() {
-        List<ActivityStoreDataVO> activityStoreDataVOList = storeService.getActivityStoreData();
-        return Result.success(activityStoreDataVOList);
-    }
+//    @Operation(summary = "获取活动商店性价比")
+//    @GetMapping("/store/act")
+//    public Result<List<ActivityStoreDataVO>> getStoreActData() {
+//
+//        List<ActivityStoreDataVO> activityStoreDataVOList = storeService.getActivityStoreData();
+//        return Result.success(activityStoreDataVOList);
+//    }
 
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")

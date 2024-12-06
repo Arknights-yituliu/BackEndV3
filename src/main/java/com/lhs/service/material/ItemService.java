@@ -19,7 +19,7 @@ public interface ItemService  {
     void deleteItemIterationValue(String version);
 
     List<Item> getItemListCache(StageConfigDTO stageConfigDTO);
-
+    Map<String, Item> getItemMapCache(StageConfigDTO stageConfigDTO);
 
     List<Item> getItemList(StageConfigDTO stageConfigDTO);
 

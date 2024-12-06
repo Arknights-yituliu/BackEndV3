@@ -83,7 +83,9 @@ public class PackInfoService {
         Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream().collect(Collectors.groupingBy(PackContent::getContentId));
 
         //将礼包价值表转为map对象，方便使用
-        Map<String, Double> itemValueMap = listPackItem(stageConfigDTO).stream().collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
+        Map<String, Double> itemValueMap = listPackItem(stageConfigDTO)
+                .stream()
+                .collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
 
         List<PackInfoVO> VOList = new ArrayList<>();
 

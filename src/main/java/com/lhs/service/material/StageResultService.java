@@ -2,17 +2,15 @@ package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.StageConfigDTO;
-import com.lhs.entity.dto.material.StageResultTmpDTO;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.material.*;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
 import com.lhs.service.user.UserService;
+import com.lhs.service.util.DataCacheService;
 import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -34,6 +32,7 @@ public class StageResultService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final UserService userService;
+    private final DataCacheService dataCacheService;
 
     public StageResultService(StageResultDetailMapper stageResultDetailMapper,
                               StageResultMapper stageResultMapper,
@@ -42,7 +41,7 @@ public class StageResultService {
                               StageService stageService,
                               OSSService ossService,
                               RedisTemplate<String, Object> redisTemplate,
-                              UserService userService) {
+                              UserService userService, DataCacheService dataCacheService) {
         this.stageResultDetailMapper = stageResultDetailMapper;
         this.stageResultMapper = stageResultMapper;
         this.itemService = itemService;
@@ -51,6 +50,7 @@ public class StageResultService {
         this.ossService = ossService;
         this.redisTemplate = redisTemplate;
         this.userService = userService;
+        this.dataCacheService = dataCacheService;
     }
 
 
@@ -186,8 +186,11 @@ public class StageResultService {
     @RedisCacheable(key = "Item:Stage.T3.V3")
     public Map<String, Object> getT3RecommendedStageV3(StageConfigDTO stageConfigDTO) {
 
-        String version = stageConfigDTO.getVersionCode();
+        Object stageCacheData = dataCacheService.getStageCacheData("RecommendedStage" + stageConfigDTO.getVersionCode());
 
+
+
+        String version = stageConfigDTO.getVersionCode();
         //根据itemType将关卡主要掉落信息分组
         List<StageResult> stageResultList = stageResultMapper
                 .selectList(new QueryWrapper<StageResult>()
@@ -376,7 +379,7 @@ public class StageResultService {
     }
 
 
-    //    @RedisCacheable(key = "Item:Stage.ACT.V2", params = "version")
+    @RedisCacheable(key = "Item:Stage.ACT.V2")
     public List<ActStageVO> getHistoryActStage(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersionCode();
         Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)

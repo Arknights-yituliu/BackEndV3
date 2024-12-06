@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -115,7 +116,7 @@ public class ItemServiceImpl implements ItemService {
 
             Map<String, Double> customItemValue = stageConfigDTO.getCustomItemValue();
             Double value = customItemValue.get(itemId);
-            if(value!=null){
+            if (value != null) {
                 item.setItemValueAp(value);
             }
             itemValueMap.put(itemId, item);
@@ -147,9 +148,10 @@ public class ItemServiceImpl implements ItemService {
         itemQueryWrapper.eq("version", version);
         itemMapper.delete(itemQueryWrapper);
 
-        saveByProductValue(itemList, version);  //保存新的材料价值表的加工站副产物平均产出价值
-        itemMapperService.saveBatch(itemList);  //更新材料表
-
+        //保存新的材料价值表的加工站副产物平均产出价值
+        saveByProductValue(itemList, version);
+        //更新材料表
+        itemMapperService.saveBatch(itemList);
 
         List<Item> fixedItemValue = updateFixedItemValue(stageConfigDTO);
 
@@ -157,7 +159,6 @@ public class ItemServiceImpl implements ItemService {
 
         return itemList;
     }
-
 
 
     /**
@@ -187,7 +188,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
 
-    @RedisCacheable(key = "Item:itemValue", params = "version")
+    @RedisCacheable(key = "Item:itemValueList")
     @Override
     public List<Item> getItemListCache(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
@@ -196,6 +197,13 @@ public class ItemServiceImpl implements ItemService {
         List<Item> floatingValueItemList = updateFixedItemValue(stageConfigDTO);
         itemList.addAll(floatingValueItemList);
         return itemList;
+    }
+
+    @RedisCacheable(key = "Item:itemValueMap")
+    @Override
+    public Map<String, Item> getItemMapCache(StageConfigDTO stageConfigDTO) {
+        List<Item> itemListCache = getItemListCache(stageConfigDTO);
+        return itemListCache.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
     }
 
 

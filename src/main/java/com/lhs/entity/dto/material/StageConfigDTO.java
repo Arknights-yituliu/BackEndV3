@@ -30,7 +30,7 @@ public class StageConfigDTO {
     private Map<String, Double> customItemValue;
 
     {
-        id = 202412050002L;
+        id = 202412050001L;
         version = "v4";
         expCoefficient = 0.633;
         chipIsValueConsistent = true;

@@ -50,13 +50,50 @@ public class ItemControllerV4 {
 
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")
-    @PostMapping("/stage/result/custom")
+    @PostMapping("/custom/stage/result")
     public Result<Map<String, Object>> getStageResultOld(@RequestBody StageConfigDTO stageConfigDTO) {
         Map<String, Object> t3RecommendedStageV3 = stageResultService.getT3RecommendedStageV3(stageConfigDTO);
         return Result.success(t3RecommendedStageV3);
     }
 
+    @Operation(summary = "获取常驻商店性价比")
+    @PostMapping("/custom/store/perm")
+    public Result<Map<String, List<StorePermVO>>> getStorePermData(@RequestBody StageConfigDTO stageConfigDTO) {
+        Map<String, List<StorePermVO>> storePermMap = storeService.getStorePermMap(stageConfigDTO);
+        return Result.success(storePermMap);
+    }
 
+    @Operation(summary = "获取礼包商店性价比")
+    @PostMapping("/custom/store/pack")
+    public Result<Map<String, List<StorePermVO>>> getStorePackData(@RequestBody StageConfigDTO stageConfigDTO) {
+        return Result.success();
+    }
 
+    @Operation(summary = "获取物品价值表")
+    @PostMapping("/custom/item/value")
+    public Result<List<Item>> getItemValueV2(@RequestBody StageConfigDTO stageConfigDTO) {
+        List<Item> items = itemService.getItemListCache(stageConfigDTO);
+        return Result.success(items);
+    }
 
+    @Operation(summary = "获取搓玉推荐关卡")
+    @PostMapping("/custom/stage/orundum")
+    public Result<List<OrundumPerApResultVO>> getOrundumRecommendedStage(@RequestBody StageConfigDTO stageConfigDTO) {
+        List<OrundumPerApResultVO> orundumPerApResultVOList = stageResultService.getOrundumRecommendedStage(stageConfigDTO);
+        return Result.success(orundumPerApResultVOList);
+    }
+
+    @Operation(summary = "获取历史活动关卡")
+    @PostMapping("/custom/stage/history")
+    public Result<List<ActStageVO>> getHistoryActStage(@RequestBody StageConfigDTO stageConfigDTO) {
+        List<ActStageVO> actStageVOList = stageResultService.getHistoryActStage(stageConfigDTO);
+        return Result.success(actStageVOList);
+    }
+
+    @Operation(summary = "获取活动商店性价比")
+    @PostMapping("/custom/store/act")
+    public Result<List<ActivityStoreDataVO>> getStoreActData(@RequestBody StageConfigDTO stageConfigDTO) {
+        List<ActivityStoreDataVO> activityStoreDataVOList = storeService.getActivityStoreData(stageConfigDTO);
+        return Result.success(activityStoreDataVOList);
+    }
 }
