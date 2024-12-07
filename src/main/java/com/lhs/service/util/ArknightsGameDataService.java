@@ -35,8 +35,6 @@ public interface ArknightsGameDataService {
      */
     void getSandboxFoodsTable();
 
-    void getPortrait();
-
     void getAvatar();
 
 

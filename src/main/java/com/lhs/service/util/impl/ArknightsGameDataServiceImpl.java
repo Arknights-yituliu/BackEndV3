@@ -31,10 +31,18 @@ import java.util.stream.Collectors;
 public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     private final OperatorTableMapper operatorTableMapper;
-    private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
+//    private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
+//    private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
+//    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
 
-    private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
-    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
+    //工位上的开发路径
+    //泰迪的仓库
+    private final static String githubBotResource = "C:/WebStormProject/ArknightsGameResource/";
+    //PRTS的仓库
+    private final static String GAME_DATA = "C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/";
+    //输出路径
+    private final static String JSON_BUILD = "C:/WebStormProject/frontend-v2-plus/";
+    
     // 测试路径
 //    private final static String GAME_DATA = "C:/Users/22509/Downloads/";
 //    private final static String JSON_BUILD = "C:/Users/22509/Downloads/";
@@ -91,51 +99,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
 
-    @Override
-    public void getPortrait() {
-        try {
-            // 创建流对象
 
-            String character_tableStr = FileUtil.read(GAME_DATA + "excel/character_table.json");
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode characterTable = objectMapper.readTree(character_tableStr);
-
-            String startPath = githubBotResource + "portrait\\";
-            String portrait6 = "C:\\VCProject\\resources\\portrait-ori-6\\";
-            String portrait5 = "C:\\VCProject\\resources\\portrait-ori-5\\";
-            String portrait4 = "C:\\VCProject\\resources\\portrait-ori-4\\";
-            String endPath = portrait4;
-
-            Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
-
-            while (fields.hasNext()) {
-                String charId = fields.next().getKey();
-                if (!charId.startsWith("char")) continue;
-                JsonNode charData = characterTable.get(charId);
-
-                int rarity = getRarity(charData.get("rarity").asText());
-                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 " + endPath + charId + ".png");
-                File source = new File(startPath + charId + "_1.png");
-
-                if (rarity == 6) endPath = portrait6;
-                if (rarity == 5) endPath = portrait5;
-                if (rarity < 5) endPath = portrait4;
-
-                File tmpFile = new File(endPath);//获取文件夹路径
-
-                if (!tmpFile.exists()) {//判断文件夹是否创建，没有创建则创建新文件夹
-                    boolean exist = tmpFile.mkdirs();
-                    System.out.println(exist);
-                }
-
-                File dest = new File(endPath + charId + "_1.png");
-                copyFile(source, dest);
-
-            }
-        } catch (Exception e) {
-            Logger.error(e.getLocalizedMessage());
-        }
-    }
 
 
     @Override
@@ -149,9 +113,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
             String startPath = githubBotResource + "avatar/";
-            String avatar6 = "C:\\VCProject\\resources\\avatar-ori-6\\";
-            String avatar5 = "C:\\VCProject\\resources\\avatar-ori-5\\";
-            String avatar4 = "C:\\VCProject\\resources\\avatar-ori-4\\";
+            String avatar6 = "C:/VCProject/resources/avatar-ori-6/";
+            String avatar5 = "C:/VCProject/resources/avatar-ori-5/";
+            String avatar4 = "C:/VCProject/resources/avatar-ori-4/";
             String endPath = avatar4;
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
@@ -167,7 +131,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //                if (rarity == 6) endPath = avatar6;
 //                if (rarity == 5) endPath = avatar5;
 //                if (rarity < 5) endPath = avatar4;
-                endPath = "C:\\VCProject\\ak-resources\\image\\avatar\\";
+                endPath = "C:/VCProject/ak-resources/image/avatar/";
 
                 File tmpFile = new File(endPath);//获取文件夹路径
 
@@ -243,12 +207,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         List<Object> list = operatorInfoSimpleMap.values().stream().toList();
 
 
-        FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\",
+        FileUtil.save(JSON_BUILD+"src/static/json/survey/",
                 "character_table_simple.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
-        FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\",
+        FileUtil.save(JSON_BUILD+"src/static/json/survey/",
                 "character_list.json", JsonMapper.toJSONString(list));
 
-        FileUtil.save("C:\\VCProject\\frontend-v2-plus\\src\\static\\json\\survey\\",
+        FileUtil.save(JSON_BUILD+"src/static/json/survey/",
                 "operator_item_cost_table.json", JsonMapper.toJSONString(itemCostMap));
 
     }
@@ -557,7 +521,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //                .collect(Collectors.groupingBy(BuildingData::getRoomType));
 //        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
         Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
-        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        FileUtil.save(JSON_BUILD+"src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
 
     }
 
@@ -663,7 +627,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         str = replaceDescriptionBase(str);
 
         // 匹配术语标签
-        Pattern pattern = Pattern.compile("<\\$cc\\.([\\w.]+)>");
+        Pattern pattern = Pattern.compile("</$cc/.([/w.]+)>");
         Matcher matcher = pattern.matcher(str);
         StringBuilder sb = new StringBuilder();
 
@@ -704,7 +668,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (termDescriptionDict != null) {
             Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
-            FileUtil.save(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+            FileUtil.save(JSON_BUILD+"src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
         }
     }
 
@@ -722,7 +686,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 String description = replaceDescriptionBase(termData.get("description").asText());
 
                 // 将术语中的术语标签替换为常规标签，防止渲染错误（术语提示文本框中无法再提示术语）
-                Pattern pattern = Pattern.compile("<\\$cc\\.([\\w.]+)>");
+                Pattern pattern = Pattern.compile("</$cc/.([/w.]+)>");
                 Matcher matcher = pattern.matcher(description);
                 StringBuilder sb = new StringBuilder();
 
@@ -755,7 +719,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (v2FoodsDetail != null) {
             Map<String, Object> foodsMap = createFoodsDataJson(v2FoodsDetail.get("foodMatData"), v2FoodsDetail.get("foodData"), v2ItemData);
-            FileUtil.save(JSON_BUILD, "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
+            FileUtil.save(JSON_BUILD+"src/static/json/build/", "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
         }
     }
 
