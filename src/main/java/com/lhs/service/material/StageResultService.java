@@ -102,9 +102,7 @@ public class StageResultService {
 
         String version = stageConfigDTO.getVersionCode();
 
-        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
-                .stream()
-                .collect(Collectors.toMap(Item::getItemId, Function.identity()));
+        Map<String, Item> itemMap = itemService.getItemMapCache(stageConfigDTO);
 
         //查询关卡通用掉落信息,根据物品id分组
         Map<String, StageResult> resultSampleMap = stageResultMapper
@@ -161,15 +159,12 @@ public class StageResultService {
     }
 
 
-    @RedisCacheable(key = "Item:Stage.Orundum.V2")
+    @RedisCacheable(key = "Item:Stage.Orundum.V2",keyMethod ="getVersionCode")
     public List<OrundumPerApResultVO> getOrundumRecommendedStage(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersionCode();
         List<OrundumPerApResultVO> orundumPerApResultVOList = new ArrayList<>();
 
-        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
-                .stream()
-                .collect(Collectors.toMap(Item::getItemId, Function.identity()));
-
+        Map<String, Item> itemMap = itemService.getItemMapCache(stageConfigDTO);
         //查询关卡通用掉落信息,根据物品id分组
         Map<String, StageResult> resultCommonMap = stageResultMapper
                 .selectList(new QueryWrapper<StageResult>()
@@ -249,12 +244,10 @@ public class StageResultService {
     }
 
 
-    @RedisCacheable(key = "Item:Stage.ACT.V2")
+    @RedisCacheable(key = "Item:Stage.ACT.V2",keyMethod ="getVersionCode")
     public List<ActStageVO> getHistoryActStage(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersionCode();
-        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
-                .stream()
-                .collect(Collectors.toMap(Item::getItemId, Function.identity()));
+        Map<String, Item> itemMap = itemService.getItemMapCache(stageConfigDTO);
 
         Map<String, List<Stage>> stageGroupByZoneName = stageService.getStageList(null)
                 .stream()
@@ -369,9 +362,7 @@ public class StageResultService {
     public Map<String, StageResultDetailVO> getAllStageResult(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersionCode();
 
-        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
-                .stream()
-                .collect(Collectors.toMap(Item::getItemId, Function.identity()));
+
 
         Map<String, List<StageResultDetail>> detailMap = stageResultDetailMapper
                 .selectList(new QueryWrapper<StageResultDetail>()
@@ -443,9 +434,7 @@ public class StageResultService {
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
-        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
-                .stream()
-                .collect(Collectors.toMap(Item::getItemId, Function.identity()));
+        Map<String, Item> itemMap = itemService.getItemMapCache(stageConfigDTO);
 
         //根据itemType将关卡主要掉落信息分组
         Map<String, List<StageResult>> resultGroupByItemType = stageResultMapper
@@ -674,9 +663,7 @@ public class StageResultService {
     @RedisCacheable(key = "Item:Stage.T2.V1")
     public List<List<StageResultVO>> getT2RecommendedStageV1(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersionCode();
-        Map<String, Item> itemMap = itemService.getItemListCache(stageConfigDTO)
-                .stream()
-                .collect(Collectors.toMap(Item::getItemId, Function.identity()));
+        Map<String, Item> itemMap = itemService.getItemMapCache(stageConfigDTO);
 
         //查询关卡通用掉落信息,根据物品id分组
         Map<String, StageResult> resultSampleMap = stageResultMapper

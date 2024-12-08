@@ -28,6 +28,7 @@ public class StageConfigDTO {
     private Map<String, String> stageBlacklist;
     //强制指定某个材料的价值（例如无限池扭转醇）
     private Map<String, Double> customItemValue;
+    private Long updateTime;
 
     {
         id = 202412050001L;

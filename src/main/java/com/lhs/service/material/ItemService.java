@@ -26,4 +26,5 @@ public interface ItemService  {
     List<Item> updateFixedItemValue(StageConfigDTO stageConfigDTO);
 
 
+    Long checkItemValue(StageConfigDTO stageConfigDTO);
 }

@@ -108,7 +108,10 @@ public class AnnotationAOP {
 
         String cacheKey = redisCacheable.key();
 
-        cacheKey += generateCacheKey(args[0], redisCacheable.keyMethod());
+        if(args.length>0){
+            cacheKey += generateCacheKey(args[0], redisCacheable.keyMethod());
+        }
+
 
         Object cache = "";
 

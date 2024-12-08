@@ -9,12 +9,14 @@ import java.util.Map;
 public interface ArknightsGameDataService {
 
 
+    void saveOperatorDataTag(String tag);
+    String getOperatorDataTag();
 
     Map<String, String> getEquipIdAndType();
 
     /**
      * 获取干员信息集合，里面主要用到干员的获取方式和实装时间
-     * @return
+     * @return 干员信息
      */
     List<OperatorTable> getOperatorTable();
 

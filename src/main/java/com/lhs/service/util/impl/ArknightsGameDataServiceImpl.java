@@ -55,6 +55,22 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         this.redisTemplate = redisTemplate;
     }
 
+    @Override
+    public void saveOperatorDataTag(String tag) {
+         redisTemplate.opsForValue().set("Tag:OperatorData",tag);
+    }
+
+    @Override
+    public String getOperatorDataTag() {
+        Object value = redisTemplate.opsForValue().get("Tag:OperatorData");
+        if(value==null){
+            return "114514";
+        }
+        return String.valueOf(value);
+    }
+
+
+
     /**
      * 返回一个集合 key:模组id,value:模组分支
      *

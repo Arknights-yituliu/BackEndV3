@@ -77,9 +77,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public void updateStorePerm() {
         List<StorePerm> storePermList = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.getItemListCache(new StageConfigDTO())
-                .stream()
-                .collect(Collectors.toMap(Item::getItemName, Function.identity()));
+        Map<String, Item> collect = itemService.getItemMapCache(new StageConfigDTO());
 
         for (StorePerm storePerm : storePermList) {
             storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValueAp() * storePerm.getQuantity() / storePerm.getCost());
@@ -154,8 +152,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel) {
-        List<Item> items = itemService.getItemListCache(new StageConfigDTO());
-        Map<String, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getItemName, Function.identity()));
+        Map<String, Item> itemMap = itemService.getItemMapCache(new StageConfigDTO());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
         String actName = activityStoreDataVo.getActName();
@@ -224,7 +221,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    @RedisCacheable(key = "Item:StoreAct")
+    @RedisCacheable(key = "Item:StoreAct",keyMethod ="getVersionCode")
     public List<ActivityStoreDataVO> getActivityStoreData(StageConfigDTO stageConfigDTO) {
         return getActivityStoreDataNoCache(stageConfigDTO);
     }

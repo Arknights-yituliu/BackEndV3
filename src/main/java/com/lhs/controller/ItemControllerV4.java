@@ -47,6 +47,12 @@ public class ItemControllerV4 {
         return Result.success();
     }
 
+    @Operation(summary = "检查当前材料价值表是否需要更新")
+    @GetMapping("/check/item/value")
+    public Result<Long> checkItemValue(@RequestBody StageConfigDTO stageConfigDTO) {
+        Long updateTime =  itemService.checkItemValue(stageConfigDTO);
+        return Result.success();
+    }
 
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @PostMapping("/custom/stage/result")

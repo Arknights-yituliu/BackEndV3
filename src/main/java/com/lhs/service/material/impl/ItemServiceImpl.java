@@ -21,6 +21,7 @@ import com.lhs.mapper.material.ItemMapper;
 import com.lhs.mapper.material.WorkShopProductsMapper;
 import com.lhs.mapper.material.service.ItemMapperService;
 import com.lhs.service.material.ItemService;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,16 +47,19 @@ public class ItemServiceImpl implements ItemService {
 
     private final DataCacheMapper dataCacheMapper;
 
+    private final RedisTemplate<String,Object> redisTemplate;
+
     public ItemServiceImpl(ItemMapper itemMapper,
                            ItemIterationValueMapper itemIterationValueMapper,
                            WorkShopProductsMapper workShopProductsMapper,
                            ItemMapperService itemMapperService,
-                           DataCacheMapper dataCacheMapper) {
+                           DataCacheMapper dataCacheMapper, RedisTemplate<String, Object> redisTemplate) {
         this.itemMapper = itemMapper;
         this.itemIterationValueMapper = itemIterationValueMapper;
         this.workShopProductsMapper = workShopProductsMapper;
         this.itemMapperService = itemMapperService;
         this.dataCacheMapper = dataCacheMapper;
+        this.redisTemplate = redisTemplate;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -157,7 +161,18 @@ public class ItemServiceImpl implements ItemService {
 
         itemList.addAll(fixedItemValue);
 
+        redisTemplate.opsForValue().set("ItemValueCheck:"+stageConfigDTO.getId(),System.currentTimeMillis());
+
         return itemList;
+    }
+
+    @Override
+    public Long checkItemValue(StageConfigDTO stageConfigDTO) {
+        Object value = redisTemplate.opsForValue().get("ItemValueCheck:" + stageConfigDTO.getId());
+        if(value==null){
+            return 0L;
+        }
+        return Long.parseLong(String.valueOf(value));
     }
 
 
@@ -188,7 +203,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
 
-    @RedisCacheable(key = "Item:itemValueList")
+    @RedisCacheable(key = "Item:itemValueList",keyMethod ="getVersionCode")
     @Override
     public List<Item> getItemListCache(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();
@@ -251,6 +266,8 @@ public class ItemServiceImpl implements ItemService {
 
         return itemList;
     }
+
+
 
 
     private Map<String, Double> getItemIterationValue(String version) {
