@@ -157,10 +157,15 @@ public class StoreServiceImpl implements StoreService {
         List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
         String actName = activityStoreDataVo.getActName();
 
-        storeItemVOList.forEach(a -> {
-            a.setItemPPR(itemMap.get(a.getItemName()).getItemValueAp() * a.getItemQuantity() / a.getItemPrice());
-            a.setItemId(itemMap.get(a.getItemName()).getItemId());
-        });
+        for(StoreItemVO vo:storeItemVOList){
+            Item item = itemMap.get(vo.getItemId());
+            if(item==null){
+                Logger.error(vo.getItemName()+"不存在");
+                continue;
+            }
+            vo.setItemPPR(item.getItemValueAp()* vo.getItemQuantity() / vo.getItemPrice());
+            vo.setItemId(item.getItemId());
+        }
 
         storeItemVOList.sort(Comparator.comparing(StoreItemVO::getItemPPR).reversed());
 

@@ -16,7 +16,6 @@ public class FileUtil {
 
 
     public static void save(String filepath,String filename,String json){
-        System.out.println(filepath);
         File file = new File(filepath);
         if(!file.exists()){
             file.mkdir();
