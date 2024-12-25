@@ -502,7 +502,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        String read = FileUtil.read(GAME_DATA + "building_data.json");
 //        String read1 = FileUtil.read(GAME_DATA + "character_table.json");
 
-        //获取干员部分信息
+        //获取干员部分信息，测试时需分离
         List<OperatorTable> operatorTable = getOperatorTable();
 
         Map<String, OperatorTable> characterTableMap = operatorTable.stream()
