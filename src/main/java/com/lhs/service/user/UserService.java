@@ -58,8 +58,17 @@ public interface UserService {
      */
     UserInfo getUserInfoPOByToken(String token);
 
+    /**
+     * 获取用户的各种自定义配置
+     * @param request 请求体
+     * @return 用户配置
+     */
     StageConfigDTO getUserStageConfig(HttpServletRequest request);
 
+    /**
+     * 更新用户的各种自定义配置
+     * @param userConfigDTO 请求体
+     */
     void updateUserConfig(UserConfigDTO userConfigDTO);
 
     /**

@@ -122,8 +122,6 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.PASSWORD_IS_BLANK);
         }
 
-
-
         //当前时间
         Date date = new Date();
         //一图流id 当前时间戳加随机4位数字
@@ -155,6 +153,7 @@ public class UserServiceImpl implements UserService {
         userInfoNew.setDeleteFlag(false);
 
         if(checkParamsValidity(email)){
+            email163Service.compareVerificationCode(loginDataDTO.getVerificationCode(),email);
             LambdaQueryWrapper<UserInfo> emailQueryWrapper = new LambdaQueryWrapper<>();
             emailQueryWrapper.eq(UserInfo::getEmail,email);
             UserInfo userInfoByEmail = userInfoMapper.selectOne(emailQueryWrapper);
@@ -196,7 +195,7 @@ public class UserServiceImpl implements UserService {
         }
 
         //检查验证码
-        email163Service.compareVerificationCode(verificationCode, "CODE:CODE." + email);
+        email163Service.compareVerificationCode(verificationCode,  email);
         //给用户设置初始昵称
         String userName = "博士" + idGenerator.nextId();
         UserInfo userInfoNew = new UserInfo();
@@ -236,9 +235,6 @@ public class UserServiceImpl implements UserService {
             userInfo = loginByPassword(loginDataDTO, ipAddress);
         }
 
-        if ("hgToken".equals(accountType)) {
-            userInfo = loginByHGToken(loginDataDTO, ipAddress);
-        }
 
         if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_SIGN_IN_ERROR);
@@ -268,7 +264,7 @@ public class UserServiceImpl implements UserService {
         }
 
         //检查验证码
-        email163Service.compareVerificationCode(verificationCode, "CODE:CODE." + email);
+        email163Service.compareVerificationCode(verificationCode,  email);
 
         //设置查询构造器条件
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -284,77 +280,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    private UserInfo loginByHGToken(LoginDataDTO loginDataDTO, String ipAddress) {
-//        Logger.info("用户使用token登录");
-//        String hgToken = loginDataDTO.getHgToken();
-//        if (!checkParamsValidity(hgToken)) {
-//            throw new ServiceException(ResultCode.PARAM_IS_INVALID);
-//        }
-//        //获取默认的方舟绑定信息和方舟绑定信息列表
-//        AkPlayerBindingListVO akPlayerBindingListVO = HypergryphService.getPlayerBindingsByHGToken(hgToken);
-//        //默认的方舟绑定信息
-//        PlayerBinding playerBinding = akPlayerBindingListVO.getPlayerBinding();
-//        //默认的方舟uid
-//        String akUid = playerBinding.getUid();
-//        //根据默认的方舟uid查询本地的绑定信息表中是否存在这个uid的记录
-//        LambdaQueryWrapper<AkPlayerBindInfo> akPlayerBindInfoV2LambdaQueryWrapper = new LambdaQueryWrapper<>();
-//        akPlayerBindInfoV2LambdaQueryWrapper.eq(AkPlayerBindInfo::getAkUid, akUid);
-//        List<AkPlayerBindInfo> akPlayerBindInfoV2List = akPlayerBindInfoMapper
-//                .selectList(akPlayerBindInfoV2LambdaQueryWrapper);
-//
-//        //如果查询到记录
-//        if (!akPlayerBindInfoV2List.isEmpty()) {
-//            AkPlayerBindInfo akPlayerBindInfo = akPlayerBindInfoV2List.get(0);
-//            //根据本地的绑定信息表最后活跃的账号进行查询
-//            for (AkPlayerBindInfo element : akPlayerBindInfoV2List) {
-//                if (akPlayerBindInfo.getUpdateTime() < element.getUpdateTime()) {
-//                    akPlayerBindInfo = element;
-//                }
-//            }
-//            //根据这最后一个信息进行查询
-//            LambdaQueryWrapper<UserInfo> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-//            userLambdaQueryWrapper.eq(UserInfo::getId, akPlayerBindInfo.getUid());
-//            UserInfo userInfo = userInfoMapper.selectOne(userLambdaQueryWrapper);
-//            if (userInfo != null) {
-//                return userInfo;
-//            }
-//        }
-//
-//        String nickName = playerBinding.getNickName();
-//        String[] split = nickName.split("#");
-//        nickName = split[0];
-//
-//        //一图流id 当前时间戳加随机4位数字
-//        long userId = idGenerator.nextId();
-//        //用户初始状态
-//        int status = 1;
-//        //当前时间
-//        Date date = new Date();
-//
-//        String userName = nickName + "ID" + userId;
-//
-//        UserInfo userInfoNew = UserInfo.builder()
-//                .id(userId)
-//                .ip(ipAddress)
-//                .createTime(date)
-//                .updateTime(date)
-//                .deleteFlag(false)
-//                .status(1)
-//                .avatar("char_377_gdglow")
-//                .build();
-//
-//        LambdaQueryWrapper<UserInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-//        lambdaQueryWrapper.eq(UserInfo::getUserName, userName);
-//        List<UserInfo> userInfos = userInfoMapper.selectList(lambdaQueryWrapper);
-//        if (userInfos.isEmpty()) {
-//            userInfoNew.setUserName(userName);
-//        }
-//
-//
-//        userInfoMapper.insert(userInfoNew);
 
-        return null;
-    }
 
     private UserInfo loginByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
         Logger.info("账号密码方式登录：");
@@ -567,7 +493,7 @@ public class UserServiceImpl implements UserService {
         String emailCode = updateUserDataDto.getEmailCode();
 
         //对比用户输入的验证码和后台的验证码
-        email163Service.compareVerificationCode(emailCode, "CODE:CODE." + email);
+        email163Service.compareVerificationCode(emailCode,  email);
         //设置用户邮箱
         userInfo.setEmail(email);
 
@@ -850,7 +776,7 @@ public class UserServiceImpl implements UserService {
         }
 
         //检查验证码
-        email163Service.compareVerificationCode(verificationCode, "CODE:CODE." + email);
+        email163Service.compareVerificationCode(verificationCode,  email);
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
@@ -1022,6 +948,11 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    /**
+     * 验证参数是否为空，返回一个Boolean状态
+     * @param param 参数
+     * @return 参数是否为空
+     */
     private static Boolean checkParamsValidity(String param) {
 
         if (param == null) {

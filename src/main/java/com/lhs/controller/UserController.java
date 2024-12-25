@@ -58,7 +58,7 @@ public class UserController {
 
     @Operation(summary ="更新用户信息")
     @PostMapping("/update/v2")
-    public Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserDataDTO updateUserDataDto) {
+    public Result<UserInfoVO> updateUserInfo(HttpServletRequest httpServletRequest,@RequestBody UpdateUserDataDTO updateUserDataDto) {
         UserInfoVO userInfoVO = userService.updateUserData(updateUserDataDto);
         return Result.success(userInfoVO);
     }
