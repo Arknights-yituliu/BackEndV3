@@ -7,7 +7,6 @@ import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.po.survey.*;
-import com.lhs.entity.po.user.AkPlayerBindInfo;
 
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
@@ -200,7 +199,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         akPlayerBindInfoDTO.setChannelMasterId(channelMasterId);
 
 
-        userService.saveBindInfo(userInfo, akPlayerBindInfoDTO);
+        userService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfo, akPlayerBindInfoDTO);
 
         userInfo.setAkUid(akUid);
 
@@ -229,7 +228,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         akPlayerBindInfoDTO.setAkUid(akUid);
         akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
         akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
-        userService.saveBindInfo(userInfo, akPlayerBindInfoDTO);
+        userService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfo, akPlayerBindInfoDTO);
         userInfo.setAkUid(akUid);
 
         return saveOperatorData(akUid, operatorDataList);
@@ -451,25 +450,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return operatorDataVoList;
     }
 
-    @Override
-    public Map<String, Object> saveOperatorDataByRhodes(PlayerInfoDTO playerInfoDTO) {
-
-        String uid = playerInfoDTO.getUid();
-        String nickName = playerInfoDTO.getNickName();
-        String channelName = playerInfoDTO.getChannelName();
-        Integer channelMasterId = playerInfoDTO.getChannelMasterId();
-        List<OperatorData> operatorDataList = playerInfoDTO.getOperatorDataList();
-
-        AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
-        akPlayerBindInfo.setId(idGenerator.nextId());
-        akPlayerBindInfo.setAkUid(uid);
-        akPlayerBindInfo.setAkNickName(nickName);
-        akPlayerBindInfo.setChannelName(channelName);
-        akPlayerBindInfo.setChannelMasterId(channelMasterId);
-        userService.saveAkPlayerBindInfo(akPlayerBindInfo);
-
-        return saveOperatorData(uid, operatorDataList);
-    }
 
 
 

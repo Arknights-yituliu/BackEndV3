@@ -40,8 +40,6 @@ public interface OperatorDataService  {
     List<OperatorDataVo> getOperatorInfoByToken(String token);
 
 
-    Map<String, Object> saveOperatorDataByRhodes(PlayerInfoDTO playerInfoDTO);
-
     Object importSKLandPlayerInfoV3(PlayerInfoDTO playerInfoDTO);
 
     Object operatorDataReport();

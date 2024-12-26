@@ -23,12 +23,5 @@ public class RhodesAsstController {
         this.warehouseInfoService = warehouseInfoService;
     }
 
-    @Operation(summary = "获取蓝材料推荐关卡按效率倒序")
-    @PostMapping("/operator/info/upload")
-    public Result<Map<String, Object>> getStageResultT3(@RequestBody PlayerInfoDTO playerInfoDTO) {
 
-        operatorDataService.saveOperatorDataByRhodes(playerInfoDTO);
-
-        return Result.success();
-    }
 }

@@ -74,8 +74,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
-
     @Override
     public HashMap<String, Object> registerV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO) {
         //账号类型
@@ -152,12 +150,12 @@ public class UserServiceImpl implements UserService {
         userInfoNew.setStatus(1);
         userInfoNew.setDeleteFlag(false);
 
-        if(checkParamsValidity(email)){
-            email163Service.compareVerificationCode(loginDataDTO.getVerificationCode(),email);
+        if (checkParamsValidity(email)) {
+            email163Service.compareVerificationCode(loginDataDTO.getVerificationCode(), email);
             LambdaQueryWrapper<UserInfo> emailQueryWrapper = new LambdaQueryWrapper<>();
-            emailQueryWrapper.eq(UserInfo::getEmail,email);
+            emailQueryWrapper.eq(UserInfo::getEmail, email);
             UserInfo userInfoByEmail = userInfoMapper.selectOne(emailQueryWrapper);
-            if(userInfoByEmail!=null){
+            if (userInfoByEmail != null) {
                 throw new ServiceException(ResultCode.EMAIL_REGISTERED);
             }
             userInfoNew.setEmail(email);
@@ -195,7 +193,7 @@ public class UserServiceImpl implements UserService {
         }
 
         //检查验证码
-        email163Service.compareVerificationCode(verificationCode,  email);
+        email163Service.compareVerificationCode(verificationCode, email);
         //给用户设置初始昵称
         String userName = "博士" + idGenerator.nextId();
         UserInfo userInfoNew = new UserInfo();
@@ -264,7 +262,7 @@ public class UserServiceImpl implements UserService {
         }
 
         //检查验证码
-        email163Service.compareVerificationCode(verificationCode,  email);
+        email163Service.compareVerificationCode(verificationCode, email);
 
         //设置查询构造器条件
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -279,7 +277,6 @@ public class UserServiceImpl implements UserService {
         return userInfo;
 
     }
-
 
 
     private UserInfo loginByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
@@ -326,7 +323,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfoVO getUserInfoVOByToken(String token) {
 
-        Logger.info("要检验的用户token {} "+token);
+        Logger.info("要检验的用户token {} " + token);
         if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
@@ -347,7 +344,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
-        Logger.info("获取的用户token{}"+header);
+        Logger.info("获取的用户token{}" + header);
         if (header != null && header.startsWith("Bearer ")) {
             return header.replace("Bearer ", "");
         }
@@ -366,7 +363,7 @@ public class UserServiceImpl implements UserService {
         queryWrapper.eq("id", yituliuId);
         UserInfo userInfo = userInfoMapper.selectOne(queryWrapper); //查询用户
 
-        if (userInfo == null){
+        if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
         if (userInfo.getStatus() < 0) {
@@ -456,7 +453,7 @@ public class UserServiceImpl implements UserService {
     public UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto) {
 
         //兼容之前的命名
-        String action = updateUserDataDto.getProperty()==null?updateUserDataDto.getAction(): updateUserDataDto.getProperty();
+        String action = updateUserDataDto.getProperty() == null ? updateUserDataDto.getAction() : updateUserDataDto.getProperty();
 
         String token = updateUserDataDto.getToken();
         UserInfo userInfoByToken = getUserInfoPOByToken(token);
@@ -493,7 +490,7 @@ public class UserServiceImpl implements UserService {
         String emailCode = updateUserDataDto.getEmailCode();
 
         //对比用户输入的验证码和后台的验证码
-        email163Service.compareVerificationCode(emailCode,  email);
+        email163Service.compareVerificationCode(emailCode, email);
         //设置用户邮箱
         userInfo.setEmail(email);
 
@@ -604,11 +601,11 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID);
         }
         if ("email".equals(accountType)) {
-           return retrieveAccountByEmail(loginDataDTO);
+            return retrieveAccountByEmail(loginDataDTO);
         }
 
         if ("hgToken".equals(accountType)) {
-            return  retrieveAccountByHGToken(loginDataDTO);
+            return retrieveAccountByHGToken(loginDataDTO);
         }
 
         if ("skland".equals(accountType)) {
@@ -619,28 +616,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public HashMap<String, String> resetAccount(LoginDataDTO loginDataDTO) {
+    public HashMap<String, String> resetPassword(LoginDataDTO loginDataDTO) {
 
         String tmpToken = loginDataDTO.getToken();
         String userId = redisTemplate.opsForValue().get(tmpToken);
-        if(userId==null){
+        if (userId == null) {
             throw new ServiceException(ResultCode.USER_PERMISSION_NO_ACCESS_OR_TIME_OUT);
         }
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserInfo::getId,userId);
+        queryWrapper.eq(UserInfo::getId, userId);
         UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
-        if(userInfo==null){
+        if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
 
         String newPassword = loginDataDTO.getPassword();
-        if(!checkParamsValidity(newPassword)){
+        if (!checkParamsValidity(newPassword)) {
             throw new ServiceException(ResultCode.PASSWORD_IS_BLANK);
         }
         checkPassWord(newPassword);
 
-        newPassword = AES.encrypt(newPassword,ConfigUtil.Secret);
+        newPassword = AES.encrypt(newPassword, ConfigUtil.Secret);
 
         userInfo.setPassword(newPassword);
 
@@ -653,31 +650,30 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Override
-    public Boolean saveUserExternalAccountBinding(UserExternalAccountBinding userExternalAccountBinding) {
+
+    private void saveUserExternalAccountBinding(UserExternalAccountBinding userExternalAccountBinding) {
 
         LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserExternalAccountBinding::getAkUid,userExternalAccountBinding.getAkUid())
-                .eq(UserExternalAccountBinding::getUid,userExternalAccountBinding.getUid());
+        queryWrapper.eq(UserExternalAccountBinding::getAkUid, userExternalAccountBinding.getAkUid())
+                .eq(UserExternalAccountBinding::getUid, userExternalAccountBinding.getUid());
         UserExternalAccountBinding existsData = userExternalAccountBindingMapper.selectOne(queryWrapper);
         long timeStamp = System.currentTimeMillis();
+
         userExternalAccountBinding.setUpdateTime(timeStamp);
 
-        boolean insert = false;
-        Logger.info("要添加的外部账号绑定信息 {} "+ userExternalAccountBinding);
-        if(existsData==null){
+        Logger.info("要添加的外部账号绑定信息 {} " + userExternalAccountBinding);
+        if (existsData == null) {
             userExternalAccountBinding.setId(idGenerator.nextId());
             userExternalAccountBinding.setCreateTime(timeStamp);
             userExternalAccountBinding.setDeleteFlag(false);
-            int row = userExternalAccountBindingMapper.insert(userExternalAccountBinding);
-            insert = row>0;
-        }else {
+            userExternalAccountBindingMapper.insert(userExternalAccountBinding);
+
+        } else {
             userExternalAccountBinding.setId(existsData.getId());
             userExternalAccountBinding.setCreateTime(existsData.getCreateTime());
-            int i = userExternalAccountBindingMapper.updateById(userExternalAccountBinding);
+            userExternalAccountBindingMapper.updateById(userExternalAccountBinding);
         }
 
-        return insert;
     }
 
     @Override
@@ -692,24 +688,24 @@ public class UserServiceImpl implements UserService {
     public void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo) {
 
         LambdaQueryWrapper<AkPlayerBindInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AkPlayerBindInfo::getAkUid,akPlayerBindInfo.getAkUid());
+        queryWrapper.eq(AkPlayerBindInfo::getAkUid, akPlayerBindInfo.getAkUid());
         AkPlayerBindInfo oldInfo = akPlayerBindInfoMapper.selectOne(queryWrapper);
         akPlayerBindInfo.setUpdateTime(System.currentTimeMillis());
-        Logger.info("要添加的明日方舟账号绑定信息，id为"+akPlayerBindInfo);
-        if(oldInfo==null){
+        Logger.info("要添加的明日方舟账号绑定信息，id为" + akPlayerBindInfo);
+        if (oldInfo == null) {
             akPlayerBindInfo.setId(idGenerator.nextId());
             akPlayerBindInfo.setDeleteFlag(false);
             akPlayerBindInfoMapper.insert(akPlayerBindInfo);
-
-        }else {
+        } else {
             akPlayerBindInfo.setId(oldInfo.getId());
             akPlayerBindInfoMapper.updateById(akPlayerBindInfo);
         }
 
     }
 
+
     @Override
-    public void saveBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO) {
+    public void saveExternalAccountBindingInfoAndAKPlayerBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO) {
         UserExternalAccountBinding userExternalAccountBinding = new UserExternalAccountBinding();
         userExternalAccountBinding.setId(idGenerator.nextId());
 
@@ -725,11 +721,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public StageConfigDTO getUserStageConfig(HttpServletRequest request){
+    public StageConfigDTO getUserStageConfig(HttpServletRequest request) {
         String uid = request.getHeader("uid");
         UserConfig userConfig = userConfigMapper.selectById(uid);
-        if(userConfig==null){
-           return new StageConfigDTO();
+        if (userConfig == null) {
+            return new StageConfigDTO();
         }
         String config = userConfig.getConfig();
         UserConfigDTO userConfigDTO = JsonMapper.parseObject(config, new TypeReference<>() {
@@ -740,6 +736,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 保存用户或游客自定义配置
+     *
      * @param userConfigDTO 用户配置数据传输对象
      */
     @Override
@@ -747,7 +744,7 @@ public class UserServiceImpl implements UserService {
         Long configId = userConfigDTO.getConfigId();
         UserConfig userConfig = userConfigMapper.selectById(configId);
         Date date = new Date();
-        if(userConfig==null){
+        if (userConfig == null) {
             userConfig = new UserConfig();
             String configText = JsonMapper.toJSONString(userConfigDTO);
             userConfig.setConfig(configText);
@@ -755,7 +752,7 @@ public class UserServiceImpl implements UserService {
             userConfig.setCreateTime(date);
             userConfig.setUpdateTime(date);
             userConfigMapper.insert(userConfig);
-        }else {
+        } else {
             String newConfig = JsonMapper.toJSONString(userConfigDTO);
             userConfig.setConfig(newConfig);
             userConfig.setUpdateTime(date);
@@ -776,7 +773,7 @@ public class UserServiceImpl implements UserService {
         }
 
         //检查验证码
-        email163Service.compareVerificationCode(verificationCode,  email);
+        email163Service.compareVerificationCode(verificationCode, email);
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
@@ -860,7 +857,7 @@ public class UserServiceImpl implements UserService {
                 ConfigUtil.Secret);
         redisTemplate.opsForValue().set(tmpToken, userInfo.getId().toString(), 10, TimeUnit.MINUTES);
         HashMap<String, String> result = new HashMap<>();
-        result.put("tmpToken",tmpToken);
+        result.put("tmpToken", tmpToken);
         result.put("userName", userInfo.getUserName());
         return result;
     }
@@ -950,6 +947,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 验证参数是否为空，返回一个Boolean状态
+     *
      * @param param 参数
      * @return 参数是否为空
      */
@@ -990,7 +988,7 @@ public class UserServiceImpl implements UserService {
         //根据uid查询是否有自定义配置
         UserConfig userConfig = userConfigMapper.selectById(userInfo.getId());
         //不为空则为VO写入配置
-        if(userConfig!=null){
+        if (userConfig != null) {
             Map<String, Object> map = JsonMapper.parseObject(userConfig.getConfig(), new TypeReference<>() {
             });
             userInfoVO.setConfig(map);
@@ -999,9 +997,11 @@ public class UserServiceImpl implements UserService {
         if (userInfo.getPassword() != null) {
             userInfoVO.setHasPassword(true);
         }
+
         if (userInfo.getEmail() != null) {
             userInfoVO.setHasEmail(true);
         }
+
         if (externalAccountBindings.isEmpty()) {
             return userInfoVO;
         }
@@ -1013,7 +1013,7 @@ public class UserServiceImpl implements UserService {
         return userInfoVO;
     }
 
-    private void ensureIdempotent(String key){
+    private void ensureIdempotent(String key) {
         Boolean lock = redisTemplate.opsForValue().setIfAbsent(key, "1", 5, TimeUnit.SECONDS);
         if (Boolean.FALSE.equals(lock)) {
             throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);

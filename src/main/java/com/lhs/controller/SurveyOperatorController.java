@@ -65,14 +65,14 @@ public class SurveyOperatorController {
         return Result.success(HypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
     }
 
-    @Operation(summary ="通过森空岛导入干员练度V2")
-    @PostMapping("/operator/import/skland/v2")
-    public Result<Object> importSurveyCharacterFormBySKLandV2(@RequestBody Map<String,String> params) {
-
-        String token = params.get("token");
-        String data = params.get("data");
-        return Result.success(operatorDataService.importSKLandPlayerInfoV2(token, data));
-    }
+//    @Operation(summary ="通过森空岛导入干员练度V2")
+//    @PostMapping("/operator/import/skland/v2")
+//    public Result<Object> importSurveyCharacterFormBySKLandV2(@RequestBody Map<String,String> params) {
+//
+//        String token = params.get("token");
+//        String data = params.get("data");
+//        return Result.success(operatorDataService.importSKLandPlayerInfoV2(token, data));
+//    }
 
 
     @Operation(summary ="通过森空岛导入干员练度V3")

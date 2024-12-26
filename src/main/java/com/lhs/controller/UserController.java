@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @Tag(name ="一图流用户系统")
@@ -80,7 +79,7 @@ public class UserController {
     @Operation(summary ="重设密码")
     @PostMapping("/reset/password")
     public Result<HashMap<String,String>> resetPassword(@RequestBody LoginDataDTO loginDataDTO) {
-        return Result.success(userService.resetAccount(loginDataDTO));
+        return Result.success(userService.resetPassword(loginDataDTO));
     }
 
 
