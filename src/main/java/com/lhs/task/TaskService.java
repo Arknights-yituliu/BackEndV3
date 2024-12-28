@@ -93,10 +93,6 @@ public class TaskService {
     }
 
 
-    /**
-     * 备份关卡计算结果
-     */
-//    @Scheduled(cron = "0 5/10 * * * ?")
 
     /**
      * 更新常驻商店性价比

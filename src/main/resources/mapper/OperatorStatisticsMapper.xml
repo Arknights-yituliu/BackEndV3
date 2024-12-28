@@ -7,11 +7,11 @@
     <!--  批量插入统计表-->
     <insert id="insertBatch">
         INSERT INTO `survey_operator_statistics`
-        (`char_id`,`rarity`,`own`,`elite`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`, `mod_d`, `potential`)
+        (`char_id`,`rarity`,`own`,`elite`,`skill1`,`skill2`,`skill3`, `mod_x`, `mod_y`, `mod_d`, `mod_a`, `potential`)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.charId},#{item.rarity},#{item.own},#{item.elite},#{item.skill1},
-            #{item.skill2},#{item.skill3},#{item.modX},#{item.modY},#{item.modD},
+            #{item.skill2},#{item.skill3},#{item.modX},#{item.modY},#{item.modD},#{item.modA},
             #{item.potential})
         </foreach>
     </insert>
