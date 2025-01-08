@@ -1,7 +1,6 @@
 package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.JsonMapper;
@@ -11,7 +10,8 @@ import com.lhs.entity.po.user.AkPlayerBindInfo;
 import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.mapper.survey.OperatorDataMapper;
 import com.lhs.mapper.survey.SurveyOperatorDataMapper;
-import com.lhs.mapper.survey.OperatorSurveyStatisticsMapper;
+import com.lhs.mapper.survey.OperatorStatisticsMapper;
+import com.lhs.mapper.survey.service.OperatorStatisticsMapperService;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
 import com.lhs.service.util.ArknightsGameDataService;
 import com.lhs.service.util.OSSService;
@@ -30,13 +30,9 @@ import java.util.stream.Collectors;
 public class OperatorStatisticsService {
 
 
-    private final OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper;
+    private final OperatorStatisticsMapper operatorStatisticsMapper;
 
-    private final AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper;
-
-    private final SurveyOperatorDataMapper surveyOperatorDataMapper;
-
-    private final ArknightsGameDataService arknightsGameDataService;
+    private final OperatorStatisticsMapperService operatorStatisticsMapperService;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -46,11 +42,13 @@ public class OperatorStatisticsService {
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
 
 
-    public OperatorStatisticsService(OperatorSurveyStatisticsMapper operatorSurveyStatisticsMapper, AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper, SurveyOperatorDataMapper surveyOperatorDataMapper, ArknightsGameDataService arknightsGameDataService, RedisTemplate<String, Object> redisTemplate, OSSService ossService, OperatorDataMapper operatorDataMapper, AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
-        this.operatorSurveyStatisticsMapper = operatorSurveyStatisticsMapper;
-        this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
-        this.surveyOperatorDataMapper = surveyOperatorDataMapper;
-        this.arknightsGameDataService = arknightsGameDataService;
+    public OperatorStatisticsService(OperatorStatisticsMapper operatorStatisticsMapper, OperatorStatisticsMapperService operatorStatisticsMapperService,
+                                     RedisTemplate<String, Object> redisTemplate,
+                                     OSSService ossService,
+                                     OperatorDataMapper operatorDataMapper,
+                                     AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
+        this.operatorStatisticsMapper = operatorStatisticsMapper;
+        this.operatorStatisticsMapperService = operatorStatisticsMapperService;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
         this.operatorDataMapper = operatorDataMapper;
@@ -63,8 +61,7 @@ public class OperatorStatisticsService {
         lambdaQueryWrapper.eq(AkPlayerBindInfo::getDeleteFlag,false);
         List<AkPlayerBindInfo> akPlayerBindInfoList = akPlayerBindInfoMapper.selectList(null);
         //清空统计表
-        operatorSurveyStatisticsMapper.truncate();
-
+        operatorStatisticsMapper.truncate();
         int userCount = 0;
         //临时结果
         HashMap<String, OperatorStatisticsDTO> tmpResult = new HashMap<>();
@@ -112,7 +109,7 @@ public class OperatorStatisticsService {
         redisTemplate.opsForHash().put("Survey", "UpdateTime.Operator", updateTime);
         redisTemplate.opsForHash().put("Survey", "UserCount.Operator", userCount);
 
-        operatorSurveyStatisticsMapper.insertBatch(statisticsOperatorList);
+        operatorStatisticsMapperService.saveBatch(statisticsOperatorList);
         redisTemplate.expire("Survey:OperatorStatistics",10, TimeUnit.SECONDS);
 
 
@@ -218,7 +215,7 @@ public class OperatorStatisticsService {
      */
     @RedisCacheable(key = "Survey:OperatorStatistics")
     public HashMap<Object, Object> getCharStatisticsResult() {
-        List<OperatorStatistics> statisticsOperatorList = operatorSurveyStatisticsMapper.selectList(null);
+        List<OperatorStatistics> statisticsOperatorList = operatorStatisticsMapper.selectList(null);
 
         HashMap<Object, Object> hashMap = new HashMap<>();
 
@@ -287,7 +284,7 @@ public class OperatorStatisticsService {
 
     @Scheduled(cron = "0 0 0/1 * * ? ")
     public void saveOperatorStatisticsData() {
-        List<OperatorStatistics> operatorStatistics = operatorSurveyStatisticsMapper.selectList(null);
+        List<OperatorStatistics> operatorStatistics = operatorStatisticsMapper.selectList(null);
         String data = JsonMapper.toJSONString(operatorStatistics);
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHH = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式

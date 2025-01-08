@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.material.StageResultMapper">
+
+    <select id="pageRogueSeedOrderByConditionAnd">
+        SELECT seed_id, seed, rogue_version, rogue_theme, difficulty, squad,
+               operator_team, description, uid, tags, rating, rating_count, summary_image_link,
+               create_time
+        FROM `rogue_seed`
+        ORDER BY #{sortCondition} DESC LIMIT #{pageNum} OFFSET #{pageSize};
+    </select>
+
+
+</mapper>

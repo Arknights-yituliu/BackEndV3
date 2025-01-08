@@ -173,6 +173,15 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         return createRougeSeedRatingList(rogueSeedRatings);
     }
 
+    @Override
+    public List<RogueSeedPageVO> listRougeSeed(Integer pageSize, Integer pageNum, List<String> keywords, String order, HttpServletRequest httpServletRequest) {
+
+        List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByConditionAnd(order, pageNum, pageSize);
+
+
+        return null;
+    }
+
     public List<RogueSeedRatingVO> createRougeSeedRatingList(List<RogueSeedRating> list) {
         List<RogueSeedRatingVO> voList = new ArrayList<>();
         for (RogueSeedRating item : list) {
@@ -215,7 +224,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedPageVO.setRogueVersion(item.getRogueVersion());
             rogueSeedPageVO.setDifficulty(item.getDifficulty());
             rogueSeedPageVO.setRogueTheme(item.getRogueTheme());
-            rogueSeedPageVO.setRatingPerson(item.getRatingPerson());
+            rogueSeedPageVO.setRatingPerson(item.getRatingCount());
             rogueSeedPageVO.setSquad(item.getSquad());
             rogueSeedPageVO.setOperatorTeam(TextUtil.textToArray(item.getOperatorTeam()));
             rogueSeedPageVO.setDescription(item.getDescription());
@@ -321,7 +330,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         Date date = new Date();
         target.setSeedId(idGenerator.nextId());
         target.setSeed(resource.getSeed());
-        target.setRatingPerson(0);
+        target.setRatingCount(0);
         target.setDifficulty(resource.getDifficulty());
         target.setRogueVersion(resource.getRogueVersion());
         target.setRogueTheme(resource.getRogueTheme());

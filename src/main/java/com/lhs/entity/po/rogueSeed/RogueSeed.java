@@ -12,7 +12,8 @@ public class RogueSeed {
     @TableId
     private Long seedId;
     private String seed;
-    private Integer ratingPerson;
+    private Integer ratingCount;
+    private Integer rating;
     private String rogueVersion;
     private Integer difficulty;
     private String rogueTheme;

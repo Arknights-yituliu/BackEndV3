@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface OperatorSurveyStatisticsMapper extends BaseMapper<OperatorStatistics> {
+public interface OperatorStatisticsMapper extends BaseMapper<OperatorStatistics> {
 
     void truncate();
 
