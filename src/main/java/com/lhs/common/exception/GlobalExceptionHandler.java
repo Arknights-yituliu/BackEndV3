@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 
 /**
  * 全局异常处理
@@ -24,8 +27,7 @@ public class GlobalExceptionHandler {
 		}
 		else {
 			Logger.error(e.getMessage());
-			e.printStackTrace();
-            result = Result.failure(500, "服务器内部错误");
+            result = Result.failure(500, e.getMessage());
 		}
 		return result;
     }

@@ -56,7 +56,8 @@ public enum ResultCode {
 	/*肉鸽种子站相关报错：30000-30999*/
 	ROGUE_SEED_NOT_EXIST(30000, "肉鸽种子不存在"),
 	TOO_MANY_RATING_ROGUE_SEED(30002,"肉鸽评分次数过多"),
-
+	ROGUE_SEED_IS_NULL_OR_FORMAT_ERROR(30000, "肉鸽种子未填写或格式不正确"),
+	ROGUE_SEED_PARAMS_IS_NULL(30000, "肉鸽种子表单未填写完整"),
 	/*游戏养成相关报错：31000-31999*/
 
 
@@ -68,7 +69,6 @@ public enum ResultCode {
 	OSS_UPLOAD_ERROR(39005, "OSS上传错误"),
 	EMAIL_SENT_TOO_FREQUENTLY(39006,"邮件发送间隔时间30秒"),
 	NOT_REPEAT_REQUESTS(39007,"不要重复请求"),
-
 
 
 	/* 系统错误：40001-49999 */

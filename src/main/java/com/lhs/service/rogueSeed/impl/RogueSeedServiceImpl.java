@@ -1,6 +1,7 @@
 package com.lhs.service.rogueSeed.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
@@ -62,12 +63,17 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
 
     @Override
-    public Map<String, Object> saveOrUpdateRogueSeed(RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest) {
+    public Map<String, Object> saveOrUpdateRogueSeed(HttpServletRequest httpServletRequest, RogueSeedDTO rogueSeedDTO) {
+
+        checkDTO(rogueSeedDTO);
 
         //根据token拿到用户信息
         UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         //获取用户uid
         Long uid = userInfoByToken.getUid();
+
+        LambdaUpdateWrapper<RogueSeed> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.eq(RogueSeed::getSeed, rogueSeedDTO.getSeed());
 
         //判断前端传来的数据对象是否有种子id
         if (rogueSeedDTO.getSeedId() != null) {
@@ -80,9 +86,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         }
 
         //创建一个新种子对象
-        RogueSeed rogueSeed = new RogueSeed();
-        rogueSeed.setUid(uid);
-        createNewRogueSeedByRogueSeedDTO(rogueSeed, rogueSeedDTO);
+        RogueSeed rogueSeed = rogueSeedCopyByDTO(rogueSeedDTO);
+
         Integer insertBatchRow = saveRogueSeedTag(rogueSeed, rogueSeedDTO);
         int insertRow = rogueSeedMapper.insert(rogueSeed);
 
@@ -91,6 +96,37 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         response.put("seed_affected_rows", insertRow);
         response.put("tag_affected_rows", insertBatchRow);
         return response;
+    }
+
+    private void checkDTO(RogueSeedDTO dto) {
+        if (dto.getSeed() == null || dto.getSeed().length() < 20) {
+            throw new ServiceException(ResultCode.ROGUE_SEED_IS_NULL_OR_FORMAT_ERROR);
+        }
+        if (dto.getRogueTheme() == null || dto.getRogueVersion() == null || dto.getSource() == null) {
+            throw new ServiceException(ResultCode.ROGUE_SEED_PARAMS_IS_NULL);
+        }
+    }
+
+
+    private RogueSeed rogueSeedCopyByDTO(RogueSeedDTO dto) {
+        RogueSeed rogueSeed = new RogueSeed();
+        Date date = new Date();
+        rogueSeed.setSeedId(idGenerator.nextId());
+        rogueSeed.setSeed(dto.getSeed());
+        rogueSeed.setRatingCount(0);
+        rogueSeed.setDifficulty(dto.getDifficulty());
+        rogueSeed.setRogueVersion(dto.getRogueVersion());
+        rogueSeed.setRogueTheme(dto.getRogueTheme());
+        rogueSeed.setSquad(dto.getSquad());
+        rogueSeed.setOperatorTeam(dto.getOperatorTeam());
+        rogueSeed.setDescription(dto.getDescription());
+        rogueSeed.setTags(String.join(",", dto.getTags()));
+        rogueSeed.setSummaryImageLink(dto.getSummaryImageLink());
+        rogueSeed.setCreateTime(date);
+        rogueSeed.setUpdateTime(date);
+        rogueSeed.setDeleteFlag(false);
+
+        return rogueSeed;
     }
 
     @Override
@@ -104,7 +140,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         List<RogueSeedPageVO> rogueSeedVOList = createRogueSeedVOList(rogueSeedList, collect);
         response.put("list", rogueSeedVOList);
         response.put("updateTime", currentTimeMillis);
-        Logger.info("本次肉鸽种子上传数量为"+rogueSeedVOList.size()+"条");
+        Logger.info("本次肉鸽种子上传数量为" + rogueSeedVOList.size() + "条");
         cosService.uploadJson(JsonMapper.toJSONString(response), "/rogue-seed/page/" + currentTimeMillis + ".json");
         redisTemplate.opsForValue().set("RougeSeedPageTag", currentTimeMillis);
     }
@@ -135,7 +171,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         //获取用户uid
         Long uid = userInfoByToken.getUid();
 
-        rateLimiter.tryAcquire("Rating"+uid, 15, 30, ResultCode.TOO_MANY_RATING_ROGUE_SEED);
+        rateLimiter.tryAcquire("Rating" + uid, 15, 30, ResultCode.TOO_MANY_RATING_ROGUE_SEED);
 
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getSeedId, rogueSeedRatingDTO.getSeedId())
@@ -178,7 +214,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByConditionAnd(order, pageNum, pageSize);
 
-
         return null;
     }
 
@@ -195,7 +230,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         return voList;
     }
-
 
 
     private Map<String, Object> createNewRogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, Long uid) {
@@ -234,7 +268,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             RogueSeedRatingStatistics rogueSeedRatingStatistics = collect.get(item.getSeedId());
             if (rogueSeedRatingStatistics != null) {
                 rogueSeedPageVO.setRating(rogueSeedRatingStatistics);
-            }else {
+            } else {
                 rogueSeedPageVO.setRating(new RogueSeedRatingStatistics());
             }
             voList.add(rogueSeedPageVO);
@@ -326,21 +360,5 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         return rogueSeedTagMapper.insertBatch(rogueSeedTagList);
     }
 
-    private void createNewRogueSeedByRogueSeedDTO(RogueSeed target, RogueSeedDTO resource) {
-        Date date = new Date();
-        target.setSeedId(idGenerator.nextId());
-        target.setSeed(resource.getSeed());
-        target.setRatingCount(0);
-        target.setDifficulty(resource.getDifficulty());
-        target.setRogueVersion(resource.getRogueVersion());
-        target.setRogueTheme(resource.getRogueTheme());
-        target.setSquad(resource.getSquad());
-        target.setOperatorTeam(resource.getOperatorTeam());
-        target.setDescription(resource.getDescription());
-        target.setTags(String.join(",", resource.getTags()));
-        target.setSummaryImageLink(resource.getSummaryImageLink());
-        target.setCreateTime(date);
-        target.setUpdateTime(date);
-        target.setDeleteFlag(false);
-    }
+
 }

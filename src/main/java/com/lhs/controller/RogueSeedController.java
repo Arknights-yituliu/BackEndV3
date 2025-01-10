@@ -25,7 +25,7 @@ public class RogueSeedController {
 
     @PostMapping("/auth/rogue/seed/upload")
     public Result<Map<String,Object>> uploadSeed(@RequestBody RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
-        return Result.success(rogueSeedService.saveOrUpdateRogueSeed(rogueSeedDTO,httpServletRequest));
+        return Result.success(rogueSeedService.saveOrUpdateRogueSeed(httpServletRequest,rogueSeedDTO));
     }
 
     @PostMapping("/auth/rogue/seed/settlement-chart")

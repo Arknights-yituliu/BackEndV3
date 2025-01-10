@@ -12,7 +12,12 @@ import java.util.Map;
 
 public interface RogueSeedService {
 
-    Map<String,Object> saveOrUpdateRogueSeed(RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest);
+    /**
+     * @param httpServletRequest HTTP请求对象
+     * @param rogueSeedDTO  上传的种子信息
+     * @return 成功信息等
+     */
+    Map<String, Object> saveOrUpdateRogueSeed(HttpServletRequest httpServletRequest, RogueSeedDTO rogueSeedDTO);
 
 
     void uploadRogueSeedPageToCOS();
