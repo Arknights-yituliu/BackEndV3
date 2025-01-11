@@ -102,10 +102,7 @@ public class TaskService {
         storeService.updateStorePerm();
     }
 
-    @Scheduled(cron = "0 0/18 * * * ?")
-    public void rogueSeedPageTask(){
-        rogueSeedService.uploadRogueSeedPageToCOS();
-    }
+
 
     @Scheduled(cron = "0 0 0/1 * * ? ")
     public void operatorStatistics(){

@@ -13,11 +13,13 @@ public class RogueSeedDTO {
     private String rogueTheme;
     private String rogueVersion;
     private String source;
+    private String seedType;
     private Integer difficulty;
     private Integer ratingCount;
     private Integer rating;
-    private String squad;
-    private String operatorTeam;
+    private List<String> squad;
+    private List<String> operatorTeam;
+    private Integer score;
     private String description;
     private List<String> tags;
     private String summaryImageLink;
@@ -86,19 +88,35 @@ public class RogueSeedDTO {
         this.rating = rating;
     }
 
-    public String getSquad() {
+    public String getSeedType() {
+        return seedType;
+    }
+
+    public void setSeedType(String seedType) {
+        this.seedType = seedType;
+    }
+
+    public List<String> getSquad() {
         return squad;
     }
 
-    public void setSquad(String squad) {
+    public void setSquad(List<String> squad) {
         this.squad = squad;
     }
 
-    public String getOperatorTeam() {
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public List<String> getOperatorTeam() {
         return operatorTeam;
     }
 
-    public void setOperatorTeam(String operatorTeam) {
+    public void setOperatorTeam(List<String> operatorTeam) {
         this.operatorTeam = operatorTeam;
     }
 

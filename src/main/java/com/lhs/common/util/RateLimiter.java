@@ -18,23 +18,25 @@ public class RateLimiter {
         this.redisTemplate = redisTemplate;
     }
 
+
     public void tryAcquire(String id, int maxRequests, int timeWindowInSeconds,ResultCode resultCode) {
         String key = KEY_PREFIX + id;
-        long currentTime = System.currentTimeMillis();
-        long expireTime = currentTime + timeWindowInSeconds * 1000L;
+        Long currentTime = System.currentTimeMillis();
 
-        // 获取当前计数器值
-        String value = redisTemplate.opsForValue().get(key);
-        int count = value == null ? 0 : Integer.parseInt(value);
+        // 使用原子操作递增计数器，并获取递增后的值
+        Long countObj = redisTemplate.opsForValue().increment(key);
+        long count = (countObj == null) ? 0 : countObj; // 避免潜在的 NullPointerException
 
-        if (count >= maxRequests) {
-            // 如果超过最大请求数，则不允许新的请求
-            throw new ServiceException(resultCode);
-
+        // 如果是新创建的key（即count=1），则设置过期时间
+        if (count == 1) {
+            redisTemplate.expire(key, timeWindowInSeconds, TimeUnit.SECONDS);
         }
 
-        // 增加计数器并设置过期时间
-        redisTemplate.opsForValue().set(key, String.valueOf(count + 1), timeWindowInSeconds, TimeUnit.SECONDS);
+        // 检查是否超过最大请求数
+        if (count > maxRequests) {
+            // 如果超过最大请求数，则不允许新的请求
+            throw new ServiceException(resultCode);
+        }
 
     }
 }

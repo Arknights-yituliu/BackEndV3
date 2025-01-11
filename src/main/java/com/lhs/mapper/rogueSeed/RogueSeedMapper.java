@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface RogueSeedMapper extends BaseMapper<RogueSeed> {
 
-    List<RogueSeed> pageRogueSeedOrderByConditionAnd(@Param("sortCondition")String sortCondition,
-                                                     @Param("pageNum")Integer pageNum,
-                                                     @Param("pageSize")Integer pageSize);
+    List<RogueSeed> pageRogueSeedOrderByCondition(@Param("sortCondition")String sortCondition,
+                                                  @Param("pageNum")Integer pageNum,
+                                                  @Param("pageSize")Integer pageSize);
 }

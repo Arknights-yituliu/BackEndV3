@@ -26,8 +26,13 @@ public class GlobalExceptionHandler {
 			result = Result.failure(((ServiceException) e).getResultCode());
 		}
 		else {
+			String message = e.getMessage();
 			Logger.error(e.getMessage());
-            result = Result.failure(500, e.getMessage());
+			if(message.contains("SQLException")){
+				int i = message.indexOf("###");
+				message = message.substring(0,message.indexOf("###",i+3));
+			}
+            result = Result.failure(500, message);
 		}
 		return result;
     }

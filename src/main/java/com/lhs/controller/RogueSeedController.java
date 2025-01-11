@@ -23,7 +23,7 @@ public class RogueSeedController {
         this.rogueSeedService = rogueSeedService;
     }
 
-    @PostMapping("/auth/rogue/seed/upload")
+    @PostMapping("/rogue/seed/upload")
     public Result<Map<String,Object>> uploadSeed(@RequestBody RogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.saveOrUpdateRogueSeed(httpServletRequest,rogueSeedDTO));
     }
@@ -51,9 +51,6 @@ public class RogueSeedController {
                                                      HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.listRougeSeed(pageSize,pageNum,keywords,order,httpServletRequest));
     }
-    @GetMapping("/rogue-seed/page-tag")
 
-    public Result<String> getSeedPageTag(){
-        return Result.success(rogueSeedService.getRogueSeedPageTag());
-    }
+
 }

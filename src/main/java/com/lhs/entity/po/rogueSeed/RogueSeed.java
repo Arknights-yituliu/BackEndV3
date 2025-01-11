@@ -14,11 +14,15 @@ public class RogueSeed {
     private String seed;
     private String rogueTheme;
     private String rogueVersion;
+    private String seedType;
     private String source;
+
     private Integer difficulty;
     private Integer ratingCount;
     private Integer rating;
+    private Integer uploadTimes;
     private String squad;
+    private Integer score;
     private String operatorTeam;
     private String description;
     private String tags;
@@ -59,12 +63,29 @@ public class RogueSeed {
         this.rogueVersion = rogueVersion;
     }
 
+
+    public String getSeedType() {
+        return seedType;
+    }
+
+    public void setSeedType(String seedType) {
+        this.seedType = seedType;
+    }
+
     public String getSource() {
         return source;
     }
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
     }
 
     public Integer getDifficulty() {
@@ -89,6 +110,14 @@ public class RogueSeed {
 
     public void setRating(Integer rating) {
         this.rating = rating;
+    }
+
+    public Integer getUploadTimes() {
+        return uploadTimes;
+    }
+
+    public void setUploadTimes(Integer uploadTimes) {
+        this.uploadTimes = uploadTimes;
     }
 
     public String getSquad() {
@@ -163,10 +192,12 @@ public class RogueSeed {
                 ", seed='" + seed + '\'' +
                 ", rogueTheme='" + rogueTheme + '\'' +
                 ", rogueVersion='" + rogueVersion + '\'' +
+                ", seedType='" + seedType + '\'' +
                 ", source='" + source + '\'' +
                 ", difficulty=" + difficulty +
                 ", ratingCount=" + ratingCount +
                 ", rating=" + rating +
+                ", uploadTimes=" + uploadTimes +
                 ", squad='" + squad + '\'' +
                 ", operatorTeam='" + operatorTeam + '\'' +
                 ", description='" + description + '\'' +

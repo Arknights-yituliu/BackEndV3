@@ -11,8 +11,8 @@ public class RogueSeedPageVO {
     private Long seedId;
     private String seed;
     private String rogueVersion;
-    private RogueSeedRatingStatistics rating;
-    private Integer ratingPerson;
+    private Integer rating;
+    private Integer ratingCount;
     private Integer difficulty;
     private String rogueTheme;
     private String squad;

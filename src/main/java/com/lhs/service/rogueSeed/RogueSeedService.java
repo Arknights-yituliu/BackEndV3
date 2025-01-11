@@ -15,18 +15,28 @@ public interface RogueSeedService {
     /**
      * @param httpServletRequest HTTP请求对象
      * @param rogueSeedDTO  上传的种子信息
-     * @return 成功信息等
+     * @return 成功信息
      */
     Map<String, Object> saveOrUpdateRogueSeed(HttpServletRequest httpServletRequest, RogueSeedDTO rogueSeedDTO);
 
 
-    void uploadRogueSeedPageToCOS();
-
+    /**
+     *
+     * @param multipartFile 文件对象
+     * @param httpServletRequest HTTP请求对象
+     * @return 成功信息
+     */
     Map<String, Object> uploadSettlementChart(MultipartFile multipartFile, HttpServletRequest httpServletRequest);
 
+    /**
+     * 肉鸽种子点赞
+     * rogueSeedRatingDTO 肉鸽点赞数据对象
+     * @param httpServletRequest HTTP请求对象
+     * @return 成功信息
+     */
     Map<String, Object> rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest);
 
-    String getRogueSeedPageTag();
+
 
     List<RogueSeedRatingVO> listUserRougeSeedRating(HttpServletRequest httpServletRequest);
 
