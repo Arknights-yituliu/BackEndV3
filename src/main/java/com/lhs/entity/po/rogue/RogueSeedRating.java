@@ -1,4 +1,4 @@
-package com.lhs.entity.po.rogueSeed;
+package com.lhs.entity.po.rogue;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,7 +13,7 @@ public class RogueSeedRating {
     private Long ratingId;
     private Long seedId;
     private Long uid;
-    private Integer rating;
+    private Double rating;
     private Date createTime;
     private Date updateTime;
 }

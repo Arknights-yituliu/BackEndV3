@@ -1,6 +1,4 @@
-package com.lhs.entity.po.rogueSeed;
-
-import lombok.Data;
+package com.lhs.entity.po.rogue;
 
 import java.util.Date;
 

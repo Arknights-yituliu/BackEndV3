@@ -345,10 +345,11 @@ public class UserServiceImpl implements UserService {
     public String extractToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         Logger.info("获取的用户token{}" + header);
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.replace("Bearer ", "");
+        if(header!=null&&header.startsWith("Authorization ")){
+            return header.replace("Authorization ", "");
         }
         throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+
     }
 
     @Override
@@ -869,8 +870,13 @@ public class UserServiceImpl implements UserService {
      * @return 一图流id
      */
     private Long decryptToken(String token) {
-        String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
-        String idText = decrypt.split("\\.")[1];
+        String idText = null;
+        try {
+            String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
+            idText = decrypt.split("\\.")[1];
+        } catch (Exception e) {
+            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
+        }
         return Long.valueOf(idText);
     }
 

@@ -1,10 +1,8 @@
-package com.lhs.entity.vo.rogueSeed;
+package com.lhs.entity.vo.rogue;
 
-import com.lhs.entity.po.rogueSeed.RogueSeedRatingStatistics;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class RogueSeedPageVO {

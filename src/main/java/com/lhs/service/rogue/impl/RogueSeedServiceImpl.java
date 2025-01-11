@@ -1,17 +1,18 @@
-package com.lhs.service.rogueSeed.impl;
+package com.lhs.service.rogue.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
+import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
-import com.lhs.entity.po.rogueSeed.*;
-import com.lhs.entity.vo.rogueSeed.RogueSeedPageVO;
-import com.lhs.entity.vo.rogueSeed.RogueSeedRatingVO;
+import com.lhs.entity.po.rogue.*;
+import com.lhs.entity.vo.rogue.RogueSeedPageVO;
+import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.rogueSeed.*;
-import com.lhs.service.rogueSeed.RogueSeedService;
+import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.COSService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class RogueSeedServiceImpl implements RogueSeedService {
@@ -124,7 +127,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeed.setRogueVersion(dto.getRogueVersion());
         rogueSeed.setRogueTheme(dto.getRogueTheme());
         rogueSeed.setSquad(String.join(",", dto.getSquad()));
-        rogueSeed.setOperatorTeam(String.join(",",dto.getOperatorTeam()));
+        rogueSeed.setOperatorTeam(String.join(",", dto.getOperatorTeam()));
         rogueSeed.setDescription(dto.getDescription());
         rogueSeed.setRatingCount(0);
         rogueSeed.setUploadTimes(1);
@@ -156,12 +159,12 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         newRogueSeed.setRogueVersion(dto.getRogueVersion());
         newRogueSeed.setRogueTheme(dto.getRogueTheme());
         newRogueSeed.setSquad(String.join(",", dto.getSquad()));
-        newRogueSeed.setOperatorTeam(String.join(",",dto.getOperatorTeam()));
+        newRogueSeed.setOperatorTeam(String.join(",", dto.getOperatorTeam()));
         newRogueSeed.setDescription(dto.getDescription());
         newRogueSeed.setTags(String.join(",", dto.getTags()));
         newRogueSeed.setSummaryImageLink(dto.getSummaryImageLink());
         newRogueSeed.setUpdateTime(new Date());
-        newRogueSeed.setUploadTimes(rogueSeed.getUploadTimes()+1);
+        newRogueSeed.setUploadTimes(rogueSeed.getUploadTimes() + 1);
         newRogueSeed.setCreateTime(rogueSeed.getCreateTime());
         backupSeedDescription(newRogueSeed, uid);
         int updateRow = rogueSeedMapper.updateById(newRogueSeed);
@@ -249,7 +252,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
     @Override
-    public List<RogueSeedRatingVO> listUserRougeSeedRating(HttpServletRequest httpServletRequest) {
+    public Map<Long, RogueSeedRating> listUserRougeSeedRating(HttpServletRequest httpServletRequest) {
 
         //根据token拿到用户信息
         UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
@@ -258,31 +261,19 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getUid, uid);
         List<RogueSeedRating> rogueSeedRatings = rogueSeedRatingMapper.selectList(rogueSeedRatingLambdaUpdateWrapper);
-        return createRougeSeedRatingList(rogueSeedRatings);
+        Map<Long, RogueSeedRating> collect = rogueSeedRatings.stream().collect(Collectors.toMap(RogueSeedRating::getSeedId, Function.identity()));
+        return collect;
     }
+
+
 
 
     @Override
-    public List<RogueSeedPageVO> listRougeSeed(Integer pageSize, Integer pageNum, List<String> keywords, String order, HttpServletRequest httpServletRequest) {
-
-        List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByCondition(order, pageNum, pageSize);
-
+    public List<RogueSeedPageVO> listRougeSeed(RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest) {
+        List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByCondition(rogueSeedPageDTO.getSortCondition(),
+                rogueSeedPageDTO.getPageNum(), rogueSeedPageDTO.getPageSize());
 
         return createRogueSeedVOList(rogueSeedList);
-    }
-
-    public List<RogueSeedRatingVO> createRougeSeedRatingList(List<RogueSeedRating> list) {
-        List<RogueSeedRatingVO> voList = new ArrayList<>();
-        for (RogueSeedRating item : list) {
-            RogueSeedRatingVO rogueSeedRatingVO = new RogueSeedRatingVO();
-            rogueSeedRatingVO.setRatingId(item.getRatingId());
-            rogueSeedRatingVO.setSeedId(item.getSeedId());
-            rogueSeedRatingVO.setRating(item.getRating());
-            rogueSeedRatingVO.setCreateTime(item.getCreateTime());
-            voList.add(rogueSeedRatingVO);
-        }
-
-        return voList;
     }
 
 
@@ -310,7 +301,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedPageVO.setSummaryImageLink(item.getSummaryImageLink());
             rogueSeedPageVO.setCreateTime(item.getCreateTime().getTime());
             Integer rating = rogueSeedStatisticsCollect.get(item.getSeedId());
-            rogueSeedPageVO.setRating(rating==null?-1:rating);
+            rogueSeedPageVO.setRating(rating == null ? 0 : rating);
             voList.add(rogueSeedPageVO);
         }
         return voList;

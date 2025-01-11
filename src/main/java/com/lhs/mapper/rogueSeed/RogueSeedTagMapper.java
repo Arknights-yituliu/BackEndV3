@@ -1,7 +1,7 @@
 package com.lhs.mapper.rogueSeed;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lhs.entity.po.rogueSeed.RogueSeedTag;
+import com.lhs.entity.po.rogue.RogueSeedTag;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 

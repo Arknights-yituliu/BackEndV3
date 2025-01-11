@@ -48,7 +48,7 @@ public enum ResultCode {
 	PASS_WORD_LENGTH_TOO_LONG(20024, "密码长度不得超过20个字符"),
 	USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH(20025, "用户名只能由中文、英文、数字组成"),
 	PASS_WORD_MUST_BE_IN_CHINESE_OR_ENGLISH(20026, "密码只能由英文、数字组成"),
-
+	USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN(20027, "用户登录凭证解析错误或用户未登录，请进行反馈"),
 
 
 
@@ -100,6 +100,7 @@ public enum ResultCode {
 
 	/* 权限错误：80001-89999 */
 	PERMISSION_NO_ACCESS(80001, "无访问权限");
+
 
 
 	

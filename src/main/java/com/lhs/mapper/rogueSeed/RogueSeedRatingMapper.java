@@ -1,7 +1,7 @@
 package com.lhs.mapper.rogueSeed;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lhs.entity.po.rogueSeed.RogueSeedRating;
+import com.lhs.entity.po.rogue.RogueSeedRating;
 import org.springframework.stereotype.Repository;
 
 @Repository

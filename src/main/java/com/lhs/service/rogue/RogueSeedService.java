@@ -1,9 +1,11 @@
-package com.lhs.service.rogueSeed;
+package com.lhs.service.rogue;
 
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
+import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
-import com.lhs.entity.vo.rogueSeed.RogueSeedPageVO;
-import com.lhs.entity.vo.rogueSeed.RogueSeedRatingVO;
+import com.lhs.entity.po.rogue.RogueSeedRating;
+import com.lhs.entity.vo.rogue.RogueSeedPageVO;
+import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +40,7 @@ public interface RogueSeedService {
 
 
 
-    List<RogueSeedRatingVO> listUserRougeSeedRating(HttpServletRequest httpServletRequest);
+    Map<Long, RogueSeedRating> listUserRougeSeedRating(HttpServletRequest httpServletRequest);
 
-    List<RogueSeedPageVO> listRougeSeed(Integer pageSize, Integer pageNum, List<String> keywords, String order, HttpServletRequest httpServletRequest);
+    List<RogueSeedPageVO> listRougeSeed(RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest);
 }

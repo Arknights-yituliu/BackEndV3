@@ -3,28 +3,27 @@ package com.lhs.interceptor;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.ResultCode;
-import com.lhs.service.admin.AdminService;
 import com.lhs.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-@Slf4j
+
 public class UserInterceptor implements HandlerInterceptor {
 
 
     private final RedisTemplate<String, Object> redisTemplate;
-
     private final UserService userService;
 
     public UserInterceptor(RedisTemplate<String, Object> redisTemplate, UserService userService) {
         this.redisTemplate = redisTemplate;
         this.userService = userService;
     }
+
 
 
     /**
@@ -53,6 +52,7 @@ public class UserInterceptor implements HandlerInterceptor {
         }
         return true;
     }
+
 
     /**
      * 目标方法执行完成以后

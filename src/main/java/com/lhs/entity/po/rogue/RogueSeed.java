@@ -1,8 +1,7 @@
-package com.lhs.entity.po.rogueSeed;
+package com.lhs.entity.po.rogue;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
 
 import java.util.Date;
 
@@ -19,7 +18,7 @@ public class RogueSeed {
 
     private Integer difficulty;
     private Integer ratingCount;
-    private Integer rating;
+    private Double rating;
     private Integer uploadTimes;
     private String squad;
     private Integer score;
@@ -104,11 +103,11 @@ public class RogueSeed {
         this.ratingCount = ratingCount;
     }
 
-    public Integer getRating() {
+    public Double getRating() {
         return rating;
     }
 
-    public void setRating(Integer rating) {
+    public void setRating(Double rating) {
         this.rating = rating;
     }
 

@@ -1,4 +1,4 @@
-package com.lhs.entity.vo.rogueSeed;
+package com.lhs.entity.vo.rogue;
 
 import lombok.Data;
 

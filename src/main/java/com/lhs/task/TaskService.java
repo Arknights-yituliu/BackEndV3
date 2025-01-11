@@ -2,7 +2,7 @@ package com.lhs.task;
 
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.service.maa.StageDropUploadService;
-import com.lhs.service.rogueSeed.RogueSeedService;
+import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.survey.OperatorStatisticsService;
 import com.lhs.service.util.OSSService;
 import com.lhs.service.material.*;

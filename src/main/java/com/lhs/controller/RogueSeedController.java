@@ -2,10 +2,12 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
+import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
-import com.lhs.entity.vo.rogueSeed.RogueSeedPageVO;
-import com.lhs.entity.vo.rogueSeed.RogueSeedRatingVO;
-import com.lhs.service.rogueSeed.RogueSeedService;
+import com.lhs.entity.po.rogue.RogueSeedRating;
+import com.lhs.entity.vo.rogue.RogueSeedPageVO;
+import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
+import com.lhs.service.rogue.RogueSeedService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
@@ -38,18 +40,14 @@ public class RogueSeedController {
         return Result.success(rogueSeedService.rogueSeedRating(rogueSeedRatingDTO,httpServletRequest));
     }
 
-    @GetMapping("/auth/rogue/seed/rating/list")
-    public Result<List<RogueSeedRatingVO>> ratingList(HttpServletRequest httpServletRequest){
+    @GetMapping("/auth/rogue/seed/user/rating")
+    public Result<Map<Long, RogueSeedRating>> ratingList(HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.listUserRougeSeedRating(httpServletRequest));
     }
 
-    @GetMapping("/auth/rogue/seed/list")
-    public Result<List<RogueSeedPageVO>> getSeedPage(@RequestParam("pageSize") Integer pageSize,
-                                                     @RequestParam("pageNum") Integer pageNum,
-                                                     @RequestParam("keywords") List<String> keywords,
-                                                     @RequestParam("orderBy") String order,
-                                                     HttpServletRequest httpServletRequest){
-        return Result.success(rogueSeedService.listRougeSeed(pageSize,pageNum,keywords,order,httpServletRequest));
+    @PostMapping("/rogue/seed/page")
+    public Result<List<RogueSeedPageVO>> getSeedPage(@RequestBody RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest){
+        return Result.success(rogueSeedService.listRougeSeed(rogueSeedPageDTO,httpServletRequest));
     }
 
 

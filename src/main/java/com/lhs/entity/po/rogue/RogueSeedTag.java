@@ -1,4 +1,4 @@
-package com.lhs.entity.po.rogueSeed;
+package com.lhs.entity.po.rogue;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
