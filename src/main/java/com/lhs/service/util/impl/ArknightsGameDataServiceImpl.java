@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Logger;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.util.*;
 import com.lhs.entity.dto.maa.BuildingData;
 import com.lhs.entity.po.survey.OperatorTable;
 import com.lhs.mapper.survey.OperatorTableMapper;
@@ -55,21 +52,36 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         this.redisTemplate = redisTemplate;
     }
 
+    public static void copyFile(File source, File dest) {
+
+        try {
+            FileInputStream is = new FileInputStream(source);
+            FileOutputStream os = new FileOutputStream(dest);
+            FileChannel sourceChannel = is.getChannel();
+            FileChannel destChannel = os.getChannel();
+            sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
+            sourceChannel.close();
+            destChannel.close();
+            is.close();
+            os.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void saveOperatorDataTag(String tag) {
-         redisTemplate.opsForValue().set("Tag:OperatorData",tag);
+        redisTemplate.opsForValue().set("Tag:OperatorData", tag);
     }
 
     @Override
     public String getOperatorDataTag() {
         Object value = redisTemplate.opsForValue().get("Tag:OperatorData");
-        if(value==null){
+        if (value == null) {
             return "114514";
         }
         return String.valueOf(value);
     }
-
-
 
     /**
      * 返回一个集合 key:模组id,value:模组分支
@@ -100,7 +112,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     }
 
-
     /**
      * 返回一个干员信息的集合 里面主要用到干员的获取方式和实装时间
      *
@@ -113,10 +124,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         if (operatorTableList == null) throw new ServiceException(ResultCode.DATA_NONE);
         return operatorTableList;
     }
-
-
-
-
 
     @Override
     public void getAvatar() {
@@ -223,16 +230,15 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         List<Object> list = operatorInfoSimpleMap.values().stream().toList();
 
 
-        FileUtil.save(JSON_BUILD+"src/static/json/survey/",
+        FileUtil.save(JSON_BUILD + "src/static/json/survey/",
                 "character_table_simple.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
-        FileUtil.save(JSON_BUILD+"src/static/json/survey/",
+        FileUtil.save(JSON_BUILD + "src/static/json/survey/",
                 "character_list.json", JsonMapper.toJSONString(list));
 
-        FileUtil.save(JSON_BUILD+"src/static/json/survey/",
+        FileUtil.save(JSON_BUILD + "src/static/json/survey/",
                 "operator_item_cost_table.json", JsonMapper.toJSONString(itemCostMap));
 
     }
-
 
     private Map<String, List<Map<String, Object>>> getEquipInfoMap() {
 
@@ -408,7 +414,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         return operatorInfo;
     }
 
-
     private Map<String, Object> getOperatorItemCost(String charId, JsonNode data, Map<Object, String> skillMap, Map<String, List<Map<String, Object>>> equipMap) {
         Map<String, Object> operator = new HashMap<>();
         JsonNode phases = data.get("phases");
@@ -482,7 +487,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        String read = FileUtil.read(GAME_DATA + "building_data.json");
 //        String read1 = FileUtil.read(GAME_DATA + "character_table.json");
 
-        //获取干员部分信息
+        //获取干员部分信息，测试时需分离
         List<OperatorTable> operatorTable = getOperatorTable();
 
         Map<String, OperatorTable> characterTableMap = operatorTable.stream()
@@ -537,38 +542,17 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //                .collect(Collectors.groupingBy(BuildingData::getRoomType));
 //        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
         Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
-        FileUtil.save(JSON_BUILD+"src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        FileUtil.save(JSON_BUILD + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
 
     }
-
 
     private Integer getPhase(String text) {
         return Integer.parseInt(text.replace("PHASE_", ""));
     }
 
-
     private Integer getRarity(String str) {
         return Integer.parseInt(str.replace("TIER_", ""));
     }
-
-
-    public static void copyFile(File source, File dest) {
-
-        try {
-            FileInputStream is = new FileInputStream(source);
-            FileOutputStream os = new FileOutputStream(dest);
-            FileChannel sourceChannel = is.getChannel();
-            FileChannel destChannel = os.getChannel();
-            sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
-            sourceChannel.close();
-            destChannel.close();
-            is.close();
-            os.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
     private String replaceDescription(String str) {
 //        Map<String, String> classMap = new HashMap<String, String>();
@@ -671,6 +655,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             description = description.replace(entry.getKey(), entry.getValue());
         }
 
+        // 删除多余的“<”或“>”
+        description = HTMLUtil.removeExcessParentheses(description);
+
         return description;
     }
 
@@ -684,7 +671,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (termDescriptionDict != null) {
             Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
-            FileUtil.save(JSON_BUILD+"src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+            FileUtil.save(JSON_BUILD + "src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
         }
     }
 
@@ -735,7 +722,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (v2FoodsDetail != null) {
             Map<String, Object> foodsMap = createFoodsDataJson(v2FoodsDetail.get("foodMatData"), v2FoodsDetail.get("foodData"), v2ItemData);
-            FileUtil.save(JSON_BUILD+"src/static/json/build/", "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
+            FileUtil.save(JSON_BUILD + "src/static/json/build/", "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
         }
     }
 
