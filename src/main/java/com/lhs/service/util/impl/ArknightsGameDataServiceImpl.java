@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Logger;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.util.*;
 import com.lhs.entity.dto.maa.BuildingData;
 import com.lhs.entity.po.survey.OperatorTable;
 import com.lhs.mapper.survey.OperatorTableMapper;
@@ -482,7 +479,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        String read = FileUtil.read(GAME_DATA + "building_data.json");
 //        String read1 = FileUtil.read(GAME_DATA + "character_table.json");
 
-        //获取干员部分信息
+        //获取干员部分信息，测试时需分离
         List<OperatorTable> operatorTable = getOperatorTable();
 
         Map<String, OperatorTable> characterTableMap = operatorTable.stream()
@@ -670,6 +667,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         for (Map.Entry<String, String> entry : spliceClassMap.entrySet()) {
             description = description.replace(entry.getKey(), entry.getValue());
         }
+
+        // 删除多余的“<”或“>”
+        description = HTMLUtil.removeExcessParentheses(description);
 
         return description;
     }
