@@ -28,9 +28,16 @@ public class GlobalExceptionHandler {
 		else {
 			String message = e.getMessage();
 			Logger.error(e.getMessage());
-			if(message.contains("SQLException")){
-				int i = message.indexOf("###");
-				message = message.substring(0,message.indexOf("###",i+3));
+			if(message.contains("database")){
+				int index = message.indexOf("###");
+				if(index>-1){
+					int endIndex = message.indexOf("###", index + 3);
+					if(endIndex>-1){
+						message = message.substring(0,endIndex);
+					}
+
+				}
+
 			}
             result = Result.failure(500, message);
 		}

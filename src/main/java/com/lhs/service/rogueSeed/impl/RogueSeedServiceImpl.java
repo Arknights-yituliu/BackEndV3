@@ -162,7 +162,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         newRogueSeed.setSummaryImageLink(dto.getSummaryImageLink());
         newRogueSeed.setUpdateTime(new Date());
         newRogueSeed.setUploadTimes(rogueSeed.getUploadTimes()+1);
-
+        newRogueSeed.setCreateTime(rogueSeed.getCreateTime());
         backupSeedDescription(newRogueSeed, uid);
         int updateRow = rogueSeedMapper.updateById(newRogueSeed);
 
@@ -174,7 +174,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     private void backupSeedDescription(RogueSeed rogueSeed, Long uid) {
         RogueSeedBak rogueSeedBak = new RogueSeedBak();
-        rogueSeedBak.setSeedId(rogueSeed.getSeedId());
+        rogueSeedBak.setSeedId(idGenerator.nextId());
         rogueSeedBak.setSeed(rogueSeed.getSeed());
         rogueSeedBak.setUid(uid);
         rogueSeedBak.setDescription(rogueSeed.getDescription());
