@@ -24,6 +24,13 @@ public interface UserService {
     String extractToken(HttpServletRequest request);
 
     /**
+     * 检查用户登录状态
+     * @param httpServletRequest 请求对象
+     * @return 是否登录
+     */
+    Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest);
+
+    /**
      * 用户注册
      *
      * @param httpServletRequest 请求体
@@ -103,15 +110,6 @@ public interface UserService {
      * @return 用户凭证
      */
     HashMap<String, String> resetPassword(LoginDataDTO loginDataDTO);
-
-    /**
-     * 保存第三方账号的信息
-     *
-     * @param akPlayerBindInfo 第三方账号的信息
-     */
-    void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo);
-
-    AkPlayerBindInfo getAkPlayerBindInfo(String akUid, Long uid);
 
     /**
      * 这个方法将会保存两个信息：

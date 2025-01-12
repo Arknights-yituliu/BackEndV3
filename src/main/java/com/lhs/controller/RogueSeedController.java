@@ -40,7 +40,7 @@ public class RogueSeedController {
         return Result.success(rogueSeedService.rogueSeedRating(rogueSeedRatingDTO,httpServletRequest));
     }
 
-    @GetMapping("/auth/rogue/seed/user/rating")
+    @GetMapping("/rogue/seed/user/rating")
     public Result<Map<Long, RogueSeedRating>> ratingList(HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.listUserRougeSeedRating(httpServletRequest));
     }

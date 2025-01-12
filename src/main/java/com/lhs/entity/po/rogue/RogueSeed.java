@@ -13,12 +13,9 @@ public class RogueSeed {
     private String seed;
     private String rogueTheme;
     private String rogueVersion;
-    private String seedType;
+    private Integer seedType;
     private String source;
-
     private Integer difficulty;
-    private Integer ratingCount;
-    private Double rating;
     private Integer uploadTimes;
     private String squad;
     private Integer score;
@@ -62,12 +59,11 @@ public class RogueSeed {
         this.rogueVersion = rogueVersion;
     }
 
-
-    public String getSeedType() {
+    public Integer getSeedType() {
         return seedType;
     }
 
-    public void setSeedType(String seedType) {
+    public void setSeedType(Integer seedType) {
         this.seedType = seedType;
     }
 
@@ -79,36 +75,12 @@ public class RogueSeed {
         this.source = source;
     }
 
-    public Integer getScore() {
-        return score;
-    }
-
-    public void setScore(Integer score) {
-        this.score = score;
-    }
-
     public Integer getDifficulty() {
         return difficulty;
     }
 
     public void setDifficulty(Integer difficulty) {
         this.difficulty = difficulty;
-    }
-
-    public Integer getRatingCount() {
-        return ratingCount;
-    }
-
-    public void setRatingCount(Integer ratingCount) {
-        this.ratingCount = ratingCount;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
-        this.rating = rating;
     }
 
     public Integer getUploadTimes() {
@@ -125,6 +97,14 @@ public class RogueSeed {
 
     public void setSquad(String squad) {
         this.squad = squad;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
     }
 
     public String getOperatorTeam() {
@@ -183,7 +163,6 @@ public class RogueSeed {
         this.deleteFlag = deleteFlag;
     }
 
-
     @Override
     public String toString() {
         return "RogueSeed{" +
@@ -194,10 +173,9 @@ public class RogueSeed {
                 ", seedType='" + seedType + '\'' +
                 ", source='" + source + '\'' +
                 ", difficulty=" + difficulty +
-                ", ratingCount=" + ratingCount +
-                ", rating=" + rating +
                 ", uploadTimes=" + uploadTimes +
                 ", squad='" + squad + '\'' +
+                ", score=" + score +
                 ", operatorTeam='" + operatorTeam + '\'' +
                 ", description='" + description + '\'' +
                 ", tags='" + tags + '\'' +

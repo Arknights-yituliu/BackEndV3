@@ -330,8 +330,52 @@ public class UserServiceImpl implements UserService {
 
         UserInfo userInfo = getUserInfoPOByToken(token);
         //用户信息 包括凭证，用户名，用户状态等
-        UserInfoVO userInfoVO = getUserDataVO(userInfo);
+        UserInfoVO userInfoVO = getUserInfoVO(userInfo);
         userInfoVO.setToken(token);
+        return userInfoVO;
+    }
+
+
+    private UserInfoVO getUserInfoVO(UserInfo userInfo) {
+        UserInfoVO userInfoVO = new UserInfoVO();
+        userInfoVO.setUid(userInfo.getId());
+        userInfoVO.setUserName(userInfo.getUserName());
+        userInfoVO.setStatus(userInfo.getStatus());
+        userInfoVO.setEmail(userInfo.getEmail());
+        userInfoVO.setAvatar(userInfo.getAvatar());
+        userInfoVO.setAkUid("0");
+        userInfoVO.setAkNickName(userInfo.getUserName());
+
+        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserExternalAccountBinding::getUid, userInfo.getId()).orderByDesc(UserExternalAccountBinding::getUpdateTime);
+        List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
+                .selectList(queryWrapper);
+
+        //根据uid查询是否有自定义配置
+        UserConfig userConfig = userConfigMapper.selectById(userInfo.getId());
+        //不为空则为VO写入配置
+        if (userConfig != null) {
+            Map<String, Object> map = JsonMapper.parseObject(userConfig.getConfig(), new TypeReference<>() {
+            });
+            userInfoVO.setConfig(map);
+        }
+
+        if (userInfo.getPassword() != null) {
+            userInfoVO.setHasPassword(true);
+        }
+
+        if (userInfo.getEmail() != null) {
+            userInfoVO.setHasEmail(true);
+        }
+
+        if (externalAccountBindings.isEmpty()) {
+            return userInfoVO;
+        }
+
+        Logger.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
+
+        userInfoVO.setAkUid(externalAccountBindings.get(0).getAkUid());
+
         return userInfoVO;
     }
 
@@ -342,14 +386,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String extractToken(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        Logger.info("获取的用户token{}" + header);
-        if(header!=null&&header.startsWith("Authorization ")){
+    public String extractToken(HttpServletRequest httpServletRequest) {
+        String header = httpServletRequest.getHeader("Authorization");
+        Logger.info("从{} "+ httpServletRequest.getRequestURI()+" {}获取的用户token{} " + header);
+        if(header!=null&&header.startsWith("Authorization ")&&header.length()>30){
             return header.replace("Authorization ", "");
         }
         throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+    }
 
+    @Override
+    public Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest) {
+        String header = httpServletRequest.getHeader("Authorization");
+        Logger.info("从{} "+ httpServletRequest.getRequestURI()+" {}获取的用户token{} " + header);
+        return header !=  null && header.startsWith("Authorization ")&&header.length()>30;
     }
 
     @Override
@@ -677,16 +727,9 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Override
-    public AkPlayerBindInfo getAkPlayerBindInfo(String akUid, Long uid) {
-        //根据一图流用户uid和明日方舟玩家uid查询是否导入过森空岛数据
-        LambdaQueryWrapper<AkPlayerBindInfo> bindQueryWrapper = new LambdaQueryWrapper<>();
-        bindQueryWrapper.eq(AkPlayerBindInfo::getAkUid, akUid);
-        return akPlayerBindInfoMapper.selectOne(bindQueryWrapper);
-    }
 
-    @Override
-    public void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo) {
+
+    private void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo) {
 
         LambdaQueryWrapper<AkPlayerBindInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AkPlayerBindInfo::getAkUid, akPlayerBindInfo.getAkUid());
@@ -870,14 +913,16 @@ public class UserServiceImpl implements UserService {
      * @return 一图流id
      */
     private Long decryptToken(String token) {
-        String idText = null;
+        long id = 114L;
+
         try {
             String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
-            idText = decrypt.split("\\.")[1];
+            String idText = decrypt.split("\\.")[1];
+            id = Long.parseLong(idText);
         } catch (Exception e) {
             throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
         }
-        return Long.valueOf(idText);
+        return  id;
     }
 
 
@@ -976,53 +1021,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    private UserInfoVO getUserDataVO(UserInfo userInfo) {
-        UserInfoVO userInfoVO = new UserInfoVO();
-        userInfoVO.setUid(userInfo.getId());
-        userInfoVO.setUserName(userInfo.getUserName());
-        userInfoVO.setStatus(userInfo.getStatus());
-        userInfoVO.setEmail(userInfo.getEmail());
-        userInfoVO.setAvatar(userInfo.getAvatar());
-        userInfoVO.setAkUid("0");
-        userInfoVO.setAkNickName(userInfo.getUserName());
 
-        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserExternalAccountBinding::getUid, userInfo.getId()).orderByDesc(UserExternalAccountBinding::getUpdateTime);
-        List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
-                .selectList(queryWrapper);
 
-        //根据uid查询是否有自定义配置
-        UserConfig userConfig = userConfigMapper.selectById(userInfo.getId());
-        //不为空则为VO写入配置
-        if (userConfig != null) {
-            Map<String, Object> map = JsonMapper.parseObject(userConfig.getConfig(), new TypeReference<>() {
-            });
-            userInfoVO.setConfig(map);
-        }
 
-        if (userInfo.getPassword() != null) {
-            userInfoVO.setHasPassword(true);
-        }
-
-        if (userInfo.getEmail() != null) {
-            userInfoVO.setHasEmail(true);
-        }
-
-        if (externalAccountBindings.isEmpty()) {
-            return userInfoVO;
-        }
-
-        Logger.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
-
-        userInfoVO.setAkUid(externalAccountBindings.get(0).getAkUid());
-
-        return userInfoVO;
-    }
-
-    private void ensureIdempotent(String key) {
-        Boolean lock = redisTemplate.opsForValue().setIfAbsent(key, "1", 5, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(lock)) {
-            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
-        }
-    }
 }

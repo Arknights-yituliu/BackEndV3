@@ -13,7 +13,7 @@ public class RogueSeedDTO {
     private String rogueTheme;
     private String rogueVersion;
     private String source;
-    private String seedType;
+    private Integer seedType;
     private Integer difficulty;
     private Integer ratingCount;
     private Integer rating;
@@ -88,11 +88,11 @@ public class RogueSeedDTO {
         this.rating = rating;
     }
 
-    public String getSeedType() {
+    public Integer getSeedType() {
         return seedType;
     }
 
-    public void setSeedType(String seedType) {
+    public void setSeedType(Integer seedType) {
         this.seedType = seedType;
     }
 

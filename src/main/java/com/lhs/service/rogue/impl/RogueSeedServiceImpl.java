@@ -63,21 +63,21 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         this.idGenerator = new IdGenerator(1L);
     }
 
-    public static final Map<String, String> ROGUE_SEED_TYPE = Map.of(
-            "胡种", "1",
-            "毒种", "2",
-            "特殊种", "3"
-    );
+
 
     @Override
     public Map<String, Object> saveOrUpdateRogueSeed(HttpServletRequest httpServletRequest, RogueSeedDTO rogueSeedDTO) {
 
         checkDTO(rogueSeedDTO);
 
-        //根据token拿到用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        //获取用户uid
-        Long uid = userInfoByToken.getUid();
+        Long uid = 1L;
+
+        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        if(loginStatus){
+            UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+            uid = userInfoVO.getUid();
+        }
+
 
         //搜索条件为种子
         LambdaUpdateWrapper<RogueSeed> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
@@ -99,13 +99,14 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         if (dto.getSeed() == null || dto.getSeed().length() < 20) {
             throw new ServiceException(ResultCode.ROGUE_SEED_IS_NULL_OR_FORMAT_ERROR);
         }
+
         if (dto.getRogueTheme() == null || dto.getRogueVersion() == null || dto.getSource() == null || dto.getDescription() == null) {
 
             throw new ServiceException(ResultCode.ROGUE_SEED_PARAMS_IS_NULL);
         }
 
-        if (ROGUE_SEED_TYPE.get(dto.getSeedType()) == null) {
-            throw new ServiceException(ResultCode.ROGUE_SEED_PARAMS_IS_NULL);
+        if (dto.getSeedType()==null||dto.getSeedType()<1||dto.getSeedType()>3) {
+            throw new ServiceException(ResultCode.ROGUE_SEED_TYPE_IS_NULL_OR_ERROR);
         }
     }
 
@@ -129,7 +130,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeed.setSquad(String.join(",", dto.getSquad()));
         rogueSeed.setOperatorTeam(String.join(",", dto.getOperatorTeam()));
         rogueSeed.setDescription(dto.getDescription());
-        rogueSeed.setRatingCount(0);
         rogueSeed.setUploadTimes(1);
         rogueSeed.setTags(String.join(",", dto.getTags()));
         rogueSeed.setSummaryImageLink(dto.getSummaryImageLink());
@@ -176,6 +176,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
     private void backupSeedDescription(RogueSeed rogueSeed, Long uid) {
+
         RogueSeedBak rogueSeedBak = new RogueSeedBak();
         rogueSeedBak.setSeedId(idGenerator.nextId());
         rogueSeedBak.setSeed(rogueSeed.getSeed());
@@ -253,7 +254,11 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     @Override
     public Map<Long, RogueSeedRating> listUserRougeSeedRating(HttpServletRequest httpServletRequest) {
-
+        Map<Long, RogueSeedRating> collect = new HashMap<>();
+        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        if(!loginStatus){
+            return  collect;
+        }
         //根据token拿到用户信息
         UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         //获取用户uid
@@ -261,7 +266,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getUid, uid);
         List<RogueSeedRating> rogueSeedRatings = rogueSeedRatingMapper.selectList(rogueSeedRatingLambdaUpdateWrapper);
-        Map<Long, RogueSeedRating> collect = rogueSeedRatings.stream().collect(Collectors.toMap(RogueSeedRating::getSeedId, Function.identity()));
+         collect = rogueSeedRatings.stream().collect(Collectors.toMap(RogueSeedRating::getSeedId, Function.identity()));
         return collect;
     }
 
@@ -270,7 +275,14 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     @Override
     public List<RogueSeedPageVO> listRougeSeed(RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest) {
-        List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByCondition(rogueSeedPageDTO.getSortCondition(),
+        String sortCondition = rogueSeedPageDTO.getSortCondition();
+        if("rating".equals(sortCondition)){
+            sortCondition = "rating";
+        }
+        if("date".equals(sortCondition)){
+            sortCondition = "create_time";
+        }
+        List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByCondition(sortCondition,
                 rogueSeedPageDTO.getPageNum(), rogueSeedPageDTO.getPageSize());
 
         return createRogueSeedVOList(rogueSeedList);
@@ -293,7 +305,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedPageVO.setRogueVersion(item.getRogueVersion());
             rogueSeedPageVO.setDifficulty(item.getDifficulty());
             rogueSeedPageVO.setRogueTheme(item.getRogueTheme());
-            rogueSeedPageVO.setRatingCount(item.getRatingCount());
             rogueSeedPageVO.setSquad(item.getSquad());
             rogueSeedPageVO.setOperatorTeam(TextUtil.textToArray(item.getOperatorTeam()));
             rogueSeedPageVO.setDescription(item.getDescription());
