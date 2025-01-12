@@ -5,7 +5,7 @@ import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
 import com.lhs.entity.po.rogue.RogueSeedRating;
 import com.lhs.entity.vo.rogue.RogueSeedPageVO;
-import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +21,6 @@ public interface RogueSeedService {
      */
     Map<String, Object> saveOrUpdateRogueSeed(HttpServletRequest httpServletRequest, RogueSeedDTO rogueSeedDTO);
 
-
     /**
      *
      * @param multipartFile 文件对象
@@ -29,7 +28,6 @@ public interface RogueSeedService {
      * @return 成功信息
      */
     Map<String, Object> uploadSettlementChart(MultipartFile multipartFile, HttpServletRequest httpServletRequest);
-
     /**
      * 肉鸽种子点赞
      * rogueSeedRatingDTO 肉鸽点赞数据对象
@@ -38,9 +36,9 @@ public interface RogueSeedService {
      */
     Map<String, Object> rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest);
 
-
-
     Map<Long, RogueSeedRating> listUserRougeSeedRating(HttpServletRequest httpServletRequest);
 
     List<RogueSeedPageVO> listRougeSeed(RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest);
+
+    void ratingStatistics();
 }

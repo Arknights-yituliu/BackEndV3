@@ -6,7 +6,7 @@ import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
 import com.lhs.entity.po.rogue.RogueSeedRating;
 import com.lhs.entity.vo.rogue.RogueSeedPageVO;
-import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
+
 import com.lhs.service.rogue.RogueSeedService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;

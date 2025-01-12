@@ -4,7 +4,7 @@
 <mapper namespace="com.lhs.mapper.rogueSeed.RogueSeedMapper">
 
     <select id="pageRogueSeedOrderByCondition" resultType="com.lhs.entity.po.rogue.RogueSeed">
-        SELECT seed_id, seed, rogue_version, rogue_theme, description, difficulty, source, upload_times, create_time, update_time,   squad, operator_team, score,  tags, summary_image_link, seed_type
+        SELECT seed_id, seed, rogue_version, rogue_theme, description, difficulty, source, upload_times, create_time, update_time,squad, operator_team,score,tags, summary_image_link, seed_type
         FROM `rogue_seed`
         WHERE `delete_flag` = false
         ORDER BY #{sortCondition} DESC LIMIT #{pageNum},#{pageSize};

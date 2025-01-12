@@ -9,13 +9,11 @@ import lombok.Data;
 public class RogueSeedRatingStatistics {
     @TableId
     private Long seedId;
-    private Integer dislikeCount = 0;
-    private Integer likeCount = 0;
-    private Integer normalCount = 0;
+    private Double rating;
+    private Integer ratingCount;
 
     {
-        dislikeCount = 0;
-        likeCount = 0;
-        normalCount = 0;
+        rating = 0.0;
+        ratingCount = 0;
     }
 }

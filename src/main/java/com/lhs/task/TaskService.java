@@ -1,10 +1,7 @@
 package com.lhs.task;
 
-import com.lhs.entity.dto.material.StageConfigDTO;
-import com.lhs.service.maa.StageDropUploadService;
 import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.survey.OperatorStatisticsService;
-import com.lhs.service.util.OSSService;
 import com.lhs.service.material.*;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,37 +12,25 @@ import org.springframework.stereotype.Service;
 public class TaskService {
 
 
-    private final ItemService itemService;
     private final StoreService storeService;
-    private final StageResultService stageResultService;
     private final StageCalService stageCalService;
-    private final OSSService ossService;
     private final StageService stageService;
-    private final StageDropUploadService stageDropUploadService;
-    private final PackInfoService packInfoService;
-    private final RogueSeedService rogueSeedService;
-
     private final OperatorStatisticsService operatorStatisticsService;
 
-    public TaskService(ItemService itemService,
-                       StoreService storeService,
-                       StageResultService stageResultService,
-                       StageCalService stageCalService, OSSService ossService,
+    private final RogueSeedService rogueSeedService;
+
+    public TaskService(StoreService storeService,
+                       StageCalService stageCalService,
                        StageService stageService,
-                       StageDropUploadService stageDropUploadService,
-                       PackInfoService packInfoService,
-                       RogueSeedService rogueSeedService, OperatorStatisticsService operatorStatisticsService) {
-        this.itemService = itemService;
+                       OperatorStatisticsService operatorStatisticsService,
+                       RogueSeedService rogueSeedService) {
         this.storeService = storeService;
-        this.stageResultService = stageResultService;
         this.stageCalService = stageCalService;
-        this.ossService = ossService;
         this.stageService = stageService;
-        this.stageDropUploadService = stageDropUploadService;
-        this.packInfoService = packInfoService;
-        this.rogueSeedService = rogueSeedService;
         this.operatorStatisticsService = operatorStatisticsService;
+        this.rogueSeedService = rogueSeedService;
     }
+
 
     /**
      * 保存企鹅物流数据到本地
@@ -71,29 +56,6 @@ public class TaskService {
         stageCalService.updateStageResultByTaskConfig();
     }
 
-//    @Scheduled(cron = "0 0/17 * * * ?")
-//    public void updateStageResultApi() {
-//        StageParamDTO stageParamDTO = new StageParamDTO();
-//        stageParamDTO.setExpCoefficient(0.625);
-//        stageParamDTO.setSampleSize(300);
-//        stageResultService.getT3RecommendedStageV3(stageParamDTO.getVersion());
-//    }
-
-
-//    @Scheduled(cron = "0/10 * * * * ?")
-//    @Scheduled(cron = "0 0/5 * * * ?")
-//    public void exportMAAStageDropData() {
-//       stageDropUploadService.exportData();
-//    }
-
-    @Scheduled(cron = "0 0 0/12 * * ?")
-    public void updateStorePackInfo(){
-        StageConfigDTO stageConfigDTO = new StageConfigDTO();
-        packInfoService.uploadPackInfoPageToCos(stageConfigDTO);
-    }
-
-
-
     /**
      * 更新常驻商店性价比
      */
@@ -103,9 +65,19 @@ public class TaskService {
     }
 
 
-
+    /**
+     * 统计干员练度数据
+     */
     @Scheduled(cron = "0 0 0/1 * * ? ")
     public void operatorStatistics(){
         operatorStatisticsService.statisticsOperatorData();
     }
+
+
+    @Scheduled(cron = "0 0/10 * * * ?")
+    public void rogueSeedRatingStatistics(){
+        rogueSeedService.ratingStatistics();
+    }
+
+
 }

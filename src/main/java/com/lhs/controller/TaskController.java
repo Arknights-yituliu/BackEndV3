@@ -28,7 +28,7 @@ public class TaskController {
     @Operation(summary ="调查站用户注册")
     @GetMapping("/update/pack")
     public Result<Object> updateStorePack(){
-        taskService.updateStorePackInfo();
+
         return Result.success();
     }
 }

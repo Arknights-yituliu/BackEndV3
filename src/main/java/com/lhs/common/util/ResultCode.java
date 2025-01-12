@@ -59,6 +59,8 @@ public enum ResultCode {
 	ROGUE_SEED_IS_NULL_OR_FORMAT_ERROR(30000, "肉鸽种子未填写或格式不正确"),
 	ROGUE_SEED_TYPE_IS_NULL_OR_ERROR(30000, "种子类型未选择"),
 	ROGUE_SEED_PARAMS_IS_NULL(30000, "肉鸽种子表单未填写完整"),
+
+	ROGUE_SEED_DESCRIPTION_LONGER_THAN_200_CHARACTERS(30000, "肉鸽种子描述超出100字符"),
 	/*游戏养成相关报错：31000-31999*/
 
 
