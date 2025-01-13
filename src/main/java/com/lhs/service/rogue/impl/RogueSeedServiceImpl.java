@@ -340,6 +340,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedPageVO.setCreateTime(item.getCreateTime().getTime());
             rogueSeedPageVO.setRating(item.getRating()==null?0.0:item.getRating());
             rogueSeedPageVO.setRatingCount(item.getRatingCount()==null?0:item.getRatingCount());
+            rogueSeedPageVO.setUploadTimes(item.getUploadTimes());
             voList.add(rogueSeedPageVO);
         }
         return voList;
