@@ -2,22 +2,19 @@ package com.lhs.common.annotation;
 
 import com.lhs.common.util.ResultCode;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.reflect.CodeSignature;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Aspect
@@ -44,9 +41,9 @@ public class AnnotationAOP {
     public void takeCountAfter(TakeCount takeCount) {
         long timeCost = (System.currentTimeMillis() - startTime.get());
         if (timeCost < 1000) {
-            Logger.info("执行方法：" + takeCount.name() + "  耗时：" + timeCost + "ms");
+            LogUtils.info("执行方法：" + takeCount.name() + "  耗时：" + timeCost + "ms");
         } else {
-            Logger.info("执行方法：" + takeCount.name() + "  耗时：" + (timeCost / 1000) + "s");
+            LogUtils.info("执行方法：" + takeCount.name() + "  耗时：" + (timeCost / 1000) + "s");
         }
 
         startTime.remove();

@@ -2,7 +2,7 @@ package com.lhs.service.util.impl;
 
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.ResultCode;
 import com.lhs.service.util.COSService;
 import com.qcloud.cos.COSClient;
@@ -116,7 +116,7 @@ public class COSServiceImpl implements COSService {
         try {
             multipartFile.transferTo(file);
         } catch (IOException exception) {
-            Logger.error(exception.getMessage());
+            LogUtils.error(exception.getMessage());
         }
 
         return file;

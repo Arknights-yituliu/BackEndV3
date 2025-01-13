@@ -109,7 +109,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             channelMasterId = data.get("channelMasterId").asInt();
         }
 
-        Logger.info("森空岛导入v2 {} uid：" + akUid + "，服务器：" + data.get("channelName"));
+        LogUtils.info("森空岛导入v2 {} uid：" + akUid + "，服务器：" + data.get("channelName"));
 
         JsonNode chars = data.get("chars");
         JsonNode charInfoMap = data.get("charInfoMap");
@@ -342,15 +342,15 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         //检查干员旧数据的模组等级大于新导入的模组等级时，保留旧数据的等级
         if (lastData.getModX() > newData.getModX()) {
             newData.setModX(lastData.getModX());
-            Logger.info(newData.getCharId() + "X模组被手动设置等级了");
+            LogUtils.info(newData.getCharId() + "X模组被手动设置等级了");
         }
         if (lastData.getModY() > newData.getModY()) {
             newData.setModY(lastData.getModY());
-            Logger.info(newData.getCharId() + "Y模组被手动设置等级了");
+            LogUtils.info(newData.getCharId() + "Y模组被手动设置等级了");
         }
         if (lastData.getModD() > newData.getModD()) {
             newData.setModD(lastData.getModD());
-            Logger.info(newData.getCharId() + "D模组被手动设置等级了");
+            LogUtils.info(newData.getCharId() + "D模组被手动设置等级了");
         }
     }
 
@@ -414,7 +414,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
         //查询用户信息
         UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
-        Logger.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
+        LogUtils.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
         //保存的干员数据
         List<OperatorDataVo> operatorDataVoList = new ArrayList<>();
         //查询当前用户的默认方舟uid的干员数据

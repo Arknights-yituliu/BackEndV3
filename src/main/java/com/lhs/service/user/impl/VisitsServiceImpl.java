@@ -3,7 +3,7 @@ package com.lhs.service.user.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.admin.PageViewStatistics;
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
@@ -46,7 +46,7 @@ public class VisitsServiceImpl implements VisitsService {
     @Override
     public void savePageVisits() {
         Date todayDate = new Date();
-        Logger.info("开始保存访问记录");
+        LogUtils.info("开始保存访问记录");
 
         String yyyyMMddHH = new SimpleDateFormat("yyyy/MM/dd HH").format(new Date());
 
@@ -78,7 +78,7 @@ public class VisitsServiceImpl implements VisitsService {
                     updateWrapper.eq("redis_key", savedPageViewStatistics.getRedisKey());
                     savedPageViewStatistics.setPageView(visitsCount);
                     pageVisitsMapper.update(savedPageViewStatistics, updateWrapper);
-                    Logger.info("更新记录");
+                    LogUtils.info("更新记录");
                 }
                 redisTemplate.opsForHash().delete("visits", timeAndURL);
                 continue;

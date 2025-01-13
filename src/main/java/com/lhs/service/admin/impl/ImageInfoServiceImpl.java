@@ -3,17 +3,15 @@ package com.lhs.service.admin.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.po.admin.ImageInfo;
-import com.lhs.entity.po.admin.LogInfo;
 import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.service.admin.ImageInfoService;
 import com.lhs.service.util.COSService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -95,7 +93,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
             if (exist == null) {
                 imageInfoMapper.insert(imageInfo);
             } else {
-                Logger.info("文件已存在");
+                LogUtils.info("文件已存在");
                 imageInfoMapper.updateById(imageInfo);
             }
             cosService.uploadFile(multipartFile, bucketPath);

@@ -168,7 +168,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             }
 
         } catch (Exception e) {
-            Logger.error(e.getLocalizedMessage());
+            LogUtils.error(e.getLocalizedMessage());
         }
     }
 

@@ -199,7 +199,7 @@ public class StageService {
             stage.setSpm(spm);
             stage.setMinClearTime(minClearTime);
 
-            Logger.info("本次拉取更新的关卡是："+stageId);
+            LogUtils.info("本次拉取更新的关卡是："+stageId);
             stageMapper.insert(stage);
         }
 

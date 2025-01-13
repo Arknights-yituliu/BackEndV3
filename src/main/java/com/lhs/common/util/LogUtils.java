@@ -3,7 +3,9 @@ package com.lhs.common.util;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class Logger {
+public class LogUtils {
+
+
 
     public static void info(String message){
         log.info(message);

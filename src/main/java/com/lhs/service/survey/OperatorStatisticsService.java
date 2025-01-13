@@ -4,16 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.entity.po.survey.*;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
-import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.mapper.survey.OperatorDataMapper;
-import com.lhs.mapper.survey.SurveyOperatorDataMapper;
 import com.lhs.mapper.survey.OperatorStatisticsMapper;
 import com.lhs.mapper.survey.service.OperatorStatisticsMapperService;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
-import com.lhs.service.util.ArknightsGameDataService;
 import com.lhs.service.util.OSSService;
 import com.lhs.entity.vo.survey.OperatorStatisticsResultVO;
 import com.lhs.entity.dto.survey.OperatorStatisticsDTO;
@@ -104,7 +101,7 @@ public class OperatorStatisticsService {
             statisticsOperatorList.add(build);
         });
 
-        Logger.info("本次统计人数为：" + userCount + "人");
+        LogUtils.info("本次统计人数为：" + userCount + "人");
         String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         redisTemplate.opsForHash().put("Survey", "UpdateTime.Operator", updateTime);
         redisTemplate.opsForHash().put("Survey", "UserCount.Operator", userCount);
@@ -126,7 +123,7 @@ public class OperatorStatisticsService {
         queryWrapper.in(OperatorData::getAkUid, akUidSet);
         List<OperatorData> operatorDataList = operatorDataMapper.selectList(queryWrapper);
 
-        Logger.info("本次统计数量：" + operatorDataList.size());
+        LogUtils.info("本次统计数量：" + operatorDataList.size());
 
         //根据干员id分组
         Map<String, List<OperatorData>> collectByCharId = operatorDataList.stream()

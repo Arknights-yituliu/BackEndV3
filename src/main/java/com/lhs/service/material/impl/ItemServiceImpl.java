@@ -335,7 +335,7 @@ public class ItemServiceImpl implements ItemService {
             List<Item> list = collect.get(rarity);
             //副产物期望 = 所有材料的期望价值（材料价值 * 材料出率 /100）之和 * 副产物爆率
             double expectValue = list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight()).sum() * knockRating;
-            Logger.info(rarity + "级材料副产物期望：" + expectValue / knockRating);
+            LogUtils.info(rarity + "级材料副产物期望：" + expectValue / knockRating);
             WorkShopProducts workShopProducts = new WorkShopProducts();
             workShopProducts.setItemRank("rarity_" + rarity);  //副产物等级
             workShopProducts.setId(time++);

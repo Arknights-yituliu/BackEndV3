@@ -1,6 +1,5 @@
 package com.lhs.common.util;
 
-import com.lhs.common.exception.ServiceException;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -36,7 +35,7 @@ public class HttpRequestUtil {
             httpResponse = httpClient.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             if(httpResponse.getStatusLine().getStatusCode() != 200){
-                Logger.info(EntityUtils.toString(entity));
+                LogUtils.info(EntityUtils.toString(entity));
                 return null;
             }
             return EntityUtils.toString(entity);
@@ -88,25 +87,25 @@ public class HttpRequestUtil {
             if(httpResponse.getStatusLine().getStatusCode() != 200){
                 HttpEntity entity = httpResponse.getEntity();
                 String errorMessage = EntityUtils.toString(entity, "UTF-8");
-                Logger.error("Http Request Message: " + errorMessage);
+                LogUtils.error("Http Request Message: " + errorMessage);
             }
             HttpEntity entity = httpResponse.getEntity();
             return EntityUtils.toString(entity);
         } catch (IOException e) {
-            Logger.error(e.getMessage());
+            LogUtils.error(e.getMessage());
         } finally {
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    Logger.error(e.getMessage());
+                    LogUtils.error(e.getMessage());
                 }
             }
             if (null != httpClient) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    Logger.error(e.getMessage());
+                    LogUtils.error(e.getMessage());
                 }
             }
         }

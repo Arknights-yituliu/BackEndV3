@@ -91,7 +91,7 @@ public class StoreServiceImpl implements StoreService {
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
 
-        Logger.info("常驻商店更新成功");
+        LogUtils.info("常驻商店更新成功");
     }
 
 
@@ -160,7 +160,7 @@ public class StoreServiceImpl implements StoreService {
         for(StoreItemVO vo:storeItemVOList){
             Item item = itemMap.get(vo.getItemId());
             if(item==null){
-                Logger.error(vo.getItemName()+"不存在");
+                LogUtils.error(vo.getItemName()+"不存在");
                 continue;
             }
             vo.setItemPPR(item.getItemValueAp()* vo.getItemQuantity() / vo.getItemPrice());

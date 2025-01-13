@@ -177,7 +177,7 @@ public class StageDropUploadService {
 
         long currentTimeStamp = date.getTime();
         if(currentTimeStamp-startTimestamp< 60 * 60 * 2 * 1000){
-            Logger.error("距离当前时间过短");
+            LogUtils.error("距离当前时间过短");
             redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",startTimestamp);
             return;
         }
@@ -194,7 +194,7 @@ public class StageDropUploadService {
 
         if(stageDropList.isEmpty()){
             redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",endTimestamp);
-            Logger.error("无数据");
+            LogUtils.error("无数据");
             return;
         }
 
@@ -225,11 +225,11 @@ public class StageDropUploadService {
 
         if(stageDropVOList.size()<1000){
             redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",endTimestamp);
-            Logger.error("数据过少");
+            LogUtils.error("数据过少");
             return;
         }
 
-        Logger.info("本次导出数据量为"+stageDropVOList.size());
+        LogUtils.info("本次导出数据量为"+stageDropVOList.size());
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm");
         String dateText = simpleDateFormat.format(new Date(startTimestamp));
@@ -243,7 +243,7 @@ public class StageDropUploadService {
 
         String path = "export2/"+year+"/"+month+"/"+day+"/stage_drop_"+hourAndMinute+".json";
         ossService.upload(JsonMapper.toJSONString(stageDropVOList),path);
-        Logger.info("OSS上传路径为："+path);
+        LogUtils.info("OSS上传路径为："+path);
         redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",endTimestamp);
     }
 

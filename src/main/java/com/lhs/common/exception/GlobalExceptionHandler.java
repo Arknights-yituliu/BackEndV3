@@ -1,14 +1,11 @@
 package com.lhs.common.exception;
 
 
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.Result;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 
 /**
@@ -17,7 +14,9 @@ import java.io.StringWriter;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-	
+
+
+
 	@ResponseBody
     @ExceptionHandler(Exception.class)
     public Object handleException(Exception e) {
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
 		}
 		else {
 			String message = e.getMessage();
-			Logger.error(e.getMessage());
+			e.printStackTrace();
 			if(message.contains("database")){
 				int index = message.indexOf("###");
 				if(index>-1){
@@ -35,10 +34,12 @@ public class GlobalExceptionHandler {
 					if(endIndex>-1){
 						message = message.substring(0,endIndex);
 					}
-
 				}
 
 			}
+
+
+
             result = Result.failure(500, message);
 		}
 		return result;

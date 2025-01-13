@@ -43,7 +43,7 @@ public class JsonMapper {
         try {
             t = objectMapper.readValue(jsonString, type);
         } catch (JsonProcessingException e) {
-            Logger.error("JsonString转为自定义对象失败：{}"+ e.getMessage());
+            LogUtils.error("JsonString转为自定义对象失败：{}"+ e.getMessage());
         }
         return t;
     }
@@ -53,7 +53,7 @@ public class JsonMapper {
         try {
             t = objectMapper.readValue(jsonString, object);
         } catch (JsonProcessingException e) {
-            Logger.error("JsonString转为自定义对象失败：{}"+ e.getMessage());
+            LogUtils.error("JsonString转为自定义对象失败：{}"+ e.getMessage());
         }
         return t;
     }
@@ -63,7 +63,7 @@ public class JsonMapper {
         try {
             t = objectMapper.readValue(file, object);
         } catch (IOException e) {
-            Logger.error("从文件中读取json字符串转为自定义对象失败：{}"+ e.getMessage());
+            LogUtils.error("从文件中读取json字符串转为自定义对象失败：{}"+ e.getMessage());
         }
         return t;
     }
@@ -75,7 +75,7 @@ public class JsonMapper {
 
             t = objectMapper.readValue(jsonArray, reference);
         } catch (JsonProcessingException e) {
-            Logger.error("JSONArray转为List列表或者Map集合失败，转换类型为"+reference.getClass().getName()+"{}"+e.getMessage());
+            LogUtils.error("JSONArray转为List列表或者Map集合失败，转换类型为"+reference.getClass().getName()+"{}"+e.getMessage());
         }
         return t;
     }
@@ -86,7 +86,7 @@ public class JsonMapper {
         try {
             jsonString = objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            Logger.error("Object转JSONString失败：{}"+ e.getMessage());
+            LogUtils.error("Object转JSONString失败：{}"+ e.getMessage());
         }
         return jsonString;
     }
@@ -96,7 +96,7 @@ public class JsonMapper {
         try {
             bytes = objectMapper.writeValueAsBytes(object);
         } catch (JsonProcessingException e) {
-            Logger.error("Object转ByteArray失败：{}"+ e.getMessage());
+            LogUtils.error("Object转ByteArray失败：{}"+ e.getMessage());
         }
         return bytes;
     }
@@ -105,7 +105,7 @@ public class JsonMapper {
         try {
             objectMapper.writeValue(file, object);
         } catch (JsonProcessingException e) {
-            Logger.error("Object写入文件失败：{}"+ e.getMessage());
+            LogUtils.error("Object写入文件失败：{}"+ e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -117,7 +117,7 @@ public class JsonMapper {
         try {
             jsonNode = objectMapper.readTree(jsonString);
         } catch (JsonProcessingException e) {
-            Logger.error("JSONString转为JsonNode失败：{}"+ e.getMessage());
+            LogUtils.error("JSONString转为JsonNode失败：{}"+ e.getMessage());
         }
         return jsonNode;
     }
@@ -131,7 +131,7 @@ public class JsonMapper {
         try {
             jsonString = objectMapper.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
-            Logger.error("JsonNode转JSONString失败：{}"+ e.getMessage());
+            LogUtils.error("JsonNode转JSONString失败：{}"+ e.getMessage());
         }
         return jsonString;
     }

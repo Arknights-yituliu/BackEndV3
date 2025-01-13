@@ -1,7 +1,7 @@
 package com.lhs.service.util.impl;
 
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.service.util.Email163Service;
@@ -52,7 +52,7 @@ public class Email163ServiceImpl implements Email163Service {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_EXIST);
         }
 
-        Logger.info("输入的验证码：" + inputCode + "---------服务端验证码：" + code);
+        LogUtils.info("输入的验证码：" + inputCode + "---------服务端验证码：" + code);
 
         if (inputCode == null) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_ENTER);

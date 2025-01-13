@@ -1,7 +1,7 @@
 package com.lhs.interceptor;
 
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.ResultCode;
 import com.lhs.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +44,7 @@ public class UserInterceptor implements HandlerInterceptor {
         }
 
         String requestURI = request.getRequestURI();
-        Logger.info("一图流用户鉴权{}：");
+        LogUtils.info("一图流用户鉴权{}：");
         String token = userService.extractToken(request);
         //未能获取token则报错
         if (token == null) {

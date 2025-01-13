@@ -72,7 +72,7 @@ public class StageCalService {
     public void updateStageResultByTaskConfig() {
         String read = FileUtil.read(ConfigUtil.Config + "stage_task_config_v2.json");
         if (read == null) {
-            Logger.error("更新关卡配置文件为空");
+            LogUtils.error("更新关卡配置文件为空");
             return;
         }
 
@@ -81,7 +81,7 @@ public class StageCalService {
 
         for(StageConfigDTO stageConfigDTO:stageConfigDTOList){
             updateStageResult(stageConfigDTO);
-            Logger.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
+            LogUtils.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
         }
     }
 
@@ -91,7 +91,7 @@ public class StageCalService {
 
         List<Item> itemList = itemService.calculatedItemValue(stageConfigDTO);  //计算新的新材料价值
         StageResultTmpDTO stageResultTmpDTO = calculatedStageEfficiency(itemList, stageConfigDTO);//用新材料价值计算新关卡效率
-        Logger.info("关卡效率更新成功，版本号 {} "+stageConfigDTO.getVersionCode());
+        LogUtils.info("关卡效率更新成功，版本号 {} "+stageConfigDTO.getVersionCode());
         saveResultToDB(stageResultTmpDTO,stageConfigDTO.getVersionCode());
     }
 
@@ -235,7 +235,7 @@ public class StageCalService {
 
             //如果当前关卡在关卡黑名单中，则跳过该关卡
             if (stageBlackMap.get(stageId) != null) {
-                Logger.info("黑名单关卡" + stageId);
+                LogUtils.info("黑名单关卡" + stageId);
                 continue;
             }
 
@@ -307,9 +307,9 @@ public class StageCalService {
 
         redisTemplate.opsForValue().set("Item:updateTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
 
-        Logger.info("本次批量插入关卡掉落详细数据条数：" + stageResultDetailList.size());
+        LogUtils.info("本次批量插入关卡掉落详细数据条数：" + stageResultDetailList.size());
         stageResultMapper.insertBatch(stageResultList);
-        Logger.info("本次批量插入关卡通用掉落数据条数：" + stageResultList.size());
+        LogUtils.info("本次批量插入关卡通用掉落数据条数：" + stageResultList.size());
     }
 
     private List<ItemIterationValue> createIterationValueList(StageResultTmpDTO stageResultTmpDTO,
@@ -324,7 +324,7 @@ public class StageCalService {
             itemIterationValue.setVersion(version);
             itemIterationValue.setItemId(itemTypeId);
             iterationValueList.add(itemIterationValue);
-            Logger.info(String.format("%-8s", itemName) + "的迭代系数是：" + 1 / iterationValue);
+            LogUtils.info(String.format("%-8s", itemName) + "的迭代系数是：" + 1 / iterationValue);
         });
 
         return iterationValueList;
