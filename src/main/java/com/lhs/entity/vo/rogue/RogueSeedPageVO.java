@@ -9,7 +9,7 @@ public class RogueSeedPageVO {
     private Long seedId;
     private String seed;
     private String rogueVersion;
-    private Integer rating;
+    private Double rating;
     private Integer ratingCount;
     private Integer difficulty;
     private String rogueTheme;

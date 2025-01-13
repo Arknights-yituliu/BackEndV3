@@ -277,13 +277,14 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     @Override
     public List<RogueSeedPageVO> listRougeSeed(RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest) {
-        String sortCondition = rogueSeedPageDTO.getSortCondition();
-        if ("rating".equals(sortCondition)) {
+        String sortCondition = "rating";
+        if ("rating".equals(rogueSeedPageDTO.getSortCondition())) {
             sortCondition = "rating";
         }
-        if ("date".equals(sortCondition)) {
+        if ("date".equals(rogueSeedPageDTO.getSortCondition())) {
             sortCondition = "create_time";
         }
+
         List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByCondition(sortCondition,
                 rogueSeedPageDTO.getPageNum(), rogueSeedPageDTO.getPageSize());
 
@@ -292,8 +293,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     @Override
     public void ratingStatistics() {
-        List<RogueSeedRatingVO> rogueSeedRatingList = rogueSeedRatingMapper.listRogueSeedRating(0,5000);
 
+        List<RogueSeedRatingVO> rogueSeedRatingList = rogueSeedRatingMapper.listRogueSeedRating(0,5000);
         Map<Long, RogueSeedRatingStatistics> collect = rogueSeedRatingList.stream().collect(Collectors.groupingBy(
                 RogueSeedRatingVO::getSeedId, // 按照seedId进行分组
                 Collectors.collectingAndThen(
@@ -317,19 +318,12 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeed.setRatingCount(v.getRatingCount());
             rogueSeedMapper.updateById(rogueSeed);
         });
-
-        redisTemplate.opsForValue().set("RogueSeedRatingStatistics",collect);
+         LogUtils.info("种子点赞统计已更新");
     }
 
 
     private List<RogueSeedPageVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList) {
         List<RogueSeedPageVO> voList = new ArrayList<>();
-        Object o = redisTemplate.opsForValue().get("RogueSeedRatingStatistics");
-        Map<Long, Integer> rogueSeedStatisticsCollect = new HashMap<>();
-        if (o != null) {
-            rogueSeedStatisticsCollect = JsonMapper.parseObject(String.valueOf(o), new TypeReference<>() {
-            });
-        }
 
         for (RogueSeed item : rogueSeedList) {
             RogueSeedPageVO rogueSeedPageVO = new RogueSeedPageVO();
@@ -344,8 +338,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedPageVO.setTags(TextUtil.textToArray(item.getTags()));
             rogueSeedPageVO.setSummaryImageLink(item.getSummaryImageLink());
             rogueSeedPageVO.setCreateTime(item.getCreateTime().getTime());
-            Integer rating = rogueSeedStatisticsCollect.get(item.getSeedId());
-            rogueSeedPageVO.setRating(rating == null ? 0 : rating);
+            rogueSeedPageVO.setRating(item.getRating()==null?0.0:item.getRating());
+            rogueSeedPageVO.setRatingCount(item.getRatingCount()==null?0:item.getRatingCount());
             voList.add(rogueSeedPageVO);
         }
         return voList;
