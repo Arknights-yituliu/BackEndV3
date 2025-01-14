@@ -36,18 +36,19 @@ public class RogueSeedController {
     }
 
     @PostMapping("/auth/rogue/seed/rating")
-    public Result<Map<String,Object>> rating(@RequestBody RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest){
+    public Result<String> rating(@RequestBody RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest){
+
         return Result.success(rogueSeedService.rogueSeedRating(rogueSeedRatingDTO,httpServletRequest));
     }
 
     @GetMapping("/rogue/seed/user/rating")
     public Result<Map<Long, RogueSeedRating>> ratingList(HttpServletRequest httpServletRequest){
-        return Result.success(rogueSeedService.listUserRougeSeedRating(httpServletRequest));
+        return Result.success(rogueSeedService.listUserRogueSeedRating(httpServletRequest));
     }
 
     @PostMapping("/rogue/seed/page")
     public Result<List<RogueSeedPageVO>> getSeedPage(@RequestBody RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest){
-        return Result.success(rogueSeedService.listRougeSeed(rogueSeedPageDTO,httpServletRequest));
+        return Result.success(rogueSeedService.listRogueSeed(rogueSeedPageDTO,httpServletRequest));
     }
 
 

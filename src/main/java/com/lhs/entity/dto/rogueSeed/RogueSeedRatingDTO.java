@@ -2,7 +2,7 @@ package com.lhs.entity.dto.rogueSeed;
 
 public class RogueSeedRatingDTO {
     private Long seedId;
-    private Double rating;
+    private Integer rating;
 
     public Long getSeedId() {
         return seedId;
@@ -12,11 +12,11 @@ public class RogueSeedRatingDTO {
         this.seedId = seedId;
     }
 
-    public Double getRating() {
+    public Integer getRating() {
         return rating;
     }
 
-    public void setRating(Double rating) {
+    public void setRating(Integer rating) {
         this.rating = rating;
     }
 }

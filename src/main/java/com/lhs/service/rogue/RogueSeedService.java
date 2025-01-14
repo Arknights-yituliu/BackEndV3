@@ -32,13 +32,12 @@ public interface RogueSeedService {
      * 肉鸽种子点赞
      * rogueSeedRatingDTO 肉鸽点赞数据对象
      * @param httpServletRequest HTTP请求对象
-     * @return 成功信息
      */
-    Map<String, Object> rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest);
+    String rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest);
 
-    Map<Long, RogueSeedRating> listUserRougeSeedRating(HttpServletRequest httpServletRequest);
+    Map<Long, RogueSeedRating> listUserRogueSeedRating(HttpServletRequest httpServletRequest);
 
-    List<RogueSeedPageVO> listRougeSeed(RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest);
+    List<RogueSeedPageVO> listRogueSeed(RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest);
 
     void ratingStatistics();
 }
