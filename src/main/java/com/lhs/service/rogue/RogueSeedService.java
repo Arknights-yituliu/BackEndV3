@@ -3,6 +3,7 @@ package com.lhs.service.rogue;
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
+import com.lhs.entity.dto.rogueSeed.RollRogueSeedDTO;
 import com.lhs.entity.po.rogue.RogueSeedRating;
 import com.lhs.entity.vo.rogue.RogueSeedPageVO;
 
@@ -39,5 +40,7 @@ public interface RogueSeedService {
 
     List<RogueSeedPageVO> listRogueSeed(RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest);
 
-    void ratingStatistics();
+    Integer ratingStatistics();
+
+    List<RogueSeedPageVO> rollRogueSeed(RollRogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest);
 }

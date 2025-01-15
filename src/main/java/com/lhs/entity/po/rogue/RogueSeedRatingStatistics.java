@@ -2,7 +2,6 @@ package com.lhs.entity.po.rogue;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
 
 import java.util.Date;
 
@@ -10,15 +9,26 @@ import java.util.Date;
 @TableName
 public class RogueSeedRatingStatistics {
     @TableId
+    private Long id;
     private Long seedId;
+    private Integer seedType;
     private Double rating;
     private Integer ratingCount;
     private Date createTime;
     private Boolean deleteFlag;
 
+
     {
         rating = 0.0;
         ratingCount = 0;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Long getSeedId() {
@@ -59,5 +69,13 @@ public class RogueSeedRatingStatistics {
 
     public void setDeleteFlag(Boolean deleteFlag) {
         this.deleteFlag = deleteFlag;
+    }
+
+    public Integer getSeedType() {
+        return seedType;
+    }
+
+    public void setSeedType(Integer seedType) {
+        this.seedType = seedType;
     }
 }

@@ -4,6 +4,7 @@ import com.lhs.common.util.Result;
 import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
+import com.lhs.entity.dto.rogueSeed.RollRogueSeedDTO;
 import com.lhs.entity.po.rogue.RogueSeedRating;
 import com.lhs.entity.vo.rogue.RogueSeedPageVO;
 
@@ -49,6 +50,11 @@ public class RogueSeedController {
     @PostMapping("/rogue/seed/page")
     public Result<List<RogueSeedPageVO>> getSeedPage(@RequestBody RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.listRogueSeed(rogueSeedPageDTO,httpServletRequest));
+    }
+
+    @PostMapping("/rogue/seed/roll")
+    public Result<List<RogueSeedPageVO>> rollSeed(@RequestBody RollRogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
+        return Result.success(rogueSeedService.rollRogueSeed(rogueSeedDTO,httpServletRequest));
     }
 
 

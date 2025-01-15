@@ -61,6 +61,9 @@ public enum ResultCode {
 	ROGUE_SEED_PARAMS_IS_NULL(30000, "肉鸽种子表单未填写完整"),
 	ROGUE_SEED_RATING_ERROR(30000, "肉鸽种子评价错误"),
 	ROGUE_SEED_DESCRIPTION_LONGER_THAN_200_CHARACTERS(30000, "肉鸽种子描述超出100字符"),
+	ROGUE_SEED_COUNT_LESS_THAN_10(30000, "当前可roll种子总数小于30"),
+
+
 	/*游戏养成相关报错：31000-31999*/
 
 

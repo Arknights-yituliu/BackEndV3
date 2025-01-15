@@ -1,11 +1,11 @@
 package com.lhs.service.rogue.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
-import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
-import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
-import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
+import com.lhs.entity.dto.rogueSeed.*;
 import com.lhs.entity.po.rogue.*;
 import com.lhs.entity.vo.rogue.RogueSeedPageVO;
 
@@ -135,7 +135,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeed.setUploadTimes(1);
         rogueSeed.setTags(String.join(",", dto.getTags()));
         rogueSeed.setSummaryImageLink(dto.getSummaryImageLink());
-
+        rogueSeed.setRating(0.0);
+        rogueSeed.setRatingCount(0);
         Date date = new Date();
         rogueSeed.setCreateTime(date);
         rogueSeed.setUpdateTime(date);
@@ -350,15 +351,22 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
     @Override
-    public void ratingStatistics() {
-
+    public Integer ratingStatistics() {
+        //查询所有未删除的评价记录
         LambdaUpdateWrapper<RogueSeedRating> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         lambdaUpdateWrapper.eq(RogueSeedRating::getDeleteFlag, false);
         List<RogueSeedRatingVO> rogueSeedRatingList = rogueSeedRatingMapper.listRogueSeedRating(0, 50000);
-
+        int size = rogueSeedRatingList.size();
+        LogUtils.info("本次统计的种子评价数量为：" + size);
+        //将旧的评价统计记录删除
         LambdaUpdateWrapper<RogueSeedRatingStatistics> statisticsLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         statisticsLambdaUpdateWrapper.set(RogueSeedRatingStatistics::getDeleteFlag, true).eq(RogueSeedRatingStatistics::getDeleteFlag, false);
         rogueSeedRatingStatisticsMapper.update(null, statisticsLambdaUpdateWrapper);
+
+        //查询种子的数据库id和类型，方便向每个种子的统计记录中写入种子类型，方便roll种子时直接用统计记录roll，不需要查询种子表
+        List<RogueSeedIdAndTypeDTO> rogueSeedList = rogueSeedMapper.listRogueSeedIdAndType();
+        Map<Long, Integer> seedIdAndType = rogueSeedList.stream().collect(Collectors.toMap(RogueSeedIdAndTypeDTO::getSeedId, RogueSeedIdAndTypeDTO::getSeedType));
+
 
         Map<Long, RogueSeedRatingStatistics> collect = rogueSeedRatingList.stream().collect(Collectors.groupingBy(
                 RogueSeedRatingVO::getSeedId, // 按照seedId进行分组
@@ -381,11 +389,52 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         collect.forEach((k, v) -> {
             v.setSeedId(k);
+            Integer type = seedIdAndType.get(k);
+            v.setSeedType(type != null ? type : -1);
             rogueSeedRatingStatisticsMapper.insert(v);
         });
 
-
         LogUtils.info("种子点赞统计已更新");
+
+        return size;
+    }
+
+
+    @Override
+    public List<RogueSeedPageVO> rollRogueSeed(RollRogueSeedDTO rollDTO, HttpServletRequest httpServletRequest) {
+        Long seedCount = getRogueSeedCountByType(rollDTO.getSeedType());
+
+        LambdaQueryWrapper<RogueSeedRatingStatistics> queryWrapper = new LambdaQueryWrapper<>();
+
+        List<RogueSeedRatingStatistics> ratingStatisticsList = new ArrayList<>();
+
+        if (seedCount < 300) {
+            queryWrapper.eq(RogueSeedRatingStatistics::getSeedType, rollDTO.getSeedType());
+            ratingStatisticsList = rogueSeedRatingStatisticsMapper.selectList(queryWrapper);
+        }else {
+            queryWrapper.eq(RogueSeedRatingStatistics::getSeedType, rollDTO.getSeedType());
+            ratingStatisticsList = rogueSeedRatingStatisticsMapper.selectList(queryWrapper);
+        }
+
+
+
+        return null;
+    }
+
+    @RedisCacheable(key = "RogueSeedCountByType", timeout = 300, paramOrMethod = "param")
+    private Long getRogueSeedCountByType(Integer seedType) {
+        LambdaQueryWrapper<RogueSeedRatingStatistics> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(RogueSeedRatingStatistics::getSeedType, seedType).eq(RogueSeedRatingStatistics::getDeleteFlag, false);
+        Long count = rogueSeedRatingStatisticsMapper.selectCount(queryWrapper);
+        if (count < 1) {
+            count = Long.valueOf(ratingStatistics());
+        }
+
+        if (count < 10) {
+            throw new ServiceException(ResultCode.ROGUE_SEED_COUNT_LESS_THAN_10);
+        }
+
+        return count;
     }
 
 
