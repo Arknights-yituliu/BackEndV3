@@ -22,8 +22,6 @@ public class StageConfigDTO {
     private Boolean calculateActivityStage;
     //芯片是否按均价计算
     private Boolean chipIsValueConsistent;
-    //材料黑名单，计算中不使用这些材料
-    private Map<String, String> itemBlacklist;
     //关卡黑名单，计算中不使用这些关卡
     private Map<String, String> stageBlacklist;
     //强制指定某个材料的价值（例如无限池扭转醇）
