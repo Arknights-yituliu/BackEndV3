@@ -226,7 +226,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    @RedisCacheable(key = "Item:StoreAct",keyMethod ="getVersionCode")
+    @RedisCacheable(key = "Item:StoreAct", paramOrMethod ="getVersionCode")
     public List<ActivityStoreDataVO> getActivityStoreData(StageConfigDTO stageConfigDTO) {
         return getActivityStoreDataNoCache(stageConfigDTO);
     }

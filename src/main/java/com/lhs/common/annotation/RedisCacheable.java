@@ -11,9 +11,11 @@ import java.lang.annotation.Target;
  * <p>
  * key：缓存key
  * <p>
- * timeout：缓存时间
+ * timeout：缓存时间,单位s
  * <p>
- * keyMethod：如果需要根据传入的参数在key中追求唯一标识（对象或基本类型都可以）但是仅可使用第一个参数
+ * paramOrMethod：此属性需要方法上有一个参数对象（且仅会调用第一个参数），同时有两种调用方式<br>
+ *  ①填入param，会将第一个参数转为字符串拼接到key后，作为唯一标识<br>
+ *  ②填入参数对象内部的方法名，调用参数返回的内容将拼接到key后，作为唯一标识
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
@@ -23,5 +25,5 @@ public @interface RedisCacheable {
 
     int timeout() default 3600;
 
-    String keyMethod() default "";
+    String paramOrMethod() default "";
 }

@@ -105,8 +105,8 @@ public class AnnotationAOP {
 
         String cacheKey = redisCacheable.key();
 
-        if(args.length>0){
-            cacheKey += generateCacheKey(args[0], redisCacheable.keyMethod());
+        if (args.length > 0) {
+            cacheKey += generateCacheKey(args[0], redisCacheable.paramOrMethod());
         }
 
 
@@ -122,9 +122,9 @@ public class AnnotationAOP {
 
         int timeOut = redisCacheable.timeout();
         if (timeOut < 0) {
-            redisTemplate.opsForValue().set(String.valueOf(cacheKey), proceed);
+            redisTemplate.opsForValue().set(cacheKey, proceed);
         } else {
-            redisTemplate.opsForValue().set(String.valueOf(cacheKey), proceed, timeOut, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(cacheKey, proceed, timeOut, TimeUnit.SECONDS);
         }
 
         log.info("数据已缓存，缓存key:" + cacheKey);
@@ -135,40 +135,41 @@ public class AnnotationAOP {
      * 生成缓存键。
      *
      * @param param     方法参数，可以是基本类型或自定义对象。根据此参数生成缓存键。
-     * @param keyMethod 如果参数是自定义对象，则指定用于生成缓存键的方法名；如果是基本类型或不需要调用方法获取键，则为空字符串。
+     * @param paramOrMethod 如果参数是自定义对象，则指定用于生成缓存键的方法名；如果是基本类型或不需要调用方法获取键，则为空字符串。
      * @return 返回一个字符串形式的缓存键，该键将用于Redis中存储和检索缓存数据。
      */
-    private String generateCacheKey(Object param, String keyMethod) {
+    private String generateCacheKey(Object param, String paramOrMethod) {
         // 检查参数是否为null，如果为null则返回空字符串作为缓存键
         if (param == null) {
             return "";
         }
 
         // 如果keyMethod为空字符串，说明参数是基本类型或者不需要通过方法获取key
-        if (keyMethod.isEmpty()) {
+        if (paramOrMethod.isEmpty()) {
             // 直接使用参数的toString()方法生成缓存键
             // 注意：对于基本类型和String类型，这通常是安全的；但对于其他类型的对象，需要确保其toString()方法能够唯一标识对象
-            return param.toString();
-        } else {
+            return "";
+        }else  if ("param".equals(paramOrMethod)) {
+            return "-"+param.toString();
+        }else {
             try {
                 // 如果提供了keyMethod，尝试在参数对象上调用该方法
                 // 获取参数对象的Class对象，并查找名为keyMethod的方法
-                Method method = param.getClass().getMethod(keyMethod);
+                Method method = param.getClass().getMethod(paramOrMethod);
 
                 // 调用该方法并获取返回值作为缓存键
                 Object keyValue = method.invoke(param);
 
                 // 将返回值转换为字符串形式，如果没有返回值（即返回null），则返回空字符串
-                return keyValue != null ? keyValue.toString() : "";
+                return keyValue != null ? "-"+keyValue.toString() : "-";
             } catch (NoSuchMethodException e) {
                 // 如果没有找到指定的方法，抛出运行时异常
-                return keyMethod + " does not exist";
-//                throw new RuntimeException("The specified key method '" + keyMethod + "' does not exist in the parameter class.", e);
+                throw new RuntimeException("The specified key method '" + paramOrMethod + "' does not exist in the parameter class.", e);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 // 如果方法访问失败或方法执行过程中抛出异常，抛出运行时异常
-                return "Failed to invoke the key method " + keyMethod;
-//                throw new RuntimeException("Failed to invoke the key method '" + keyMethod + "'.", e);
+                throw new RuntimeException("Failed to invoke the key method '" + paramOrMethod + "'.", e);
             }
         }
     }
+
 }

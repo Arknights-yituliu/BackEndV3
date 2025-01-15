@@ -203,7 +203,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
 
-    @RedisCacheable(key = "Item:itemValueList",keyMethod ="getVersionCode")
+    @RedisCacheable(key = "Item:itemValueList", paramOrMethod ="getVersionCode")
     @Override
     public List<Item> getItemListCache(StageConfigDTO stageConfigDTO) {
         LambdaQueryWrapper<Item> itemQueryWrapper = new LambdaQueryWrapper<>();

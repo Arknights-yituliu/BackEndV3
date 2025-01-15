@@ -57,7 +57,7 @@ public class StageResultService {
      * @param stageConfigDTO 关卡参数
      * @return  推荐关卡数据
      */
-    @RedisCacheable(key = "Item:Stage.T3.V3",keyMethod ="getVersionCode")
+    @RedisCacheable(key = "Item:Stage.T3.V3", paramOrMethod ="getVersionCode")
     public Map<String, Object> getRecommendedStageV3(StageConfigDTO stageConfigDTO) {
 
         String version = stageConfigDTO.getVersionCode();
@@ -159,7 +159,7 @@ public class StageResultService {
     }
 
 
-    @RedisCacheable(key = "Item:Stage.Orundum.V2",keyMethod ="getVersionCode")
+    @RedisCacheable(key = "Item:Stage.Orundum.V2", paramOrMethod ="getVersionCode")
     public List<OrundumPerApResultVO> getOrundumRecommendedStage(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersionCode();
         List<OrundumPerApResultVO> orundumPerApResultVOList = new ArrayList<>();
@@ -244,7 +244,7 @@ public class StageResultService {
     }
 
 
-    @RedisCacheable(key = "Item:Stage.ACT.V2",keyMethod ="getVersionCode")
+    @RedisCacheable(key = "Item:Stage.ACT.V2", paramOrMethod ="getVersionCode")
     public List<ActStageVO> getHistoryActStage(StageConfigDTO stageConfigDTO) {
         String version = stageConfigDTO.getVersionCode();
         Map<String, Item> itemMap = itemService.getItemMapCache(stageConfigDTO);
