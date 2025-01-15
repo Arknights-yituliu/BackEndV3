@@ -256,54 +256,60 @@ public class RogueSeedServiceImpl implements RogueSeedService {
      */
     private String updateRogueSeedRating(RogueSeedRating po, RogueSeedRatingDTO dto) {
 
-        Integer likeFlag = 0;
+
         Date date = new Date();
+        //创建一个评论行为的数据库对象
         RogueSeedRating rogueSeedRating = new RogueSeedRating();
         rogueSeedRating.setRatingId(po.getRatingId());
         rogueSeedRating.setRating(dto.getRating());
         rogueSeedRating.setUpdateTime(date);
 
 
-        String message = "评价成功";
-        System.out.println(dto.getRating() + " {} " + po.getRating());
-
-        //取消点赞,点赞总人数计数器减1
-        if (po.getRating().equals(dto.getRating())) {
-            rogueSeedRating.setDeleteFlag(true);
-            rogueSeedRating.setRating(-1);
-            message = "取消评价";
-            redisTemplate.opsForZSet().incrementScore("RogueSeedRatingCount", dto.getSeedId(), -1);
-        } else {
+        //如果数据库中的删除标记是true，代表之前用户取消了评价后再次进行了评价
+        if (po.getDeleteFlag()) {
+            //将删除标记改为false
             rogueSeedRating.setDeleteFlag(false);
-        }
-
-        //点赞日志处于删除状态又被重新激活,且恢复后是点赞状态,点赞总人数计数器加一
-        if (po.getDeleteFlag() && dto.getRating() > po.getRating()) {
+            //更新到数据库
+            rogueSeedRatingMapper.updateById(rogueSeedRating);
+            //将redis中的该种子的点赞人次+1
             redisTemplate.opsForZSet().incrementScore("RogueSeedRatingCount", dto.getSeedId(), 1);
+            //如果该次评价是点赞，则把redis中的点赞总数+1
+            if (dto.getRating() == 1) {
+                redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), 1);
+            }
+            return "评价成功";
+        }
+
+        //两次评价相同证明用户想取消评价
+        if (Objects.equals(po.getRating(), dto.getRating())) {
+            //将数据库中的评价记录的删除标记改为true
+            rogueSeedRating.setDeleteFlag(true);
+            //更新到数据库
+            rogueSeedRatingMapper.updateById(rogueSeedRating);
+            //取消评价的话，评价总人数减少-1
+            redisTemplate.opsForZSet().incrementScore("RogueSeedRatingCount", dto.getSeedId(), -1);
+            //如果取消的是点赞评价，点赞总数也要-1
+            if (dto.getRating() == 1) {
+                redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), -1);
+            }
+            return "取消评价";
         }
 
 
-        //这里处理redis中缓存的点赞结果
-        //传入的新的点赞值是0.0,如果数据库中点赞值是1.0,redis中点赞计数-1
-        //传入的新的点赞值是1.0,如果数据库中点赞值是0.0,redis中点赞计数+1
-        Integer ratingStatus = getRatingStatus(dto.getRating(), po.getRating());
-        redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), ratingStatus);
+        //如果不是以上两种特殊情况则直接更新到数据库
         rogueSeedRatingMapper.updateById(rogueSeedRating);
 
-        return message;
-    }
-
-    private Integer getRatingStatus(Integer newRating, Integer oldRating) {
-        if (newRating > oldRating) {
-            return 1;
-        } else if (newRating < oldRating) {
-            return -1;
-        } else if (newRating == 1) {
-            return -1;
-        } else if (newRating == 0) {
-            return 0;
+        //用户更新评价
+        if (dto.getRating() == 1) {
+            //更新的评价是点赞，点赞总数+1
+            redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), 1);
         }
-        throw new ServiceException(ResultCode.ROGUE_SEED_RATING_ERROR);
+        if (dto.getRating() == 1) {
+            //更新的评价是点踩，点赞总数-1
+            redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), -1);
+        }
+
+        return "评价成功";
     }
 
 
