@@ -3,11 +3,12 @@ package com.lhs.service.rogue.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.rogueSeed.*;
 import com.lhs.entity.po.rogue.*;
-import com.lhs.entity.vo.rogue.RogueSeedPageVO;
+import com.lhs.entity.vo.rogue.RogueSeedVO;
 
 import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
@@ -243,7 +244,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeedRating.setDeleteFlag(false);
         rogueSeedRatingMapper.insert(rogueSeedRating);
 
-        redisTemplate.opsForZSet().incrementScore("RogueSeedLike", ratingDTO.getSeedId(), ratingDTO.getRating());
+        redisTemplate.opsForZSet().incrementScore("RogueSeedThumbsUp", ratingDTO.getSeedId(), ratingDTO.getRating());
         redisTemplate.opsForZSet().incrementScore("RogueSeedRatingCount", ratingDTO.getSeedId(), 1);
 
         return "评价成功";
@@ -265,6 +266,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeedRating.setRating(dto.getRating());
         rogueSeedRating.setUpdateTime(date);
 
+//        System.out.println(po.getRating() + "===" + dto.getRating());
 
         //如果数据库中的删除标记是true，代表之前用户取消了评价后再次进行了评价
         if (po.getDeleteFlag()) {
@@ -276,7 +278,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             redisTemplate.opsForZSet().incrementScore("RogueSeedRatingCount", dto.getSeedId(), 1);
             //如果该次评价是点赞，则把redis中的点赞总数+1
             if (dto.getRating() == 1) {
-                redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), 1);
+                redisTemplate.opsForZSet().incrementScore("RogueSeedThumbsUp", dto.getSeedId(), 1);
             }
             return "评价成功";
         }
@@ -291,7 +293,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             redisTemplate.opsForZSet().incrementScore("RogueSeedRatingCount", dto.getSeedId(), -1);
             //如果取消的是点赞评价，点赞总数也要-1
             if (dto.getRating() == 1) {
-                redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), -1);
+                redisTemplate.opsForZSet().incrementScore("RogueSeedThumbsUp", dto.getSeedId(), -1);
             }
             return "取消评价";
         }
@@ -303,51 +305,14 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         //用户更新评价
         if (dto.getRating() == 1) {
             //更新的评价是点赞，点赞总数+1
-            redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), 1);
+            redisTemplate.opsForZSet().incrementScore("RogueSeedThumbsUp", dto.getSeedId(), 1);
         }
         if (dto.getRating() == 1) {
             //更新的评价是点踩，点赞总数-1
-            redisTemplate.opsForZSet().incrementScore("RogueSeedLike", dto.getSeedId(), -1);
+            redisTemplate.opsForZSet().incrementScore("RogueSeedThumbsUp", dto.getSeedId(), -1);
         }
 
         return "评价成功";
-    }
-
-
-    @Override
-    public Map<Long, RogueSeedRating> listUserRogueSeedRating(HttpServletRequest httpServletRequest) {
-        Map<Long, RogueSeedRating> collect = new HashMap<>();
-        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
-        if (!loginStatus) {
-            return collect;
-        }
-        //根据token拿到用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        //获取用户uid
-        Long uid = userInfoByToken.getUid();
-        LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getUid, uid);
-        List<RogueSeedRating> rogueSeedRatings = rogueSeedRatingMapper.selectList(rogueSeedRatingLambdaUpdateWrapper);
-        collect = rogueSeedRatings.stream().collect(Collectors.toMap(RogueSeedRating::getSeedId, Function.identity()));
-
-        return collect;
-    }
-
-
-    @Override
-    public List<RogueSeedPageVO> listRogueSeed(RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest) {
-        String sortCondition = "rating";
-        if ("rating".equals(rogueSeedPageDTO.getSortCondition())) {
-            sortCondition = "rating";
-        }
-        if ("date".equals(rogueSeedPageDTO.getSortCondition())) {
-            sortCondition = "create_time";
-        }
-
-        List<RogueSeed> rogueSeedList = rogueSeedMapper.pageRogueSeedOrderByCondition(sortCondition,
-                rogueSeedPageDTO.getPageNum(), rogueSeedPageDTO.getPageSize());
-
-        return createRogueSeedVOList(rogueSeedList);
     }
 
     @Override
@@ -374,10 +339,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
                         Collectors.toList(), // 将相同seedId的数据收集到列表中
                         list -> {
                             int ratingCount = list.size(); // rating数量
-                            long count = list.stream().filter(e -> e.getRating() == 1).count();// 计算总评分
-                            double rating = (double) count / ratingCount * 5.0; // 计算平均评分
+                            long likeCount = list.stream().filter(e -> e.getRating() == 1).count();// 计算总评分
                             RogueSeedRatingStatistics result = new RogueSeedRatingStatistics();
-                            result.setRating(rating); // 存储评分数量
+                            result.setRating((double) likeCount); // 存储评分数量
                             result.setRatingCount(ratingCount); // 存储平均评分
                             result.setCreateTime(new Date());
                             result.setDeleteFlag(false);
@@ -392,6 +356,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             Integer type = seedIdAndType.get(k);
             v.setSeedType(type != null ? type : -1);
             rogueSeedRatingStatisticsMapper.insert(v);
+            redisTemplate.opsForZSet().add("RogueSeedThumbsUp", k, v.getRating());
+            redisTemplate.opsForZSet().add("RogueSeedRatingCount", k, v.getRatingCount());
         });
 
         LogUtils.info("种子点赞统计已更新");
@@ -401,27 +367,66 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
 
     @Override
-    public List<RogueSeedPageVO> rollRogueSeed(RollRogueSeedDTO rollDTO, HttpServletRequest httpServletRequest) {
-        Long seedCount = getRogueSeedCountByType(rollDTO.getSeedType());
+    public Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest) {
+        Map<Long, RogueSeedRating> collect = new HashMap<>();
+        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        if (!loginStatus) {
+            return collect;
+        }
+        //根据token拿到用户信息
+        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        //获取用户uid
+        Long uid = userInfoByToken.getUid();
+        LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getUid, uid).eq(RogueSeedRating::getDeleteFlag,false);
+        List<RogueSeedRating> rogueSeedRatings = rogueSeedRatingMapper.selectList(rogueSeedRatingLambdaUpdateWrapper);
+        collect = rogueSeedRatings.stream().collect(Collectors.toMap(RogueSeedRating::getSeedId, Function.identity()));
 
-        LambdaQueryWrapper<RogueSeedRatingStatistics> queryWrapper = new LambdaQueryWrapper<>();
+        return collect;
+    }
 
-        List<RogueSeedRatingStatistics> ratingStatisticsList = new ArrayList<>();
 
-        if (seedCount < 300) {
-            queryWrapper.eq(RogueSeedRatingStatistics::getSeedType, rollDTO.getSeedType());
-            ratingStatisticsList = rogueSeedRatingStatisticsMapper.selectList(queryWrapper);
-        }else {
-            queryWrapper.eq(RogueSeedRatingStatistics::getSeedType, rollDTO.getSeedType());
-            ratingStatisticsList = rogueSeedRatingStatisticsMapper.selectList(queryWrapper);
+    @Override
+    public List<RogueSeedVO> listRogueSeed(RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest) {
+
+        LambdaQueryWrapper<RogueSeed> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(RogueSeed::getSeedType, rogueSeedPageDTO.getSeedType()).last("limit " + rogueSeedPageDTO.getPageNum() + "," + rogueSeedPageDTO.getPageSize());
+
+        if ("date".equals(rogueSeedPageDTO.getSortCondition())) {
+            queryWrapper.orderByDesc(RogueSeed::getCreateTime);
+        } else {
+            queryWrapper.orderByDesc(RogueSeed::getRating);
         }
 
 
 
-        return null;
+        List<RogueSeed> rogueSeedList = rogueSeedMapper.selectList(queryWrapper);
+
+        return createRogueSeedVOList(rogueSeedList);
     }
 
-    @RedisCacheable(key = "RogueSeedCountByType", timeout = 300, paramOrMethod = "param")
+
+    @Override
+    public RogueSeedVO rollRogueSeed(RollRogueSeedDTO rollDTO, HttpServletRequest httpServletRequest) {
+        Long seedCount = getRogueSeedCountByType(rollDTO.getSeedType());
+        List<RogueSeedRatingStatistics> ratingStatisticsList = new ArrayList<>();
+
+        if (seedCount < 300) {
+            ratingStatisticsList = rogueSeedRatingStatisticsMapper.pageRogueSeedRatingStatistics(0, seedCount.intValue());
+        } else {
+            ratingStatisticsList = rogueSeedRatingStatisticsMapper.pageRogueSeedRatingStatistics(0, (int) (seedCount / 5));
+        }
+
+        Random random = new Random();
+        int index = random.nextInt(ratingStatisticsList.size()); // 生成一个[0, array.length)的随机数
+
+        Long seedId = ratingStatisticsList.get(index).getSeedId();
+        RogueSeed rogueSeed = rogueSeedMapper.selectById(seedId);
+
+        return rogueSeedPOWriteInDTO(rogueSeed);
+    }
+
+    @RedisCacheable(key = "RogueSeedCountByType", timeout = 1200, paramOrMethod = "param")
     private Long getRogueSeedCountByType(Integer seedType) {
         LambdaQueryWrapper<RogueSeedRatingStatistics> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(RogueSeedRatingStatistics::getSeedType, seedType).eq(RogueSeedRatingStatistics::getDeleteFlag, false);
@@ -438,36 +443,42 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     }
 
 
-    private List<RogueSeedPageVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList) {
-        List<RogueSeedPageVO> voList = new ArrayList<>();
+    private List<RogueSeedVO> createRogueSeedVOList(List<RogueSeed> rogueSeedList) {
+        List<RogueSeedVO> voList = new ArrayList<>();
 
         for (RogueSeed item : rogueSeedList) {
-            RogueSeedPageVO rogueSeedPageVO = new RogueSeedPageVO();
-            rogueSeedPageVO.setSeedId(item.getSeedId());
-            rogueSeedPageVO.setSeed(item.getSeed());
-            rogueSeedPageVO.setRogueVersion(item.getRogueVersion());
-            rogueSeedPageVO.setDifficulty(item.getDifficulty());
-            rogueSeedPageVO.setRogueTheme(item.getRogueTheme());
-            rogueSeedPageVO.setSquad(item.getSquad());
-            rogueSeedPageVO.setOperatorTeam(TextUtil.textToArray(item.getOperatorTeam()));
-            rogueSeedPageVO.setDescription(item.getDescription());
-            rogueSeedPageVO.setTags(TextUtil.textToArray(item.getTags()));
-            rogueSeedPageVO.setSummaryImageLink(item.getSummaryImageLink());
-            rogueSeedPageVO.setCreateTime(item.getCreateTime().getTime());
-            Double rogueSeedLike = redisTemplate.opsForZSet().score("RogueSeedLike", item.getSeedId());
-            Double rogueSeedRatingCount = redisTemplate.opsForZSet().score("RogueSeedRatingCount", item.getSeedId());
-            if (rogueSeedLike != null && rogueSeedRatingCount != null) {
-                rogueSeedPageVO.setRating(rogueSeedLike / rogueSeedRatingCount * 5);
-                rogueSeedPageVO.setRatingCount(rogueSeedRatingCount.intValue());
-            } else {
-                rogueSeedPageVO.setRating(0.0);
-                rogueSeedPageVO.setRatingCount(0);
-            }
-
-            rogueSeedPageVO.setUploadTimes(item.getUploadTimes());
-            voList.add(rogueSeedPageVO);
+            RogueSeedVO rogueSeedVO = rogueSeedPOWriteInDTO(item);
+            voList.add(rogueSeedVO);
         }
         return voList;
+    }
+
+
+    private RogueSeedVO rogueSeedPOWriteInDTO(RogueSeed po) {
+        RogueSeedVO rogueSeedVO = new RogueSeedVO();
+        rogueSeedVO.setSeedId(po.getSeedId());
+        rogueSeedVO.setSeed(po.getSeed());
+        rogueSeedVO.setRogueVersion(po.getRogueVersion());
+        rogueSeedVO.setDifficulty(po.getDifficulty());
+        rogueSeedVO.setRogueTheme(po.getRogueTheme());
+        rogueSeedVO.setSquad(po.getSquad());
+        rogueSeedVO.setOperatorTeam(TextUtil.textToArray(po.getOperatorTeam()));
+        rogueSeedVO.setDescription(po.getDescription());
+        rogueSeedVO.setTags(TextUtil.textToArray(po.getTags()));
+        rogueSeedVO.setSummaryImageLink(po.getSummaryImageLink());
+        rogueSeedVO.setCreateTime(po.getCreateTime().getTime());
+        rogueSeedVO.setUploadTimes(po.getUploadTimes());
+        Double rogueSeedThumbsUp = redisTemplate.opsForZSet().score("RogueSeedThumbsUp", po.getSeedId());
+        Double rogueSeedRatingCount = redisTemplate.opsForZSet().score("RogueSeedRatingCount", po.getSeedId());
+        if (rogueSeedThumbsUp != null && rogueSeedRatingCount != null) {
+            rogueSeedVO.setRating(rogueSeedThumbsUp / rogueSeedRatingCount * 5);
+            rogueSeedVO.setRatingCount(rogueSeedRatingCount.intValue());
+        } else {
+            rogueSeedVO.setRating(0.0);
+            rogueSeedVO.setRatingCount(0);
+        }
+
+        return rogueSeedVO;
     }
 
 

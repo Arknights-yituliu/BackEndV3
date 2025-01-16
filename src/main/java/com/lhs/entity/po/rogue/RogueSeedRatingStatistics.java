@@ -78,4 +78,17 @@ public class RogueSeedRatingStatistics {
     public void setSeedType(Integer seedType) {
         this.seedType = seedType;
     }
+
+    @Override
+    public String toString() {
+        return "RogueSeedRatingStatistics{" +
+                "id=" + id +
+                ", seedId=" + seedId +
+                ", seedType=" + seedType +
+                ", rating=" + rating +
+                ", ratingCount=" + ratingCount +
+                ", createTime=" + createTime +
+                ", deleteFlag=" + deleteFlag +
+                '}';
+    }
 }

@@ -6,7 +6,7 @@ import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
 import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
 import com.lhs.entity.dto.rogueSeed.RollRogueSeedDTO;
 import com.lhs.entity.po.rogue.RogueSeedRating;
-import com.lhs.entity.vo.rogue.RogueSeedPageVO;
+import com.lhs.entity.vo.rogue.RogueSeedVO;
 
 import com.lhs.service.rogue.RogueSeedService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,16 +44,16 @@ public class RogueSeedController {
 
     @GetMapping("/rogue/seed/user/rating")
     public Result<Map<Long, RogueSeedRating>> ratingList(HttpServletRequest httpServletRequest){
-        return Result.success(rogueSeedService.listUserRogueSeedRating(httpServletRequest));
+        return Result.success(rogueSeedService.listRogueSeedUserRating(httpServletRequest));
     }
 
     @PostMapping("/rogue/seed/page")
-    public Result<List<RogueSeedPageVO>> getSeedPage(@RequestBody RogueSeedPageDTO rogueSeedPageDTO,HttpServletRequest httpServletRequest){
+    public Result<List<RogueSeedVO>> getSeedPage(@RequestBody RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.listRogueSeed(rogueSeedPageDTO,httpServletRequest));
     }
 
     @PostMapping("/rogue/seed/roll")
-    public Result<List<RogueSeedPageVO>> rollSeed(@RequestBody RollRogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
+    public Result<RogueSeedVO> rollSeed(@RequestBody RollRogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.rollRogueSeed(rogueSeedDTO,httpServletRequest));
     }
 

@@ -4,10 +4,11 @@ package com.lhs.entity.vo.rogue;
 import java.util.List;
 
 
-public class RogueSeedPageVO {
+public class RogueSeedVO {
     private Long seedId;
     private String seed;
     private String rogueVersion;
+    private Integer seedType;
     private Double rating;
     private Integer ratingCount;
     private Integer uploadTimes;
@@ -42,6 +43,14 @@ public class RogueSeedPageVO {
 
     public void setRogueVersion(String rogueVersion) {
         this.rogueVersion = rogueVersion;
+    }
+
+    public Integer getSeedType() {
+        return seedType;
+    }
+
+    public void setSeedType(Integer seedType) {
+        this.seedType = seedType;
     }
 
     public Double getRating() {
