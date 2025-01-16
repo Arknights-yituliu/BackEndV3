@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.LogUtils;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.po.admin.PageViewStatistics;
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;

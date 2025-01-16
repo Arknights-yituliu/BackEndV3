@@ -6,7 +6,7 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.IpUtil;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.survey.QuestionnaireSubmitInfoDTO;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.entity.po.survey.SurveySubmitter;

@@ -19,13 +19,11 @@ import java.util.HashMap;
 @RequestMapping(value = "/user")
 public class UserController {
 
-
     private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
 
     @Operation(summary ="调查站用户注册")
     @PostMapping("/register/v3")
@@ -56,16 +54,16 @@ public class UserController {
     }
 
     @Operation(summary ="更新用户信息")
-    @PostMapping("/update/v2")
+    @PostMapping("/auth/update/v2")
     public Result<UserInfoVO> updateUserInfo(HttpServletRequest httpServletRequest,@RequestBody UpdateUserDataDTO updateUserDataDto) {
-        UserInfoVO userInfoVO = userService.updateUserData(updateUserDataDto);
+        UserInfoVO userInfoVO = userService.updateUserData(httpServletRequest,updateUserDataDto);
         return Result.success(userInfoVO);
     }
 
     @Operation(summary ="更新用户配置")
     @GetMapping("/update/config")
     public Result<String> updateUserConfig(HttpServletRequest httpServletRequest,@RequestBody UserConfigDTO userConfigDTO) {
-         userService.updateUserConfig(userConfigDTO);
+         userService.updateUserConfig(httpServletRequest,userConfigDTO);
         return Result.success();
     }
 
@@ -78,8 +76,8 @@ public class UserController {
 
     @Operation(summary ="重设密码")
     @PostMapping("/reset/password")
-    public Result<HashMap<String,String>> resetPassword(@RequestBody LoginDataDTO loginDataDTO) {
-        return Result.success(userService.resetPassword(loginDataDTO));
+    public Result<HashMap<String,String>> resetPassword(HttpServletRequest httpServletRequest,@RequestBody LoginDataDTO loginDataDTO) {
+        return Result.success(userService.resetPassword(httpServletRequest,loginDataDTO));
     }
 
 

@@ -21,6 +21,8 @@ public interface UserService {
      */
     HashMap<String, Object> loginV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO);
 
+
+
     String extractToken(HttpServletRequest request);
 
     /**
@@ -63,6 +65,14 @@ public interface UserService {
     UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest);
 
     /**
+     * 通过HttpServletRequest获取token，根据token拿到用户信息
+     *
+     * @param httpServletRequest 来自接口的请求信息
+     * @return 用户信息
+     */
+    UserInfo getUserInfoByHttpServletRequest(HttpServletRequest httpServletRequest);
+
+    /**
      * 通过token获取用户数据内的信息
      *
      * @param token 用户登录后获得的凭证
@@ -80,18 +90,18 @@ public interface UserService {
 
     /**
      * 更新用户的各种自定义配置
-     *
+     * @param httpServletRequest 请求信息
      * @param userConfigDTO 请求体
      */
-    void updateUserConfig(UserConfigDTO userConfigDTO);
+    void updateUserConfig(HttpServletRequest httpServletRequest,UserConfigDTO userConfigDTO);
 
     /**
      * 更新用户信息
-     *
+     * @param httpServletRequest 请求信息
      * @param updateUserDataDto 要更新的内容
      * @return 用户信息
      */
-    UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto);
+    UserInfoVO updateUserData(HttpServletRequest httpServletRequest,UpdateUserDataDTO updateUserDataDto);
 
     void backupSurveyUser(UserInfo userInfo);
 
@@ -105,11 +115,11 @@ public interface UserService {
 
     /**
      * 重设密码
-     *
+     * @param httpServletRequest 请求信息
      * @param loginDataDTO 找回所需的内容
      * @return 用户凭证
      */
-    HashMap<String, String> resetPassword(LoginDataDTO loginDataDTO);
+    HashMap<String, String> resetPassword(HttpServletRequest httpServletRequest,LoginDataDTO loginDataDTO);
 
     /**
      * 这个方法将会保存两个信息：

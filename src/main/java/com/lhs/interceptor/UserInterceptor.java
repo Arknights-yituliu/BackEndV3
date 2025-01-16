@@ -2,7 +2,7 @@ package com.lhs.interceptor;
 
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.LogUtils;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

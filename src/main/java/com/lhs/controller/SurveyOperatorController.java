@@ -10,6 +10,7 @@ import com.lhs.service.survey.*;
 import com.lhs.service.util.ArknightsGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
@@ -45,15 +46,15 @@ public class SurveyOperatorController {
     }
 
     @Operation(summary ="上传干员练度调查表")
-    @PostMapping("/character/upload")
-    public Result<Object> uploadCharacterForm(@RequestParam String token, @RequestBody List<OperatorData> operatorDataList) {
-        Map<String, Object> hashMap = operatorDataService.manualUploadOperator(token, operatorDataList);
+    @PostMapping("/auth/character/upload")
+    public Result<Object> uploadCharacterForm(HttpServletRequest httpServletRequest,@RequestBody List<OperatorData> operatorDataList) {
+        Map<String, Object> hashMap = operatorDataService.manualUploadOperator(httpServletRequest, operatorDataList);
         return Result.success(hashMap);
     }
 
     @Operation(summary ="手动统计")
-    @GetMapping("/test")
-    public Result<Object> test() {
+    @GetMapping("/statistic")
+    public Result<Object> statistic() {
         operatorStatisticsService.statisticsOperatorData();
         return Result.success();
     }
@@ -65,29 +66,15 @@ public class SurveyOperatorController {
         return Result.success(HypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
     }
 
-//    @Operation(summary ="通过森空岛导入干员练度V2")
-//    @PostMapping("/operator/import/skland/v2")
-//    public Result<Object> importSurveyCharacterFormBySKLandV2(@RequestBody Map<String,String> params) {
-//
-//        String token = params.get("token");
-//        String data = params.get("data");
-//        return Result.success(operatorDataService.importSKLandPlayerInfoV2(token, data));
-//    }
-
 
     @Operation(summary ="通过森空岛导入干员练度V3")
-    @PostMapping("/operator/import/skland/v3")
-    public Result<Object> importSurveyCharacterFormBySKLandV3(@RequestBody PlayerInfoDTO playerInfoDTO) {
+    @PostMapping("/auth/operator/import/skland/v3")
+    public Result<Object> importSurveyCharacterFormBySKLandV3(HttpServletRequest httpServletRequest,@RequestBody PlayerInfoDTO playerInfoDTO) {
 
-        return Result.success(operatorDataService.importSKLandPlayerInfoV3(playerInfoDTO));
+        return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest,playerInfoDTO));
     }
 
-    @Operation(summary ="通过森空岛导入干员练度V2")
-    @PostMapping("/operator/report")
-    public Result<Object> characterDataReport(@RequestBody Map<String,String> params) {
 
-        return Result.success(operatorDataService.operatorDataReport());
-    }
 
     @Operation(summary ="通过森空岛导入仓库材料")
     @PostMapping("/warehouse-info/import/skland")
@@ -104,10 +91,9 @@ public class SurveyOperatorController {
 
 
     @Operation(summary ="获取干员数据")
-    @PostMapping("/operator/info")
-    public Result<Object> getOperatorTable(@RequestBody Map<String,String> params) {
-        String token = params.get("token");
-        List<OperatorDataVo> surveyDataCharList = operatorDataService.getOperatorInfoByToken(token);
+    @GetMapping("/operator/info")
+    public Result<Object> getOperatorTable(@RequestParam("token")String token) {
+        List<OperatorDataVo> surveyDataCharList = operatorDataService.getUserOperatorInfo(token);
         surveyDataCharList.sort(Comparator.comparing(OperatorDataVo::getRarity).reversed());
         return Result.success(surveyDataCharList);
     }

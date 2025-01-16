@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.LogUtils;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.service.admin.ImageInfoService;

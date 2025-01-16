@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.Item;

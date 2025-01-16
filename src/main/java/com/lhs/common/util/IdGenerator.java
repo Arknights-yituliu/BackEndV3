@@ -1,5 +1,6 @@
 package com.lhs.common.util;
 
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 
 public class IdGenerator {

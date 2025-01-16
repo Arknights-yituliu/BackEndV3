@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.admin.Admin;
 import com.lhs.entity.vo.dev.LoginVo;

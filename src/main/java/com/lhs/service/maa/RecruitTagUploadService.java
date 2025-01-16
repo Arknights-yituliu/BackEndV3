@@ -2,6 +2,7 @@ package com.lhs.service.maa;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.po.maa.RecruitData;
 import com.lhs.entity.po.maa.RecruitStatistics;
@@ -21,9 +22,11 @@ public class RecruitTagUploadService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private final IdGenerator idGenerator;
     public RecruitTagUploadService(RecruitDataMapper recruitDataMapper, RedisTemplate<String, Object> redisTemplate) {
         this.recruitDataMapper = recruitDataMapper;
         this.redisTemplate = redisTemplate;
+        this.idGenerator = new IdGenerator(1L);
     }
 
     private String getDBTableIndex() {
@@ -31,10 +34,9 @@ public class RecruitTagUploadService {
     }
 
     public String saveMaaRecruitDataNew(MaaRecruitVo maaRecruitVo) {
-        Long maaRecruitId = redisTemplate.opsForValue().increment("MaaRecruitId");
         String tableName = getDBTableIndex();
         RecruitData recruitData = RecruitData.builder()
-                .id(maaRecruitId)
+                .id(idGenerator.nextId())
                 .uid(maaRecruitVo.getUuid())
                 .level(maaRecruitVo.getLevel())
                 .server(maaRecruitVo.getServer())

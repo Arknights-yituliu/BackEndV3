@@ -1,7 +1,7 @@
 package com.lhs.service.survey.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
@@ -9,14 +9,11 @@ import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.po.survey.*;
 
 import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
 import com.lhs.mapper.survey.OperatorDataMapper;
-import com.lhs.mapper.survey.SurveyOperatorDataMapper;
-import com.lhs.mapper.survey.OperatorDataVoMapper;
 import com.lhs.service.survey.OperatorDataService;
+import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.UserService;
-import com.lhs.service.util.ArknightsGameDataService;
-import com.lhs.service.util.OSSService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -27,17 +24,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OperatorDataServiceImpl implements OperatorDataService {
 
-    private final SurveyOperatorDataMapper surveyOperatorDataMapper;
-    private final OperatorDataVoMapper operatorDataVoMapper;
-
 
     private final RedisTemplate<String, Object> redisTemplate;
-
-    private final OSSService ossService;
-
-    private final ArknightsGameDataService arknightsGameDataService;
-
-    private final AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper;
 
     private final UserService userService;
 
@@ -45,28 +33,23 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final OperatorDataMapper operatorDataMapper;
 
-    public OperatorDataServiceImpl(SurveyOperatorDataMapper surveyOperatorDataMapper,
-                                   OperatorDataVoMapper operatorDataVoMapper,
-                                   RedisTemplate<String, Object> redisTemplate, OSSService ossService,
-                                   ArknightsGameDataService arknightsGameDataService,
-                                   AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper,
-                                   UserService userService, OperatorDataMapper operatorDataMapper) {
-        this.surveyOperatorDataMapper = surveyOperatorDataMapper;
-        this.operatorDataVoMapper = operatorDataVoMapper;
+    private final WarehouseInfoService warehouseInfoService;
+
+    public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
+                                   UserService userService,
+                                   OperatorDataMapper operatorDataMapper, WarehouseInfoService warehouseInfoService) {
         this.redisTemplate = redisTemplate;
-        this.ossService = ossService;
-        this.arknightsGameDataService = arknightsGameDataService;
-        this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
         this.userService = userService;
         this.operatorDataMapper = operatorDataMapper;
+        this.warehouseInfoService = warehouseInfoService;
         this.idGenerator = new IdGenerator(1L);
     }
 
 
     //    @TakeCount(name = "上传评分")
     @Override
-    public Map<String, Object> manualUploadOperator(String token, List<OperatorData> surveyOperatorDataList) {
-        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
+    public Map<String, Object> manualUploadOperator(HttpServletRequest httpServletRequest, List<OperatorData> surveyOperatorDataList) {
+        UserInfoVO userInfo = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         String akUid = String.valueOf(userInfo.getUid());
         if(userInfo.getAkUid()!=null){
             akUid = userInfo.getAkUid();
@@ -75,152 +58,19 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
 
+
     @Override
-    public Map<String, Object> importSKLandPlayerInfoV2(String token, String dataStr) {
+    public Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO) {
+
+        UserInfoVO userInfo = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
 
         //防止用户多次点击上传
-        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInterval:" + token, "done", 5, TimeUnit.SECONDS);
-
+        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInfoUploadInterval:" + userInfo.getUid(), "done", 5, TimeUnit.SECONDS);
         if (Boolean.FALSE.equals(done)) {
             throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
         }
 
-        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
-
-        List<OperatorData> operatorDataList = new ArrayList<>();
-
-
-        Map<String, String> uniEquipIdAndType = arknightsGameDataService.getEquipIdAndType();
-        JsonNode data = JsonMapper.parseJSONObject(dataStr);
-        String akNickName = userInfo.getUserName();
-        String akUid = data.get("akUid").asText();
-        String channelName = "无服务器";
-        int channelMasterId = 0;
-
-        if (data.get("akNickName") != null) {
-            akNickName = data.get("akNickName").asText();
-        }
-
-        if (data.get("channelName") != null) {
-            channelName = data.get("channelName").asText();
-        }
-
-        if (data.get("channelMasterId") != null) {
-            channelMasterId = data.get("channelMasterId").asInt();
-        }
-
-        LogUtils.info("森空岛导入v2 {} uid：" + akUid + "，服务器：" + data.get("channelName"));
-
-        JsonNode chars = data.get("chars");
-        JsonNode charInfoMap = data.get("charInfoMap");
-
-
-        for (int i = 0; i < chars.size(); i++) {
-            OperatorData operatorData = new OperatorData();
-            String charId = chars.get(i).get("charId").asText();
-            int level = chars.get(i).get("level").intValue();
-            int evolvePhase = chars.get(i).get("evolvePhase").intValue();
-            int potentialRank = chars.get(i).get("potentialRank").intValue() + 1;
-            int rarity = charInfoMap.get(charId).get("rarity").intValue() + 1;
-            int mainSkillLvl = chars.get(i).get("mainSkillLvl").intValue();
-            operatorData.setCharId(charId);
-            operatorData.setOwn(true);
-            operatorData.setLevel(level);
-            operatorData.setElite(evolvePhase);
-            operatorData.setRarity(rarity);
-            operatorData.setMainSkill(mainSkillLvl);
-            operatorData.setPotential(potentialRank);
-            operatorData.setSkill1(0);
-            operatorData.setSkill2(0);
-            operatorData.setSkill3(0);
-            operatorData.setModX(0);
-            operatorData.setModY(0);
-            operatorData.setModD(0);
-            operatorData.setModA(0);
-
-            JsonNode skills = chars.get(i).get("skills");
-            for (int j = 0; j < skills.size(); j++) {
-                int specializeLevel = skills.get(j).get("specializeLevel").intValue();
-                if (j == 0) {
-                    operatorData.setSkill1(specializeLevel);
-                }
-                if (j == 1) {
-                    operatorData.setSkill2(specializeLevel);
-                }
-                if (j == 2) {
-                    operatorData.setSkill3(specializeLevel);
-                }
-            }
-
-            JsonNode equip = chars.get(i).get("equip");
-            String defaultEquipId = chars.get(i).get("defaultEquipId").asText();
-            for (int j = 0; j < equip.size(); j++) {
-                String id = equip.get(j).get("id").asText();
-                if (id.contains("_001_")) continue;
-                int equipLevel = equip.get(j).get("level").intValue();
-                if (uniEquipIdAndType.get(id) == null) continue;
-                String type = uniEquipIdAndType.get(id);
-                if (defaultEquipId.equals(id)) {
-                    if ("X".equals(type)) {
-                        operatorData.setModX(equipLevel);
-                    }
-                    if ("Y".equals(type)) {
-                        operatorData.setModY(equipLevel);
-                    }
-                    if ("D".equals(type)) {
-                        operatorData.setModD(equipLevel);
-                    }
-                    if ("A".equals(type)) {
-                        operatorData.setModA(equipLevel);
-                    }
-                }
-                if (equipLevel > 1) {
-                    if ("X".equals(type)) {
-                        operatorData.setModX(equipLevel);
-                    }
-                    if ("Y".equals(type)) {
-                        operatorData.setModY(equipLevel);
-                    }
-                    if ("D".equals(type)) {
-                        operatorData.setModD(equipLevel);
-                    }
-                    if ("A".equals(type)) {
-                        operatorData.setModA(equipLevel);
-                    }
-                }
-            }
-            operatorDataList.add(operatorData);
-        }
-
-        AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
-        akPlayerBindInfoDTO.setAkNickName(akNickName);
-        akPlayerBindInfoDTO.setAkUid(akUid);
-        akPlayerBindInfoDTO.setChannelName(channelName);
-        akPlayerBindInfoDTO.setChannelMasterId(channelMasterId);
-
-
-        userService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfo, akPlayerBindInfoDTO);
-
-        userInfo.setAkUid(akUid);
-
-        return saveOperatorData(akUid, operatorDataList);
-    }
-
-
-    @Override
-    public Object importSKLandPlayerInfoV3(PlayerInfoDTO playerInfoDTO) {
-
-        String token = playerInfoDTO.getToken();
-
-        //防止用户多次点击上传
-        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInterval:" + token, "done", 5, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(done)) {
-            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
-        }
-
-        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
         List<OperatorData> operatorDataList = playerInfoDTO.getOperatorDataList();
-
         String akUid = playerInfoDTO.getUid();
 
         AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
@@ -234,12 +84,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return saveOperatorData(akUid, operatorDataList);
     }
 
-    @Override
-    public Object operatorDataReport() {
 
-
-        return null;
-    }
 
     /**
      * 保存干员数据
@@ -410,8 +255,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
 
     @Override
-    public List<OperatorDataVo> getOperatorInfoByToken(String token) {
-
+    public List<OperatorDataVo> getUserOperatorInfo(String token) {
         //查询用户信息
         UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
         LogUtils.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());

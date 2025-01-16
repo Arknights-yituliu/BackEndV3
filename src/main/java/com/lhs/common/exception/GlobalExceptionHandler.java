@@ -37,9 +37,6 @@ public class GlobalExceptionHandler {
 				}
 
 			}
-
-
-
             result = Result.failure(500, message);
 		}
 		return result;

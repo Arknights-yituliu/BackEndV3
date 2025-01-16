@@ -1,4 +1,4 @@
-package com.lhs.common.util;
+package com.lhs.common.enums;
 
 public enum FileType {
     /**

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
@@ -386,6 +387,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserInfo getUserInfoByHttpServletRequest(HttpServletRequest httpServletRequest) {
+        String token = extractToken(httpServletRequest);
+        return getUserInfoPOByToken(token);
+    }
+
+
+    @Override
     public String extractToken(HttpServletRequest httpServletRequest) {
         String header = httpServletRequest.getHeader("Authorization");
         LogUtils.info("从{} "+ httpServletRequest.getRequestURI()+" {}获取的用户token{} " + header);
@@ -501,28 +509,27 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserInfoVO updateUserData(UpdateUserDataDTO updateUserDataDto) {
+    public UserInfoVO updateUserData(HttpServletRequest httpServletRequest,UpdateUserDataDTO updateUserDataDto) {
 
         //兼容之前的命名
         String action = updateUserDataDto.getProperty() == null ? updateUserDataDto.getAction() : updateUserDataDto.getProperty();
 
-        String token = updateUserDataDto.getToken();
-        UserInfo userInfoByToken = getUserInfoPOByToken(token);
+        UserInfo userInfo = getUserInfoByHttpServletRequest(httpServletRequest);
 
         if ("email".equals(action)) {
-            return updateOrBindEmail(userInfoByToken, updateUserDataDto);
+            return updateOrBindEmail(userInfo, updateUserDataDto);
         }
 
         if ("passWord".equals(action)) {
-            return updatePassWord(userInfoByToken, updateUserDataDto);
+            return updatePassWord(userInfo, updateUserDataDto);
         }
 
         if ("userName".equals(action)) {
-            return updateUserName(userInfoByToken, updateUserDataDto);
+            return updateUserName(userInfo, updateUserDataDto);
         }
 
         if ("avatar".equals(action)) {
-            return updateUserAvatar(userInfoByToken, updateUserDataDto);
+            return updateUserAvatar(userInfo, updateUserDataDto);
         }
 
         throw new ServiceException(ResultCode.PARAM_IS_INVALID);
@@ -667,10 +674,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public HashMap<String, String> resetPassword(LoginDataDTO loginDataDTO) {
+    public HashMap<String, String> resetPassword(HttpServletRequest httpServletRequest,LoginDataDTO loginDataDTO) {
 
         String tmpToken = loginDataDTO.getToken();
         String userId = redisTemplate.opsForValue().get(tmpToken);
+
         if (userId == null) {
             throw new ServiceException(ResultCode.USER_PERMISSION_NO_ACCESS_OR_TIME_OUT);
         }
@@ -778,26 +786,24 @@ public class UserServiceImpl implements UserService {
         return userConfigDTO.getStageConfig();
     }
 
-    /**
-     * 保存用户或游客自定义配置
-     *
-     * @param userConfigDTO 用户配置数据传输对象
-     */
+
     @Override
-    public void updateUserConfig(UserConfigDTO userConfigDTO) {
-        Long configId = userConfigDTO.getConfigId();
-        UserConfig userConfig = userConfigMapper.selectById(configId);
+    public void updateUserConfig(HttpServletRequest httpServletRequest,UserConfigDTO userConfigDTO) {
+        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+        Long uid = userInfoVO.getUid();
+        UserConfig userConfig = userConfigMapper.selectById(uid);
         Date date = new Date();
         if (userConfig == null) {
             userConfig = new UserConfig();
             String configText = JsonMapper.toJSONString(userConfigDTO);
             userConfig.setConfig(configText);
-            userConfig.setUid(configId);
+            userConfig.setUid(uid);
             userConfig.setCreateTime(date);
             userConfig.setUpdateTime(date);
             userConfigMapper.insert(userConfig);
         } else {
             String newConfig = JsonMapper.toJSONString(userConfigDTO);
+            userConfig.setUid(uid);
             userConfig.setConfig(newConfig);
             userConfig.setUpdateTime(date);
             userConfigMapper.updateById(userConfig);

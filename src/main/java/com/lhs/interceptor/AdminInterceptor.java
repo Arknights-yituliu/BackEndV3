@@ -2,7 +2,7 @@ package com.lhs.interceptor;
 
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.LogUtils;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.service.admin.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

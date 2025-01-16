@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.CompositeTableDTO;
@@ -29,6 +30,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -161,7 +163,7 @@ public class ItemServiceImpl implements ItemService {
 
         itemList.addAll(fixedItemValue);
 
-        redisTemplate.opsForValue().set("ItemValueCheck:"+stageConfigDTO.getId(),System.currentTimeMillis());
+        redisTemplate.opsForValue().set("ItemValueCheck:"+stageConfigDTO.getId(),System.currentTimeMillis(),2, TimeUnit.HOURS);
 
         return itemList;
     }

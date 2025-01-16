@@ -1,6 +1,6 @@
 package com.lhs.common.annotation;
 
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;

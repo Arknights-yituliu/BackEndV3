@@ -1,5 +1,6 @@
 package com.lhs.common.util;
 
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ public class RateLimiter {
     }
 
 
-    public void tryAcquire(String id, int maxRequests, int timeWindowInSeconds,ResultCode resultCode) {
+    public void tryAcquire(String id, int maxRequests, int timeWindowInSeconds, ResultCode resultCode) {
         String key = KEY_PREFIX + id;
         Long currentTime = System.currentTimeMillis();
 
