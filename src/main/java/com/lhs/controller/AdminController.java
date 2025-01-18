@@ -189,7 +189,7 @@ public class AdminController {
     @Operation(summary = "获取礼包自定义材料表")
     @GetMapping("/store/pack/item/list")
     public Result<List<ItemCustom>> getItemList() {
-        List<ItemCustom> itemCustomList = packInfoService.listPackItem(new StageConfigDTO());
+        List<ItemCustom> itemCustomList = packInfoService.listCustomItem(new StageConfigDTO());
         return Result.success(itemCustomList);
     }
 }
