@@ -23,6 +23,7 @@ import com.lhs.service.admin.ImageInfoService;
 import com.lhs.service.util.COSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ public class PackInfoService {
     private final PackContentMapperService packContentMapperService;
     private final ItemService itemService;
     private final ImageInfoService imageInfoService;
+
 
 
     public PackInfoService(PackInfoMapper packInfoMapper,
@@ -174,7 +176,10 @@ public class PackInfoService {
         LambdaQueryWrapper<PackContent> packContentQueryWrapper = new LambdaQueryWrapper<>();
         packContentQueryWrapper.eq(PackContent::getContentId, packInfo.getContentId());
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
-        return getPackInfoVO(packInfo, packContentList);
+        PackInfoVO packInfoVO = getPackInfoVO(packInfo, packContentList);
+        ImageInfo imageInfo = imageInfoService.getImageInfo(packInfo.getOfficialName());
+        packInfoVO.setImageLink(imageInfo.getImageLink());
+        return packInfoVO;
     }
 
 
@@ -361,4 +366,6 @@ public class PackInfoService {
         int delete = packInfoMapper.updateById(packInfo);
         return "删除了" + delete + "条礼包数据";
     }
+
+
 }

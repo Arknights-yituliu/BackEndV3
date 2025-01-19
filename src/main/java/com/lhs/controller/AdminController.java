@@ -117,11 +117,8 @@ public class AdminController {
 
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
-    public Result<List<PackInfoVO>> getPackList(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
-                                                @RequestParam(required = false, defaultValue = "300") Integer sampleSize){
+    public Result<List<PackInfoVO>> getPackList(){
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
-        stageConfigDTO.setExpCoefficient(expCoefficient);
-        stageConfigDTO.setSampleSize(sampleSize);
         return Result.success(packInfoService.listAllPackInfo(stageConfigDTO));
     }
 
@@ -172,15 +169,15 @@ public class AdminController {
         return Result.success(list);
     }
 
-//    @Operation(summary = "上传图片服务")
-//    @PostMapping("/admin/upload/image")
-//    public Result<String> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("path") String path, @RequestParam("imageName") String imageName) {
-//        imageInfoService.saveImage(file,path,imageName);
-//        return Result.success("上传成功");
-//    }
+    @Operation(summary = "上传图片服务")
+    @PostMapping("/admin/upload/image")
+    public Result<String> uploadImage(@RequestParam("file") MultipartFile file,@RequestParam("imageName") String imageName) {
+        imageInfoService.saveImage(file,"image/",imageName);
+        return Result.success("上传成功");
+    }
 
     @Operation(summary = "批量上传图片服务")
-    @PostMapping("/admin/upload/image")
+    @PostMapping("/admin/upload/images")
     public Result<String> uploadImageFiles(@RequestParam("files") List<MultipartFile> files, @RequestParam("path") String path) {
 
         return Result.success(imageInfoService.saveImageFiles(files,path));

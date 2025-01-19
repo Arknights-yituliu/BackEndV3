@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @Tag(name ="干员练度调查")
-@RequestMapping(value = "/survey")
+
 public class SurveyOperatorController {
     private final OperatorDataService operatorDataService;
 
@@ -46,21 +46,21 @@ public class SurveyOperatorController {
     }
 
     @Operation(summary ="上传干员练度调查表")
-    @PostMapping("/auth/character/upload")
+    @PostMapping("/auth/survey/operator/upload")
     public Result<Object> uploadCharacterForm(HttpServletRequest httpServletRequest,@RequestBody List<OperatorData> operatorDataList) {
         Map<String, Object> hashMap = operatorDataService.manualUploadOperator(httpServletRequest, operatorDataList);
         return Result.success(hashMap);
     }
 
     @Operation(summary ="手动统计")
-    @GetMapping("/statistic")
+    @GetMapping("/survey/statistic")
     public Result<Object> statistic() {
         operatorStatisticsService.statisticsOperatorData();
         return Result.success();
     }
 
     @Operation(summary = "通过鹰角网络通行证获取凭证、密匙、玩家绑定数据")
-    @PostMapping("/hg/player-binding")
+    @PostMapping("/survey/hg/player-binding")
     public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(@RequestBody Map<String,String> params) {
         String token = params.get("token");
         return Result.success(HypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
@@ -68,7 +68,7 @@ public class SurveyOperatorController {
 
 
     @Operation(summary ="通过森空岛导入干员练度V3")
-    @PostMapping("/auth/operator/import/skland/v3")
+    @PostMapping("/auth/survey/operator/import/skland/v3")
     public Result<Object> importSurveyCharacterFormBySKLandV3(HttpServletRequest httpServletRequest,@RequestBody PlayerInfoDTO playerInfoDTO) {
 
         return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest,playerInfoDTO));
@@ -77,13 +77,13 @@ public class SurveyOperatorController {
 
 
     @Operation(summary ="通过森空岛导入仓库材料")
-    @PostMapping("/warehouse-info/import/skland")
+    @PostMapping("/survey/warehouse-info/import/skland")
     public Result<Object> importWarehouseInfoBySKLand(@RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {
         return Result.success(warehouseInfoService.saveWarehouseInventoryInfo(warehouseInventoryAPIParams));
     }
 
     @Operation(summary ="用户干员练度重置")
-    @PostMapping("/operator/reset")
+    @PostMapping("/survey/operator/reset")
     public Result<Object> operatorDataReset(@RequestBody Map<String,String> params) {
         String token = params.get("token");
         return operatorDataService.operatorDataReset(token);
@@ -91,7 +91,7 @@ public class SurveyOperatorController {
 
 
     @Operation(summary ="获取干员数据")
-    @GetMapping("/operator/info")
+    @GetMapping("/survey/operator/info")
     public Result<Object> getOperatorTable(@RequestParam("token")String token) {
         List<OperatorDataVo> surveyDataCharList = operatorDataService.getUserOperatorInfo(token);
         surveyDataCharList.sort(Comparator.comparing(OperatorDataVo::getRarity).reversed());
@@ -101,7 +101,7 @@ public class SurveyOperatorController {
 
 
     @Operation(summary ="干员练度调查表统计结果")
-    @GetMapping("/operator/result")
+    @GetMapping("/survey/operator/result")
     public Result<Object> characterStatisticsResult() {
         HashMap<Object, Object> hashMap = operatorStatisticsService.getCharStatisticsResult();
         return Result.success(hashMap);
