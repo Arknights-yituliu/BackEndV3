@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.rogueSeed.RogueSeedRatingMapper">
+<mapper namespace="com.lhs.mapper.rogue.RogueSeedRatingMapper">
     <select id="listRogueSeedRating" resultType="com.lhs.entity.vo.rogue.RogueSeedRatingVO">
         SELECT seed_id, rating FROM rogue_seed_rating WHERE delete_flag = false LIMIT ${pageNum},${pageSize}
     </select>

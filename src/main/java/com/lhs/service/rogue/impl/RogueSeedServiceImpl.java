@@ -4,15 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.enums.ResultCode;
+import com.lhs.common.enums.UserAction;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
-import com.lhs.entity.dto.rogueSeed.*;
+import com.lhs.entity.dto.rogue.*;
 import com.lhs.entity.po.rogue.*;
 import com.lhs.entity.vo.rogue.RogueSeedVO;
 
 import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.mapper.rogueSeed.*;
+import com.lhs.mapper.rogue.*;
 import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.COSService;
@@ -42,6 +43,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     private final RateLimiter rateLimiter;
     private final IdGenerator idGenerator;
     private final RogueSeedRatingStatisticsMapper rogueSeedRatingStatisticsMapper;
+    private final UserActionOnSeedMapper userActionOnSeedMapper;
 
     public RogueSeedServiceImpl(UserService userService,
                                 RedisTemplate<String, Object> redisTemplate,
@@ -51,7 +53,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
                                 RogueSeedTagMapper rogueSeedTagMapper,
                                 RogueSeedRatingMapper rogueSeedRatingMapper,
                                 RateLimiter rateLimiter,
-                                RogueSeedRatingStatisticsMapper rogueSeedRatingStatisticsMapper) {
+                                RogueSeedRatingStatisticsMapper rogueSeedRatingStatisticsMapper, UserActionOnSeedMapper userActionOnSeedMapper) {
         this.userService = userService;
         this.redisTemplate = redisTemplate;
         this.cosService = cosService;
@@ -61,6 +63,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         this.rogueSeedRatingMapper = rogueSeedRatingMapper;
         this.rateLimiter = rateLimiter;
         this.rogueSeedRatingStatisticsMapper = rogueSeedRatingStatisticsMapper;
+        this.userActionOnSeedMapper = userActionOnSeedMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -424,6 +427,19 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         RogueSeed rogueSeed = rogueSeedMapper.selectById(seedId);
 
         return rogueSeedPOWriteInDTO(rogueSeed);
+    }
+
+    @Override
+    public void recordUserActionOnSeed(UserActionOnSeedDTO userActionOnSeedDTO, HttpServletRequest httpServletRequest) {
+        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserActionOnSeed userActionOnSeed = new UserActionOnSeed();
+        userActionOnSeed.setId(idGenerator.nextId());
+        userActionOnSeed.setSeedId(userActionOnSeedDTO.getSeedId());
+        userActionOnSeed.setUid(userInfoVO.getUid());
+        userActionOnSeed.setAction(userActionOnSeedDTO.getAction());
+        userActionOnSeed.setCreateTime(new Date());
+        userActionOnSeed.setDeleteFlag(false);
+        userActionOnSeedMapper.insert(userActionOnSeed);
     }
 
     @RedisCacheable(key = "RogueSeedCountByType", timeout = 1200, paramOrMethod = "param")

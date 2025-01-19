@@ -1,8 +1,5 @@
-package com.lhs.entity.dto.rogueSeed;
+package com.lhs.entity.dto.rogue;
 
-import lombok.Data;
-
-import java.util.Date;
 import java.util.List;
 
 

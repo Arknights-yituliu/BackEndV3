@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.rogueSeed;
+package com.lhs.entity.dto.rogue;
 
 public class RogueSeedIdAndTypeDTO {
     private Long seedId;

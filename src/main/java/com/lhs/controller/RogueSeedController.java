@@ -1,10 +1,7 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.rogueSeed.RogueSeedDTO;
-import com.lhs.entity.dto.rogueSeed.RogueSeedPageDTO;
-import com.lhs.entity.dto.rogueSeed.RogueSeedRatingDTO;
-import com.lhs.entity.dto.rogueSeed.RollRogueSeedDTO;
+import com.lhs.entity.dto.rogue.*;
 import com.lhs.entity.po.rogue.RogueSeedRating;
 import com.lhs.entity.vo.rogue.RogueSeedVO;
 
@@ -42,10 +39,18 @@ public class RogueSeedController {
         return Result.success(rogueSeedService.rogueSeedRating(rogueSeedRatingDTO,httpServletRequest));
     }
 
+    @PostMapping("/auth/rogue/seed/record-action")
+    public Result<String> rating(@RequestBody UserActionOnSeedDTO userActionOnSeedDTO, HttpServletRequest httpServletRequest){
+        rogueSeedService.recordUserActionOnSeed(userActionOnSeedDTO,httpServletRequest);
+        return Result.success();
+    }
+
     @GetMapping("/rogue/seed/user/rating")
     public Result<Map<Long, RogueSeedRating>> ratingList(HttpServletRequest httpServletRequest){
         return Result.success(rogueSeedService.listRogueSeedUserRating(httpServletRequest));
     }
+
+
 
     @PostMapping("/rogue/seed/page")
     public Result<List<RogueSeedVO>> getSeedPage(@RequestBody RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest){

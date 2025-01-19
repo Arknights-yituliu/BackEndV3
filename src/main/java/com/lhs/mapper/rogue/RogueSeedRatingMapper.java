@@ -1,4 +1,4 @@
-package com.lhs.mapper.rogueSeed;
+package com.lhs.mapper.rogue;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lhs.entity.po.rogue.RogueSeedRating;

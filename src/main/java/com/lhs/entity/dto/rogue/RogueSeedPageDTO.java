@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.rogueSeed;
+package com.lhs.entity.dto.rogue;
 
 
 import java.util.List;

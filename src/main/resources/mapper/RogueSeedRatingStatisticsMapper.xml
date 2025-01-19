@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.rogueSeed.RogueSeedRatingStatisticsMapper">
+<mapper namespace="com.lhs.mapper.rogue.RogueSeedRatingStatisticsMapper">
     <select id="pageRogueSeedRatingStatistics" resultType="com.lhs.entity.po.rogue.RogueSeedRatingStatistics">
         SELECT id, seed_id, rating
         FROM rogue_seed_rating_statistics
