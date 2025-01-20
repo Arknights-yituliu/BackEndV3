@@ -329,6 +329,8 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 
+        token = token.replace("Authorization", "");
+
         UserInfo userInfo = getUserInfoPOByToken(token);
         //用户信息 包括凭证，用户名，用户状态等
         UserInfoVO userInfoVO = getUserInfoVO(userInfo);
@@ -387,7 +389,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfo getUserInfoByHttpServletRequest(HttpServletRequest httpServletRequest) {
+    public UserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest) {
         String token = extractToken(httpServletRequest);
         return getUserInfoPOByToken(token);
     }
@@ -395,10 +397,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String extractToken(HttpServletRequest httpServletRequest) {
-        String header = httpServletRequest.getHeader("Authorization");
-        LogUtils.info("从{} "+ httpServletRequest.getRequestURI()+" {}获取的用户token{} " + header);
-        if(header!=null&&header.startsWith("Authorization ")&&header.length()>30){
-            return header.replace("Authorization ", "");
+        String token = httpServletRequest.getHeader("Authorization");
+        LogUtils.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + token);
+        if (token != null && token.startsWith("Authorization") && token.length() > 30) {
+            return token.replace("Authorization", "");
         }
         throw new ServiceException(ResultCode.USER_NOT_LOGIN);
     }
@@ -406,8 +408,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest) {
         String header = httpServletRequest.getHeader("Authorization");
-        LogUtils.info("从{} "+ httpServletRequest.getRequestURI()+" {}获取的用户token{} " + header);
-        return header !=  null && header.startsWith("Authorization ")&&header.length()>30;
+        LogUtils.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + header);
+        return header != null && header.startsWith("Authorization") && header.length() > 30;
     }
 
     @Override
@@ -415,6 +417,8 @@ public class UserServiceImpl implements UserService {
         if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
+
+        token = token.replace("Authorization", "");
 
         Long yituliuId = decryptToken(token);
 
@@ -430,6 +434,28 @@ public class UserServiceImpl implements UserService {
         }
 
         return userInfo;
+    }
+
+
+    /**
+     * 解密用户凭证
+     *
+     * @param token 用户凭证
+     * @return 一图流id
+     */
+    private Long decryptToken(String token) {
+        long id = 114L;
+
+        try {
+            String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
+            String idText = decrypt.split("\\.")[1];
+            id = Long.parseLong(idText);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
+        }
+        return id;
     }
 
     @Override
@@ -509,12 +535,12 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserInfoVO updateUserData(HttpServletRequest httpServletRequest,UpdateUserDataDTO updateUserDataDto) {
+    public UserInfoVO updateUserData(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
 
         //兼容之前的命名
         String action = updateUserDataDto.getProperty() == null ? updateUserDataDto.getAction() : updateUserDataDto.getProperty();
 
-        UserInfo userInfo = getUserInfoByHttpServletRequest(httpServletRequest);
+        UserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
 
         if ("email".equals(action)) {
             return updateOrBindEmail(userInfo, updateUserDataDto);
@@ -674,7 +700,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public HashMap<String, String> resetPassword(HttpServletRequest httpServletRequest,LoginDataDTO loginDataDTO) {
+    public HashMap<String, String> resetPassword(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO) {
 
         String tmpToken = loginDataDTO.getToken();
         String userId = redisTemplate.opsForValue().get(tmpToken);
@@ -736,7 +762,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
     private void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo) {
 
         LambdaQueryWrapper<AkPlayerBindInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -788,7 +813,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public void updateUserConfig(HttpServletRequest httpServletRequest,UserConfigDTO userConfigDTO) {
+    public void updateUserConfig(HttpServletRequest httpServletRequest, UserConfigDTO userConfigDTO) {
         UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
         Long uid = userInfoVO.getUid();
         UserConfig userConfig = userConfigMapper.selectById(uid);
@@ -912,24 +937,7 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-    /**
-     * 解密用户凭证
-     *
-     * @param token 用户凭证
-     * @return 一图流id
-     */
-    private Long decryptToken(String token) {
-        long id = 114L;
 
-        try {
-            String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
-            String idText = decrypt.split("\\.")[1];
-            id = Long.parseLong(idText);
-        } catch (Exception e) {
-            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
-        }
-        return  id;
-    }
 
 
     private String tokenGenerator(UserInfo userInfo) {
@@ -1025,9 +1033,6 @@ public class UserServiceImpl implements UserService {
 
         return true;
     }
-
-
-
 
 
 }

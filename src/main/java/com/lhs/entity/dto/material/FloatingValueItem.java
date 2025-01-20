@@ -54,7 +54,7 @@ public class FloatingValueItem {
         //芯片1级本 扣除龙门币
         chip1Value = 18 - 18 * LMDValue * 12;
 
-        chip3Value = chip2Value * 2 + itemValueBaseAp * 20 + itemValue32001;
+        chip3Value = chip2Value * 2 +  itemValue32001;
 
         HashMap<String, Double> map = new HashMap<>();
 
@@ -123,9 +123,9 @@ public class FloatingValueItem {
         //低价值芯片组
         double CHIP2_LOW_VALUE = (4 + CHIP_BY_PRODUCT_YIELD) / 5 * chip2Value;
         //高价值双芯片
-        double CHIP3_HEIGHT_VALUE = CHIP2_HEIGHT_VALUE * 2 + itemValueBaseAp * 20 + itemValue32001;
+        double CHIP3_HEIGHT_VALUE = CHIP2_HEIGHT_VALUE * 2  + itemValue32001;
         //低价值双芯片
-        double CHIP3_LOW_VALUE = CHIP2_LOW_VALUE * 2 + itemValueBaseAp * 20 + itemValue32001;
+        double CHIP3_LOW_VALUE = CHIP2_LOW_VALUE * 2  + itemValue32001;
 
         map.put("3231", CHIP1_HEIGHT_VALUE);
         map.put("3221", CHIP1_HEIGHT_VALUE);

@@ -33,7 +33,7 @@ public class RogueSeedController {
         return Result.success(rogueSeedService.uploadSettlementChart(multipartFile,httpServletRequest));
     }
 
-    @PostMapping("/auth/rogue/seed/rating")
+    @PostMapping("/rogue/seed/rating")
     public Result<String> rating(@RequestBody RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest){
 
         return Result.success(rogueSeedService.rogueSeedRating(rogueSeedRatingDTO,httpServletRequest));

@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RateLimiter {
 
-    private static final String KEY_PREFIX = "rate_limit_";
+    private static final String KEY_PREFIX = "Limit:";
 
 
     private final StringRedisTemplate redisTemplate;
@@ -20,8 +20,8 @@ public class RateLimiter {
     }
 
 
-    public void tryAcquire(String id, int maxRequests, int timeWindowInSeconds, ResultCode resultCode) {
-        String key = KEY_PREFIX + id;
+    public void tryAcquire(String key, int maxRequests, int timeWindowInSeconds, ResultCode resultCode) {
+        key = KEY_PREFIX + key;
         Long currentTime = System.currentTimeMillis();
 
         // 使用原子操作递增计数器，并获取递增后的值

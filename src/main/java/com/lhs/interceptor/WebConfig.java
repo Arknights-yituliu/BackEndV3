@@ -13,15 +13,15 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final AdminService adminService;
+
 
     private final UserService userService;
 
 
 
-    public WebConfig(RedisTemplate<String, Object> redisTemplate, AdminService adminService, UserService userService) {
+    public WebConfig(RedisTemplate<String, Object> redisTemplate,UserService userService) {
         this.redisTemplate = redisTemplate;
-        this.adminService = adminService;
+
         this.userService = userService;
     }
 
@@ -32,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-        registry.addInterceptor(new AdminInterceptor(redisTemplate, adminService))
+        registry.addInterceptor(new AdminInterceptor(redisTemplate,userService))
                 .addPathPatterns("/admin/**"); //拦截
 //                .excludePathPatterns(); //放行
 

@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.enums.ResultCode;
-import com.lhs.common.enums.UserAction;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.rogue.*;
@@ -209,13 +208,19 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     @Override
     public String rogueSeedRating(RogueSeedRatingDTO ratingDTO, HttpServletRequest httpServletRequest) {
 
-        //根据token拿到用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        //获取用户uid
-        Long uid = userInfoByToken.getUid();
+
+        Long uid = ratingDTO.getUid();
+
+        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        if (loginStatus) {
+            UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+            uid = userInfoVO.getUid();
+        }
+
+        String ipAddress = IpUtil.getIpAddress(httpServletRequest);
 
         //10秒内最多评论5次
-//        rateLimiter.tryAcquire("Rating" + uid, 5, 10, ResultCode.TOO_MANY_RATING_ROGUE_SEED);
+        rateLimiter.tryAcquire( ipAddress, 5, 10, ResultCode.ROGUE_SEED_RATING_COUNT_EXCESSIVE);
 
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getSeedId, ratingDTO.getSeedId())
@@ -400,8 +405,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         } else {
             queryWrapper.orderByDesc(RogueSeed::getRating);
         }
-
-
 
         List<RogueSeed> rogueSeedList = rogueSeedMapper.selectList(queryWrapper);
 

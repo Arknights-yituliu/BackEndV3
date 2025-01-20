@@ -2,8 +2,6 @@ package com.lhs.service.user;
 
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.dto.user.*;
-import com.lhs.entity.po.user.AkPlayerBindInfo;
-import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +9,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 public interface UserService {
+
+
+    /**
+     * 用户注册
+     *
+     * @param httpServletRequest 请求体
+     * @param loginDataDTO       用户修改的信息
+     * @return 用户状态信息
+     */
+    HashMap<String, Object> registerV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO);
 
     /**
      * 用户登录
@@ -33,15 +41,6 @@ public interface UserService {
     Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest);
 
     /**
-     * 用户注册
-     *
-     * @param httpServletRequest 请求体
-     * @param loginDataDTO       用户修改的信息
-     * @return 用户状态信息
-     */
-    HashMap<String, Object> registerV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO);
-
-    /**
      * 发送邮件验证码
      *
      * @param emailRequestDto 邮件请求数据
@@ -57,6 +56,14 @@ public interface UserService {
     UserInfoVO getUserInfoVOByToken(String token);
 
     /**
+     * 通过token获取用户数据内的信息
+     *
+     * @param token 用户登录后获得的凭证
+     * @return 用户信息
+     */
+    UserInfo getUserInfoPOByToken(String token);
+
+    /**
      * 通过HttpServletRequest获取token，根据token拿到用户信息
      *
      * @param httpServletRequest 来自接口的请求信息
@@ -70,15 +77,7 @@ public interface UserService {
      * @param httpServletRequest 来自接口的请求信息
      * @return 用户信息
      */
-    UserInfo getUserInfoByHttpServletRequest(HttpServletRequest httpServletRequest);
-
-    /**
-     * 通过token获取用户数据内的信息
-     *
-     * @param token 用户登录后获得的凭证
-     * @return 用户信息
-     */
-    UserInfo getUserInfoPOByToken(String token);
+    UserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest);
 
     /**
      * 获取用户的各种自定义配置

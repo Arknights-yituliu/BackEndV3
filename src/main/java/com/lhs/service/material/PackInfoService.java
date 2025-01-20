@@ -22,9 +22,9 @@ import com.lhs.mapper.material.ItemCustomMapper;
 import com.lhs.mapper.material.service.PackContentMapperService;
 import com.lhs.service.admin.ImageInfoService;
 import com.lhs.service.util.COSService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -103,7 +103,7 @@ public class PackInfoService {
     }
 
 
-    public String saveOrUpdatePackInfo(PackInfoDTO packInfoDTO) {
+    public String saveOrUpdatePackInfo( PackInfoDTO packInfoDTO) {
         Date currentDate = new Date();
         //创建一个po对象存储数据
         PackInfo packInfo = new PackInfo();

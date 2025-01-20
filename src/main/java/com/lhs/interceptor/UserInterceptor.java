@@ -45,11 +45,9 @@ public class UserInterceptor implements HandlerInterceptor {
 
         String requestURI = request.getRequestURI();
         LogUtils.info("一图流用户鉴权{}：");
-        String token = userService.extractToken(request);
-        //未能获取token则报错
-        if (token == null) {
-            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        }
+        userService.extractToken(request);
+
+
         return true;
     }
 
