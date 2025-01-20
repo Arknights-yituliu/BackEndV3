@@ -91,27 +91,26 @@ public class AdminController {
     @Operation(summary = "获取管理者信息")
     @GetMapping("/dev/developer/info")
     public Result<Map<String,Object>> getDeveloperInfo(@RequestParam("token") String token) {
-
         return Result.success(adminService.getDeveloperInfo(token));
     }
 
     @Operation(summary = "更新商店礼包")
     @PostMapping("/admin/store/pack/update")
-    public Result<String> updateStageResult(@RequestBody PackInfoDTO packInfoDTO) {
+    public Result<String> updateStageResult(HttpServletRequest httpServletRequest,@RequestBody PackInfoDTO packInfoDTO) {
 
         return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoDTO));
     }
 
     @Operation(summary = "根据id获取礼包")
     @GetMapping("/admin/store/pack")
-    public Result<PackInfoVO> updateStageResult(@RequestParam(required = false, defaultValue = "1") String id) {
+    public Result<PackInfoVO> updateStageResult(HttpServletRequest httpServletRequest,@RequestParam("id") String id) {
         PackInfoVO pack = packInfoService.getPackById(id);
         return Result.success(pack);
     }
 
     @Operation(summary = "删除礼包材料")
     @GetMapping("/admin/store/pack/delete")
-    public Result<Object> deletePackInfo(@RequestParam String id){
+    public Result<Object> deletePackInfo(HttpServletRequest httpServletRequest,@RequestParam String id){
         return Result.success(packInfoService.deletePackInfoById(id));
     }
 
@@ -126,21 +125,21 @@ public class AdminController {
 
     @Operation(summary = "更新礼包材料表")
     @PostMapping("/admin/item/update")
-    public Result<ItemCustom> saveOrUpdatePackItem(@RequestBody ItemCustom newItemCustom){
+    public Result<ItemCustom> saveOrUpdatePackItem(HttpServletRequest httpServletRequest,@RequestBody ItemCustom newItemCustom){
         ItemCustom itemCustom = packInfoService.saveOrUpdatePackItem(newItemCustom);
         return Result.success(itemCustom);
     }
 
     @Operation(summary = "删除礼包材料")
     @GetMapping("/admin/item/delete")
-    public Result<String> deletePackItem(@RequestParam String id){
+    public Result<String> deletePackItem(HttpServletRequest httpServletRequest,@RequestParam String id){
 
         return Result.success(packInfoService.deletePackItemById(id));
     }
 
     @Operation(summary = "清除礼包缓存数据")
     @GetMapping("/admin/pack/reset")
-    public Result<Object> clearPackCache(){
+    public Result<Object> clearPackCache(HttpServletRequest httpServletRequest){
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         packInfoService.uploadPackInfoPageToCos(stageConfigDTO);
         return Result.success();

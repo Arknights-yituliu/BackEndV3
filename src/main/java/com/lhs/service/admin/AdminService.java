@@ -15,7 +15,7 @@ public interface AdminService {
 
     Map<String,Object> login(LoginVo loginVo);
 
-    Boolean checkToken(String token);
+
 
     HashMap<String,Object> getDeveloperInfo(String token);
 
