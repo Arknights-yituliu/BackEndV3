@@ -2,6 +2,7 @@ package com.lhs.entity.po.material;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.lhs.entity.dto.material.PackInfoDTO;
 import com.lhs.entity.vo.material.PackInfoVO;
 import lombok.Data;
 
@@ -45,6 +46,20 @@ public class PackInfo {
         this.note = packInfoVO.getNote();
     }
 
-
+    public void copy(PackInfoDTO packInfoDTO){
+        this.id = packInfoDTO.getId();
+        this.officialName = packInfoDTO.getOfficialName();
+        this.displayName = packInfoDTO.getDisplayName();
+        this.price = packInfoDTO.getPrice();
+        this.saleType = packInfoDTO.getSaleType();
+        this.tags =  String.join(",",packInfoDTO.getTags()) ;
+        this.gachaTicket = packInfoDTO.getGachaTicket();
+        this.tenGachaTicket = packInfoDTO.getTenGachaTicket();
+        this.originium = packInfoDTO.getOriginium();
+        this.orundum = packInfoDTO.getOrundum();
+        this.start = new Date(packInfoDTO.getStart());
+        this.end = new Date(packInfoDTO.getEnd());
+        this.note = packInfoDTO.getNote();
+    }
 
 }

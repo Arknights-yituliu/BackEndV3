@@ -155,11 +155,6 @@ public class ItemControllerV3 {
         return Result.success(list);
     }
 
-    @Operation(summary = "获取礼包商店性价比")
-    @GetMapping("/store/pack/tag")
-    public Result<String> getPackInfoTag(){
-        String tag = packInfoService.packInfoTag();
-        return Result.success(tag);
-    }
+
 
 }

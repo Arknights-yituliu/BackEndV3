@@ -1,5 +1,6 @@
 package com.lhs.task;
 
+import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.survey.OperatorStatisticsService;
 import com.lhs.service.material.*;
@@ -18,17 +19,31 @@ public class TaskService {
     private final OperatorStatisticsService operatorStatisticsService;
 
     private final RogueSeedService rogueSeedService;
+    private final RecruitTagUploadService recruitTagUploadService;
 
     public TaskService(StoreService storeService,
                        StageCalService stageCalService,
                        StageService stageService,
                        OperatorStatisticsService operatorStatisticsService,
-                       RogueSeedService rogueSeedService) {
+                       RogueSeedService rogueSeedService, RecruitTagUploadService recruitTagUploadService) {
         this.storeService = storeService;
         this.stageCalService = stageCalService;
         this.stageService = stageService;
         this.operatorStatisticsService = operatorStatisticsService;
         this.rogueSeedService = rogueSeedService;
+        this.recruitTagUploadService = recruitTagUploadService;
+    }
+
+
+
+
+
+    /**
+     * 公招统计
+     */
+    @Scheduled(cron = "0 0 0/3 * * ?")
+    public void recruitStatistics() {
+        recruitTagUploadService.recruitStatistics();
     }
 
 

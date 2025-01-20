@@ -1,6 +1,7 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
+import com.lhs.entity.dto.material.PackInfoDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.LogInfo;
 import com.lhs.entity.po.material.ItemCustom;
@@ -96,9 +97,9 @@ public class AdminController {
 
     @Operation(summary = "更新商店礼包")
     @PostMapping("/admin/store/pack/update")
-    public Result<String> updateStageResult(@RequestBody PackInfoVO packInfoVO) {
+    public Result<String> updateStageResult(@RequestBody PackInfoDTO packInfoDTO) {
 
-        return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoVO));
+        return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoDTO));
     }
 
     @Operation(summary = "根据id获取礼包")

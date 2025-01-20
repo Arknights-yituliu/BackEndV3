@@ -1,5 +1,6 @@
 package com.lhs.service.admin.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
@@ -49,8 +50,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void emailSendCode(LoginVo loginVo) {
-        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("developer", loginVo.getDeveloper());
+        LambdaQueryWrapper<Admin> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Admin::getDeveloper, loginVo.getDeveloper()).or(wrapper->wrapper.eq(Admin::getEmail,loginVo.getDeveloper()));
         Admin admin = adminMapper.selectOne(queryWrapper);
         if (admin == null) throw new ServiceException(ResultCode.USER_NOT_EXIST);
         String email = admin.getEmail();
@@ -70,8 +71,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Map<String, Object> login(LoginVo loginVo) {
-        QueryWrapper<Admin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("developer", loginVo.getDeveloper());
+        LambdaQueryWrapper<Admin> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Admin::getDeveloper, loginVo.getDeveloper()).or(wrapper->wrapper.eq(Admin::getEmail,loginVo.getDeveloper()));
         Admin admin = adminMapper.selectOne(queryWrapper);
         if (admin == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);

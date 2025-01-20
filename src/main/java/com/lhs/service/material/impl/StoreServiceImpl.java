@@ -112,15 +112,15 @@ public class StoreServiceImpl implements StoreService {
 
         Map<String, List<StorePermVO>> storePermTable = readStorePermTable();
         Map<String, Item> itemMapCache = itemService.getItemMapCache(stageConfigDTO);
-        for(String type:storePermTable.keySet()){
+        for (String type : storePermTable.keySet()) {
             List<StorePermVO> storePermVOList = storePermTable.get(type);
-            for(StorePermVO item:storePermVOList){
+            for (StorePermVO item : storePermVOList) {
                 double value = itemMapCache.get(item.getItemId()).getItemValueAp();
                 int quantity = item.getQuantity();
                 double cost = item.getCost();
-                double costPer = value*quantity/cost;
-                if ("grey".equals(type)){
-                    costPer=costPer*100;
+                double costPer = value * quantity / cost;
+                if ("grey".equals(type)) {
+                    costPer = costPer * 100;
                 }
                 item.setCostPer(costPer);
             }
@@ -130,25 +130,16 @@ public class StoreServiceImpl implements StoreService {
         return storePermTable;
     }
 
-    public Map<String,List<StorePermVO>> readStorePermTable() {
-        Object o = redisTemplate.opsForValue().get("StorePermTable");
-
-        String text;
-        if (o != null) {
-            text = String.valueOf(o);
-        } else {
-            String read = FileUtil.read(ConfigUtil.Config + "store_perm_table.json");
-            if (read == null) {
-                throw new ServiceException(ResultCode.FILE_NOT_EXIST);
-            }
-            redisTemplate.opsForValue().set("StorePermTable", read);
-            text = read;
+    @RedisCacheable(key = "StorePermTable")
+    public Map<String, List<StorePermVO>> readStorePermTable() {
+        String text = FileUtil.read(ConfigUtil.Config + "store_perm_table.json");
+        if (text == null) {
+            throw new ServiceException(ResultCode.FILE_NOT_EXIST);
         }
 
         return JsonMapper.parseObject(text, new TypeReference<>() {
         });
     }
-
 
 
     @Override
@@ -158,13 +149,13 @@ public class StoreServiceImpl implements StoreService {
         List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
         String actName = activityStoreDataVo.getActName();
 
-        for(StoreItemVO vo:storeItemVOList){
+        for (StoreItemVO vo : storeItemVOList) {
             Item item = itemMap.get(vo.getItemId());
-            if(item==null){
-                LogUtils.error(vo.getItemName()+"不存在");
+            if (item == null) {
+                LogUtils.error(vo.getItemName() + "不存在");
                 continue;
             }
-            vo.setItemPPR(item.getItemValueAp()* vo.getItemQuantity() / vo.getItemPrice());
+            vo.setItemPPR(item.getItemValueAp() * vo.getItemQuantity() / vo.getItemPrice());
             vo.setItemId(item.getItemId());
         }
 
@@ -213,11 +204,11 @@ public class StoreServiceImpl implements StoreService {
             String result = e.getResult();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
             List<StoreItemVO> actStore = activityStoreDataVo.getActStore();
-            for(StoreItemVO item:actStore){
+            for (StoreItemVO item : actStore) {
                 double value = itemMapCache.get(item.getItemId()).getItemValueAp();
                 int quantity = item.getItemQuantity();
                 double price = item.getItemPrice();
-                double ppr = value*quantity/price;
+                double ppr = value * quantity / price;
                 item.setItemPPR(ppr);
             }
             activityStoreDataVo.setImageLink(imageInfoMap.get(activityStoreDataVo.getActName()));
@@ -227,7 +218,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    @RedisCacheable(key = "Item:StoreAct", paramOrMethod ="getVersionCode")
+    @RedisCacheable(key = "Item:StoreAct", paramOrMethod = "getVersionCode")
     public List<ActivityStoreDataVO> getActivityStoreData(StageConfigDTO stageConfigDTO) {
         return getActivityStoreDataNoCache(stageConfigDTO);
     }

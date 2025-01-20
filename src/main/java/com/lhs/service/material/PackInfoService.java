@@ -7,6 +7,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.enums.ResultCode;
+import com.lhs.entity.dto.material.PackInfoDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.Item;
@@ -63,10 +64,7 @@ public class PackInfoService {
     }
 
 
-    public String packInfoTag(){
-        Object packInfoTag = redisTemplate.opsForValue().get("PackInfoTag");
-        return packInfoTag!=null?packInfoTag.toString():"NO_DATA";
-    }
+
 
     public List<PackInfoVO> listPackInfo(StageConfigDTO stageConfigDTO) {
         return listAllPackInfo(stageConfigDTO);
@@ -105,18 +103,18 @@ public class PackInfoService {
     }
 
 
-    public String saveOrUpdatePackInfo(PackInfoVO packInfoVO) {
+    public String saveOrUpdatePackInfo(PackInfoDTO packInfoDTO) {
         Date currentDate = new Date();
         //创建一个po对象存储数据
         PackInfo packInfo = new PackInfo();
         //将VO类的数据传递给po
-        packInfo.copy(packInfoVO);
+        packInfo.copy(packInfoDTO);
         Long contentId = idGenerator.nextId();
         packInfo.setContentId(contentId);
 
         //旧礼包需要更新,通过id查询旧礼包的信息
         LambdaQueryWrapper<PackInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(PackInfo::getId, packInfoVO.getId());
+        queryWrapper.eq(PackInfo::getId, packInfoDTO.getId());
         PackInfo packInfoById = packInfoMapper.selectOne(queryWrapper);
 
         String message = "新增礼包成功";
@@ -141,12 +139,12 @@ public class PackInfoService {
         Long packId = packInfo.getId();
 
         //礼包没有除四种抽卡资源之外内容直接返回礼包信息
-        if (packInfoVO.getPackContent() == null) {
+        if (packInfoDTO.getPackContent() == null) {
             return message;
         }
 
         //礼包的额外内容
-        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
+        List<PackContentVO> packContentVOList = packInfoDTO.getPackContent();
         //创建一个礼包额外内容的po类的集合
         List<PackContent> packContentList = new ArrayList<>();
         //将vo类的内容拷贝到po,同时生成礼包id
@@ -178,7 +176,9 @@ public class PackInfoService {
         List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
         PackInfoVO packInfoVO = getPackInfoVO(packInfo, packContentList);
         ImageInfo imageInfo = imageInfoService.getImageInfo(packInfo.getOfficialName());
-        packInfoVO.setImageLink(imageInfo.getImageLink());
+        if(imageInfo!=null){
+            packInfoVO.setImageLink(imageInfo.getImageLink());
+        }
         return packInfoVO;
     }
 
