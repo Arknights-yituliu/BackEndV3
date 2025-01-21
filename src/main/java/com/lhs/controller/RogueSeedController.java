@@ -46,8 +46,8 @@ public class RogueSeedController {
     }
 
     @GetMapping("/rogue/seed/user/rating")
-    public Result<Map<Long, RogueSeedRating>> ratingList(HttpServletRequest httpServletRequest){
-        return Result.success(rogueSeedService.listRogueSeedUserRating(httpServletRequest));
+    public Result<Map<Long, RogueSeedRating>> ratingList(HttpServletRequest httpServletRequest,@RequestParam("uid")Long uid){
+        return Result.success(rogueSeedService.listRogueSeedUserRating(httpServletRequest,uid));
     }
 
 

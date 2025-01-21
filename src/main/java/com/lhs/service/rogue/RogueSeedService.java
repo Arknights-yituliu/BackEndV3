@@ -33,7 +33,7 @@ public interface RogueSeedService {
      */
     String rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest);
 
-    Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest);
+    Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest,Long uid);
 
     List<RogueSeedVO> listRogueSeed(RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest);
 

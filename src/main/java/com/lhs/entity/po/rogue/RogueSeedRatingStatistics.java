@@ -13,6 +13,8 @@ public class RogueSeedRatingStatistics {
     private Long seedId;
     private Integer seedType;
     private Double rating;
+    private Integer thumbsUp;
+    private Integer thumbsDown;
     private Integer ratingCount;
     private Date createTime;
     private Boolean deleteFlag;
@@ -21,6 +23,8 @@ public class RogueSeedRatingStatistics {
     {
         rating = 0.0;
         ratingCount = 0;
+        thumbsUp = 0;
+        thumbsDown = 0;
     }
 
     public Long getId() {
@@ -77,6 +81,22 @@ public class RogueSeedRatingStatistics {
 
     public void setSeedType(Integer seedType) {
         this.seedType = seedType;
+    }
+
+    public Integer getThumbsUp() {
+        return thumbsUp;
+    }
+
+    public void setThumbsUp(Integer thumbsUp) {
+        this.thumbsUp = thumbsUp;
+    }
+
+    public Integer getThumbsDown() {
+        return thumbsDown;
+    }
+
+    public void setThumbsDown(Integer thumbsDown) {
+        this.thumbsDown = thumbsDown;
     }
 
     @Override

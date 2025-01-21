@@ -140,6 +140,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         rogueSeed.setSummaryImageLink(dto.getSummaryImageLink());
         rogueSeed.setRating(0.0);
         rogueSeed.setRatingCount(0);
+        rogueSeed.setThumbsUp(0);
+        rogueSeed.setThumbsDown(0);
         Date date = new Date();
         rogueSeed.setCreateTime(date);
         rogueSeed.setUpdateTime(date);
@@ -346,26 +348,39 @@ public class RogueSeedServiceImpl implements RogueSeedService {
                 Collectors.collectingAndThen(
                         Collectors.toList(), // 将相同seedId的数据收集到列表中
                         list -> {
-                            int ratingCount = list.size(); // rating数量
-                            long likeCount = list.stream().filter(e -> e.getRating() == 1).count();// 计算总评分
+                            //评分人次
+                            int ratingCount = list.size();
+                            // 计算点赞总数
+                            int thumbsUpCount = (int) list.stream().filter(e -> e.getRating() == 1).count();
+
                             RogueSeedRatingStatistics result = new RogueSeedRatingStatistics();
-                            result.setRating((double) likeCount); // 存储评分数量
+                            result.setThumbsUp(thumbsUpCount);
+                            result.setThumbsDown(ratingCount-thumbsUpCount);
+                            result.setRating((double)thumbsUpCount/ratingCount*5);
                             result.setRatingCount(ratingCount); // 存储平均评分
                             result.setCreateTime(new Date());
                             result.setDeleteFlag(false);
+
                             return result;
                         }
                 )
         ));
 
 
-        collect.forEach((k, v) -> {
-            v.setSeedId(k);
-            Integer type = seedIdAndType.get(k);
-            v.setSeedType(type != null ? type : -1);
-            rogueSeedRatingStatisticsMapper.insert(v);
-            redisTemplate.opsForZSet().add("RogueSeedThumbsUp", k, v.getRating());
-            redisTemplate.opsForZSet().add("RogueSeedRatingCount", k, v.getRatingCount());
+        collect.forEach((seedId, result) -> {
+            result.setSeedId(seedId);
+            Integer type = seedIdAndType.get(seedId);
+            result.setSeedType(type != null ? type : -1);
+            rogueSeedRatingStatisticsMapper.insert(result);
+            RogueSeed rogueSeed = new RogueSeed();
+            rogueSeed.setSeedId(seedId);
+            rogueSeed.setThumbsUp(result.getThumbsUp());
+            rogueSeed.setThumbsDown(result.getThumbsDown());
+            rogueSeed.setRating(result.getThumbsUp().doubleValue()/result.getRatingCount().doubleValue()*5);
+            rogueSeed.setRatingCount(result.getRatingCount());
+            rogueSeedMapper.updateById(rogueSeed);
+            redisTemplate.opsForZSet().add("RogueSeedThumbsUp", seedId, result.getThumbsUp());
+            redisTemplate.opsForZSet().add("RogueSeedRatingCount", seedId, result.getRatingCount());
         });
 
         LogUtils.info("种子点赞统计已更新");
@@ -375,19 +390,21 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
 
     @Override
-    public Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest) {
+    public Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest,Long uid) {
         Map<Long, RogueSeedRating> collect = new HashMap<>();
+
         Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
-        if (!loginStatus) {
-            return collect;
+        if (loginStatus) {
+            UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+            uid = userInfoVO.getUid();
         }
-        //根据token拿到用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        //获取用户uid
-        Long uid = userInfoByToken.getUid();
+
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getUid, uid).eq(RogueSeedRating::getDeleteFlag,false);
         List<RogueSeedRating> rogueSeedRatings = rogueSeedRatingMapper.selectList(rogueSeedRatingLambdaUpdateWrapper);
+        if(rogueSeedRatings.isEmpty()){
+            return collect;
+        }
         collect = rogueSeedRatings.stream().collect(Collectors.toMap(RogueSeedRating::getSeedId, Function.identity()));
 
         return collect;
@@ -402,7 +419,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         if ("date".equals(rogueSeedPageDTO.getSortCondition())) {
             queryWrapper.orderByDesc(RogueSeed::getCreateTime);
-        } else {
+        }else if("thumbsUp".equals(rogueSeedPageDTO.getSortCondition())) {
+            queryWrapper.orderByDesc(RogueSeed::getThumbsUp);
+        }else {
             queryWrapper.orderByDesc(RogueSeed::getRating);
         }
 
@@ -415,7 +434,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     @Override
     public RogueSeedVO rollRogueSeed(RollRogueSeedDTO rollDTO, HttpServletRequest httpServletRequest) {
         Long seedCount = getRogueSeedCountByType(rollDTO.getSeedType());
-        List<RogueSeedRatingStatistics> ratingStatisticsList = new ArrayList<>();
+        List<RogueSeedRatingStatistics> ratingStatisticsList;
 
         if (seedCount < 300) {
             ratingStatisticsList = rogueSeedRatingStatisticsMapper.pageRogueSeedRatingStatistics(0, seedCount.intValue());
@@ -492,9 +511,13 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         if (rogueSeedThumbsUp != null && rogueSeedRatingCount != null) {
             rogueSeedVO.setRating(rogueSeedThumbsUp / rogueSeedRatingCount * 5);
             rogueSeedVO.setRatingCount(rogueSeedRatingCount.intValue());
+            rogueSeedVO.setThumbsUp(rogueSeedThumbsUp.intValue());
+            rogueSeedVO.setThumbsDown(rogueSeedRatingCount.intValue()-rogueSeedThumbsUp.intValue());
         } else {
             rogueSeedVO.setRating(0.0);
             rogueSeedVO.setRatingCount(0);
+            rogueSeedVO.setThumbsDown(0);
+            rogueSeedVO.setThumbsUp(0);
         }
 
         return rogueSeedVO;

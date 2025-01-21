@@ -16,6 +16,8 @@ public class RogueSeed {
     private Integer seedType;
     private String source;
     private Double rating;
+    private Integer thumbsUp;
+    private Integer thumbsDown;
     private Integer ratingCount;
     private Integer difficulty;
     private Integer uploadTimes;
@@ -115,6 +117,22 @@ public class RogueSeed {
 
     public void setRating(Double rating) {
         this.rating = rating;
+    }
+
+    public Integer getThumbsUp() {
+        return thumbsUp;
+    }
+
+    public void setThumbsUp(Integer thumbsUp) {
+        this.thumbsUp = thumbsUp;
+    }
+
+    public Integer getThumbsDown() {
+        return thumbsDown;
+    }
+
+    public void setThumbsDown(Integer thumbsDown) {
+        this.thumbsDown = thumbsDown;
     }
 
     public Integer getRatingCount() {

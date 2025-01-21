@@ -447,6 +447,7 @@ public class UserServiceImpl implements UserService {
     private Long decryptToken(String token) {
         long id = 114L;
 
+
         try {
             String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
             String idText = decrypt.split("\\.")[1];
