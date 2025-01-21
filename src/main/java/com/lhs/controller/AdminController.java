@@ -156,8 +156,8 @@ public class AdminController {
     @Operation(summary = "更新活动商店性价比(新")
     @PostMapping("/admin/store/act/update")
     public Result<Object> updateActStoreByActName(HttpServletRequest request, @RequestBody ActivityStoreDataVO activityStoreDataVo) {
-        Boolean level = adminService.developerLevel(request);
-        String message = storeService.updateActivityStoreDataByActivityName(activityStoreDataVo, level);
+
+        String message = storeService.updateActivityStoreDataByActivityName(activityStoreDataVo);
         return Result.success(message);
     }
 

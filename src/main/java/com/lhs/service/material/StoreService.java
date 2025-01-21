@@ -35,10 +35,9 @@ public interface StoreService {
      * 根据活动名称更新活动商店
      *
      * @param activityStoreDataVo 新的活动商店数据
-     * @param developerLevel      开发者权限等级
      * @return 更新状态消息
      */
-    String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel);
+    String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo);
 
 
     void updateHoneyCake(List<HoneyCake> honeyCakeList);

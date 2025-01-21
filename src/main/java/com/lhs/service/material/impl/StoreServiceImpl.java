@@ -143,7 +143,7 @@ public class StoreServiceImpl implements StoreService {
 
 
     @Override
-    public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo, Boolean developerLevel) {
+    public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo) {
         Map<String, Item> itemMap = itemService.getItemMapCache(new StageConfigDTO());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
@@ -173,20 +173,16 @@ public class StoreServiceImpl implements StoreService {
             storeActMapper.updateById(build);
         }
 
-        String message = "活动商店已更新";
 
-        if (developerLevel) {
-            StageConfigDTO stageConfigDTO = new StageConfigDTO();
-            List<ActivityStoreDataVO> activityStoreDataVOList = getActivityStoreDataNoCache(stageConfigDTO);
-            redisTemplate.opsForValue().set("Item:StoreAct", activityStoreDataVOList, 6, TimeUnit.HOURS);
 
-            message = "活动商店已更新，并清空缓存";
-        }
 
-        String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
-        String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
+        StageConfigDTO stageConfigDTO = new StageConfigDTO();
+        List<ActivityStoreDataVO> activityStoreDataVOList = getActivityStoreDataNoCache(stageConfigDTO);
+        redisTemplate.opsForValue().set("Item:StoreAct", activityStoreDataVOList, 6, TimeUnit.HOURS);
 
-        return message;
+
+
+        return "活动商店已更新";
     }
 
 

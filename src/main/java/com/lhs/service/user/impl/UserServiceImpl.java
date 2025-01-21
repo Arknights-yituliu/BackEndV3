@@ -402,6 +402,7 @@ public class UserServiceImpl implements UserService {
         if (token != null && token.startsWith("Authorization") && token.length() > 30) {
             return token.replace("Authorization", "");
         }
+
         throw new ServiceException(ResultCode.USER_NOT_LOGIN);
     }
 
