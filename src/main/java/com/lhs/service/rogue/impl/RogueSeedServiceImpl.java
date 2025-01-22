@@ -15,7 +15,7 @@ import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.rogue.*;
 import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.user.UserService;
-import com.lhs.service.util.COSService;
+import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final COSService cosService;
+    private final TencentCloudService tencentCloudService;
 
     private final RogueSeedMapper rogueSeedMapper;
     private final RogueSeedBakMapper rogueSeedBakMapper;
@@ -46,7 +46,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     public RogueSeedServiceImpl(UserService userService,
                                 RedisTemplate<String, Object> redisTemplate,
-                                COSService cosService,
+                                TencentCloudService tencentCloudService,
                                 RogueSeedMapper rogueSeedMapper,
                                 RogueSeedBakMapper rogueSeedBakMapper,
                                 RogueSeedTagMapper rogueSeedTagMapper,
@@ -55,7 +55,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
                                 RogueSeedRatingStatisticsMapper rogueSeedRatingStatisticsMapper, UserActionOnSeedMapper userActionOnSeedMapper) {
         this.userService = userService;
         this.redisTemplate = redisTemplate;
-        this.cosService = cosService;
+        this.tencentCloudService = tencentCloudService;
         this.rogueSeedMapper = rogueSeedMapper;
         this.rogueSeedBakMapper = rogueSeedBakMapper;
         this.rogueSeedTagMapper = rogueSeedTagMapper;
@@ -200,7 +200,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         String imageName = idGenerator.nextId() + ".jpg";
         String bucketPath = "rogue-seed/settlement-chart/" + imageName;
-        cosService.uploadFile(multipartFile, bucketPath);
+        tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
 
         Map<String, Object> response = new HashMap<>();
         response.put("imagePath", bucketPath);

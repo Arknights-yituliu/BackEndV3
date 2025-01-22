@@ -21,8 +21,7 @@ import com.lhs.mapper.material.PackInfoMapper;
 import com.lhs.mapper.material.ItemCustomMapper;
 import com.lhs.mapper.material.service.PackContentMapperService;
 import com.lhs.service.admin.ImageInfoService;
-import com.lhs.service.util.COSService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.lhs.service.util.TencentCloudService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +36,7 @@ public class PackInfoService {
     private final ItemCustomMapper itemCustomMapper;
     private final IdGenerator idGenerator;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final COSService cosService;
+    private final TencentCloudService tencentCloudService;
     private final PackContentMapperService packContentMapperService;
     private final ItemService itemService;
     private final ImageInfoService imageInfoService;
@@ -47,7 +46,7 @@ public class PackInfoService {
     public PackInfoService(PackInfoMapper packInfoMapper,
                            PackContentMapper packContentMapper,
                            RedisTemplate<String, Object> redisTemplate,
-                           COSService cosService,
+                           TencentCloudService tencentCloudService,
                            PackContentMapperService packContentMapperService,
                            ItemCustomMapper itemCustomMapper,
                            ItemService itemService,
@@ -57,7 +56,7 @@ public class PackInfoService {
         this.redisTemplate = redisTemplate;
         this.itemService = itemService;
         this.idGenerator = new IdGenerator(1L);
-        this.cosService = cosService;
+        this.tencentCloudService = tencentCloudService;
         this.packContentMapperService = packContentMapperService;
         this.itemCustomMapper = itemCustomMapper;
         this.imageInfoService = imageInfoService;
@@ -355,7 +354,7 @@ public class PackInfoService {
         response.put("data",packInfoVOS);
         response.put("update",timeStamp);
         String jsonString = JsonMapper.toJSONString(response);
-        cosService.uploadJson(jsonString,"/store/pack/"+timeStamp+".json");
+        tencentCloudService.uploadJsonToCOS(jsonString,"/store/pack/"+timeStamp+".json");
         redisTemplate.opsForValue().set("PackInfoTag",timeStamp);
     }
 

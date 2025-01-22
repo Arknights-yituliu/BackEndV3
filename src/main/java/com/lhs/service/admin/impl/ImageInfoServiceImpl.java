@@ -6,7 +6,7 @@ import com.lhs.common.util.LogUtils;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.service.admin.ImageInfoService;
-import com.lhs.service.util.COSService;
+import com.lhs.service.util.TencentCloudService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,12 +16,12 @@ import java.util.List;
 public class ImageInfoServiceImpl implements ImageInfoService {
 
     private final ImageInfoMapper imageInfoMapper;
-    private final COSService cosService;
+    private final TencentCloudService tencentCloudService;
     private final IdGenerator idGenerator;
 
-    public ImageInfoServiceImpl(ImageInfoMapper imageInfoMapper, COSService cosService) {
+    public ImageInfoServiceImpl(ImageInfoMapper imageInfoMapper, TencentCloudService tencentCloudService) {
         this.imageInfoMapper = imageInfoMapper;
-        this.cosService = cosService;
+        this.tencentCloudService = tencentCloudService;
         idGenerator = new IdGenerator(1L);
     }
 
@@ -50,7 +50,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
         } else {
             imageInfoMapper.updateById(imageInfo);
         }
-        cosService.uploadFile(multipartFile, bucketPath);
+        tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
         }
 
 
-        cosService.uploadFile(multipartFile, bucketPath);
+        tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
 
     }
 
@@ -126,7 +126,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
                 LogUtils.info("文件已存在");
                 imageInfoMapper.updateById(imageInfo);
             }
-            cosService.uploadFile(multipartFile, bucketPath);
+            tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
         }
         return "文件上传成功";
     }

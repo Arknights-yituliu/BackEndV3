@@ -19,7 +19,7 @@ import com.lhs.mapper.material.*;
 import com.lhs.mapper.material.service.StorePermMapperService;
 import com.lhs.service.material.ItemService;
 import com.lhs.service.material.StoreService;
-import com.lhs.service.util.COSService;
+import com.lhs.service.util.TencentCloudService;
 import com.lhs.service.util.DataCacheService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -50,7 +50,7 @@ public class StoreServiceImpl implements StoreService {
     private final PackInfoMapper packInfoMapper;
     private final IdGenerator idGenerator;
 
-    private final COSService cosService;
+    private final TencentCloudService tencentCloudService;
     private final ImageInfoMapper imageInfoMapper;
 
     private final DataCacheService dataCacheService;
@@ -58,7 +58,7 @@ public class StoreServiceImpl implements StoreService {
     public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
                             HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
                             StorePermMapperService storePermMapperService, PackInfoMapper packInfoMapper,
-                            COSService cosService, ImageInfoMapper imageInfoMapper, DataCacheService dataCacheService) {
+                            TencentCloudService tencentCloudService, ImageInfoMapper imageInfoMapper, DataCacheService dataCacheService) {
         this.storePermMapper = storePermMapper;
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
@@ -69,7 +69,7 @@ public class StoreServiceImpl implements StoreService {
         this.imageInfoMapper = imageInfoMapper;
         this.dataCacheService = dataCacheService;
         this.idGenerator = new IdGenerator(1L);
-        this.cosService = cosService;
+        this.tencentCloudService = tencentCloudService;
     }
 
     /**

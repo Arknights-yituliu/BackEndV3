@@ -29,17 +29,17 @@ import java.util.stream.Collectors;
 public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     private final OperatorTableMapper operatorTableMapper;
-//    private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
-//    private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
-//    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
+    private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
+    private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
+    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
 
     //工位上的开发路径
     //泰迪的仓库
-    private final static String githubBotResource = "C:/WebStormProject/ArknightsGameResource/";
-    //PRTS的仓库
-    private final static String GAME_DATA = "C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/";
-    //输出路径
-    private final static String JSON_BUILD = "C:/WebStormProject/frontend-v2-plus/";
+//    private final static String githubBotResource = "C:/WebStormProject/ArknightsGameResource/";
+//    //PRTS的仓库
+//    private final static String GAME_DATA = "C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/";
+//    //输出路径
+//    private final static String JSON_BUILD = "C:/WebStormProject/frontend-v2-plus/";
     
     // 测试路径
 //    private final static String GAME_DATA = "C:/Users/22509/Downloads/";
