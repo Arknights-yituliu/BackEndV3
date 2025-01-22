@@ -14,7 +14,7 @@ public interface UserService {
     /**
      * 用户注册
      *
-     * @param httpServletRequest 请求体
+     * @param httpServletRequest HTTP请求对象
      * @param loginDataDTO       用户修改的信息
      * @return 用户状态信息
      */
@@ -23,7 +23,7 @@ public interface UserService {
     /**
      * 用户登录
      *
-     * @param httpServletRequest 请求体
+     * @param httpServletRequest HTTP请求对象
      * @param loginDataDTO       用户修改的信息
      * @return 用户状态信息
      */
@@ -35,7 +35,7 @@ public interface UserService {
 
     /**
      * 检查用户登录状态
-     * @param httpServletRequest 请求对象
+     * @param httpServletRequest HTTP请求对象
      * @return 是否登录
      */
     Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest);
@@ -66,7 +66,7 @@ public interface UserService {
     /**
      * 通过HttpServletRequest获取token，根据token拿到用户信息
      *
-     * @param httpServletRequest 来自接口的请求信息
+     * @param httpServletRequest HTTP请求对象
      * @return 用户信息
      */
     UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest);
@@ -74,7 +74,7 @@ public interface UserService {
     /**
      * 通过HttpServletRequest获取token，根据token拿到用户信息
      *
-     * @param httpServletRequest 来自接口的请求信息
+     * @param httpServletRequest HTTP请求对象
      * @return 用户信息
      */
     UserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest);
@@ -89,14 +89,14 @@ public interface UserService {
 
     /**
      * 更新用户的各种自定义配置
-     * @param httpServletRequest 请求信息
+     * @param httpServletRequest HTTP请求对象
      * @param userConfigDTO 请求体
      */
     void updateUserConfig(HttpServletRequest httpServletRequest,UserConfigDTO userConfigDTO);
 
     /**
      * 更新用户信息
-     * @param httpServletRequest 请求信息
+     * @param httpServletRequest HTTP请求对象
      * @param updateUserDataDto 要更新的内容
      * @return 用户信息
      */
@@ -114,7 +114,7 @@ public interface UserService {
 
     /**
      * 重设密码
-     * @param httpServletRequest 请求信息
+     * @param httpServletRequest HTTP请求对象
      * @param loginDataDTO 找回所需的内容
      * @return 用户凭证
      */

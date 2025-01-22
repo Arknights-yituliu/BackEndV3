@@ -33,13 +33,40 @@ public interface RogueSeedService {
      */
     String rogueSeedRating(RogueSeedRatingDTO rogueSeedRatingDTO, HttpServletRequest httpServletRequest);
 
+    /**
+     * 获取用户评论的记录
+     * @param httpServletRequest HTTP请求对象
+     * @param uid uid 兜底手段 如果前端用户未登录，前端会
+     * @return 用户的所有评价记录
+     */
     Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest,Long uid);
 
+    /**
+     * 分页获取种子
+     * @param rogueSeedPageDTO  分页参数
+     * @param httpServletRequest HTTP请求对象
+     * @return 种子集合
+     */
     List<RogueSeedVO> listRogueSeed(RogueSeedPageDTO rogueSeedPageDTO, HttpServletRequest httpServletRequest);
 
+    /**
+     * 种子评价统计
+     * @return 当前种子数
+     */
     Integer ratingStatistics();
 
+    /**
+     * 随机抽取一个种子
+     * @param rogueSeedDTO 抽取条件
+     * @param httpServletRequest  HTTP请求对象
+     * @return 种子信息
+     */
     RogueSeedVO rollRogueSeed(RollRogueSeedDTO rogueSeedDTO, HttpServletRequest httpServletRequest);
 
+    /**
+     * 记录用户对种子的操作
+     * @param userActionOnSeedDTO 用户对种子的操作
+     * @param httpServletRequest  HTTP请求对象
+     */
     void recordUserActionOnSeed(UserActionOnSeedDTO userActionOnSeedDTO, HttpServletRequest httpServletRequest);
 }
