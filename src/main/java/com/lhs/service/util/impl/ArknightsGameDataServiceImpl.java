@@ -228,13 +228,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         }
 
 
-        List<Object> list = operatorInfoSimpleMap.values().stream().toList();
+
 
 
         FileUtil.save(JSON_BUILD + "src/static/json/survey/",
                 "character_table_simple.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
-        FileUtil.save(JSON_BUILD + "src/static/json/survey/",
-                "character_list.json", JsonMapper.toJSONString(list));
+
 
         FileUtil.save(JSON_BUILD + "src/static/json/survey/",
                 "operator_item_cost_table.json", JsonMapper.toJSONString(itemCostMap));

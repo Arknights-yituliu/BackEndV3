@@ -70,12 +70,16 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     @Override
     public Map<String, Object> saveOrUpdateRogueSeed(HttpServletRequest httpServletRequest, RogueSeedDTO rogueSeedDTO) {
 
+        //检查种子参数
         checkDTO(rogueSeedDTO);
 
         Long uid = 1L;
 
+        //判断用户是否处于登录状态
         Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        //处于登录状态获取用户信息
         if (loginStatus) {
+            //获取用户信息后将uid取出
             UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
             uid = userInfoVO.getUid();
         }
@@ -104,6 +108,10 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         if (dto.getRogueTheme() == null || dto.getRogueVersion() == null || dto.getSource() == null || dto.getDescription() == null) {
             throw new ServiceException(ResultCode.ROGUE_SEED_PARAMS_IS_NULL);
+        }
+
+        if (dto.getDescription().length() < 8) {
+            throw new ServiceException(ResultCode.ROGUE_SEED_DESCRIPTION_LESS_THAN_8_CHARACTERS);
         }
 
         if (dto.getDescription().length() > 200) {
@@ -222,7 +230,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         String ipAddress = IpUtil.getIpAddress(httpServletRequest);
 
         //10秒内最多评论5次
-        rateLimiter.tryAcquire( ipAddress, 5, 10, ResultCode.ROGUE_SEED_RATING_COUNT_EXCESSIVE);
+        rateLimiter.tryAcquire(ipAddress, 5, 10, ResultCode.ROGUE_SEED_RATING_COUNT_EXCESSIVE);
 
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getSeedId, ratingDTO.getSeedId())
@@ -355,8 +363,8 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
                             RogueSeedRatingStatistics result = new RogueSeedRatingStatistics();
                             result.setThumbsUp(thumbsUpCount);
-                            result.setThumbsDown(ratingCount-thumbsUpCount);
-                            result.setRating((double)thumbsUpCount/ratingCount*5);
+                            result.setThumbsDown(ratingCount - thumbsUpCount);
+                            result.setRating((double) thumbsUpCount / ratingCount * 5);
                             result.setRatingCount(ratingCount); // 存储平均评分
                             result.setCreateTime(new Date());
                             result.setDeleteFlag(false);
@@ -376,7 +384,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeed.setSeedId(seedId);
             rogueSeed.setThumbsUp(result.getThumbsUp());
             rogueSeed.setThumbsDown(result.getThumbsDown());
-            rogueSeed.setRating(result.getThumbsUp().doubleValue()/result.getRatingCount().doubleValue()*5);
+            rogueSeed.setRating(result.getThumbsUp().doubleValue() / result.getRatingCount().doubleValue() * 5);
             rogueSeed.setRatingCount(result.getRatingCount());
             rogueSeedMapper.updateById(rogueSeed);
             redisTemplate.opsForZSet().add("RogueSeedThumbsUp", seedId, result.getThumbsUp());
@@ -385,12 +393,13 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         LogUtils.info("种子点赞统计已更新");
 
-        return size;
+
+        return collect.size();
     }
 
 
     @Override
-    public Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest,Long uid) {
+    public Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest, Long uid) {
         Map<Long, RogueSeedRating> collect = new HashMap<>();
 
         Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
@@ -400,9 +409,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         }
 
         LambdaUpdateWrapper<RogueSeedRating> rogueSeedRatingLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getUid, uid).eq(RogueSeedRating::getDeleteFlag,false);
+        rogueSeedRatingLambdaUpdateWrapper.eq(RogueSeedRating::getUid, uid).eq(RogueSeedRating::getDeleteFlag, false);
         List<RogueSeedRating> rogueSeedRatings = rogueSeedRatingMapper.selectList(rogueSeedRatingLambdaUpdateWrapper);
-        if(rogueSeedRatings.isEmpty()){
+        if (rogueSeedRatings.isEmpty()) {
             return collect;
         }
         collect = rogueSeedRatings.stream().collect(Collectors.toMap(RogueSeedRating::getSeedId, Function.identity()));
@@ -419,9 +428,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         if ("date".equals(rogueSeedPageDTO.getSortCondition())) {
             queryWrapper.orderByDesc(RogueSeed::getCreateTime);
-        }else if("thumbsUp".equals(rogueSeedPageDTO.getSortCondition())) {
+        } else if ("thumbsUp".equals(rogueSeedPageDTO.getSortCondition())) {
             queryWrapper.orderByDesc(RogueSeed::getThumbsUp);
-        }else {
+        } else {
             queryWrapper.orderByDesc(RogueSeed::getRating);
         }
 
@@ -512,7 +521,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             rogueSeedVO.setRating(rogueSeedThumbsUp / rogueSeedRatingCount * 5);
             rogueSeedVO.setRatingCount(rogueSeedRatingCount.intValue());
             rogueSeedVO.setThumbsUp(rogueSeedThumbsUp.intValue());
-            rogueSeedVO.setThumbsDown(rogueSeedRatingCount.intValue()-rogueSeedThumbsUp.intValue());
+            rogueSeedVO.setThumbsDown(rogueSeedRatingCount.intValue() - rogueSeedThumbsUp.intValue());
         } else {
             rogueSeedVO.setRating(0.0);
             rogueSeedVO.setRatingCount(0);

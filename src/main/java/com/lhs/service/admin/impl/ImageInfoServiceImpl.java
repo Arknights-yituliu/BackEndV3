@@ -34,6 +34,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
             String[] split = originalFilename.split("\\.");
             fileType = split[1];
         }
+
         String imageId = idGenerator.nextId() + "." + fileType;
         String bucketPath = path + imageId;
 
