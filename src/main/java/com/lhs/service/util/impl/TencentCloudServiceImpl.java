@@ -145,27 +145,27 @@ public class TencentCloudServiceImpl implements TencentCloudService {
         // 指定文件将要存放的存储桶
 
         // 获取存储桶中的所有对象列表
-        ObjectListing objectListing = cosClient.listObjects(bucketName);
+//        ObjectListing objectListing = cosClient.listObjects(bucketName);
 
-        List<COSObjectSummary> cosObjectSummaries = objectListing.getObjectSummaries();
+//        List<COSObjectSummary> cosObjectSummaries = objectListing.getObjectSummaries();
+//
+//        while (!cosObjectSummaries.isEmpty()) {
+//
+//            // 批量删除对象
+//            List<DeleteObjectsRequest.KeyVersion> keyList = new ArrayList<>();
+//            for (COSObjectSummary summary : cosObjectSummaries) {
+//                keyList.add(new DeleteObjectsRequest.KeyVersion(summary.getKey()));
+//            }
+//
+//            DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucketName);
+//            deleteObjectsRequest.setKeys(keyList);
+//            cosClient.deleteObjects(deleteObjectsRequest);
+//            // 获取下一批次的对象列表
+//            objectListing = cosClient.listNextBatchOfObjects(objectListing);
+//            cosObjectSummaries = objectListing.getObjectSummaries();
+//        }
 
-        while (!cosObjectSummaries.isEmpty()) {
-
-            // 批量删除对象
-            List<DeleteObjectsRequest.KeyVersion> keyList = new ArrayList<>();
-            for (COSObjectSummary summary : cosObjectSummaries) {
-                keyList.add(new DeleteObjectsRequest.KeyVersion(summary.getKey()));
-            }
-
-            DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucketName);
-            deleteObjectsRequest.setKeys(keyList);
-            cosClient.deleteObjects(deleteObjectsRequest);
-            // 获取下一批次的对象列表
-            objectListing = cosClient.listNextBatchOfObjects(objectListing);
-            cosObjectSummaries = objectListing.getObjectSummaries();
-        }
-
-        System.out.println("存储桶已删除干净！");
+//        System.out.println("存储桶已删除干净！");
 
         List<Path> files = getFiles();
         for (Path path : files) {
