@@ -6,7 +6,10 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.*;
+import com.lhs.common.util.FileUtil;
+import com.lhs.common.util.HTMLUtil;
+import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.LogUtils;
 import com.lhs.entity.dto.maa.BuildingData;
 import com.lhs.entity.po.survey.OperatorTable;
 import com.lhs.mapper.survey.OperatorTableMapper;
@@ -28,7 +31,6 @@ import java.util.stream.Collectors;
 @Service
 public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
-    private final OperatorTableMapper operatorTableMapper;
     private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
     private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
     private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
@@ -40,11 +42,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //    private final static String GAME_DATA = "C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/";
 //    //输出路径
 //    private final static String JSON_BUILD = "C:/WebStormProject/frontend-v2-plus/";
-    
+
     // 测试路径
 //    private final static String GAME_DATA = "C:/Users/22509/Downloads/";
 //    private final static String JSON_BUILD = "C:/Users/22509/Downloads/";
 
+    private final OperatorTableMapper operatorTableMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
 
@@ -226,9 +229,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             itemCostMap.put(charId, operatorItemCost);
             operatorInfoSimpleMap.put(charId, operatorInfo);
         }
-
-
-
 
 
         FileUtil.save(JSON_BUILD + "src/static/json/survey/",
@@ -543,7 +543,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
         Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
         FileUtil.save(JSON_BUILD + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
-
+        // 测试输出路径
+//        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
     }
 
     private Integer getPhase(String text) {
@@ -627,7 +628,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         str = replaceDescriptionBase(str);
 
         // 匹配术语标签
-        Pattern pattern = Pattern.compile("</$cc/.([/w.]+)>");
+        Pattern pattern = Pattern.compile("<\\$cc\\.(.*?)>");
         Matcher matcher = pattern.matcher(str);
         StringBuilder sb = new StringBuilder();
 
@@ -665,6 +666,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     @Override
     public void getTermDescriptionTable() {
         String read = FileUtil.read(GAME_DATA + "excel/gamedata_const.json");
+        // 测试路径
 //        String read = FileUtil.read(GAME_DATA + "gamedata_const.json");
         JsonNode rootNode = JsonMapper.parseJSONObject(read);
         JsonNode termDescriptionDict = rootNode.get("termDescriptionDict");
@@ -672,6 +674,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         if (termDescriptionDict != null) {
             Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
             FileUtil.save(JSON_BUILD + "src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+            // 测试输出路径
+//            FileUtil.save(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
         }
     }
 
@@ -689,7 +693,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 String description = replaceDescriptionBase(termData.get("description").asText());
 
                 // 将术语中的术语标签替换为常规标签，防止渲染错误（术语提示文本框中无法再提示术语）
-                Pattern pattern = Pattern.compile("</$cc/.([/w.]+)>");
+                Pattern pattern = Pattern.compile("<\\$cc\\.(.*?)>");
                 Matcher matcher = pattern.matcher(description);
                 StringBuilder sb = new StringBuilder();
 
