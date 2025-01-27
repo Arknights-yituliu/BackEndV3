@@ -6,13 +6,8 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.HTMLUtil;
-import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.*;
 import com.lhs.entity.dto.maa.BuildingData;
-import com.lhs.entity.po.survey.OperatorTable;
-import com.lhs.mapper.survey.OperatorTableMapper;
 import com.lhs.service.util.ArknightsGameDataService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -31,9 +26,10 @@ import java.util.stream.Collectors;
 @Service
 public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
+
     private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
     private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
-    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/src/static/json/build/";
+    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/";
 
     //工位上的开发路径
     //泰迪的仓库
@@ -47,12 +43,10 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //    private final static String GAME_DATA = "C:/Users/22509/Downloads/";
 //    private final static String JSON_BUILD = "C:/Users/22509/Downloads/";
 
-    private final OperatorTableMapper operatorTableMapper;
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public ArknightsGameDataServiceImpl(OperatorTableMapper operatorTableMapper, RedisTemplate<String, Object> redisTemplate) {
-        this.operatorTableMapper = operatorTableMapper;
+    public ArknightsGameDataServiceImpl( RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -116,18 +110,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     }
 
-    /**
-     * 返回一个干员信息的集合 里面主要用到干员的获取方式和实装时间
-     *
-     * @return
-     */
-    @RedisCacheable(key = "Survey:OperatorUpdateTable", timeout = 3000)
-    @Override
-    public List<OperatorTable> getOperatorTable() {
-        List<OperatorTable> operatorTableList = operatorTableMapper.selectList(null);
-        if (operatorTableList == null) throw new ServiceException(ResultCode.DATA_NONE);
-        return operatorTableList;
-    }
+
 
     @Override
     public void getAvatar() {
@@ -140,10 +123,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
             String startPath = githubBotResource + "avatar/";
-            String avatar6 = "C:/VCProject/resources/avatar-ori-6/";
-            String avatar5 = "C:/VCProject/resources/avatar-ori-5/";
-            String avatar4 = "C:/VCProject/resources/avatar-ori-4/";
-            String endPath = avatar4;
+
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
 
@@ -152,13 +132,10 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
                 int rarity = getRarity(charData.get("rarity").asText());
-                System.out.println(charId + "：星级：" + rarity + "，文件名：" + startPath + charId + ".png  到 " + endPath + charId + ".png");
                 File source = new File(startPath + charId + ".png");
 
-//                if (rarity == 6) endPath = avatar6;
-//                if (rarity == 5) endPath = avatar5;
-//                if (rarity < 5) endPath = avatar4;
-                endPath = "C:/VCProject/ak-resources/image/avatar/";
+
+                String  endPath = "C:/VCProject/ak-resources/image/avatar/";
 
                 File tmpFile = new File(endPath);//获取文件夹路径
 
@@ -194,8 +171,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         Map<String, Object> operatorInfoSimpleMap = new HashMap<>();
         Map<String, Object> itemCostMap = new HashMap<>();
 
-        Map<String, OperatorTable> obtainApproachMap = getOperatorTable().stream()
-                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
+
 
         Map<Object, String> skillMap = getSkillMap();
         Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap();
@@ -214,7 +190,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 continue;
             }
 
-            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap, obtainApproachMap);
+            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
             itemCostMap.put(charId, operatorItemCost);
             operatorInfoSimpleMap.put(charId, operatorInfo);
@@ -224,7 +200,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             String charId = patchCharsFields.next().getKey();
             JsonNode data = patchChars.get(charId);
 
-            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap, obtainApproachMap);
+            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
             itemCostMap.put(charId, operatorItemCost);
             operatorInfoSimpleMap.put(charId, operatorInfo);
@@ -330,7 +306,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
     private Map<String, Object> getOperatorInfo(String charId, JsonNode data, Map<Object, String> skillMap,
-                                                Map<String, List<Map<String, Object>>> equipMap, Map<String, OperatorTable> characterObtainApproachMap) {
+                                                Map<String, List<Map<String, Object>>> equipMap) {
 
         Map<String, Object> operatorInfo = new HashMap<>();
 
@@ -368,33 +344,14 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         int rarity = getRarity(data.get("rarity").asText());
         //分支
         String subProfessionId = data.get("subProfessionId").asText();
-        //获取方式
-        String itemObtainApproach = "常驻干员";
-        //干员实装时间
-        long updateTime = System.currentTimeMillis();
 
-        OperatorTable operatorTableSimple = characterObtainApproachMap.get(charId);
-        if (operatorTableSimple != null) {
-            itemObtainApproach = operatorTableSimple.getObtainApproach();
-            updateTime = operatorTableSimple.getUpdateTime().getTime();
-        } else {
-            OperatorTable operatorTableNew = new OperatorTable();
-            operatorTableNew.setCharId(charId);
-            operatorTableNew.setName(name);
-            operatorTableNew.setRarity(rarity);
-            operatorTableNew.setUpdateTime(new Date());
-            operatorTableNew.setObtainApproach("常驻干员");
-            operatorTableMapper.insert(operatorTableNew);
-        }
 
 
         operatorInfo.put("name", name);
         operatorInfo.put("charId", charId);
         operatorInfo.put("rarity", rarity);
-        operatorInfo.put("itemObtainApproach", itemObtainApproach);
         operatorInfo.put("equip", equipMap.get(charId));
         operatorInfo.put("skill", skillList);
-        operatorInfo.put("date", updateTime);
         operatorInfo.put("profession", profession);
         operatorInfo.put("subProfessionId", subProfessionId);
         operatorInfo.put("own", false);
@@ -488,10 +445,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        String read1 = FileUtil.read(GAME_DATA + "character_table.json");
 
         //获取干员部分信息，测试时需分离
-        List<OperatorTable> operatorTable = getOperatorTable();
 
-        Map<String, OperatorTable> characterTableMap = operatorTable.stream()
-                .collect(Collectors.toMap(OperatorTable::getCharId, Function.identity()));
 
         JsonNode building = JsonMapper.parseJSONObject(read);
         JsonNode characters = JsonMapper.parseJSONObject(read1);
@@ -527,7 +481,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //                    if (name.equals("假日威龙陈")) {
 //                        System.out.println(description);
 //                    }
-                    buildingData.setTimestamp(characterTableMap.get(charId).getUpdateTime().getTime()); //分离测试需剔除依赖项
+
                     buildingData.setDescription(replaceDescription(description));
                     buildingData.setRoomType(roomType);
                     buildingData.setName(name);

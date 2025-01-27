@@ -1,7 +1,7 @@
 package com.lhs.service.util;
 
 
-import com.lhs.entity.po.survey.OperatorTable;
+
 
 import java.util.List;
 import java.util.Map;
@@ -14,11 +14,7 @@ public interface ArknightsGameDataService {
 
     Map<String, String> getEquipIdAndType();
 
-    /**
-     * 获取干员信息集合，里面主要用到干员的获取方式和实装时间
-     * @return 干员信息
-     */
-    List<OperatorTable> getOperatorTable();
+
 
     void getOperatorInfoSimpleTable();
 
