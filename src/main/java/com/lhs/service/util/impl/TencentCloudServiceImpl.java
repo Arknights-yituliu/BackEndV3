@@ -172,7 +172,7 @@ public class TencentCloudServiceImpl implements TencentCloudService {
             File file = path.toFile();
             String bucketPath = extractPathAfterDist(path);
 //            System.out.println(bucketPath);
-            if(bucketPath.contains("/image")){
+            if(bucketPath.contains("image/")){
                 continue;
             }
 

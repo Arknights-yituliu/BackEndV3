@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name ="干员调查问卷")
-@RequestMapping(value = "/survey")
 public class SurveyQuestionnaireController {
     private final QuestionnaireService questionnaireService;
     public SurveyQuestionnaireController(QuestionnaireService questionnaireService) {
@@ -18,7 +17,7 @@ public class SurveyQuestionnaireController {
     }
 
     @Operation(summary ="上传干员调查问卷信息")
-    @PostMapping("/questionnaire/upload")
+    @PostMapping("/survey/questionnaire/upload")
     public Result<Object> uploadQuestionnaireInfo(HttpServletRequest httpServletRequest, @RequestBody QuestionnaireSubmitInfoDTO questionnaireSubmitInfoDTO) {
         questionnaireService.uploadQuestionnaireResult(httpServletRequest,questionnaireSubmitInfoDTO);
         return Result.success();

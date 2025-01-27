@@ -103,13 +103,12 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
         //如果没有则直接新增
         if(lastQuestionnaireResult==null){
             questionnaireResultMapper.insert(questionnaireResult);
-        }else { //如果有提交过的问卷，判断一下最初的提交日期，未超过1天进行更新，超过1天新增
+        }else { //如果有提交过的问卷，判断一下最初的提交日期，未超过7天进行更新，超过7天新增
             long timeStamp = System.currentTimeMillis();
-            if(timeStamp-lastQuestionnaireResult.getCreateTime()>60*60*24*1000){
+            if(timeStamp-lastQuestionnaireResult.getCreateTime()>60*60*24*7*1000){
                 questionnaireResultMapper.insert(questionnaireResult);
             }else {
                 lastQuestionnaireResult.setQuestionnaireContent(result);
-
                 questionnaireResultMapper.updateById(lastQuestionnaireResult);
             }
         }
