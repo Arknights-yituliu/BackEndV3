@@ -3,144 +3,157 @@ package com.lhs.service.survey.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.enums.QuestionnaireType;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.enums.ResultCode;
+import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.RateLimiter;
 import com.lhs.entity.dto.survey.QuestionnaireSubmitInfoDTO;
+import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 import com.lhs.entity.po.survey.QuestionnaireResult;
-import com.lhs.entity.po.survey.SurveySubmitter;
+import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
 import com.lhs.entity.vo.survey.SurveySubmitterVO;
+import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
-import com.lhs.mapper.survey.SurveySubmitterMapper;
 import com.lhs.service.survey.QuestionnaireService;
+import com.lhs.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 
 @Service
 public class QuestionnaireServiceImpl implements QuestionnaireService {
 
-    private final RedisTemplate<String,String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final QuestionnaireResultMapper questionnaireResultMapper;
-    private final SurveySubmitterMapper surveySubmitterMapper;
+
     private final IdGenerator idGenerator;
+    private final RateLimiter rateLimiter;
+    private final UserService userService;
+    private final OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper;
 
     public QuestionnaireServiceImpl(RedisTemplate<String, String> redisTemplate,
                                     QuestionnaireResultMapper questionnaireResultMapper,
-                                    SurveySubmitterMapper surveySubmitterMapper) {
+                                    RateLimiter rateLimiter,
+                                    UserService userService, OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper) {
         this.redisTemplate = redisTemplate;
         this.questionnaireResultMapper = questionnaireResultMapper;
-        this.surveySubmitterMapper = surveySubmitterMapper;
+        this.rateLimiter = rateLimiter;
+        this.userService = userService;
+        this.operatorCarryRateStatisticsMapper = operatorCarryRateStatisticsMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
     @Override
-    public SurveySubmitterVO uploadQuestionnaireResult(HttpServletRequest httpServletRequest, QuestionnaireSubmitInfoDTO questionnaireSubmitInfoDTO) {
+    public void uploadQuestionnaireResult(HttpServletRequest httpServletRequest, QuestionnaireSubmitInfoDTO questionnaireSubmitInfoDTO) {
+        String uidText = httpServletRequest.getHeader("uid");
+        Long uid = idGenerator.nextId();
+        if (uidText != null && uidText.length() > 6) {
+            uid = Long.parseLong(uidText);
+        }
+
+        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        if (loginStatus) {
+            UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+            uid = userInfoVO.getUid();
+        }
+
         //获取提交者IP
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);
+
         //提交间隔不能短于5s，短于5s抛出异常
-        Boolean lock = redisTemplate.opsForValue().setIfAbsent("SurveySubmitterIP", ipAddress, 5, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(lock)) {
-            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
-        }
+        rateLimiter.tryAcquire("SurveySubmitterIP:" + ipAddress, 1, 5, ResultCode.NOT_REPEAT_REQUESTS);
 
         SurveySubmitterVO surveySubmitterVO = new SurveySubmitterVO();
 
         //检查上传的干员是否有重复
         String result = getResultStr(questionnaireSubmitInfoDTO);
-        Integer questionnaireType = questionnaireSubmitInfoDTO.getQuestionnaireType();
-
-        long nowTimeStamp = System.currentTimeMillis();
-
-        //创建提交者信息
-        SurveySubmitter surveySubmitter = new SurveySubmitter();
-        surveySubmitter.setId(idGenerator.nextId());
-        surveySubmitter.setBanned(false);
-        surveySubmitter.setCreateTime(nowTimeStamp);
-        surveySubmitter.setUpdateTime(nowTimeStamp);
-        surveySubmitter.setIp(ipAddress);
-
-        //创建问卷结果信息
-        QuestionnaireResult questionnaireResult = new QuestionnaireResult();
-        questionnaireResult.setId(idGenerator.nextId());
-        questionnaireResult.setIpId(surveySubmitter.getId());
-        questionnaireResult.setQuestionnaireType(questionnaireType);
-        questionnaireResult.setQuestionnaireContent(result);
-        questionnaireResult.setCreateTime(nowTimeStamp);
-
-
-        //根据IP和用户id查询提交者此前是否提交过记录
-        LambdaQueryWrapper<SurveySubmitter> surveySubmitterQueryWrapper = new LambdaQueryWrapper<>();
-        surveySubmitterQueryWrapper.eq(SurveySubmitter::getIp,ipAddress).or().eq(SurveySubmitter::getId,surveySubmitter.getId());
-        SurveySubmitter surveySubmitterByIpOrId = surveySubmitterMapper.selectOne(surveySubmitterQueryWrapper);
-
-        //未查询到数据，则进行新增
-        if(surveySubmitterByIpOrId==null){
-            surveySubmitterMapper.insert(surveySubmitter);
-            questionnaireResultMapper.insert(questionnaireResult);
-            return surveySubmitterVO;
-        }
-
-
-
         //根据问卷类型和提交者ip对应的id查询以前的问卷结果
         LambdaQueryWrapper<QuestionnaireResult> questionnaireResultQueryWrapper = new LambdaQueryWrapper<>();
         questionnaireResultQueryWrapper
-                .eq(QuestionnaireResult::getIpId,surveySubmitterByIpOrId.getId())
-                .eq(QuestionnaireResult::getQuestionnaireType,questionnaireType)
-                .orderByDesc(QuestionnaireResult::getCreateTime)
-                .last("limit 1");
+                .eq(QuestionnaireResult::getType, QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode())
+                .eq(QuestionnaireResult::getUid, uid)
+                .orderByDesc(QuestionnaireResult::getCreateTime);
         QuestionnaireResult lastQuestionnaireResult = questionnaireResultMapper.selectOne(questionnaireResultQueryWrapper);
 
+        Date date = new Date();
+
         //如果没有则直接新增
-        if(lastQuestionnaireResult==null){
+        if (lastQuestionnaireResult == null) {
+            //创建问卷结果信息
+            QuestionnaireResult questionnaireResult = new QuestionnaireResult();
+            questionnaireResult.setId(idGenerator.nextId());
+            questionnaireResult.setUid(uid);
+            questionnaireResult.setType(QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode());
+            questionnaireResult.setContent(result);
+            questionnaireResult.setCreateTime(date);
+            questionnaireResult.setUpdateTime(date);
             questionnaireResultMapper.insert(questionnaireResult);
-        }else { //如果有提交过的问卷，判断一下最初的提交日期，未超过7天进行更新，超过7天新增
-            long timeStamp = System.currentTimeMillis();
-            if(timeStamp-lastQuestionnaireResult.getCreateTime()>60*60*24*7*1000){
-                questionnaireResultMapper.insert(questionnaireResult);
-            }else {
-                lastQuestionnaireResult.setQuestionnaireContent(result);
-                questionnaireResultMapper.updateById(lastQuestionnaireResult);
-            }
+        } else {
+            lastQuestionnaireResult.setContent(result);
+            lastQuestionnaireResult.setUpdateTime(date);
+            questionnaireResultMapper.updateById(lastQuestionnaireResult);
         }
 
-        //更新提交者的信息
-        surveySubmitterByIpOrId.setUpdateTime(nowTimeStamp);
-        surveySubmitterByIpOrId.setIp(ipAddress);
-        //将更新后的提交者信息更新到数据库
-        surveySubmitterMapper.updateById(surveySubmitterByIpOrId);
-
-        return surveySubmitterVO;
     }
 
     @Override
     public void statisticsQuestionnaireResult(int questionnaireType) {
         LambdaQueryWrapper<QuestionnaireResult> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(QuestionnaireResult::getQuestionnaireType,questionnaireType);
+        lambdaQueryWrapper.eq(QuestionnaireResult::getType, questionnaireType);
         List<QuestionnaireResult> resultList = questionnaireResultMapper.selectList(lambdaQueryWrapper);
 
+        int count = 0;
+        List<OperatorCarryRateStatistics> operatorCarryRateStatisticsList = new ArrayList<>();
 
+        count += resultList.size();
+        if(count<10){
+            return;
+        }
+
+        LogUtils.info("本次统计的干员携带率问卷数量："+count);
         HashMap<String, Integer> statisticsResult = new HashMap<>();
-        for(QuestionnaireResult questionnaireResult:resultList){
-            String questionnaireContent = questionnaireResult.getQuestionnaireContent();
+        for (QuestionnaireResult questionnaireResult : resultList) {
+            String questionnaireContent = questionnaireResult.getContent();
             String[] split = questionnaireContent.split(",");
-            for(String charId:split){
-                statisticsResult.put(charId,statisticsResult.getOrDefault(charId,0)+1);
+            for (String charId : split) {
+                statisticsResult.put(charId, statisticsResult.getOrDefault(charId, 0) + 1);
             }
         }
 
-        statisticsResult.forEach((k,v)->{
-            System.out.println(k+"————"+v);
+        operatorCarryRateStatisticsMapper.expireOldData();
+
+
+        Date date = new Date();
+        int finalCount = count;
+
+        statisticsResult.forEach((charId, v) -> {
+            OperatorCarryRateStatistics operatorCarryRateStatistics = new OperatorCarryRateStatistics();
+            operatorCarryRateStatistics.setId(idGenerator.nextId());
+            operatorCarryRateStatistics.setCharId(charId);
+            operatorCarryRateStatistics.setCarryingRate((double)v/finalCount);
+            operatorCarryRateStatistics.setCreateTime(date);
+            operatorCarryRateStatistics.setExpiredFlag(false);
+            operatorCarryRateStatisticsList.add(operatorCarryRateStatistics);
         });
+
+        operatorCarryRateStatisticsMapper.insertBatch(operatorCarryRateStatisticsList);
+    }
+
+    @Override
+    public List<OperatorCarryRateStatisticsVO> getQuestionnaireResultByType(Integer questionnaireType) {
+
+        List<OperatorCarryRateStatisticsVO> list = operatorCarryRateStatisticsMapper.getOperatorCarryRateResult();
+        if(list.isEmpty()){
+            return new ArrayList<>();
+        }
+        return list;
     }
 
 
@@ -149,7 +162,7 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
         Set<String> operatorSet = new HashSet<>(operatorList);
 
 
-        if(operatorSet.size()>12||operatorSet.size()<6){
+        if (operatorSet.size() > 12 || operatorSet.size() < 6) {
             throw new ServiceException(ResultCode.OPERATOR_QUANTITY_INVALID);
         }
 
@@ -163,9 +176,6 @@ public class QuestionnaireServiceImpl implements QuestionnaireService {
         }
         return sb.toString();
     }
-
-
-
 
 
 }

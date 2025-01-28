@@ -81,34 +81,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         return String.valueOf(value);
     }
 
-    /**
-     * 返回一个集合 key:模组id,value:模组分支
-     *
-     * @return Map<模组id, 模组分支>
-     */
-    @RedisCacheable(key = "Survey:EquipIdAndType")
-    @Override
-    public Map<String, String> getEquipIdAndType() {
-        String read = FileUtil.read(ConfigUtil.Config + "character_table_simple.json");
-        if (read == null) throw new ServiceException(ResultCode.FILE_NOT_EXIST);
-        JsonNode characterTableSimple = JsonMapper.parseJSONObject(read);
-        Map<String, String> uniEquipIdAndType = new HashMap<>();
-        Iterator<Map.Entry<String, JsonNode>> characterTableSimpleFields = characterTableSimple.fields();
-        while (characterTableSimpleFields.hasNext()) {
-            String charId = characterTableSimpleFields.next().getKey();
-            JsonNode operatorData = characterTableSimple.get(charId);
-            if (operatorData.get("equip") == null) continue;
-            JsonNode equip = operatorData.get("equip");
-            for (JsonNode equipData : equip) {
-                String uniEquipId = equipData.get("uniEquipId").asText();
-                String typeName2 = equipData.get("typeName2").asText();
-                uniEquipIdAndType.put(uniEquipId, typeName2);
-            }
-        }
 
-        return uniEquipIdAndType;
-
-    }
 
 
 

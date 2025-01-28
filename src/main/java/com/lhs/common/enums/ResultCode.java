@@ -19,7 +19,7 @@ public enum ResultCode {
 	FILE_SIZE_LARGE(10007, "文件过大"),
 	FILE_IS_NULL(10008,"文件为空"),
 	FILE_NOT_IN_EXCEL_FORMAT(10008, "文件格式必须为.xlsx"),
-	OPERATOR_QUANTITY_INVALID(10018,"干员数量需大于6且小于13位"),
+	OPERATOR_QUANTITY_INVALID(10018,"提交的干员数量需大于6位且小于13位"),
 
 
 	/* 用户错误：20001-29999*/

@@ -5,6 +5,7 @@ import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.survey.OperatorStatisticsService;
 import com.lhs.service.material.*;
 
+import com.lhs.service.survey.QuestionnaireService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -21,17 +22,22 @@ public class TaskService {
     private final RogueSeedService rogueSeedService;
     private final RecruitTagUploadService recruitTagUploadService;
 
+    private final QuestionnaireService questionnaireService;
+
     public TaskService(StoreService storeService,
                        StageCalService stageCalService,
                        StageService stageService,
                        OperatorStatisticsService operatorStatisticsService,
-                       RogueSeedService rogueSeedService, RecruitTagUploadService recruitTagUploadService) {
+                       RogueSeedService rogueSeedService,
+                       RecruitTagUploadService recruitTagUploadService,
+                       QuestionnaireService questionnaireService) {
         this.storeService = storeService;
         this.stageCalService = stageCalService;
         this.stageService = stageService;
         this.operatorStatisticsService = operatorStatisticsService;
         this.rogueSeedService = rogueSeedService;
         this.recruitTagUploadService = recruitTagUploadService;
+        this.questionnaireService = questionnaireService;
     }
 
 
@@ -94,5 +100,8 @@ public class TaskService {
         rogueSeedService.ratingStatistics();
     }
 
-
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void statisticsQuestionnaireResult(){
+        questionnaireService.statisticsQuestionnaireResult(1);
+    }
 }

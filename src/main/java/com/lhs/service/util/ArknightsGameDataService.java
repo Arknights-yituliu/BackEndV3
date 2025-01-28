@@ -12,10 +12,6 @@ public interface ArknightsGameDataService {
     void saveOperatorDataTag(String tag);
     String getOperatorDataTag();
 
-    Map<String, String> getEquipIdAndType();
-
-
-
     void getOperatorInfoSimpleTable();
 
     /**

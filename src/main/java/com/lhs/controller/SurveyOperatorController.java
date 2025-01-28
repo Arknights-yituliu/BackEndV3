@@ -23,9 +23,6 @@ import java.util.Map;
 
 public class SurveyOperatorController {
     private final OperatorDataService operatorDataService;
-
-
-
     private final ArknightsGameDataService arknightsGameDataService;
 
     private final HypergryphService HypergryphService;

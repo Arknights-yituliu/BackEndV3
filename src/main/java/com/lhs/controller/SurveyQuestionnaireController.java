@@ -22,4 +22,10 @@ public class SurveyQuestionnaireController {
         questionnaireService.uploadQuestionnaireResult(httpServletRequest,questionnaireSubmitInfoDTO);
         return Result.success();
     }
+
+    @Operation(summary ="获取干员调查问卷信息结果")
+    @PostMapping("/survey/questionnaire/result")
+    public Result<Object> uploadQuestionnaireResult(@RequestParam("QuestionnaireType") Integer questionnaireType) {
+        return Result.success(questionnaireService.getQuestionnaireResultByType(questionnaireType));
+    }
 }
