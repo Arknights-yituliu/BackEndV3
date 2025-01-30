@@ -89,12 +89,7 @@ public class ItemControllerV4 {
         return Result.success(activityStoreDataVOList);
     }
 
-    @Operation(summary = "获取常驻商店性价比")
-    @PostMapping("/custom/store/perm")
-    public Result<Map<String, List<StorePermVO>>> getStorePermData(@RequestBody StageConfigDTO stageConfigDTO) {
-        Map<String, List<StorePermVO>> storePermMap = storeService.getStorePermMap(stageConfigDTO);
-        return Result.success(storePermMap);
-    }
+
 
     @Operation(summary = "获取礼包商店性价比")
     @PostMapping("/custom/store/pack")

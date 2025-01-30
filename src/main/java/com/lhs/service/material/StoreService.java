@@ -3,19 +3,12 @@ package com.lhs.service.material;
 
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.HoneyCake;
-import com.lhs.entity.po.material.StorePerm;
 import com.lhs.entity.vo.material.ActivityStoreDataVO;
-import com.lhs.entity.vo.material.StorePermVO;
 
 import java.util.*;
 
 public interface StoreService {
 
-    void updateStorePerm();
-
-    Map<String, List<StorePerm>> getStorePerm();
-
-    Map<String,List<StorePermVO>> getStorePermMap(StageConfigDTO stageConfigDTO);
 
     /**
      * 获得当前未关闭的活动商店性价比

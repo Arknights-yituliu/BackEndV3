@@ -2,11 +2,7 @@ package com.lhs.service.material.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ConfigUtil;
-import com.lhs.common.enums.ResultCode;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.HoneyCake;
@@ -16,11 +12,8 @@ import com.lhs.entity.vo.material.*;
 import com.lhs.mapper.admin.HoneyCakeMapper;
 import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.mapper.material.*;
-import com.lhs.mapper.material.service.StorePermMapperService;
 import com.lhs.service.material.ItemService;
 import com.lhs.service.material.StoreService;
-import com.lhs.service.util.TencentCloudService;
-import com.lhs.service.util.DataCacheService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +27,6 @@ import java.util.stream.Collectors;
 public class StoreServiceImpl implements StoreService {
 
 
-    private final StorePermMapper storePermMapper;
-
     private final StoreActMapper storeActMapper;
 
     private final ItemService itemService;
@@ -45,100 +36,25 @@ public class StoreServiceImpl implements StoreService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    private final StorePermMapperService storePermMapperService;
-
-    private final PackInfoMapper packInfoMapper;
     private final IdGenerator idGenerator;
 
-    private final TencentCloudService tencentCloudService;
+
     private final ImageInfoMapper imageInfoMapper;
 
-    private final DataCacheService dataCacheService;
 
-    public StoreServiceImpl(StorePermMapper storePermMapper, StoreActMapper storeActMapper, ItemService itemService,
-                            HoneyCakeMapper honeyCakeMapper, RedisTemplate<String, Object> redisTemplate,
-                            StorePermMapperService storePermMapperService, PackInfoMapper packInfoMapper,
-                            TencentCloudService tencentCloudService, ImageInfoMapper imageInfoMapper, DataCacheService dataCacheService) {
-        this.storePermMapper = storePermMapper;
+    public StoreServiceImpl(
+                            StoreActMapper storeActMapper,
+                            ItemService itemService,
+                            HoneyCakeMapper honeyCakeMapper,
+                            RedisTemplate<String, Object> redisTemplate,
+                            ImageInfoMapper imageInfoMapper) {
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
         this.honeyCakeMapper = honeyCakeMapper;
         this.redisTemplate = redisTemplate;
-        this.storePermMapperService = storePermMapperService;
-        this.packInfoMapper = packInfoMapper;
         this.imageInfoMapper = imageInfoMapper;
-        this.dataCacheService = dataCacheService;
         this.idGenerator = new IdGenerator(1L);
-        this.tencentCloudService = tencentCloudService;
-    }
 
-    /**
-     * 更新常驻商店性价比
-     */
-    @Override
-    public void updateStorePerm() {
-        List<StorePerm> storePermList = storePermMapper.selectList(null);
-        Map<String, Item> collect = itemService.getItemMapCache(new StageConfigDTO());
-
-        for (StorePerm storePerm : storePermList) {
-            storePerm.setCostPer(collect.get(storePerm.getItemName()).getItemValueAp() * storePerm.getQuantity() / storePerm.getCost());
-            if ("grey".equals(storePerm.getStoreType())) storePerm.setCostPer(storePerm.getCostPer() * 100);
-            storePerm.setRarity(collect.get(storePerm.getItemName()).getRarity());
-            storePerm.setItemId(collect.get(storePerm.getItemName()).getItemId());
-        }
-
-        storePermMapperService.updateBatchById(storePermList);
-
-        String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
-        String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-
-        LogUtils.info("常驻商店更新成功");
-    }
-
-
-    @Override
-    @RedisCacheable(key = "Item:StorePerm", timeout = 86400)
-    public Map<String, List<StorePerm>> getStorePerm() {
-        List<StorePerm> storePerms = storePermMapper.selectList(null);
-        Map<String, List<StorePerm>> resultMap = storePerms.stream().collect(Collectors.groupingBy(StorePerm::getStoreType));
-        resultMap.forEach((k, list) -> list.sort(Comparator.comparing(StorePerm::getCostPer).reversed()));
-        return resultMap;
-    }
-
-
-    @RedisCacheable(key = "Item:StorePermV2", timeout = 86400)
-    @Override
-    public Map<String, List<StorePermVO>> getStorePermMap(StageConfigDTO stageConfigDTO) {
-
-        Map<String, List<StorePermVO>> storePermTable = readStorePermTable();
-        Map<String, Item> itemMapCache = itemService.getItemMapCache(stageConfigDTO);
-        for (String type : storePermTable.keySet()) {
-            List<StorePermVO> storePermVOList = storePermTable.get(type);
-            for (StorePermVO item : storePermVOList) {
-                double value = itemMapCache.get(item.getItemId()).getItemValueAp();
-                int quantity = item.getQuantity();
-                double cost = item.getCost();
-                double costPer = value * quantity / cost;
-                if ("grey".equals(type)) {
-                    costPer = costPer * 100;
-                }
-                item.setCostPer(costPer);
-            }
-        }
-
-
-        return storePermTable;
-    }
-
-    @RedisCacheable(key = "StorePermTable")
-    public Map<String, List<StorePermVO>> readStorePermTable() {
-        String text = FileUtil.read(ConfigUtil.Config + "store_perm_table.json");
-        if (text == null) {
-            throw new ServiceException(ResultCode.FILE_NOT_EXIST);
-        }
-
-        return JsonMapper.parseObject(text, new TypeReference<>() {
-        });
     }
 
 
@@ -174,12 +90,9 @@ public class StoreServiceImpl implements StoreService {
         }
 
 
-
-
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         List<ActivityStoreDataVO> activityStoreDataVOList = getActivityStoreDataNoCache(stageConfigDTO);
         redisTemplate.opsForValue().set("Item:StoreAct", activityStoreDataVOList, 6, TimeUnit.HOURS);
-
 
 
         return "活动商店已更新";

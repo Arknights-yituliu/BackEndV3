@@ -3,7 +3,6 @@ package com.lhs.controller;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
-import com.lhs.entity.po.material.StorePerm;
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
 import com.lhs.task.TaskService;
@@ -127,22 +126,6 @@ public class ItemControllerV3 {
         List<Item> items = itemService.getItemListCache(stageConfigDTO);
         return Result.success(items);
     }
-
-    @Operation(summary = "获取常驻商店性价比")
-    @GetMapping("/store/perm")
-    public Result<Map<String, List<StorePerm>>> getStorePermData() {
-        Map<String, List<StorePerm>> storePerm = storeService.getStorePerm();
-        return Result.success(storePerm);
-    }
-
-    //    @TakeCount(name = "活动商店性价比")
-//    @Operation(summary = "获取活动商店性价比")
-//    @GetMapping("/store/act")
-//    public Result<List<ActivityStoreDataVO>> getStoreActData() {
-//
-//        List<ActivityStoreDataVO> activityStoreDataVOList = storeService.getActivityStoreData();
-//        return Result.success(activityStoreDataVOList);
-//    }
 
     @Operation(summary = "获取礼包商店性价比")
     @GetMapping("/store/pack")
