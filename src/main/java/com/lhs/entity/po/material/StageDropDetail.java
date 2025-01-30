@@ -1,14 +1,13 @@
 package com.lhs.entity.po.material;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+
 import lombok.Data;
-@Entity
+
 @Data
 public class StageDropDetail {
     @TableId
-    @Id
+
     private Long id;
     private String uid;
     private Long childId;

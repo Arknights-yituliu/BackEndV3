@@ -94,6 +94,10 @@ public class StageDropUploadService {
             return "请勿重复上传";
         }
 
+        if(penguinId.length()>200){
+            LogUtils.info("MAA版本号 {} "+stageDropDTO.getVersion());
+            return "凭证异常";
+        }
 
 
         JsonNode itemTable = getItemTable();
