@@ -10,30 +10,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-
-
 @Data
 @TableName("item")   //用于存储最终的等效理智/绿票价值
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class Item {
 
     @TableId
-    @Id
-
     private Long id;
-
 
     private String itemId;  //物品id
 
-
     private String itemName; //物品名称
-
 
     private Double itemValueAp; //物品价值 单位：理智
 
