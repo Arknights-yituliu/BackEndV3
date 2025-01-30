@@ -192,7 +192,6 @@ public class UserServiceImpl implements UserService {
         if (userInfo != null) {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
-
         //检查验证码
         email163Service.compareVerificationCode(verificationCode, email);
         //给用户设置初始昵称
@@ -363,12 +362,14 @@ public class UserServiceImpl implements UserService {
             userInfoVO.setConfig(map);
         }
 
-        if (userInfo.getPassword() != null) {
+        if (userInfo.getPassword() != null && userInfo.getPassword().length() > 10) {
             userInfoVO.setHasPassword(true);
         }
 
-        if (userInfo.getEmail() != null) {
+        if (userInfo.getEmail() != null && userInfo.getEmail().contains("@")) {
             userInfoVO.setHasEmail(true);
+        }else {
+            userInfoVO.setEmail("未绑定");
         }
 
         if (externalAccountBindings.isEmpty()) {
@@ -386,6 +387,48 @@ public class UserServiceImpl implements UserService {
     public UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest) {
         String token = extractToken(httpServletRequest);
         return getUserInfoVOByToken(token);
+    }
+
+    @Override
+    public Long getUidByHttpServletRequest(HttpServletRequest httpServletRequest) {
+        String header = httpServletRequest.getHeader("Authorization");
+        LogUtils.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + header);
+        if (header != null && header.startsWith("Authorization") && header.length() > 30) {
+            UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+            return userInfoVO.getUid();
+        }
+
+        String uidByHeader = httpServletRequest.getHeader("uid");
+        if (isNumericAndLengthy(uidByHeader)) {
+            return Long.parseLong(uidByHeader);
+        }
+
+        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);
+
+
+        Object value = redisTemplate.opsForHash().get("Commit_Ip", ipAddress);
+        if (value == null) {
+            Long id = idGenerator.nextId();
+            redisTemplate.opsForHash().put("Commit_Ip", ipAddress, id);
+            return id;
+        }
+
+        return Long.parseLong(value.toString());
+    }
+
+    public static boolean isNumericAndLengthy(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        if (str.length() <= 8) {
+            return false;
+        }
+        for (char c : str.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -463,76 +506,95 @@ public class UserServiceImpl implements UserService {
     @Override
     public void sendVerificationCode(EmailRequestDTO emailRequestDto) {
         String mailUsage = emailRequestDto.getMailUsage();
-        //注册
-        if ("register".equals(mailUsage)) {
-            sendVerificationCodeIsNotExistEmail(emailRequestDto);
-        }
-        //登录
-        if ("login".equals(mailUsage)) {
-            sendVerificationCodeIsExistEmail(emailRequestDto);
-        }
-        //修改邮箱
-        if ("updateEmail".equals(mailUsage)) {
-            sendVerificationCodeIsNotExistEmail(emailRequestDto);
-        }
-    }
 
+        String email = emailRequestDto.getEmail();
 
-    /**
-     * 设置注册验证码的邮件信息
-     *
-     * @param emailRequestDto 邮件信息
-     */
-    private void sendVerificationCodeIsNotExistEmail(EmailRequestDTO emailRequestDto) {
-        String emailAddress = emailRequestDto.getEmail();
         //设置查询构造器条件
-        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", emailAddress);
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getEmail, email);
         //查询是否有绑定这个邮箱的用户
         UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
 
+        if ("register".equals(mailUsage)) {
+            if (userInfoByEmail != null) {
+                throw new ServiceException(ResultCode.USER_IS_EXIST);
+            }
+        }
 
-        if (userInfoByEmail != null) {
+        if ("login".equals(mailUsage)) {
+            if (userInfoByEmail == null) {
+                throw new ServiceException(ResultCode.USER_NOT_EXIST);
+            }
+        }
+
+        seedEmail(email);
+
+    }
+
+    private void seedEmail(String emailAddress){
+        Integer code = email163Service.createVerificationCode(emailAddress, 9999);
+        String text = "本次的验证码是：" + code + ",验证码有效时间5分钟";
+
+        EmailFormDTO emailFormDTO = new EmailFormDTO();
+        emailFormDTO.setFrom("ark_yituliu@163.com");
+        emailFormDTO.setTo(emailAddress);
+        emailFormDTO.setSubject("【一图流】验证码");
+        emailFormDTO.setText(text);
+        email163Service.sendSimpleEmail(emailFormDTO);
+    }
+
+    @Override
+    public void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto) {
+        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+        if(userInfoVO.getHasEmail()){
+            seedEmail(userInfoVO.getEmail());
+        }else {
+            seedEmail(emailRequestDto.getEmail());
+        }
+    }
+
+    @Override
+    public String checkVerificationCode(HttpServletRequest httpServletRequest,String verificationCode) {
+        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+        if (!checkParamsValidity(verificationCode)) {
+            throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
+        }
+
+        String email = userInfoVO.getEmail();
+        //检查验证码
+        email163Service.compareVerificationCode(verificationCode, email);
+
+        Integer code = email163Service.createVerificationCode(userInfoVO.getUid().toString(), 9999);
+
+        return String.valueOf(code);
+    }
+
+    @Override
+    public void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
+        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+        String email = updateUserDataDto.getEmail();
+        if( userInfoVO.getHasEmail()){
+            LogUtils.info("更新绑定邮箱 {} 用户有邮箱，需要验证");
+            email163Service.compareVerificationCode(updateUserDataDto.getCred(),userInfoVO.getUid().toString());
+        }
+
+        email163Service.compareVerificationCode(updateUserDataDto.getVerificationCode(),email);
+
+        //设置查询构造器条件
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getEmail, email);
+        //查询是否有绑定这个邮箱的用户
+        UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
+
+        if(userInfoByEmail!=null){
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
-        Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
-        String subject = "一图流注册验证码";
-        String text = "您本次注册验证码： " + code + ",验证码有效时间5分钟";
-
-        EmailFormDTO emailFormDTO = new EmailFormDTO();
-        emailFormDTO.setFrom("ark_yituliu@163.com");
-        emailFormDTO.setTo(emailAddress);
-        emailFormDTO.setSubject(subject);
-        emailFormDTO.setText(text);
-        email163Service.sendSimpleEmail(emailFormDTO);
-    }
-
-    /**
-     * 设置登录验证码的邮件信息
-     *
-     * @param emailRequestDto 前端输入的收件人地址
-     */
-    private void sendVerificationCodeIsExistEmail(EmailRequestDTO emailRequestDto) {
-        String emailAddress = emailRequestDto.getEmail();  //收件人地址
-        //设置查询构造器条件
-        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", emailAddress);
-        //查询是否有绑定这个邮箱的用户
-        UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
-        if (userInfoByEmail == null) {
-            throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        }
-        Integer code = email163Service.CreateVerificationCode(emailAddress, 9999);
-        String subject = "一图流登录验证码";
-        String text = "您本次登录验证码：" + code + ",验证码有效时间5分钟";
-
-        EmailFormDTO emailFormDTO = new EmailFormDTO();
-        emailFormDTO.setFrom("ark_yituliu@163.com");
-        emailFormDTO.setTo(emailAddress);
-        emailFormDTO.setSubject(subject);
-        emailFormDTO.setText(text);
-        email163Service.sendSimpleEmail(emailFormDTO);
+        UserInfo userInfo = new UserInfo();
+        userInfo.setEmail(email);
+        userInfo.setId(userInfoVO.getUid());
+        userInfo.setUpdateTime(new Date());
+        userInfoMapper.updateById(userInfo);
     }
 
 
@@ -544,9 +606,7 @@ public class UserServiceImpl implements UserService {
 
         UserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
 
-        if ("email".equals(action)) {
-            return updateOrBindEmail(userInfo, updateUserDataDto);
-        }
+
 
         if ("passWord".equals(action)) {
             return updatePassWord(userInfo, updateUserDataDto);
@@ -564,27 +624,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    /**
-     * 更新或绑定邮箱
-     *
-     * @param userInfo          用户信息
-     * @param updateUserDataDto 用户修改的信息
-     * @return 成功信息
-     */
-    private UserInfoVO updateOrBindEmail(UserInfo userInfo, UpdateUserDataDTO updateUserDataDto) {
-        String email = updateUserDataDto.getEmail();
-        String emailCode = updateUserDataDto.getEmailCode();
 
-        //对比用户输入的验证码和后台的验证码
-        email163Service.compareVerificationCode(emailCode, email);
-        //设置用户邮箱
-        userInfo.setEmail(email);
-
-        UserInfoVO response = new UserInfoVO();
-        response.setStatus(userInfo.getStatus());
-        backupSurveyUser(userInfo);
-        return response;
-    }
 
     /**
      * 更新密码
@@ -938,8 +978,6 @@ public class UserServiceImpl implements UserService {
         result.put("userName", userInfo.getUserName());
         return result;
     }
-
-
 
 
     private String tokenGenerator(UserInfo userInfo) {

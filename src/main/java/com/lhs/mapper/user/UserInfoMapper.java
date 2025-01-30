@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserInfoMapper extends BaseMapper<UserInfo> {
 
-    Integer save(@Param("item") UserInfo userInfo);
 
-    Integer updateUserById(@Param("item") UserInfo userInfo);
+
+
 
 }

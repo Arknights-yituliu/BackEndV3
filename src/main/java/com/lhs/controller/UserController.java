@@ -46,19 +46,41 @@ public class UserController {
         return Result.success(response);
     }
 
-    @Operation(summary ="发送注册邮件验证码")
+    @Operation(summary ="发送邮件验证码")
     @PostMapping("/user/verificationCode")
     public Result<Object> sendVerificationCode(@RequestBody EmailRequestDTO emailRequestDto) {
         userService.sendVerificationCode(emailRequestDto);
         return Result.success();
     }
 
+    @Operation(summary ="发送更新邮件验证码")
+    @PostMapping("/auth/user/update-email/verificationCode")
+    public Result<Object> sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest,@RequestBody EmailRequestDTO emailRequestDto) {
+        userService.sendUpdateEmailVerificationCode(httpServletRequest,emailRequestDto);
+        return Result.success();
+    }
+
+    @Operation(summary ="检查验证码")
+    @GetMapping("/auth/user/check/verificationCode")
+    public Result<Object> checkVerificationCode(HttpServletRequest httpServletRequest,@RequestParam("verificationCode") String verificationCode) {
+        return Result.success(userService.checkVerificationCode(httpServletRequest,verificationCode));
+    }
+
+    @Operation(summary ="绑定邮箱")
+    @PostMapping("/auth/user/bind-email")
+    public Result<Object> bindEmail(HttpServletRequest httpServletRequest,@RequestBody UpdateUserDataDTO updateUserDataDto) {
+        userService.bindEmail(httpServletRequest,updateUserDataDto);
+        return Result.success();
+    }
+
     @Operation(summary ="更新用户信息")
-    @PostMapping("/user/auth/update/v2")
+    @PostMapping("/auth/user/update/v2")
     public Result<UserInfoVO> updateUserInfo(HttpServletRequest httpServletRequest,@RequestBody UpdateUserDataDTO updateUserDataDto) {
         UserInfoVO userInfoVO = userService.updateUserData(httpServletRequest,updateUserDataDto);
         return Result.success(userInfoVO);
     }
+
+
 
     @Operation(summary ="更新用户配置")
     @GetMapping("/user/update/config")

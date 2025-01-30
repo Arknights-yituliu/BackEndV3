@@ -2,13 +2,11 @@ package com.lhs.service.util.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.entity.vo.material.StorePermVO;
 import com.lhs.service.util.DataCacheService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service

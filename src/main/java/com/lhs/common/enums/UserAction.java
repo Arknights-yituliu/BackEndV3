@@ -1,8 +1,6 @@
 package com.lhs.common.enums;
 
-public enum UserAction {
-
-    COPY(1,"复制"),
+public enum UserAction { COPY(1,"复制"),
     RATING(2,"点赞");
 
     private Integer actionCode;
@@ -19,4 +17,6 @@ public enum UserAction {
     public String getAction() {
         return action;
     }
+
+
 }

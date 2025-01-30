@@ -37,7 +37,7 @@ public class Email163ServiceImpl implements Email163Service {
     }
 
     @Override
-    public Integer CreateVerificationCode(String emailAddress, Integer maxCodeNum) {
+    public Integer createVerificationCode(String emailAddress, Integer maxCodeNum) {
         int random = new Random().nextInt(8999) + 1000;
         String code = String.valueOf(random);
         redisTemplate.opsForValue().set("CODE:CODE." + emailAddress, code, 300, TimeUnit.SECONDS);
@@ -45,8 +45,8 @@ public class Email163ServiceImpl implements Email163Service {
     }
 
     @Override
-    public void compareVerificationCode(String inputCode, String emailAddress) {
-        Object code = redisTemplate.opsForValue().get("CODE:CODE." + emailAddress);
+    public void compareVerificationCode(String inputCode, String key) {
+        Object code = redisTemplate.opsForValue().get("CODE:CODE." + key);
 
         if (code == null) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_EXIST);

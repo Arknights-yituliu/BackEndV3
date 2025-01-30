@@ -46,7 +46,9 @@ public interface UserService {
      * @param emailRequestDto 邮件请求数据
      */
     void sendVerificationCode(EmailRequestDTO emailRequestDto);
-
+    void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto);
+    String checkVerificationCode(HttpServletRequest httpServletRequest,String verificationCode);
+    void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto);
     /**
      * 通过token获取用户信息
      *
@@ -70,6 +72,14 @@ public interface UserService {
      * @return 用户信息
      */
     UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest);
+
+    /**
+     * 通过HttpServletRequest获取token，根据token拿到用户id，如果没有token则查看请求头是否含有前端传来的临时uid，如果有则返回，没有则根据ip生成一个临时uid
+     *
+     * @param httpServletRequest HTTP请求对象
+     * @return 用户信息
+     */
+    Long getUidByHttpServletRequest(HttpServletRequest httpServletRequest);
 
     /**
      * 通过HttpServletRequest获取token，根据token拿到用户信息
@@ -128,6 +138,7 @@ public interface UserService {
      * @param akPlayerBindInfoDTO 第三方账号的信息
      */
     void saveExternalAccountBindingInfoAndAKPlayerBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
+
 
 
 }
