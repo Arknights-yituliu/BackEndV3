@@ -1,8 +1,9 @@
 package com.lhs.task;
 
+import com.lhs.common.enums.RecordType;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.rogue.RogueSeedService;
-import com.lhs.service.survey.OperatorStatisticsService;
+import com.lhs.service.survey.OperatorProgressionStatisticsService;
 import com.lhs.service.material.*;
 
 import com.lhs.service.survey.QuestionnaireService;
@@ -17,7 +18,7 @@ public class TaskService {
     private final StoreService storeService;
     private final StageCalService stageCalService;
     private final StageService stageService;
-    private final OperatorStatisticsService operatorStatisticsService;
+    private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
 
     private final RogueSeedService rogueSeedService;
     private final RecruitTagUploadService recruitTagUploadService;
@@ -27,21 +28,18 @@ public class TaskService {
     public TaskService(StoreService storeService,
                        StageCalService stageCalService,
                        StageService stageService,
-                       OperatorStatisticsService operatorStatisticsService,
+                       OperatorProgressionStatisticsService operatorProgressionStatisticsService,
                        RogueSeedService rogueSeedService,
                        RecruitTagUploadService recruitTagUploadService,
                        QuestionnaireService questionnaireService) {
         this.storeService = storeService;
         this.stageCalService = stageCalService;
         this.stageService = stageService;
-        this.operatorStatisticsService = operatorStatisticsService;
+        this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.rogueSeedService = rogueSeedService;
         this.recruitTagUploadService = recruitTagUploadService;
         this.questionnaireService = questionnaireService;
     }
-
-
-
 
 
     /**
@@ -78,21 +76,18 @@ public class TaskService {
     }
 
     /**
-     * 更新常驻商店性价比
-     */
-//    @Scheduled(cron = "0 0 0/1 * * ?")
-    public void updateStorePerm() {
-        storeService.updateStorePerm();
-    }
-
-
-    /**
      * 统计干员练度数据
      */
     @Scheduled(cron = "0 0 0/1 * * ? ")
-    public void operatorStatistics(){
-        operatorStatisticsService.statisticsOperatorData();
+    public void statisticsProgressionOperatorData(){
+        operatorProgressionStatisticsService.statisticsOperatorProgressionData();
     }
+
+    @Scheduled(cron = "0 0 2-4 * * ?")
+    public void archivedOperatorProgressionResult(){
+        operatorProgressionStatisticsService.archivedOperatorProgressionResult();
+    }
+
 
 
     @Scheduled(cron = "0 0/5 * * * ?")
@@ -100,8 +95,19 @@ public class TaskService {
         rogueSeedService.ratingStatistics();
     }
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
     public void statisticsQuestionnaireResult(){
-        questionnaireService.statisticsQuestionnaireResult(1);
+        questionnaireService.statisticsQuestionnaireResult(1, RecordType.DISPLAY.getCode());
     }
+
+    @Scheduled(cron = "0 0 2-4 * * ?")
+    public void archivedOperatorCarryRateResult(){
+        questionnaireService.archivedOperatorCarryRateResult();
+    }
+
+    @Scheduled(cron = "0 0 1 * * ?")
+    public void deleteExpireData(){
+        questionnaireService.deleteExpireData();
+    }
+
 }

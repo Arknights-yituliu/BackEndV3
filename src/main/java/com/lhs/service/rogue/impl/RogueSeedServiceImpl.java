@@ -37,7 +37,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     private final RogueSeedMapper rogueSeedMapper;
     private final RogueSeedBakMapper rogueSeedBakMapper;
-    private final RogueSeedTagMapper rogueSeedTagMapper;
+
     private final RogueSeedRatingMapper rogueSeedRatingMapper;
     private final RateLimiter rateLimiter;
     private final IdGenerator idGenerator;
@@ -49,7 +49,6 @@ public class RogueSeedServiceImpl implements RogueSeedService {
                                 TencentCloudService tencentCloudService,
                                 RogueSeedMapper rogueSeedMapper,
                                 RogueSeedBakMapper rogueSeedBakMapper,
-                                RogueSeedTagMapper rogueSeedTagMapper,
                                 RogueSeedRatingMapper rogueSeedRatingMapper,
                                 RateLimiter rateLimiter,
                                 RogueSeedRatingStatisticsMapper rogueSeedRatingStatisticsMapper, UserActionOnSeedMapper userActionOnSeedMapper) {
@@ -58,7 +57,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         this.tencentCloudService = tencentCloudService;
         this.rogueSeedMapper = rogueSeedMapper;
         this.rogueSeedBakMapper = rogueSeedBakMapper;
-        this.rogueSeedTagMapper = rogueSeedTagMapper;
+
         this.rogueSeedRatingMapper = rogueSeedRatingMapper;
         this.rateLimiter = rateLimiter;
         this.rogueSeedRatingStatisticsMapper = rogueSeedRatingStatisticsMapper;

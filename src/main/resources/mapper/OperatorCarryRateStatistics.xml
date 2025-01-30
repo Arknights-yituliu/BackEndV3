@@ -5,25 +5,26 @@
 
     <update id="expireOldData" >
         UPDATE operator_carry_rate_statistics
-        SET expired_flag = true
-        WHERE expired_flag = false
+        SET record_type = #{targetRecordType}
+        WHERE record_type = #{currentRecordType}
     </update>
 
     <!--  批量插入干员练度信息表-->
     <insert id="insertBatch">
         INSERT INTO operator_carry_rate_statistics
-        (id, char_id, carrying_rate, create_time, expired_flag)
+        (id, char_id, carry_rate, create_time, record_type)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.id},#{item.charId}, #{item.carryingRate}, #{item.createTime},#{item.expiredFlag})
+            (#{item.id},#{item.charId}, #{item.carryRate}, #{item.createTime},#{item.recordType})
         </foreach>
     </insert>
 
     <select id="getOperatorCarryRateResult" resultType="com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO">
-        SELECT char_id,carrying_rate
+        SELECT char_id,carry_rate
         FROM operator_carry_rate_statistics
-        WHERE expired_flag = false;
+        WHERE record_type = 1;
     </select>
+
 
 
 </mapper>

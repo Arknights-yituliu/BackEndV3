@@ -1,15 +1,17 @@
 package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
+import com.lhs.common.enums.RecordType;
+import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.LogUtils;
 import com.lhs.entity.po.survey.*;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
 import com.lhs.mapper.survey.OperatorDataMapper;
-import com.lhs.mapper.survey.OperatorStatisticsMapper;
-import com.lhs.mapper.survey.service.OperatorStatisticsMapperService;
+import com.lhs.mapper.survey.OperatorProgressionStatisticsMapper;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
 import com.lhs.service.util.OSSService;
 import com.lhs.entity.vo.survey.OperatorStatisticsResultVO;
@@ -24,12 +26,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-public class OperatorStatisticsService {
+public class OperatorProgressionStatisticsService {
 
 
-    private final OperatorStatisticsMapper operatorStatisticsMapper;
+    private final OperatorProgressionStatisticsMapper operatorProgressionStatisticsMapper;
 
-    private final OperatorStatisticsMapperService operatorStatisticsMapperService;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -37,28 +38,32 @@ public class OperatorStatisticsService {
     private final OperatorDataMapper operatorDataMapper;
 
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
+    private final IdGenerator idGenerator;
 
 
-    public OperatorStatisticsService(OperatorStatisticsMapper operatorStatisticsMapper, OperatorStatisticsMapperService operatorStatisticsMapperService,
-                                     RedisTemplate<String, Object> redisTemplate,
-                                     OSSService ossService,
-                                     OperatorDataMapper operatorDataMapper,
-                                     AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
-        this.operatorStatisticsMapper = operatorStatisticsMapper;
-        this.operatorStatisticsMapperService = operatorStatisticsMapperService;
+    public OperatorProgressionStatisticsService(OperatorProgressionStatisticsMapper operatorProgressionStatisticsMapper,
+                                                RedisTemplate<String, Object> redisTemplate,
+                                                OSSService ossService,
+                                                OperatorDataMapper operatorDataMapper,
+                                                AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
+        this.operatorProgressionStatisticsMapper = operatorProgressionStatisticsMapper;
         this.redisTemplate = redisTemplate;
         this.ossService = ossService;
         this.operatorDataMapper = operatorDataMapper;
+        this.idGenerator = new IdGenerator(1L);
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
     }
 
 
-    public void statisticsOperatorData(){
+    public void statisticsOperatorProgressionData() {
+
+        operatorProgressionStatisticsMapper.expireOldData(RecordType.EXPIRE.getCode(), RecordType.DISPLAY.getCode());
+
         LambdaQueryWrapper<AkPlayerBindInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(AkPlayerBindInfo::getDeleteFlag,false);
-        List<AkPlayerBindInfo> akPlayerBindInfoList = akPlayerBindInfoMapper.selectList(null);
-        //清空统计表
-        operatorStatisticsMapper.truncate();
+        Long timeStamp = new Date().getTime()-60*60*24*40*1000L;
+        lambdaQueryWrapper.eq(AkPlayerBindInfo::getDeleteFlag, false).ge(AkPlayerBindInfo::getUpdateTime,timeStamp);
+        List<AkPlayerBindInfo> akPlayerBindInfoList = akPlayerBindInfoMapper.selectList(lambdaQueryWrapper);
+
         int userCount = 0;
         //临时结果
         HashMap<String, OperatorStatisticsDTO> tmpResult = new HashMap<>();
@@ -69,47 +74,48 @@ public class OperatorStatisticsService {
             tmpAkPlayerBindInfoList.add(akPlayerBindInfo);
             if (tmpAkPlayerBindInfoList.size() > 300) {
                 Integer i = operatorStatisticsByIds(tmpAkPlayerBindInfoList, tmpResult);
-                userCount+=i;
+                userCount += i;
                 tmpAkPlayerBindInfoList.clear();
             }
         }
 
         if (!tmpAkPlayerBindInfoList.isEmpty()) {
             Integer i = operatorStatisticsByIds(tmpAkPlayerBindInfoList, tmpResult);
-            userCount+=i;
+            userCount += i;
         }
 
 
-        List<OperatorStatistics> statisticsOperatorList = new ArrayList<>();  //最终结果
+        List<OperatorProgressionStatistics> progressionStatisticsList = new ArrayList<>();  //最终结果
 
+        Date date = new Date();
         tmpResult.forEach((k, v) -> {
+            OperatorProgressionStatistics progression = new OperatorProgressionStatistics();
+            progression.setId(idGenerator.nextId());
+            progression.setCharId(v.getCharId());
+            progression.setRarity(v.getRarity());
+            progression.setOwn(v.getOwn());
+            progression.setElite(JsonMapper.toJSONString(v.getElite()));
+            progression.setSkill1(JsonMapper.toJSONString(v.getSkill1()));
+            progression.setSkill2(JsonMapper.toJSONString(v.getSkill2()));
+            progression.setSkill3(JsonMapper.toJSONString(v.getSkill3()));
+            progression.setModX(JsonMapper.toJSONString(v.getModX()));
+            progression.setModY(JsonMapper.toJSONString(v.getModY()));
+            progression.setModD(JsonMapper.toJSONString(v.getModD()));
 
-            OperatorStatistics build = OperatorStatistics.builder()
-                    .charId(v.getCharId())
-                    .rarity(v.getRarity())
-                    .own(v.getOwn())
-                    .elite(JsonMapper.toJSONString(v.getElite()))
-                    .skill1(JsonMapper.toJSONString(v.getSkill1()))
-                    .skill2(JsonMapper.toJSONString(v.getSkill2()))
-                    .skill3(JsonMapper.toJSONString(v.getSkill3()))
-                    .modX(JsonMapper.toJSONString(v.getModX()))
-                    .modY(JsonMapper.toJSONString(v.getModY()))
-                    .modD(JsonMapper.toJSONString(v.getModD()))
-                    .modA(JsonMapper.toJSONString(v.getModA()))
-                    .potential(JsonMapper.toJSONString(v.getPotential()))
-                    .build();
-            statisticsOperatorList.add(build);
+            progression.setModA(JsonMapper.toJSONString(v.getModA()));
+            progression.setPotential(JsonMapper.toJSONString(v.getPotential()));
+            progression.setRecordType(RecordType.DISPLAY.getCode());
+            progression.setCreateTime(date);
+            progressionStatisticsList.add(progression);
         });
 
-        LogUtils.info("本次统计人数为：" + userCount + "人");
+        LogUtils.info("本次干员练度统计样本量为：" + userCount + "人");
         String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         redisTemplate.opsForHash().put("Survey", "UpdateTime.Operator", updateTime);
         redisTemplate.opsForHash().put("Survey", "UserCount.Operator", userCount);
 
-        operatorStatisticsMapperService.saveBatch(statisticsOperatorList);
-        redisTemplate.expire("Survey:OperatorStatistics",10, TimeUnit.SECONDS);
-
-
+        operatorProgressionStatisticsMapper.insertBatch(progressionStatisticsList);
+        redisTemplate.expire("Survey:OperatorStatistics", 10, TimeUnit.SECONDS);
     }
 
     private Integer operatorStatisticsByIds(List<AkPlayerBindInfo> akPlayerBindInfoList, HashMap<String, OperatorStatisticsDTO> tmpResult) {
@@ -121,6 +127,7 @@ public class OperatorStatisticsService {
         LambdaQueryWrapper<OperatorData> queryWrapper = new LambdaQueryWrapper<>();
 
         queryWrapper.in(OperatorData::getAkUid, akUidSet);
+
         List<OperatorData> operatorDataList = operatorDataMapper.selectList(queryWrapper);
 
         LogUtils.info("本次统计数量：" + operatorDataList.size());
@@ -191,6 +198,7 @@ public class OperatorStatisticsService {
                     .modD(collectByModD)
                     .modA(collectByModA)
                     .build();
+
             tmpResult.put(charId, build);
         });
 
@@ -204,23 +212,66 @@ public class OperatorStatisticsService {
     }
 
 
+    public void archivedOperatorProgressionResult() {
+
+        // 获取今天的开始时间和结束时间
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date startOfDay = calendar.getTime();
+
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
+        Date endOfDay = calendar.getTime();
+
+        LambdaUpdateWrapper<OperatorProgressionStatistics> existQueryWrapper = new LambdaUpdateWrapper<>();
+        existQueryWrapper.eq(OperatorProgressionStatistics::getRecordType, RecordType.ARCHIVED.getCode())
+                .ge(OperatorProgressionStatistics::getCreateTime, startOfDay)
+                .le(OperatorProgressionStatistics::getCreateTime, endOfDay);
+
+        boolean exists = operatorProgressionStatisticsMapper.exists(existQueryWrapper);
+        if (exists) {
+            LogUtils.info("干员携带率统计结果今日已归档");
+            return;
+        }
+
+        LambdaUpdateWrapper<OperatorProgressionStatistics> queryWrapper = new LambdaUpdateWrapper<>();
+        queryWrapper.eq(OperatorProgressionStatistics::getRecordType, RecordType.DISPLAY.getCode());
+        List<OperatorProgressionStatistics> list = operatorProgressionStatisticsMapper.selectList(queryWrapper);
+        for (OperatorProgressionStatistics item : list) {
+            item.setId(idGenerator.nextId());
+            item.setRecordType(RecordType.ARCHIVED.getCode());
+        }
+
+        Integer i = operatorProgressionStatisticsMapper.insertBatch(list);
+        LogUtils.info("干员携带率统计结果归档成功" + i + "条");
+
+    }
+
 
     /**
      * 干员信息统计
      *
      * @return 成功消息
      */
-    @RedisCacheable(key = "Survey:OperatorStatistics")
-    public HashMap<Object, Object> getCharStatisticsResult() {
-        List<OperatorStatistics> statisticsOperatorList = operatorStatisticsMapper.selectList(null);
+    @RedisCacheable(key = "Survey:OperatorProgressionStatistics")
+    public HashMap<Object, Object> getOperatorProgressionStatisticsResult() {
+        LambdaUpdateWrapper<OperatorProgressionStatistics> queryWrapper = new LambdaUpdateWrapper<>();
+        queryWrapper.eq(OperatorProgressionStatistics::getRecordType, RecordType.DISPLAY.getCode());
+        List<OperatorProgressionStatistics> statisticsOperatorList = operatorProgressionStatisticsMapper.selectList(queryWrapper);
 
         HashMap<Object, Object> hashMap = new HashMap<>();
 
-        Object survey = redisTemplate.opsForHash().get("Survey", "UserCount.Operator");
+        Object userCountText = redisTemplate.opsForHash().get("Survey", "UserCount.Operator");
         String updateTime = String.valueOf(redisTemplate.opsForHash().get("Survey", "UpdateTime.Operator"));
 
-        double userCount = Double.parseDouble(survey + ".0");
+        double userCount = Double.parseDouble(userCountText + ".0");
         List<OperatorStatisticsResultVO> operatorStatisticsResultVOList = new ArrayList<>();
+
         statisticsOperatorList.forEach(item -> {
             OperatorStatisticsResultVO build = OperatorStatisticsResultVO.builder()
                     .charId(item.getCharId())
@@ -249,7 +300,7 @@ public class OperatorStatisticsService {
     /**
      * 计算具体结果
      *
-     * @param result  旧结果
+     * @param result     旧结果
      * @param sampleSize 样本
      * @return 计算结果
      */
@@ -281,8 +332,8 @@ public class OperatorStatisticsService {
 
     @Scheduled(cron = "0 0 0/1 * * ? ")
     public void saveOperatorStatisticsData() {
-        List<OperatorStatistics> operatorStatistics = operatorStatisticsMapper.selectList(null);
-        String data = JsonMapper.toJSONString(operatorStatistics);
+        List<OperatorProgressionStatistics> operatorProgressionStatistics = operatorProgressionStatisticsMapper.selectList(null);
+        String data = JsonMapper.toJSONString(operatorProgressionStatistics);
         String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
         String yyyyMMddHH = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式
         ossService.upload(data, "backup/survey/operator/statistics" + yyyyMMdd + "/operator " + yyyyMMddHH + ".json");

@@ -1,6 +1,5 @@
 package com.lhs.entity.po.survey;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("operator_data")
+
 public class OperatorDataVo {
     private String charId;
     private Boolean own;

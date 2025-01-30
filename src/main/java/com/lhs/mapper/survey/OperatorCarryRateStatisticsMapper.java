@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface OperatorCarryRateStatisticsMapper extends BaseMapper<OperatorCarryRateStatistics> {
 
-    void expireOldData();
+    void expireOldData(@Param("targetRecordType") Integer targetRecordType,@Param("currentRecordType") Integer currentRecordType);
 
     Integer insertBatch(@Param("list") List<OperatorCarryRateStatistics> list);
 

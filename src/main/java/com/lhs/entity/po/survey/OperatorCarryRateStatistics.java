@@ -10,9 +10,9 @@ public class OperatorCarryRateStatistics {
     @TableId
     private Long id;
     private String charId;
-    private Double carryingRate;
+    private Double carryRate;
     private Date createTime;
-    private Boolean expiredFlag;
+    private Integer recordType;
 
     public Long getId() {
         return id;
@@ -30,12 +30,12 @@ public class OperatorCarryRateStatistics {
         this.charId = charId;
     }
 
-    public Double getCarryingRate() {
-        return carryingRate;
+    public Double getCarryRate() {
+        return carryRate;
     }
 
-    public void setCarryingRate(Double carryingRate) {
-        this.carryingRate = carryingRate;
+    public void setCarryRate(Double carryRate) {
+        this.carryRate = carryRate;
     }
 
     public Date getCreateTime() {
@@ -46,11 +46,11 @@ public class OperatorCarryRateStatistics {
         this.createTime = createTime;
     }
 
-    public Boolean getExpiredFlag() {
-        return expiredFlag;
+    public Integer getRecordType() {
+        return recordType;
     }
 
-    public void setExpiredFlag(Boolean expiredFlag) {
-        this.expiredFlag = expiredFlag;
+    public void setRecordType(Integer recordType) {
+        this.recordType = recordType;
     }
 }

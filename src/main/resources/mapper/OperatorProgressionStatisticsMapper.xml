@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.survey.OperatorProgressionStatisticsMapper">
+
+
+    <!--  批量插入统计表-->
+    <insert id="insertBatch">
+        INSERT INTO operator_progression_statistics
+        (id, char_id, rarity, own, potential, elite, skill1, skill2, skill3, mod_x, mod_y, mod_d, mod_a, record_type,
+        create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.charId},
+            #{item.rarity},
+            #{item.own},
+            #{item.potential},
+            #{item.elite},
+            #{item.skill1},
+            #{item.skill2},
+            #{item.skill3},
+            #{item.modX},
+            #{item.modY},
+            #{item.modD},
+            #{item.modA},
+            #{item.recordType},
+            #{item.createTime}
+            )
+        </foreach>
+    </insert>
+
+    <update id="expireOldData" >
+        UPDATE operator_progression_statistics
+        SET record_type = #{targetRecordType}
+        WHERE record_type = #{currentRecordType}
+    </update>
+
+</mapper>

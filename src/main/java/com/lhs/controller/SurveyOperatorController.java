@@ -27,17 +27,17 @@ public class SurveyOperatorController {
 
     private final HypergryphService HypergryphService;
 
-    private final OperatorStatisticsService operatorStatisticsService;
+    private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
 
     private final WarehouseInfoService warehouseInfoService;
 
     public SurveyOperatorController(OperatorDataService operatorDataService,
                                     ArknightsGameDataService arknightsGameDataService,
-                                    OperatorStatisticsService operatorStatisticsService,
+                                    OperatorProgressionStatisticsService operatorProgressionStatisticsService,
                                     HypergryphService HypergryphService, WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
         this.arknightsGameDataService = arknightsGameDataService;
-        this.operatorStatisticsService = operatorStatisticsService;
+        this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.HypergryphService = HypergryphService;
         this.warehouseInfoService = warehouseInfoService;
     }
@@ -52,7 +52,7 @@ public class SurveyOperatorController {
     @Operation(summary ="手动统计")
     @GetMapping("/survey/statistic")
     public Result<Object> statistic() {
-        operatorStatisticsService.statisticsOperatorData();
+        operatorProgressionStatisticsService.statisticsOperatorProgressionData();
         return Result.success();
     }
 
@@ -100,7 +100,7 @@ public class SurveyOperatorController {
     @Operation(summary ="干员练度调查表统计结果")
     @GetMapping("/survey/operator/result")
     public Result<Object> characterStatisticsResult() {
-        HashMap<Object, Object> hashMap = operatorStatisticsService.getCharStatisticsResult();
+        HashMap<Object, Object> hashMap = operatorProgressionStatisticsService.getOperatorProgressionStatisticsResult();
         return Result.success(hashMap);
     }
 

@@ -2,19 +2,15 @@ package com.lhs.entity.po.survey;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.util.Date;
 
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@TableName("survey_operator_statistics")
-public class OperatorStatistics {
+public class OperatorProgressionStatistics {
 
     @TableId
+    private Long id;
     private String  charId;
     private Integer own;
     private Integer rarity;
@@ -27,5 +23,7 @@ public class OperatorStatistics {
     private String modY;
     private String modD;
     private String modA;
+    private Integer recordType;
+    private Date createTime;
 
 }

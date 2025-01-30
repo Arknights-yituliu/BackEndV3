@@ -1,5 +1,6 @@
 package com.lhs.controller;
 
+import com.lhs.common.enums.RecordType;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.QuestionnaireSubmitInfoDTO;
 import com.lhs.service.survey.QuestionnaireService;
@@ -24,8 +25,15 @@ public class SurveyQuestionnaireController {
     }
 
     @Operation(summary ="获取干员调查问卷信息结果")
-    @PostMapping("/survey/questionnaire/result")
-    public Result<Object> uploadQuestionnaireResult(@RequestParam("QuestionnaireType") Integer questionnaireType) {
+    @GetMapping("/survey/questionnaire/result")
+    public Result<Object> uploadQuestionnaireResult(@RequestParam("questionnaireType") Integer questionnaireType) {
         return Result.success(questionnaireService.getQuestionnaireResultByType(questionnaireType));
+    }
+
+    @Operation(summary ="获取干员调查问卷信息结果")
+    @GetMapping("/survey/questionnaire/statistics")
+    public Result<Object> questionnaireStatistics(@RequestParam("questionnaireType") Integer questionnaireType) {
+        questionnaireService.statisticsQuestionnaireResult(questionnaireType, RecordType.DISPLAY.getCode());
+        return Result.success();
     }
 }
