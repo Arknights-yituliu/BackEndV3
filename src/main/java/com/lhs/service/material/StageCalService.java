@@ -72,7 +72,7 @@ public class StageCalService {
     private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config + "item_series_table.json"));
 
     public void updateStageResultByTaskConfig() {
-        String read = FileUtil.read(ConfigUtil.Config + "stage_task_config_v2.json");
+        String read = FileUtil.read(ConfigUtil.Config + "stage_task_config_v3.json");
         if (read == null) {
             LogUtils.error("更新关卡配置文件为空");
             return;
@@ -82,42 +82,15 @@ public class StageCalService {
         });
 
         for(StageConfigDTO stageConfigDTO:stageConfigDTOList){
-            updateStageResult(stageConfigDTO);
+            //计算新的新材料价值
+            List<Item> itemList = itemService.calculatedItemValue(stageConfigDTO);
+            //用新材料价值计算新关卡效率
+            StageResultTmpDTO stageResultTmpDTO = calculatedStageEfficiency(itemList, stageConfigDTO);
+            LogUtils.info("关卡效率更新成功，版本号 {} "+stageConfigDTO.getVersionCode());
+            //保存到数据库
+            saveResultToDB(stageResultTmpDTO,stageConfigDTO.getVersionCode());
             LogUtils.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
         }
-    }
-
-
-
-    public void updateStageResult(StageConfigDTO stageConfigDTO) {
-
-        List<Item> itemList = itemService.calculatedItemValue(stageConfigDTO);  //计算新的新材料价值
-        StageResultTmpDTO stageResultTmpDTO = calculatedStageEfficiency(itemList, stageConfigDTO);//用新材料价值计算新关卡效率
-        LogUtils.info("关卡效率更新成功，版本号 {} "+stageConfigDTO.getVersionCode());
-        saveResultToDB(stageResultTmpDTO,stageConfigDTO.getVersionCode());
-    }
-
-
-    public StageResultTmpDTO calculated(HttpServletRequest httpServletRequest) {
-        StageConfigDTO stageConfigDTO = userService.getUserStageConfig(httpServletRequest);
-        StageResultTmpDTO stageResultTmpDTO = calculated(stageConfigDTO);
-        List<Item> itemList = stageResultTmpDTO.getItemList();
-        String version = stageConfigDTO.getVersionCode();
-        dataCache("Item"+version, itemList);
-        long timeStamp = System.currentTimeMillis();
-        List<StageResult> stageResultList = stageResultTmpDTO.getStageResultList();
-        Map<String, List<StageResult>> commonMapByItemType = stageResultList.stream()
-                .filter(e -> e.getEndTime().getTime() > timeStamp & e.getStageEfficiency() > 0.5 & !"empty".equals(e.getItemSeries()))
-                .collect(Collectors.groupingBy(StageResult::getItemSeriesId));
-        List<StageResultDetail> stageResultDetailList = stageResultTmpDTO.getStageResultDetailList();
-        Map<String, StageResultDetail> detailMapByStageId = stageResultDetailList.stream()
-                .filter(e -> e.getEndTime().getTime() > timeStamp & e.getRatioRank() == 0)
-                .collect(Collectors.toMap((StageResultDetail::getStageId), Function.identity()));
-
-        List<RecommendedStageVO> recommendedStageVOList = createRecommendedStageVOList(commonMapByItemType, detailMapByStageId, version);
-        dataCache("RecommendedStage"+version, recommendedStageVOList);
-
-        return stageResultTmpDTO;
     }
 
 
@@ -176,40 +149,6 @@ public class StageCalService {
     }
 
 
-    public void dataCache(String key, Object value) {
-        LambdaQueryWrapper<DataCache> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(DataCache::getDataKey, key);
-        boolean exists = dataCacheMapper.exists(lambdaQueryWrapper);
-        DataCache dataCache = new DataCache();
-        dataCache.setDataKey(key);
-        dataCache.setDataValue(JsonMapper.toJSONString(value));
-        if (exists) {
-            dataCacheMapper.updateById(dataCache);
-        } else {
-            dataCacheMapper.insert(dataCache);
-        }
-    }
-
-    public StageResultTmpDTO calculated(StageConfigDTO stageConfigDTO) {
-
-        for (int i = 0; i < 10; i++) {
-            List<Item> itemList = itemService.calculatedItemValue(stageConfigDTO);
-            StageResultTmpDTO stageResultTmpDTO = calculatedStageEfficiency(itemList, stageConfigDTO);
-            Map<String, Double> itemIterationValueMap = stageResultTmpDTO.getItemIterationValueMap();
-
-            boolean limitFlag = true;
-            for (Double limit : itemIterationValueMap.values()) {
-                limitFlag = limitFlag && Math.abs(1 - limit) < 0.00001;
-            }
-
-            if (limitFlag) {
-                return stageResultTmpDTO;
-            }
-        }
-
-        throw new ServiceException(ResultCode.PARAM_INVALID);
-    }
-
 
     public StageResultTmpDTO calculatedStageEfficiency(List<Item> itemList, StageConfigDTO stageConfigDTO) {
 
@@ -225,21 +164,18 @@ public class StageCalService {
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
-        //获得一个企鹅物流掉落数据的Map对象，key为关卡id，value为关卡掉落集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
-        Map<String, List<PenguinMatrixDTO>> groupByStageId = filterAndMergePenguinData(itemMap, stageMap, sampleSize);
 
-        //关卡黑名单字典
-        Map<String, String> stageBlackMap = stageConfigDTO.getStageBlacklist();
+        Map<String, String> stageBlackMap = stageConfigDTO.getStageBlackMap();
+
+        //获得一个企鹅物流掉落数据的Map对象，key为关卡id，value为关卡掉落集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
+        Map<String, List<PenguinMatrixDTO>> groupByStageId =  PenguinMatrixCollect.filterAndMergePenguinData(itemMap, stageMap,stageBlackMap, sampleSize);
+
+
 
         StageResultTmpDTO stageResultTmpDTO = new StageResultTmpDTO();
 
         for (String stageId : groupByStageId.keySet()) {
 
-            //如果当前关卡在关卡黑名单中，则跳过该关卡
-            if (stageBlackMap.get(stageId) != null) {
-                LogUtils.info("黑名单关卡" + stageId);
-                continue;
-            }
 
             //来自企鹅物流的关卡掉落
             List<PenguinMatrixDTO> stageDropList = groupByStageId.get(stageId);
@@ -251,68 +187,102 @@ public class StageCalService {
             StageCalculationParametersDTO parametersDTO = new StageCalculationParametersDTO();
 
             //由于企鹅对于关卡本身的龙门币不进行统计，手动向企鹅的关卡掉落增加龙门币和商店龙门币
-            stageDropAddLMD(stageDropList, stage);
+            PenguinMatrixCollect.stageDropAddLMD(stageDropList, stage);
 
             //临时关卡详情集合
-            List<StageResultDetail> temporaryResultDetailList = new ArrayList<>();
+            List<StageResultDetail> tempResultDetailList = new ArrayList<>();
 
             //计算关卡期望产出并获取一个期望产出
-            countDropApValueAndListStageResultDetail(stage, temporaryResultDetailList,
+            countDropApValueAndListStageResultDetail(stage, tempResultDetailList,
                     stageDropList, itemMap, parametersDTO, version);
 
             //计算关卡每种产出的占比和判断关卡的材料系列
-            calculatedDropRatioAndJudgmentItemSeries(temporaryResultDetailList,
+            calculatedDropRatioAndJudgmentItemSeries(tempResultDetailList,
                     parametersDTO, stageResultTmpDTO);
 
             //计算关卡每种产出的占比和判断关卡的材料系列
             saveItemIterationValue(stageResultTmpDTO, parametersDTO, stage);
 
             //创建关卡结果对象
-            setStageResult(stageResultTmpDTO, temporaryResultDetailList,
+            setStageResult(stageResultTmpDTO, tempResultDetailList,
                     parametersDTO, stage, version);
         }
 
         List<ItemIterationValue> iterationValueList = createIterationValueList(stageResultTmpDTO,
                 itemMap, version);
+
         stageResultTmpDTO.setItemIterationValueList(iterationValueList);
 
         return stageResultTmpDTO;
     }
 
 
-    private void saveResultToDB(StageResultTmpDTO stageResultTmpDTO,
-                                String version) {
 
-        stageResultDetailMapper.delete(new QueryWrapper<StageResultDetail>().eq("version", version));
-        stageResultMapper.delete(new QueryWrapper<StageResult>().eq("version", version));
-        itemService.deleteItemIterationValue(version);
+    /**
+     * 计算关卡期望产出理智价值，并向临时的关卡结果集合中的元素赋予一些固定值
+     *
+     * @param stage                         关卡信息
+     * @param temporaryResultDetailList     临时关卡详情集合
+     * @param stageDropList                 关卡掉落集合
+     * @param itemMap                       材料表
+     * @param stageCalculationParametersDTO 关卡临时结果
+     * @param version                       版本号
+     */
+    private void countDropApValueAndListStageResultDetail(Stage stage, List<StageResultDetail> temporaryResultDetailList,
+                                                          List<PenguinMatrixDTO> stageDropList,
+                                                          Map<String, Item> itemMap,
+                                                          StageCalculationParametersDTO stageCalculationParametersDTO,
+                                                          String version) {
 
-        List<StageResultDetail> stageResultDetailList = stageResultTmpDTO.getStageResultDetailList();
-        List<StageResult> stageResultList = stageResultTmpDTO.getStageResultList();
-        List<ItemIterationValue> itemIterationValueList = stageResultTmpDTO.getItemIterationValueList();
+        List<QuantileTable> quantileTables = quantileMapper.selectList(null);
 
 
-        itemService.saveItemIterationValue(itemIterationValueList);
+        Double apCost = Double.valueOf(stage.getApCost());
+        String stageId = stage.getStageId();
 
-        List<StageResultDetail> insertList = new ArrayList<>();
-        for (StageResultDetail stageResultDetail : stageResultDetailList) {
-            insertList.add(stageResultDetail);
-            if (insertList.size() == 2000) {
-                stageResultDetailMapper.insertBatch(insertList);
-                insertList.clear();
-            }
+        double countStageDropApValue = 0.0;
+
+        //计算关卡掉落的一些详细信息
+        for (PenguinMatrixDTO stageDrop : stageDropList) {
+
+            //该条掉落物品的详细信息
+            Item item = itemMap.get(stageDrop.getItemId());
+
+            //关卡掉落详情
+            StageResultDetail detail = new StageResultDetail();
+
+            //材料掉率
+            Double knockRating = ((double) stageDrop.getQuantity() / (double) stageDrop.getTimes());
+
+            //关卡置信度
+            Double sampleConfidence = sampleConfidence(stageDrop.getTimes(), apCost,
+                    item.getItemValueAp(), knockRating, quantileTables);
+
+            //计算该条掉落的期望产出理智价值
+            double result = item.getItemValueAp() * knockRating;
+
+            //期望理智
+            Double apExpect = apCost / knockRating;
+            detail.setId(idGenerator.nextId());
+            detail.setStageId(stageId);
+            detail.setItemId(item.getItemId());
+            detail.setItemName(item.getItemName());
+            detail.setKnockRating(knockRating);
+            detail.setApExpect(apExpect);
+            detail.setResult(result);
+            detail.setSampleSize(stageDrop.getTimes());
+            detail.setSampleConfidence(sampleConfidence);
+            detail.setEndTime(stage.getEndTime());
+            detail.setVersion(version);
+            temporaryResultDetailList.add(detail);
+            countStageDropApValue += result;
         }
 
-        if (!insertList.isEmpty()) {
-            stageResultDetailMapper.insertBatch(insertList);
-        }
-
-        redisTemplate.opsForValue().set("Item:updateTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
-
-        LogUtils.info("本次批量插入关卡掉落详细数据条数：" + stageResultDetailList.size());
-        stageResultMapper.insertBatch(stageResultList);
-        LogUtils.info("本次批量插入关卡通用掉落数据条数：" + stageResultList.size());
+        stageCalculationParametersDTO.setCountStageDropApValue(countStageDropApValue);
     }
+
+
+
 
     private List<ItemIterationValue> createIterationValueList(StageResultTmpDTO stageResultTmpDTO,
                                                               Map<String, Item> itemMap,
@@ -376,7 +346,7 @@ public class StageCalService {
                                         StageCalculationParametersDTO stageCalculationParametersDTO,
                                         Stage stage) {
         String stageType = stage.getStageType();
-        String stageId = stage.getStageId();
+
         Integer apCost = stage.getApCost();
         double countStageDropApValue = stageCalculationParametersDTO.getCountStageDropApValue();
         Double stageEfficiency = countStageDropApValue / apCost;
@@ -442,100 +412,10 @@ public class StageCalService {
         }
     }
 
-    /**
-     * 计算关卡期望产出理智价值，并向临时的关卡结果集合中的元素赋予一些固定值
-     *
-     * @param stage                         关卡信息
-     * @param temporaryResultDetailList     临时关卡详情集合
-     * @param stageDropList                 关卡掉落集合
-     * @param itemMap                       材料表
-     * @param stageCalculationParametersDTO 关卡临时结果
-     * @param version                       版本号
-     */
-    private void countDropApValueAndListStageResultDetail(Stage stage, List<StageResultDetail> temporaryResultDetailList,
-                                                          List<PenguinMatrixDTO> stageDropList,
-                                                          Map<String, Item> itemMap, StageCalculationParametersDTO stageCalculationParametersDTO,
-                                                          String version) {
-
-        List<QuantileTable> quantileTables = quantileMapper.selectList(null);
 
 
-        Double apCost = Double.valueOf(stage.getApCost());
-        String stageId = stage.getStageId();
-
-        double countStageDropApValue = 0.0;
-
-        //计算关卡掉落的一些详细信息
-        for (PenguinMatrixDTO stageDrop : stageDropList) {
-
-            //该条掉落物品的详细信息
-            Item item = itemMap.get(stageDrop.getItemId());
-
-            //关卡掉落详情
-            StageResultDetail detail = new StageResultDetail();
-
-            //材料掉率
-            Double knockRating = ((double) stageDrop.getQuantity() / (double) stageDrop.getTimes());
-
-            //关卡置信度
-            Double sampleConfidence = sampleConfidence(stageDrop.getTimes(), apCost,
-                    item.getItemValueAp(), knockRating, quantileTables);
-
-            //计算该条掉落的期望产出理智价值
-            double result = item.getItemValueAp() * knockRating;
-
-            //期望理智
-            Double apExpect = apCost / knockRating;
-            detail.setId(idGenerator.nextId());
-            detail.setStageId(stageId);
-            detail.setItemId(item.getItemId());
-            detail.setItemName(item.getItemName());
-            detail.setKnockRating(knockRating);
-            detail.setApExpect(apExpect);
-            detail.setResult(result);
-            detail.setSampleSize(stageDrop.getTimes());
-            detail.setSampleConfidence(sampleConfidence);
-            detail.setEndTime(stage.getEndTime());
-            detail.setVersion(version);
-            temporaryResultDetailList.add(detail);
-            countStageDropApValue += result;
-        }
-
-        stageCalculationParametersDTO.setCountStageDropApValue(countStageDropApValue);
-    }
 
 
-    /**
-     * 由于企鹅对于关卡本身的龙门币不进行统计，手动向企鹅的关卡掉落增加龙门币和商店龙门币
-     *
-     * @param stageDropList 掉落集合
-     * @param stage         关卡信息
-     */
-    private void stageDropAddLMD(List<PenguinMatrixDTO> stageDropList, Stage stage) {
-
-        String stageId = stage.getStageId();
-        Double apCost = Double.valueOf(stage.getApCost());
-        String stageType = stage.getStageType();
-
-        //将关卡固定掉落的龙门币写入到掉落集合中
-        PenguinMatrixDTO stageDropLMD = new PenguinMatrixDTO();
-        stageDropLMD.setStageId(stageId);
-        stageDropLMD.setItemId("4001");
-        stageDropLMD.setQuantity((int) (12 * apCost));
-        stageDropLMD.setTimes(1);
-        stageDropList.add(stageDropLMD);
-
-
-        //将商店无限兑换区的龙门币视为掉落，写入掉落集合中
-        if (StageType.ACT_REP.equals(stageType) || StageType.ACT.equals(stageType)) {
-            PenguinMatrixDTO stageDropStore = new PenguinMatrixDTO();
-            stageDropStore.setStageId(stageId);
-            stageDropStore.setItemId("4001");
-            stageDropStore.setQuantity((int) (20 * apCost));
-            stageDropStore.setTimes(1);
-            stageDropList.add(stageDropStore);
-        }
-    }
 
     /**
      * @param common     关卡部分通用计算结果
@@ -588,77 +468,7 @@ public class StageCalService {
     }
 
 
-    /**
-     * 企鹅物流关卡矩阵中的磨难与标准关卡合并掉落次数和样本量
-     *
-     * @return 合并完的企鹅数据
-     */
-    private Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(Map<String, Item> itemMap, Map<String, Stage> stageMap, Integer sampleSize) {
-        //获取企鹅物流关卡矩阵
-        String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + "matrix auto.json");
-        if (penguinStageDataText == null) {
-            throw new ServiceException(ResultCode.DATA_NONE);
-        }
-        String matrixText = JsonMapper.parseJSONObject(penguinStageDataText).get("matrix").toPrettyString();
-        List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<>() {
-        });
 
-        //将磨难关卡筛选出来
-        Map<String, PenguinMatrixDTO> toughStageMap = penguinMatrixDTOList.stream()
-                .filter(e -> e.getStageId().contains("tough"))
-                .collect(Collectors.toMap(e -> e.getStageId()
-                        .replace("tough", "main") + "." + e.getItemId(), Function.identity()));
-
-        //将磨难关卡和标准关卡合并
-        List<PenguinMatrixDTO> mergeList = new ArrayList<>();
-        for (PenguinMatrixDTO element : penguinMatrixDTOList) {
-            String stageId = element.getStageId();
-            if (stageId.contains("tough")) {
-                continue;
-            }
-
-            if (toughStageMap.get(stageId + "." + element.getItemId()) != null) {
-                PenguinMatrixDTO toughItem = toughStageMap.get(stageId + "." + element.getItemId());
-                element.setQuantity(element.getQuantity() + toughItem.getQuantity());
-                element.setTimes(element.getTimes() + toughItem.getTimes());
-            }
-
-            if (stageId.startsWith("main_14")) {
-                if (element.getEnd() != null) {
-                    continue;
-                }
-            }
-
-            if (element.getTimes() < sampleSize) {
-                continue;
-            }
-            //掉落为零进行下次循环
-            if (element.getQuantity() == 0) continue;
-            //材料不在材料表继续下次循环
-            if (itemMap.get(element.getItemId()) == null) {
-                continue;
-            }
-            //关卡不在关卡表继续下次循环
-            if (stageMap.get(element.getStageId()) == null) {
-                continue;
-            }
-            if (element.getItemId().startsWith("ap_supply")) {
-                continue;
-            }
-            if (element.getItemId().startsWith("randomMaterial")) {
-                continue;
-            }
-
-            mergeList.add(element);
-
-        }
-
-
-        Map<String, List<PenguinMatrixDTO>> groupByStageId = mergeList.stream()
-                .collect(Collectors.groupingBy(PenguinMatrixDTO::getStageId));
-
-        return groupByStageId;
-    }
 
     private Double sampleConfidence(Integer penguinDataTimes, Double apCost, Double itemValue, Double probability, List<QuantileTable> quantileTables) {
         Double quantileValue = 0.03 * apCost / itemValue / Math.sqrt(1 * probability * (1 - probability) / (penguinDataTimes - 1));
@@ -668,5 +478,38 @@ public class StageCalService {
         return (collect.get(collect.size() - 1).getSection() * 2 - 1) * 100;
     }
 
+    private void saveResultToDB(StageResultTmpDTO stageResultTmpDTO,
+                                String version) {
+
+        stageResultDetailMapper.delete(new QueryWrapper<StageResultDetail>().eq("version", version));
+        stageResultMapper.delete(new QueryWrapper<StageResult>().eq("version", version));
+        itemService.deleteItemIterationValue(version);
+
+        List<StageResultDetail> stageResultDetailList = stageResultTmpDTO.getStageResultDetailList();
+        List<StageResult> stageResultList = stageResultTmpDTO.getStageResultList();
+        List<ItemIterationValue> itemIterationValueList = stageResultTmpDTO.getItemIterationValueList();
+
+
+        itemService.saveItemIterationValue(itemIterationValueList);
+
+        List<StageResultDetail> insertList = new ArrayList<>();
+        for (StageResultDetail stageResultDetail : stageResultDetailList) {
+            insertList.add(stageResultDetail);
+            if (insertList.size() == 2000) {
+                stageResultDetailMapper.insertBatch(insertList);
+                insertList.clear();
+            }
+        }
+
+        if (!insertList.isEmpty()) {
+            stageResultDetailMapper.insertBatch(insertList);
+        }
+
+        redisTemplate.opsForValue().set("Item:updateTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
+
+        LogUtils.info("本次批量插入关卡掉落详细数据条数：" + stageResultDetailList.size());
+        stageResultMapper.insertBatch(stageResultList);
+        LogUtils.info("本次批量插入关卡通用掉落数据条数：" + stageResultList.size());
+    }
 
 }

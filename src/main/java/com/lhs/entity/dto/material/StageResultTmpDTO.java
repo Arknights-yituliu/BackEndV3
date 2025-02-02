@@ -24,14 +24,7 @@ public class StageResultTmpDTO {
 
     private List<Item> itemList;
 
-    /**
-     * 为关卡详情集合赋值
-     *
-     * @param stageResultDetailList 新的关卡详情集合
-     */
-    public void setStageResultDetailList(List<StageResultDetail> stageResultDetailList) {
-        this.stageResultDetailList = stageResultDetailList != null ? new ArrayList<>(stageResultDetailList) : null;
-    }
+
 
     /**
      * 向关卡详情集合中添加一个或多个元素
@@ -45,14 +38,7 @@ public class StageResultTmpDTO {
         this.stageResultDetailList.add(stageResultDetails);
     }
 
-    /**
-     * 为关卡效率集合赋值
-     *
-     * @param stageResultList 新的关卡效率集合
-     */
-    public void setStageResultList(List<StageResult> stageResultList) {
-        this.stageResultList = stageResultList != null ? new ArrayList<>(stageResultList) : null;
-    }
+
 
     /**
      * 向关卡效率集合中添加一个或多个元素
@@ -66,14 +52,7 @@ public class StageResultTmpDTO {
         this.stageResultList.add(stageResults);
     }
 
-    /**
-     * 为材料系列迭代值字典赋值
-     *
-     * @param itemIterationValueMap 新的材料系列迭代值字典
-     */
-    public void setItemIterationValueMap(Map<String, Double> itemIterationValueMap) {
-        this.itemIterationValueMap = itemIterationValueMap != null ? new HashMap<>(itemIterationValueMap) : null;
-    }
+
 
     /**
      * 向材料系列迭代值字典中添加或更新键值对
@@ -101,23 +80,5 @@ public class StageResultTmpDTO {
     }
 
 
-    /**
-     * 从材料系列迭代值字典中移除指定键
-     *
-     * @param key 材料系列的键
-     */
-    public void removeItemIterationValue(String key) {
-        if (this.itemIterationValueMap != null) {
-            this.itemIterationValueMap.remove(key);
-        }
-    }
 
-    /**
-     * 清空材料系列迭代值字典
-     */
-    public void clearItemIterationValueMap() {
-        if (this.itemIterationValueMap != null) {
-            this.itemIterationValueMap.clear();
-        }
-    }
 }

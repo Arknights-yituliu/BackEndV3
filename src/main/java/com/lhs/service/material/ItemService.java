@@ -19,12 +19,17 @@ public interface ItemService  {
     void deleteItemIterationValue(String version);
 
     List<Item> getItemListCache(StageConfigDTO stageConfigDTO);
+
+    List<Item> getCustomItemList(StageConfigDTO stageConfigDTO);
+
     Map<String, Item> getItemMapCache(StageConfigDTO stageConfigDTO);
 
     List<Item> getItemList(StageConfigDTO stageConfigDTO);
 
     List<Item> updateFixedItemValue(StageConfigDTO stageConfigDTO);
 
+
+    List<Item>  calculatedCustomItemValue(StageConfigDTO stageConfigDTO);
 
     Long checkItemValue(StageConfigDTO stageConfigDTO);
 }

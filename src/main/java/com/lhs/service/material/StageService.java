@@ -2,6 +2,7 @@ package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.StageType;
 import com.lhs.common.util.*;
@@ -10,6 +11,7 @@ import com.lhs.entity.po.material.Stage;
 import com.lhs.entity.vo.material.ZoneTableVO;
 import com.lhs.mapper.material.StageMapper;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -22,14 +24,26 @@ public class StageService {
 
 
     private final StageMapper stageMapper;
+    private final RedisTemplate<String,Object> redisTemplate;
 
-    public StageService(StageMapper stageMapper) {
+    public StageService(StageMapper stageMapper, RedisTemplate<String, Object> redisTemplate) {
         this.stageMapper = stageMapper;
+        this.redisTemplate = redisTemplate;
     }
 
 
     public List<Stage> getStageList(QueryWrapper<Stage> queryWrapper) {
         return stageMapper.selectList(queryWrapper);
+    }
+
+
+    @RedisCacheable(key = "StageInfoMap",timeout = 43200)
+    public Map<String, Stage> getStageInfoMap(){
+        List<Stage> stageList = stageMapper.selectList(null);
+
+        return stageList
+                .stream()
+                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
     }
 
     public List<Map<String,Object>> getStageInfo(){
@@ -41,8 +55,10 @@ public class StageService {
                map.put("stageCode",item.getStageCode());
                map.put("zoneId",item.getZoneId());
                map.put("zoneName",item.getZoneName());
+               map.put("stageType",item.getStageType());
                map.put("apCost",item.getApCost());
                map.put("type",item.getStageType());
+               map.put("spm",item.getSpm());
                map.put("start",item.getStartTime().getTime());
                map.put("end",item.getEndTime().getTime());
                list.add(map);
@@ -132,10 +148,14 @@ public class StageService {
     public void getPenguinStagesDropData(){
         String response = HttpRequestUtil.get("https://penguin-stats.io/PenguinStats/api/v2/stages", new HashMap<>());
         JsonNode stageDtoList = JsonMapper.parseJSONObject(response);
+        List<Stage> stageList = stageMapper.selectList(null);
+        System.out.println(JsonMapper.toJSONString(stageList));
 
-        Map<String, Stage> stageMap = stageMapper.selectList(null)
+        Map<String, Stage> stageMap = stageList
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
+
+
 
         for(JsonNode jsonNode:stageDtoList){
             String stageId = jsonNode.get("stageId").asText();
@@ -203,6 +223,8 @@ public class StageService {
             LogUtils.info("本次拉取更新的关卡是："+stageId);
             stageMapper.insert(stage);
         }
+
+        redisTemplate.delete("StageInfoMap");
 
     }
 

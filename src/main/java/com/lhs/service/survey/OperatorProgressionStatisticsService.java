@@ -60,7 +60,7 @@ public class OperatorProgressionStatisticsService {
         operatorProgressionStatisticsMapper.expireOldData(RecordType.EXPIRE.getCode(), RecordType.DISPLAY.getCode());
 
         LambdaQueryWrapper<AkPlayerBindInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        Long timeStamp = new Date().getTime()-60*60*24*40*1000L;
+        Long timeStamp = new Date().getTime()-60*60*24*120*1000L;
         lambdaQueryWrapper.eq(AkPlayerBindInfo::getDeleteFlag, false).ge(AkPlayerBindInfo::getUpdateTime,timeStamp);
         List<AkPlayerBindInfo> akPlayerBindInfoList = akPlayerBindInfoMapper.selectList(lambdaQueryWrapper);
 
@@ -250,6 +250,13 @@ public class OperatorProgressionStatisticsService {
         Integer i = operatorProgressionStatisticsMapper.insertBatch(list);
         LogUtils.info("干员携带率统计结果归档成功" + i + "条");
 
+    }
+
+    public void deleteExpireData(){
+        LambdaQueryWrapper<OperatorProgressionStatistics> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OperatorProgressionStatistics::getRecordType,RecordType.EXPIRE.getCode());
+        int delete = operatorProgressionStatisticsMapper.delete(queryWrapper);
+        LogUtils.info("本次清理了"+delete+"条过期干员携带率统计数据");
     }
 
 

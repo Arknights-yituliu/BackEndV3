@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * <p>
  * paramOrMethod：此属性需要方法上有一个参数对象（且仅会调用第一个参数），同时有两种调用方式<br>
  *  ①填入param，会将第一个参数转为字符串拼接到key后，作为唯一标识<br>
- *  ②填入参数对象内部的方法名，调用参数返回的内容将拼接到key后，作为唯一标识
+ *  ②填入参数对象内部的方法名，调用参数内部对应方法，将返回的内容拼接到key后，作为唯一标识
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})

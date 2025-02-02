@@ -77,11 +77,7 @@ public class ItemControllerV3 {
         return Result.success(actStageVOList);
     }
 
-    @Operation(summary = "获取关卡信息")
-    @GetMapping("/stage/info")
-    public Result<Object> getStageInfo(){
-        return Result.success(stageService.getStageInfo());
-    }
+
 
 
     @Operation(summary = "查询新章的关卡效率")

@@ -88,6 +88,10 @@ public class TaskService {
         operatorProgressionStatisticsService.archivedOperatorProgressionResult();
     }
 
+    @Scheduled(cron = "0 0 1 * * ?")
+    public void deleteOperatorProgressionResultExpireData(){
+        operatorProgressionStatisticsService.deleteExpireData();
+    }
 
 
     @Scheduled(cron = "0 0/5 * * * ?")

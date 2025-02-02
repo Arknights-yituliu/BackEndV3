@@ -63,8 +63,15 @@ public class ItemControllerV4 {
 
     @Operation(summary = "获取物品价值表")
     @PostMapping("/custom/item/value")
-    public Result<List<Item>> getItemValueV2(@RequestBody StageConfigDTO stageConfigDTO) {
+    public Result<List<Item>> getItemValue(@RequestBody StageConfigDTO stageConfigDTO) {
         List<Item> items = itemService.getItemListCache(stageConfigDTO);
+        return Result.success(items);
+    }
+
+    @Operation(summary = "获取物品价值表")
+    @PostMapping("/item/value/v5")
+    public Result<List<Item>> getItemValue1(@RequestBody StageConfigDTO stageConfigDTO) {
+        List<Item> items = itemService.getCustomItemList(stageConfigDTO);
         return Result.success(items);
     }
 
@@ -98,5 +105,10 @@ public class ItemControllerV4 {
         return Result.success(packInfoVOS);
     }
 
-
+    @Operation(summary = "获取关卡信息")
+    @GetMapping("/stage/info")
+    public Result< List<Map<String, Object>>> getStageInfo() {
+        List<Map<String, Object>> stageInfo = stageService.getStageInfo();
+        return Result.success(stageInfo);
+    }
 }
