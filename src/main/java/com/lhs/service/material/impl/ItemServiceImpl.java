@@ -206,7 +206,9 @@ public class ItemServiceImpl implements ItemService {
 
 
         //获得一个企鹅物流掉落数据的Map对象，key为关卡id，value为关卡掉落集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
-        Map<String, List<PenguinMatrixDTO>> matrixCollect = PenguinMatrixCollect.filterAndMergePenguinData(itemMap, stageInfoMap, stageConfigDTO.getStageBlackMap(), stageConfigDTO.getSampleSize());
+        Map<String, List<PenguinMatrixDTO>> matrixCollect = PenguinMatrixCollect
+                .filterAndMergePenguinData(itemMap, stageInfoMap,
+                        stageConfigDTO.getStageBlackMap(), stageConfigDTO.getSampleSize());
 
         //关卡迭代传递的参数
         ItemIterationParamDTO itemIterationParamDTO = new ItemIterationParamDTO();
@@ -269,11 +271,14 @@ public class ItemServiceImpl implements ItemService {
 
         //材料迭代价值
         List<ItemIterationValue> itemIterationValueList = itemIterationParamDTO.getItemIterationValueList();
-        Map<String, Double> itemIterationValue = itemIterationValueList.stream()
+        Map<String, Double> itemIterationValueMap = itemIterationValueList.stream()
                 .collect(Collectors.toMap(ItemIterationValue::getItemId, ItemIterationValue::getIterationValue));
 
 
         Map<String, Item> itemValueMap = new HashMap<>();
+
+        List<ItemCustomValueDTO> customItem = stageConfigDTO.getCustomItem();
+        Map<String, Double> customItemMap = customItem.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemId, ItemCustomValueDTO::getItemValue));
 
         for (Item item : itemList) {
             item.setVersion(version);
@@ -297,12 +302,11 @@ public class ItemServiceImpl implements ItemService {
                 item.setItemValueAp(lmdValue);
             }
             //在itemValueMap 设置新的材料价值 新材料价值 = 旧材料价值/该材料主线最优关的关卡效率
-            if (itemIterationValue.get(itemId) != null) {
-                item.setItemValueAp(item.getItemValueAp() / itemIterationValue.get(itemId));
+            if (itemIterationValueMap.get(itemId) != null) {
+                item.setItemValueAp(item.getItemValueAp() / itemIterationValueMap.get(itemId));
             }
 
-            List<ItemCustomValueDTO> customItem = stageConfigDTO.getCustomItem();
-            Map<String, Double> customItemMap = customItem.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemId, ItemCustomValueDTO::getItemValue));
+
             Double value = customItemMap.get(itemId);
             if (value != null) {
                 item.setItemValueAp(value);
@@ -311,8 +315,11 @@ public class ItemServiceImpl implements ItemService {
         }
 
         //根据加工站合成表计算新价值
-        compositeTableDTO.forEach(table -> {
+        for(CompositeTableDTO table:compositeTableDTO){
             Item item = itemValueMap.get(table.getId());
+            if(customItemMap.get(table.getId())!=null){
+              continue;
+            }
             Integer rarity = item.getRarity();
             double itemValueNew = 0.0;
             if (table.getResolve()) {
@@ -322,6 +329,7 @@ public class ItemServiceImpl implements ItemService {
                     itemValueNew = (rowItem.getItemValueAp() +
                             workShopProductsValue.get("rarity_" + rarity) - 0.36 * rarity) / itemCostDTO.getCount();
                 }
+
             } else {
                 //紫，金色品质是向上合成    紫，金色材料 =  合成所需蓝材料价值之和  + 龙门币 - 副产物
                 for (ItemCostDTO itemCostDTO : table.getPathway()) {
@@ -330,9 +338,11 @@ public class ItemServiceImpl implements ItemService {
                 }
                 itemValueNew = itemValueNew + 0.36 * (rarity - 1) - workShopProductsValue.get("rarity_" + (rarity - 1));
             }
-
             item.setItemValueAp(itemValueNew);  //存入新材料价值
-        });
+        }
+
+
+
 
 
         List<WorkShopProducts> workShopProductValue = getWorkShopProductValue(itemList);
