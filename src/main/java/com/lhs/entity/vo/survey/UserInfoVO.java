@@ -15,6 +15,7 @@ public class UserInfoVO implements Serializable {
 
     private Long uid;
     private String userName;
+    private String nickName;
     @Sensitive(prefixNoMaskLen = 4,suffixNoMaskLen = 6)
     private String email;
     private Integer status;

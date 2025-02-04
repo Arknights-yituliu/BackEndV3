@@ -16,7 +16,6 @@ import java.util.HashMap;
 
 @RestController
 @Tag(name ="一图流用户系统")
-
 public class UserController {
 
     private final UserService userService;
