@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.material.StageDropMapper">
+
+    <insert id="insertBatch">
+        INSERT INTO stage_drop
+        (id, drops,stage_id, times, server, source, uid, version, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},#{item.drops},#{item.stageId},#{item.times},
+             #{item.server},#{item.source},#{item.uid},#{item.version},#{item.createTime})
+        </foreach>
+    </insert>
+
+    <select id="selectStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
+        SELECT *
+        FROM stage_drop_20240820
+        WHERE create_time &gt; #{start}   AND create_time &lt;= #{end}
+    </select>
+
+    <select id="selectStageDropDetail" resultType="com.lhs.entity.po.material.StageDropDetail">
+        SELECT *
+        FROM stage_drop_detail_20240820
+        WHERE child_id = #{parentId}
+    </select>
+
+
+    <select id="selectStageByStageId" resultType="com.lhs.entity.po.material.StageDropV2">
+        SELECT *
+        FROM stage_drop
+        WHERE stage_id = #{stageId} AND create_time &gt; #{start} AND create_time &lt;= #{end}
+    </select>
+</mapper>

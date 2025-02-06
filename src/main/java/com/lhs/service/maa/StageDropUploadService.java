@@ -112,12 +112,18 @@ public class StageDropUploadService {
         stageDrop.setVersion(stageDropDTO.getVersion());
         stageDrop.setCreateTime(nowTimeStamp);
 
+        if(stageDrop.getTimes()>1){
+            return "本次作战已成功上传";
+        }
+
         List<StageDropDetail> dropDetailList = new ArrayList<>();
 
         if (drops != null) {
             for (StageDropDetailDTO dropDTO : drops) {
                 StageDropDetail dropDetail = new StageDropDetail();
-                if (itemTable.get(dropDTO.getItemId()) == null) continue;
+                if (itemTable.get(dropDTO.getItemId()) == null) {
+                    continue;
+                }
                 dropDetail.setId(idGenerator.nextId());
                 dropDetail.setUid(penguinId);
                 dropDetail.setChildId(stageDropId);
