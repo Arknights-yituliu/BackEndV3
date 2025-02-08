@@ -10,6 +10,8 @@ import java.util.Map;
 public class StageConfigDTO {
 
     private Long id;
+
+    private String source;
     //API版本
     private String version;
     //经验书的系数,经验书价值=龙门币(0.0036)*系数
@@ -54,6 +56,14 @@ public class StageConfigDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public String getVersion() {

@@ -204,10 +204,14 @@ public class ItemServiceImpl implements ItemService {
         itemList.addAll(updateFixedItemValue(stageConfigDTO));
         Map<String, Item> itemMap = itemList.stream().collect(Collectors.toMap(Item::getItemId, Function.identity()));
 
+        String source = stageConfigDTO.getSource();
+        if(!"yituliu".equals(source)){
+            source = "penguin";
+        }
 
         //获得一个企鹅物流掉落数据的Map对象，key为关卡id，value为关卡掉落集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
         Map<String, List<PenguinMatrixDTO>> matrixCollect = PenguinMatrixCollect
-                .filterAndMergePenguinData("yituliu",itemMap, stageInfoMap,
+                .filterAndMergePenguinData(source,itemMap, stageInfoMap,
                         stageConfigDTO.getStageBlackMap(), stageConfigDTO.getSampleSize());
 
         //关卡迭代传递的参数
