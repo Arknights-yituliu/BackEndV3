@@ -48,7 +48,7 @@ public class ItemControllerV4 {
         return Result.success();
     }
 
-    @Operation(summary = "手动更新")
+    @Operation(summary = "关卡掉落")
     @PostMapping("/stage/drop")
     public Result<List<StageDropStatisticsVO>> getStageDropByStageId(@RequestBody QueryStageDropDTO queryStageDropDTO) {
 

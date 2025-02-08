@@ -26,10 +26,12 @@ public class PenguinMatrixCollect {
     public static Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(String source,Map<String, Item> itemMap, Map<String, Stage> stageMap,Map<String, String> stageBlackMap, Integer sampleSize) {
         //获取企鹅物流关卡矩阵
         String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + source+".json");
+
         if (penguinStageDataText == null) {
             throw new ServiceException(ResultCode.DATA_NONE);
         }
         String matrixText = JsonMapper.parseJSONObject(penguinStageDataText).get("matrix").toPrettyString();
+
         List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<>() {
         });
 
