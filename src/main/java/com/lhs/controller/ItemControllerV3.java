@@ -5,7 +5,6 @@ import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
-import com.lhs.task.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -24,17 +23,15 @@ public class ItemControllerV3 {
     private final StoreService storeService;
     private final PackInfoService packInfoService;
 
-    private final TaskService taskService;
 
     private final StageResultService stageResultService;
 
     public ItemControllerV3(ItemService itemService, StageService stageService, StoreService storeService,
-                            TaskService taskService, StageResultService stageResultService,
+                             StageResultService stageResultService,
                             PackInfoService packInfoService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;
-        this.taskService = taskService;
         this.stageResultService = stageResultService;
         this.packInfoService = packInfoService;
     }

@@ -54,7 +54,7 @@ public class TaskService {
     /**
      * 保存企鹅物流数据到本地
      */
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @Scheduled(cron = "0 0/20 * * * ?")
     public void savePenguinData() {
         stageService.savePenguinData();
     }

@@ -168,7 +168,8 @@ public class StageCalService {
         Map<String, String> stageBlackMap = stageConfigDTO.getStageBlackMap();
 
         //获得一个企鹅物流掉落数据的Map对象，key为关卡id，value为关卡掉落集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
-        Map<String, List<PenguinMatrixDTO>> groupByStageId =  PenguinMatrixCollect.filterAndMergePenguinData(itemMap, stageMap,stageBlackMap, sampleSize);
+        Map<String, List<PenguinMatrixDTO>> groupByStageId =  PenguinMatrixCollect
+                .filterAndMergePenguinData("penguin",itemMap, stageMap,stageBlackMap, sampleSize);
 
 
 

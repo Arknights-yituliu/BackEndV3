@@ -13,6 +13,7 @@ public class StageDrop {
     private Long id;
     private String stageId;
     private Integer times;
+    private String drops;
     private String server;
     private String source;
     private String uid;

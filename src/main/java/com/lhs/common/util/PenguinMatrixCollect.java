@@ -23,9 +23,9 @@ public class PenguinMatrixCollect {
      *
      * @return 合并完的企鹅数据
      */
-    public static Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(Map<String, Item> itemMap, Map<String, Stage> stageMap,Map<String, String> stageBlackMap, Integer sampleSize) {
+    public static Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(String source,Map<String, Item> itemMap, Map<String, Stage> stageMap,Map<String, String> stageBlackMap, Integer sampleSize) {
         //获取企鹅物流关卡矩阵
-        String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + "matrix auto.json");
+        String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + source+".json");
         if (penguinStageDataText == null) {
             throw new ServiceException(ResultCode.DATA_NONE);
         }
@@ -60,11 +60,11 @@ public class PenguinMatrixCollect {
                 element.setTimes(element.getTimes() + toughItem.getTimes());
             }
 
-            if (stageId.startsWith("main_14")) {
-                if (element.getEnd() != null) {
-                    continue;
-                }
-            }
+//            if (stageId.startsWith("main_14")) {
+//                if (element.getEnd() != null) {
+//                    continue;
+//                }
+//            }
 
             if (element.getTimes() < sampleSize) {
                 continue;

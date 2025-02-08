@@ -207,7 +207,7 @@ public class ItemServiceImpl implements ItemService {
 
         //获得一个企鹅物流掉落数据的Map对象，key为关卡id，value为关卡掉落集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
         Map<String, List<PenguinMatrixDTO>> matrixCollect = PenguinMatrixCollect
-                .filterAndMergePenguinData(itemMap, stageInfoMap,
+                .filterAndMergePenguinData("yituliu",itemMap, stageInfoMap,
                         stageConfigDTO.getStageBlackMap(), stageConfigDTO.getSampleSize());
 
         //关卡迭代传递的参数

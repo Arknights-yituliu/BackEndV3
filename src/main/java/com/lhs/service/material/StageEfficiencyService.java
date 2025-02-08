@@ -49,7 +49,7 @@ public class StageEfficiencyService {
         Map<String, Stage> stageInfoMap = stageService.getStageInfoMap();
         Map<String, String> stageBlackMap = stageConfigDTO.getStageBlackMap();
         Map<String, List<PenguinMatrixDTO>> penguinMatrix = PenguinMatrixCollect
-                .filterAndMergePenguinData(itemMapCache, stageInfoMap,
+                .filterAndMergePenguinData("penguin",itemMapCache, stageInfoMap,
                         stageBlackMap, stageConfigDTO.getSampleSize());
 
         for(String stageId : penguinMatrix.keySet()){

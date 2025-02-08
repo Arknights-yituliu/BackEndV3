@@ -65,7 +65,7 @@ public class StageDropUploadService {
     public String saveStageDrop(HttpServletRequest httpServletRequest, StageDropDTO stageDropDTO) {
 
 
-        if("main_01-07".equals(stageDropDTO.getStageId())){
+        if ("main_01-07".equals(stageDropDTO.getStageId())) {
             return "本次作战已成功上传";
         }
 
@@ -75,7 +75,7 @@ public class StageDropUploadService {
             return "请求头未携带企鹅物流账号";
         }
 
-        List<StageDropDetailDTO> drops = stageDropDTO.getDrops();
+
         if (stageDropDTO.getServer() == null || stageDropDTO.getSource() == null
                 || stageDropDTO.getVersion() == null) {
             return "掉落、版本、资源、服务信息为空";
@@ -94,15 +94,14 @@ public class StageDropUploadService {
             return "请勿重复上传";
         }
 
-        if(penguinId.length()>200){
-            LogUtils.info("MAA版本号 {} "+stageDropDTO.getVersion());
+        if (penguinId.length() > 50) {
+            LogUtils.info("MAA版本号 {} " + stageDropDTO.getVersion());
             return "凭证异常";
         }
 
-
-        JsonNode itemTable = getItemTable();
         Long stageDropId = idGenerator.nextId();
         StageDrop stageDrop = new StageDrop();
+
         stageDrop.setId(stageDropId);
         stageDrop.setStageId(stageDropDTO.getStageId());
         stageDrop.setTimes(stageDropDTO.getTimes() == null ? 1 : stageDropDTO.getTimes());
@@ -112,50 +111,31 @@ public class StageDropUploadService {
         stageDrop.setVersion(stageDropDTO.getVersion());
         stageDrop.setCreateTime(nowTimeStamp);
 
-        if(stageDrop.getTimes()>1){
+        if (stageDrop.getTimes() > 1) {
             return "本次作战已成功上传";
         }
 
-        List<StageDropDetail> dropDetailList = new ArrayList<>();
 
-        if (drops != null) {
-            for (StageDropDetailDTO dropDTO : drops) {
-                StageDropDetail dropDetail = new StageDropDetail();
-                if (itemTable.get(dropDTO.getItemId()) == null) {
-                    continue;
-                }
-                dropDetail.setId(idGenerator.nextId());
-                dropDetail.setUid(penguinId);
-                dropDetail.setChildId(stageDropId);
-                dropDetail.setItemId(dropDTO.getItemId());
-                dropDetail.setQuantity(dropDTO.getQuantity());
-                dropDetail.setDropType(dropDTO.getDropType());
-                dropDetailList.add(dropDetail);
-            }
+        List<StageDropDetailDTO> drops = stageDropDTO.getDrops();
+
+        if (drops != null&&!drops.isEmpty()) {
+            stageDrop.setDrops(JsonMapper.toJSONString(drops));
+        } else {
+            stageDrop.setDrops("[]");
         }
 
-        try {
-            stageDropMapper.insert(stageDrop);
-            if (!dropDetailList.isEmpty()) {
-                stageDropDetailMapperService.saveBatch(dropDetailList);
-            }
-        } catch (Exception e) {
-            redisTemplate.delete(penguinId);
-            throw new RuntimeException(e);
-        }
-
+        stageDropMapper.insert(stageDrop);
         return "本次作战已成功上传";
     }
 
     @RedisCacheable(key = "ItemTable", timeout = 604800)
     private JsonNode getItemTable() {
-        return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config +"drop_table.json"));
+        return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config + "drop_table.json"));
 //        return JsonMapper.parseJSONObject(FileUtil.read("src/main/resources/item/drop_table.json"));
     }
 
 
-
-    public long getYesterdayMidnightTimeStamp(){
+    public long getYesterdayMidnightTimeStamp() {
         // 获取现在的日期和时间
         LocalDateTime now = LocalDateTime.now();
 
@@ -169,7 +149,7 @@ public class StageDropUploadService {
         ZonedDateTime zonedDateTime = yesterdayMidnight.atZone(zoneId);
 
         //导出数据起始时间戳（毫秒）
-        return  zonedDateTime.toInstant().toEpochMilli();
+        return zonedDateTime.toInstant().toEpochMilli();
 
     }
 
@@ -181,43 +161,42 @@ public class StageDropUploadService {
 
         long startTimestamp = DROP_UPLOAD_SERVICE_START_TIME_STAMP;
 
-        if(LastExportStageDropDataTimeStamp!=null){
+        if (LastExportStageDropDataTimeStamp != null) {
             startTimestamp = Long.parseLong(String.valueOf(LastExportStageDropDataTimeStamp));
         }
 
         long currentTimeStamp = date.getTime();
-        if(currentTimeStamp-startTimestamp< 60 * 60 * 2 * 1000){
+        if (currentTimeStamp - startTimestamp < 60 * 60 * 2 * 1000) {
             LogUtils.error("距离当前时间过短");
-            redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",startTimestamp);
+            redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp", startTimestamp);
             return;
         }
 
         //导出数据结束时间戳（毫秒）,每次导出1小时的数据
-        long endTimestamp = startTimestamp+ 60 * 60 * 1000;
-
+        long endTimestamp = startTimestamp + 60 * 60 * 1000;
 
 
         QueryWrapper<StageDrop> stageDropQueryWrapper = new QueryWrapper<>();
-        stageDropQueryWrapper.ge("create_time",startTimestamp).le("create_time",endTimestamp);
+        stageDropQueryWrapper.ge("create_time", startTimestamp).le("create_time", endTimestamp);
         List<StageDrop> stageDropList = stageDropMapper.selectList(stageDropQueryWrapper);
 
 
-        if(stageDropList.isEmpty()){
-            redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",endTimestamp);
+        if (stageDropList.isEmpty()) {
+            redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp", endTimestamp);
             LogUtils.error("无数据");
             return;
         }
 
         Long startChildId = stageDropList.get(0).getId();
-        Long endChildId = stageDropList.get(stageDropList.size()-1).getId();
+        Long endChildId = stageDropList.get(stageDropList.size() - 1).getId();
 
         QueryWrapper<StageDropDetail> stageDropDetailQueryWrapper = new QueryWrapper<>();
-        stageDropDetailQueryWrapper.ge("child_id",startChildId).le("child_id",endChildId);
+        stageDropDetailQueryWrapper.ge("child_id", startChildId).le("child_id", endChildId);
         List<StageDropDetail> stageDropDetailList = stageDropDetailMapper.selectList(stageDropDetailQueryWrapper);
         Map<Long, List<StageDropDetail>> stageDropDetailCollect = stageDropDetailList.stream().collect(Collectors.groupingBy(StageDropDetail::getChildId));
 
         List<StageDropVO> stageDropVOList = new ArrayList<>();
-        for(StageDrop stageDrop:stageDropList){
+        for (StageDrop stageDrop : stageDropList) {
             StageDropVO stageDropVO = new StageDropVO();
             stageDropVO.setId(stageDrop.getId());
             stageDropVO.setUid(stageDrop.getUid());
@@ -227,19 +206,19 @@ public class StageDropUploadService {
             stageDropVO.setServer(stageDrop.getServer());
             stageDropVO.setCreateTime(stageDrop.getCreateTime());
             List<StageDropDetail> dropDetailListById = stageDropDetailCollect.get(stageDrop.getId());
-            if(dropDetailListById!=null){
+            if (dropDetailListById != null) {
                 stageDropVO.setDropList(getStageDropDetailVOList(dropDetailListById));
             }
             stageDropVOList.add(stageDropVO);
         }
 
-        if(stageDropVOList.size()<1000){
-            redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",endTimestamp);
+        if (stageDropVOList.size() < 1000) {
+            redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp", endTimestamp);
             LogUtils.error("数据过少");
             return;
         }
 
-        LogUtils.info("本次导出数据量为"+stageDropVOList.size());
+        LogUtils.info("本次导出数据量为" + stageDropVOList.size());
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm");
         String dateText = simpleDateFormat.format(new Date(startTimestamp));
@@ -251,15 +230,15 @@ public class StageDropUploadService {
         String day = dateTextSplit[2];
         String hourAndMinute = dateTextSplit[3];
 
-        String path = "export2/"+year+"/"+month+"/"+day+"/stage_drop_"+hourAndMinute+".json";
-        ossService.upload(JsonMapper.toJSONString(stageDropVOList),path);
-        LogUtils.info("OSS上传路径为："+path);
-        redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp",endTimestamp);
+        String path = "export2/" + year + "/" + month + "/" + day + "/stage_drop_" + hourAndMinute + ".json";
+        ossService.upload(JsonMapper.toJSONString(stageDropVOList), path);
+        LogUtils.info("OSS上传路径为：" + path);
+        redisTemplate.opsForValue().set("Item:LastExportStageDropDataTimeStamp", endTimestamp);
     }
 
     private static List<StageDropDetailVO> getStageDropDetailVOList(List<StageDropDetail> dropDetailListById) {
         List<StageDropDetailVO> stageDropDetailVOList = new ArrayList<>();
-        for(StageDropDetail stageDropDetail: dropDetailListById){
+        for (StageDropDetail stageDropDetail : dropDetailListById) {
             StageDropDetailVO stageDropDetailVO = new StageDropDetailVO();
             stageDropDetailVO.setItemId(stageDropDetail.getItemId());
             stageDropDetailVO.setDropType(stageDropDetail.getDropType());

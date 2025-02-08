@@ -1,12 +1,13 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
+import com.lhs.entity.dto.material.QueryStageDropDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.Stage;
+import com.lhs.entity.po.material.StageDropStatistics;
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
-import com.lhs.task.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -24,27 +25,34 @@ public class ItemControllerV4 {
 
     private final StoreService storeService;
     private final PackInfoService packInfoService;
-
-    private final TaskService taskService;
-
+    private final StageCalService stageCalService;
     private final StageResultService stageResultService;
+    private final StageDropService stageDropService;
 
     public ItemControllerV4(ItemService itemService, StageService stageService, StoreService storeService,
-                            TaskService taskService, StageResultService stageResultService,
-                            PackInfoService packInfoService) {
+                            StageResultService stageResultService,
+                            PackInfoService packInfoService, StageCalService stageCalService, StageDropService stageDropService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;
-        this.taskService = taskService;
         this.stageResultService = stageResultService;
         this.packInfoService = packInfoService;
+        this.stageCalService = stageCalService;
+        this.stageDropService = stageDropService;
     }
 
     @Operation(summary = "手动更新")
     @GetMapping("/stage/update")
     public Result<Map<String, List<Stage>>> updateStageResult() {
-        taskService.updateStageResult();
+        stageCalService.updateStageResultByTaskConfig();
         return Result.success();
+    }
+
+    @Operation(summary = "手动更新")
+    @PostMapping("/stage/drop")
+    public Result<List<StageDropStatisticsVO>> getStageDropByStageId(@RequestBody QueryStageDropDTO queryStageDropDTO) {
+
+        return Result.success(stageDropService.getStageDropByStageId(queryStageDropDTO));
     }
 
     @Operation(summary = "检查当前材料价值表是否需要更新")

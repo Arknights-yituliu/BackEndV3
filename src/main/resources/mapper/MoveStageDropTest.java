@@ -107,7 +107,7 @@ public class MoveStageDropTest {
 
 
         List<Map<String, Object>> resultList = new ArrayList<>();
-        List<StageDropV2> stageDropV2List = stageDropMapper.selectStageByStageId(stageId3,new Date(1722182400000L), new Date(1723651200000L));
+        List<StageDropV2> stageDropV2List = stageDropMapper.selectStageDropV2ByStageId(stageId3,new Date(1722182400000L), new Date(1723651200000L));
         long start = 1722182400000L;
         long quantity = 0;
         long times = 0;
