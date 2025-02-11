@@ -15,7 +15,7 @@ public interface TencentCloudService {
 
     COSClient createCOSClient();
 
-    void frontEndDeployment(String regionStr,String bucketName);
+    void frontEndDeployment(String projectPath,String regionStr,String bucketName);
 
     void CDNRefreshDirectory(String domain);
 }

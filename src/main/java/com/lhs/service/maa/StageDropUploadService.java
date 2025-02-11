@@ -69,7 +69,7 @@ public class StageDropUploadService {
             return "本次作战已成功上传";
         }
 
-        long nowTimeStamp = System.currentTimeMillis();
+        Date date = new Date();
         String authorization = httpServletRequest.getHeader("authorization");
         if (authorization == null) {
             return "请求头未携带企鹅物流账号";
@@ -88,7 +88,7 @@ public class StageDropUploadService {
         }
 
         String penguinId = auth[1];
-        Boolean lock = redisTemplate.opsForValue().setIfAbsent(penguinId, nowTimeStamp, 5, TimeUnit.SECONDS);
+        Boolean lock = redisTemplate.opsForValue().setIfAbsent(penguinId, date.getTime(), 5, TimeUnit.SECONDS);
 
         if (Boolean.FALSE.equals(lock)) {
             return "请勿重复上传";
@@ -109,11 +109,7 @@ public class StageDropUploadService {
         stageDrop.setSource(stageDropDTO.getSource());
         stageDrop.setUid(penguinId);
         stageDrop.setVersion(stageDropDTO.getVersion());
-        stageDrop.setCreateTime(nowTimeStamp);
-
-        if (stageDrop.getTimes() > 1) {
-            return "本次作战已成功上传";
-        }
+        stageDrop.setCreateTime(date);
 
 
         List<StageDropDetailDTO> drops = stageDropDTO.getDrops();
@@ -204,7 +200,7 @@ public class StageDropUploadService {
             stageDropVO.setVersion(stageDrop.getVersion());
             stageDropVO.setTimes(stageDrop.getTimes());
             stageDropVO.setServer(stageDrop.getServer());
-            stageDropVO.setCreateTime(stageDrop.getCreateTime());
+            stageDropVO.setCreateTime(stageDrop.getCreateTime().getTime());
             List<StageDropDetail> dropDetailListById = stageDropDetailCollect.get(stageDrop.getId());
             if (dropDetailListById != null) {
                 stageDropVO.setDropList(getStageDropDetailVOList(dropDetailListById));

@@ -128,7 +128,7 @@ public class TencentCloudServiceImpl implements TencentCloudService {
 
 
     @Override
-    public void frontEndDeployment(String regionStr,String bucketName) {
+    public void frontEndDeployment(String projectPath,String regionStr,String bucketName) {
         String secretId = ConfigUtil.CosSecretId;
         String secretKey = ConfigUtil.CosSecretKey;
 
@@ -167,7 +167,7 @@ public class TencentCloudServiceImpl implements TencentCloudService {
 
 //        System.out.println("存储桶已删除干净！");
 
-        List<Path> files = getFiles();
+        List<Path> files = getFiles(projectPath);
         for (Path path : files) {
             File file = path.toFile();
             String bucketPath = extractPathAfterDist(path);
@@ -218,10 +218,11 @@ public class TencentCloudServiceImpl implements TencentCloudService {
         }
     }
 
-    private List<Path> getFiles() {
+    private List<Path> getFiles(String projectPath) {
         // 指定目录路径
         List<Path> paths = new ArrayList<>();
-        Path directoryPath = Paths.get("C:\\VCProject\\frontend-v2-plus\\dist");
+//        Path directoryPath = Paths.get("C:\\VCProject\\frontend-v2-plus\\dist");
+        Path directoryPath = Paths.get(projectPath);
         try {
             // 获取目录下的所有文件路径
             paths = Files.walk(directoryPath)
