@@ -42,7 +42,7 @@ public class ItemControllerV4 {
     }
 
     @Operation(summary = "手动更新")
-    @GetMapping("/stage/update")
+    @GetMapping("/update/stage/result")
     public Result<Map<String, List<Stage>>> updateStageResult() {
         stageCalService.updateStageResultByTaskConfig();
         return Result.success();

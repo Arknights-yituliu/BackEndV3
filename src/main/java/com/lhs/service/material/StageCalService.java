@@ -188,7 +188,7 @@ public class StageCalService {
             StageCalculationParametersDTO parametersDTO = new StageCalculationParametersDTO();
 
             //由于企鹅对于关卡本身的龙门币不进行统计，手动向企鹅的关卡掉落增加龙门币和商店龙门币
-            PenguinMatrixCollect.stageDropAddLMD(stageDropList, stage);
+//            PenguinMatrixCollect.stageDropAddLMD(stageDropList, stage);
 
             //临时关卡详情集合
             List<StageResultDetail> tempResultDetailList = new ArrayList<>();
