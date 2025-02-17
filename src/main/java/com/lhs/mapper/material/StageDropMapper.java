@@ -2,6 +2,7 @@ package com.lhs.mapper.material;
 
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lhs.entity.dto.maa.StageDropDTO;
 import com.lhs.entity.po.material.StageDrop;
 import com.lhs.entity.po.material.StageDropDetail;
 import com.lhs.entity.po.material.StageDropStatistics;
@@ -18,7 +19,7 @@ public interface StageDropMapper extends BaseMapper<StageDrop> {
 
     Integer insertBatch(@Param("tableName")String tableName,@Param("list")List<StageDropV2> stageDropList);
 
-    List<StageDrop> selectStageDropByDate(@Param("start")Long start,@Param("end")Long end);
+    List<StageDropDTO> selectStageDropByDate(@Param("start")Long start, @Param("end")Long end);
     List<StageDropDetail> selectStageDropDetail(@Param("start")Long start,@Param("end")Long end);
 
     List<StageDropV2> selectStageDropV2ByStageId(@Param("stageId") String stageId2, @Param("start") Date start, @Param("end")Date end);
