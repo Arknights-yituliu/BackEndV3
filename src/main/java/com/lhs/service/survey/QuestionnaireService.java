@@ -17,7 +17,6 @@ import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
 import com.lhs.entity.vo.survey.OperatorCarryResultVO;
-import com.lhs.entity.vo.survey.SurveySubmitterVO;
 import com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
 import com.lhs.service.user.UserService;
@@ -61,7 +60,7 @@ public class QuestionnaireService {
         //提交间隔不能短于5s，短于5s抛出异常
         rateLimiter.tryAcquire("SurveySubmitterIP:" + ipAddress, 1, 5, ResultCode.NOT_REPEAT_REQUESTS);
 
-        SurveySubmitterVO surveySubmitterVO = new SurveySubmitterVO();
+
 
         //检查上传的干员是否有重复
         String result = getResultStr(questionnaireSubmitInfoDTO);
@@ -82,6 +81,7 @@ public class QuestionnaireService {
         questionnaireResult.setContent(result);
         questionnaireResult.setCreateTime(date);
         questionnaireResult.setUpdateTime(date);
+        questionnaireResult.setIp(ipAddress);
 
         //如果没有则直接新增
         if (lastQuestionnaireResult == null) {
@@ -96,6 +96,7 @@ public class QuestionnaireService {
         if(timeInterval<60*60*24*7*1000L) {
             lastQuestionnaireResult.setContent(result);
             lastQuestionnaireResult.setUpdateTime(date);
+            questionnaireResult.setIp(ipAddress);
             questionnaireResultMapper.updateById(lastQuestionnaireResult);
             return;
         }
