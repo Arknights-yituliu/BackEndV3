@@ -17,7 +17,6 @@ import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
 import com.lhs.entity.vo.survey.OperatorCarryResultVO;
-import com.lhs.entity.vo.survey.SurveySubmitterVO;
 import com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
 import com.lhs.service.user.UserService;
@@ -61,7 +60,7 @@ public class QuestionnaireService {
         //提交间隔不能短于5s，短于5s抛出异常
         rateLimiter.tryAcquire("SurveySubmitterIP:" + ipAddress, 1, 5, ResultCode.NOT_REPEAT_REQUESTS);
 
-        SurveySubmitterVO surveySubmitterVO = new SurveySubmitterVO();
+
 
         //检查上传的干员是否有重复
         String result = getResultStr(questionnaireSubmitInfoDTO);
@@ -70,28 +69,40 @@ public class QuestionnaireService {
         questionnaireResultQueryWrapper
                 .eq(QuestionnaireResult::getType, QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode())
                 .eq(QuestionnaireResult::getUid, uid)
-                .orderByDesc(QuestionnaireResult::getCreateTime);
+                .orderByDesc(QuestionnaireResult::getCreateTime)
+                .last("limit 1");
         QuestionnaireResult lastQuestionnaireResult = questionnaireResultMapper.selectOne(questionnaireResultQueryWrapper);
 
         Date date = new Date();
 
+        QuestionnaireResult questionnaireResult = new QuestionnaireResult();
+        questionnaireResult.setId(idGenerator.nextId());
+        questionnaireResult.setUid(uid);
+        questionnaireResult.setType(QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode());
+        questionnaireResult.setContent(result);
+        questionnaireResult.setCreateTime(date);
+        questionnaireResult.setUpdateTime(date);
+        questionnaireResult.setIp(ipAddress);
+
         //如果没有则直接新增
         if (lastQuestionnaireResult == null) {
             //创建问卷结果信息
-            QuestionnaireResult questionnaireResult = new QuestionnaireResult();
-            questionnaireResult.setId(idGenerator.nextId());
-            questionnaireResult.setUid(uid);
-            questionnaireResult.setType(QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode());
-            questionnaireResult.setContent(result);
-            questionnaireResult.setCreateTime(date);
-            questionnaireResult.setUpdateTime(date);
             questionnaireResultMapper.insert(questionnaireResult);
-        } else {
-            lastQuestionnaireResult.setContent(result);
-            lastQuestionnaireResult.setUpdateTime(date);
-            questionnaireResultMapper.updateById(lastQuestionnaireResult);
+           return;
         }
 
+        long currentTimeStamp = System.currentTimeMillis();
+        long timeInterval = currentTimeStamp-lastQuestionnaireResult.getCreateTime().getTime();
+
+        if(timeInterval<60*60*24*7*1000L) {
+            lastQuestionnaireResult.setContent(result);
+            lastQuestionnaireResult.setUpdateTime(date);
+            questionnaireResult.setIp(ipAddress);
+            questionnaireResultMapper.updateById(lastQuestionnaireResult);
+            return;
+        }
+
+        questionnaireResultMapper.insert(questionnaireResult);
     }
 
     

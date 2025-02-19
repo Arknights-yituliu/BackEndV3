@@ -15,6 +15,7 @@ public class QuestionnaireResult {
     private Integer type;
     private Date createTime;
     private Date updateTime;
+    private String ip;
 
     public Long getId() {
         return id;
@@ -63,4 +64,13 @@ public class QuestionnaireResult {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
 }
+
