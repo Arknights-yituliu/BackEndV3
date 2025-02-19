@@ -75,23 +75,32 @@ public class QuestionnaireService {
 
         Date date = new Date();
 
+        QuestionnaireResult questionnaireResult = new QuestionnaireResult();
+        questionnaireResult.setId(idGenerator.nextId());
+        questionnaireResult.setUid(uid);
+        questionnaireResult.setType(QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode());
+        questionnaireResult.setContent(result);
+        questionnaireResult.setCreateTime(date);
+        questionnaireResult.setUpdateTime(date);
+
         //如果没有则直接新增
         if (lastQuestionnaireResult == null) {
             //创建问卷结果信息
-            QuestionnaireResult questionnaireResult = new QuestionnaireResult();
-            questionnaireResult.setId(idGenerator.nextId());
-            questionnaireResult.setUid(uid);
-            questionnaireResult.setType(QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode());
-            questionnaireResult.setContent(result);
-            questionnaireResult.setCreateTime(date);
-            questionnaireResult.setUpdateTime(date);
             questionnaireResultMapper.insert(questionnaireResult);
-        } else {
+           return;
+        }
+
+        long currentTimeStamp = System.currentTimeMillis();
+        long timeInterval = currentTimeStamp-lastQuestionnaireResult.getCreateTime().getTime();
+
+        if(timeInterval<60*60*24*7*1000L) {
             lastQuestionnaireResult.setContent(result);
             lastQuestionnaireResult.setUpdateTime(date);
             questionnaireResultMapper.updateById(lastQuestionnaireResult);
+            return;
         }
 
+        questionnaireResultMapper.insert(questionnaireResult);
     }
 
     
