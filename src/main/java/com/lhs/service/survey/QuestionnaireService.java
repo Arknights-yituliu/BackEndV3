@@ -69,7 +69,8 @@ public class QuestionnaireService {
         questionnaireResultQueryWrapper
                 .eq(QuestionnaireResult::getType, QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode())
                 .eq(QuestionnaireResult::getUid, uid)
-                .orderByDesc(QuestionnaireResult::getCreateTime);
+                .orderByDesc(QuestionnaireResult::getCreateTime)
+                .last("limit 1");
         QuestionnaireResult lastQuestionnaireResult = questionnaireResultMapper.selectOne(questionnaireResultQueryWrapper);
 
         Date date = new Date();
