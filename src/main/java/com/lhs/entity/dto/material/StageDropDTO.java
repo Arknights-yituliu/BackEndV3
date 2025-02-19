@@ -12,6 +12,4 @@ public class StageDropDTO {
     private String server;
     private String source;
     private String version;
-
-
 }

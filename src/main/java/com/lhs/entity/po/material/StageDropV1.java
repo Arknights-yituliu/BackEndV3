@@ -1,9 +1,9 @@
-package com.lhs.entity.dto.maa;
+package com.lhs.entity.po.material;
 
 import lombok.Data;
 
 @Data
-public class StageDropDTO {
+public class StageDropV1 {
     private Long id;
     private String stageId;
     private Integer times;

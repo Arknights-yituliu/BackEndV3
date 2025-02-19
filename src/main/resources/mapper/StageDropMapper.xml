@@ -3,6 +3,35 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhs.mapper.material.StageDropMapper">
 
+    <select id="listStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
+        SELECT *
+        FROM stage_drop
+        WHERE create_time &gt; #{start} AND create_time &lt;= #{end}
+    </select>
+
+    <insert id="insertBatchStageDropStatistics">
+        INSERT INTO stage_drop_statistics
+        (id, stage_id, item_id, times, quantity,start, end, time_granularity, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},#{item.stageId},#{item.itemId},#{item.times},
+            #{item.quantity},#{item.start},#{item.end},#{item.timeGranularity},#{item.createTime})
+        </foreach>
+    </insert>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <insert id="insertBatch">
         INSERT INTO ${tableName}
         (id, drops,stage_id, times, server, source, uid, version, create_time)
@@ -13,7 +42,7 @@
         </foreach>
     </insert>
 
-    <select id="selectStageDropByDate" resultType="com.lhs.entity.dto.maa.StageDropDTO">
+    <select id="selectStageDropByDate" resultType="com.lhs.entity.po.material.StageDropV1">
         SELECT *
         FROM stage_drop_20240714
         WHERE create_time &gt; #{start}   AND create_time &lt;= #{end}
@@ -39,15 +68,7 @@
         WHERE create_time &gt; #{start} AND create_time &lt;= #{end}
     </select>
 
-    <insert id="insertBatchStageDropStatistics">
-        INSERT INTO stage_drop_statistics
-        (id, stage_id, item_id, times, quantity,start, end, time_granularity, create_time)
-        VALUES
-        <foreach collection="list" item="item" separator=",">
-            (#{item.id},#{item.stageId},#{item.itemId},#{item.times},
-            #{item.quantity},#{item.start},#{item.end},#{item.timeGranularity},#{item.createTime})
-        </foreach>
-    </insert>
+
 
     <select id="listStageDropStatisticsByDate" resultType="com.lhs.entity.po.material.StageDropStatistics">
         SELECT *

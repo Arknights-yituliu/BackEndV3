@@ -19,7 +19,13 @@ public class RateLimiter {
         this.redisTemplate = redisTemplate;
     }
 
-
+    /**
+     * 限制特定时间窗口内可请求的最大次数
+     * @param key  请求方法的key
+     * @param maxRequests 最大请求数
+     * @param timeWindowInSeconds 时间窗口（单位秒）
+     * @param resultCode 报错信息
+     */
     public void tryAcquire(String key, int maxRequests, int timeWindowInSeconds, ResultCode resultCode) {
         key = KEY_PREFIX + key;
         Long currentTime = System.currentTimeMillis();
