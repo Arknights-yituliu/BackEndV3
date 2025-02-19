@@ -13,15 +13,15 @@
         </foreach>
     </insert>
 
-    <select id="selectStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
+    <select id="selectStageDropByDate" resultType="com.lhs.entity.dto.maa.StageDropDTO">
         SELECT *
-        FROM stage_drop_20240524
+        FROM stage_drop_20240714
         WHERE create_time &gt; #{start}   AND create_time &lt;= #{end}
     </select>
 
     <select id="selectStageDropDetail" resultType="com.lhs.entity.po.material.StageDropDetail">
         SELECT *
-        FROM stage_drop_detail_20240524
+        FROM stage_drop_detail_20240714
         WHERE child_id &gt;= #{start}   AND child_id &lt;= #{end}
     </select>
 
