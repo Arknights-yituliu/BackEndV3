@@ -51,7 +51,7 @@ public class StageDropUploadService {
 
     private static final long EXPIRATION_TIME = 12 * 60 * 60;
 
-    public String saveStageDrop(HttpServletRequest httpServletRequest, StageDropDTO stageDropDTO) {
+    public void saveStageDrop(HttpServletRequest httpServletRequest, StageDropDTO stageDropDTO) {
 
 
 
@@ -59,32 +59,32 @@ public class StageDropUploadService {
         Date date = new Date();
         String authorization = httpServletRequest.getHeader("authorization");
         if (authorization == null) {
-            return "请求头未携带企鹅物流账号";
+            return ;
         }
 
 
         if (stageDropDTO.getServer() == null || stageDropDTO.getSource() == null
                 || stageDropDTO.getVersion() == null) {
-            return "掉落、版本、资源、服务信息为空";
+            return ;
         }
 
 
         String[] auth = authorization.split(" ");
         if (auth.length < 2) {
-            return "请求头未携带企鹅物流账号";
+            return ;
         }
 
         String penguinId = auth[1];
 
         if (penguinId.length() > 50) {
             LogUtils.info("MAA版本号 {} " + stageDropDTO.getVersion());
-            return "凭证异常";
+            return ;
         }
 
         Boolean lock = redisTemplate.opsForValue().setIfAbsent(penguinId, date.getTime(), 5, TimeUnit.SECONDS);
 
         if (Boolean.FALSE.equals(lock)) {
-            return "请勿重复上传";
+            return ;
         }
 
 
@@ -96,8 +96,8 @@ public class StageDropUploadService {
             }
 
             // 检查是否超过限制，每12小时仅可上传1000次1-7，服务器塞满了放不下了
-            if (maxUploads != null && maxUploads > 1000) {
-                return "本次作战已成功上传";
+            if (maxUploads != null && maxUploads > 10000) {
+                return ;
             }
         }
 
@@ -124,7 +124,7 @@ public class StageDropUploadService {
         }
 
         stageDropMapper.insert(stageDrop);
-        return "本次作战已成功上传";
+        return ;
     }
 
     public void collectHourlyDropData(){

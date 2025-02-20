@@ -65,8 +65,8 @@ public class MaaController {
 
     @Operation(summary = "MAA关卡掉落上传")
     @PostMapping("/upload/stageDrop")
-    public Result<Object> stageDropUpload(HttpServletRequest httpServletRequest, @RequestBody StageDropDTO stageDropDTO) {
-        return Result.success(stageDropUploadService.saveStageDrop(httpServletRequest, stageDropDTO));
+    public void stageDropUpload(HttpServletRequest httpServletRequest, @RequestBody StageDropDTO stageDropDTO) {
+        stageDropUploadService.saveStageDrop(httpServletRequest, stageDropDTO);
     }
 
     @Operation(summary = "生成基建排班协议文件")
