@@ -49,7 +49,7 @@ public class StageDropUploadService {
     }
 
 
-    private static final long EXPIRATION_TIME = 12 * 60 * 60;
+    private static final long EXPIRATION_TIME = 24 * 60 * 60;
 
     public void saveStageDrop(HttpServletRequest httpServletRequest, StageDropDTO stageDropDTO) {
 
@@ -95,8 +95,8 @@ public class StageDropUploadService {
                 redisTemplate.expire("1-7_MAX_UPLOADS_PER_DAY", EXPIRATION_TIME, TimeUnit.SECONDS);
             }
 
-            // 检查是否超过限制，每12小时仅可上传1000次1-7，服务器塞满了放不下了
-            if (maxUploads != null && maxUploads > 10000) {
+            // 检查是否超过限制，每24小时仅可上传200,000次1-7，服务器塞满了放不下了
+            if (maxUploads != null && maxUploads > 200000) {
                 return ;
             }
         }
