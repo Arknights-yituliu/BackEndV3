@@ -337,14 +337,7 @@ public class OperatorProgressionStatisticsService {
     }
 
 
-    @Scheduled(cron = "0 0 0/1 * * ? ")
-    public void saveOperatorStatisticsData() {
-        List<OperatorProgressionStatistics> operatorProgressionStatistics = operatorProgressionStatisticsMapper.selectList(null);
-        String data = JsonMapper.toJSONString(operatorProgressionStatistics);
-        String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
-        String yyyyMMddHH = new SimpleDateFormat("yyyy-MM-dd HH").format(new Date()); // 设置日期格式
-        ossService.upload(data, "backup/survey/operator/statistics" + yyyyMMdd + "/operator " + yyyyMMddHH + ".json");
-    }
+
 
 
 }
