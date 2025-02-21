@@ -63,8 +63,17 @@ public class RecruitTagUploadService {
 
         Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
 
-        if (lastStatisticsTime == null) lastStatisticsTime = date.getTime() - 60*60*4*1000;
+
+        if (lastStatisticsTime == null){
+            lastStatisticsTime = date.getTime() - 60*60*4*1000;
+        }
+
+
         long lastTime = Long.parseLong(String.valueOf(lastStatisticsTime));
+        long currentTime = System.currentTimeMillis();
+        if(currentTime-lastTime>60*60*4*1000){
+            lastTime = date.getTime() - 60*60*4*1000;
+        }
 
 
         String tableName = getDBTableIndex();
