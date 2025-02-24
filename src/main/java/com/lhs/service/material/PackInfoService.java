@@ -85,7 +85,7 @@ public class PackInfoService {
         //将礼包价值表转为map对象，方便使用
         Map<String, Double> itemValueMap = listCustomItem(stageConfigDTO)
                 .stream()
-                .collect(Collectors.toMap(ItemCustom::getId, ItemCustom::getValue));
+                .collect(Collectors.toMap(ItemCustom::getItemId, ItemCustom::getItemValue));
 
         List<PackInfoVO> VOList = new ArrayList<>();
 
@@ -183,11 +183,11 @@ public class PackInfoService {
 
 
     public ItemCustom saveOrUpdatePackItem(ItemCustom newItemCustom) {
-        QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", newItemCustom.getId());
+        LambdaQueryWrapper<ItemCustom> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ItemCustom::getItemId, newItemCustom.getItemId());
         ItemCustom itemCustom = itemCustomMapper.selectOne(queryWrapper);
         if (itemCustom == null) {
-            newItemCustom.setId(String.valueOf(idGenerator.nextId()));
+            newItemCustom.setItemId(String.valueOf(idGenerator.nextId()));
             itemCustomMapper.insert(newItemCustom);
         } else {
             itemCustomMapper.update(newItemCustom, queryWrapper);
@@ -203,9 +203,9 @@ public class PackInfoService {
 
         for(Item item:itemList){
             ItemCustom itemCustom = new ItemCustom();
-            itemCustom.setId(item.getItemId());
-            itemCustom.setValue(item.getItemValueAp());
-            itemCustom.setName(item.getItemName());
+            itemCustom.setItemId(item.getItemId());
+            itemCustom.setItemValue(item.getItemValueAp());
+            itemCustom.setItemName(item.getItemName());
             itemCustom.setZoneIndex(item.getCardNum());
             itemCustomList.add(itemCustom);
         }

@@ -17,7 +17,9 @@ import com.lhs.service.admin.AdminService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.Email163Service;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -129,6 +131,18 @@ public class AdminServiceImpl implements AdminService {
         result.put("status",1);
         return result;
 
+    }
+
+    @Override
+    public Set<String> getCacheKeys() {
+
+        return redisTemplate.keys("item:*");
+    }
+
+    @Override
+    public String deleteCacheKey(String key) {
+        Boolean delete = redisTemplate.delete(key);
+        return delete?"删除成功":"删除失败";
     }
 
     @Override

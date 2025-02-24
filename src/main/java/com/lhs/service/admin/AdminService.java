@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public interface AdminService {
 
@@ -19,4 +20,7 @@ public interface AdminService {
 
     HashMap<String,Object> getDeveloperInfo(String token);
 
+    Set<String> getCacheKeys();
+
+    String deleteCacheKey(String key);
 }

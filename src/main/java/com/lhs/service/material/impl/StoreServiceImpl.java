@@ -5,11 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.StageConfigDTO;
-import com.lhs.entity.po.admin.HoneyCake;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.material.*;
-import com.lhs.mapper.admin.HoneyCakeMapper;
 import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.mapper.material.*;
 import com.lhs.service.material.ItemService;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +28,7 @@ public class StoreServiceImpl implements StoreService {
 
     private final ItemService itemService;
 
-    private final HoneyCakeMapper honeyCakeMapper;
+
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -45,12 +42,11 @@ public class StoreServiceImpl implements StoreService {
     public StoreServiceImpl(
                             StoreActMapper storeActMapper,
                             ItemService itemService,
-                            HoneyCakeMapper honeyCakeMapper,
+
                             RedisTemplate<String, Object> redisTemplate,
                             ImageInfoMapper imageInfoMapper) {
         this.storeActMapper = storeActMapper;
         this.itemService = itemService;
-        this.honeyCakeMapper = honeyCakeMapper;
         this.redisTemplate = redisTemplate;
         this.imageInfoMapper = imageInfoMapper;
         this.idGenerator = new IdGenerator(1L);
@@ -153,36 +149,9 @@ public class StoreServiceImpl implements StoreService {
     }
 
 
-    @Override
-    public void updateHoneyCake(List<HoneyCake> honeyCakeList) {
-
-        for (HoneyCake honeyCake : honeyCakeList) {
-            System.out.println(honeyCake);
-            QueryWrapper<HoneyCake> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("name", honeyCake.getName());
-            HoneyCake honeyCakeOld = honeyCakeMapper.selectOne(queryWrapper);
-            if (honeyCakeOld == null) {
-                honeyCakeMapper.insert(honeyCake);
-            } else {
-                honeyCakeMapper.updateById(honeyCake);
-            }
-        }
-    }
 
 
-    @Override
-    //    @RedisCacheable(key = "HoneyCake",timeout=86400)
-    public Map<String, HoneyCake> getHoneyCake() {
-        List<HoneyCake> honeyCakeList = getHoneyCakeList();
-        return honeyCakeList.stream().collect(Collectors.toMap(HoneyCake::getName, Function.identity()));
-    }
 
-    @Override
-    public List<HoneyCake> getHoneyCakeList() {
-        QueryWrapper<HoneyCake> honeyCakeQueryWrapper = new QueryWrapper<>();
-        honeyCakeQueryWrapper.orderByDesc("start");
-        return honeyCakeMapper.selectList(honeyCakeQueryWrapper);
-    }
 
 
 }

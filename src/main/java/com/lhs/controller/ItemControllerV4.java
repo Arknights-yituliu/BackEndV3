@@ -5,7 +5,6 @@ import com.lhs.entity.dto.material.QueryStageDropDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.Stage;
-import com.lhs.entity.po.material.StageDropStatistics;
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,7 +64,7 @@ public class ItemControllerV4 {
     @Operation(summary = "获取每种材料系列的关卡计算结果")
     @PostMapping("/custom/stage/result")
     public Result<Map<String, Object>> getStageResultOld(@RequestBody StageConfigDTO stageConfigDTO) {
-        Map<String, Object> t3RecommendedStageV3 = stageResultService.getRecommendedStageV3(stageConfigDTO);
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getRecommendedStage(stageConfigDTO);
         return Result.success(t3RecommendedStageV3);
     }
 

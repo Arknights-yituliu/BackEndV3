@@ -46,7 +46,7 @@ public class ItemControllerV3 {
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setSampleSize(sampleSize);
         stageConfigDTO.setExpCoefficient(expCoefficient);
-        Map<String, Object> t3RecommendedStageV3 = stageResultService.getRecommendedStageV3(stageConfigDTO);
+        Map<String, Object> t3RecommendedStageV3 = stageResultService.getRecommendedStage(stageConfigDTO);
         return Result.success(t3RecommendedStageV3);
     }
 
@@ -82,7 +82,6 @@ public class ItemControllerV3 {
     public Result<List<StageResultVOV2>> getStageResultByZone(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
                                                               @RequestParam(required = false, defaultValue = "300") Integer sampleSize,
                                                               @RequestParam String zoneCode) {
-
         StageConfigDTO stageConfigDTO = new StageConfigDTO();
         stageConfigDTO.setExpCoefficient(expCoefficient);
         stageConfigDTO.setSampleSize(sampleSize);

@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @Tag(name = "一图流后台")
@@ -94,10 +95,20 @@ public class AdminController {
         return Result.success(adminService.getDeveloperInfo(token));
     }
 
+
+    @GetMapping("/admin/cache/keys")
+    public Result<Set<String>> cacheKeys(HttpServletRequest httpServletRequest) {
+        return Result.success(adminService.getCacheKeys());
+    }
+
+    @GetMapping("/admin/cache/delete")
+    public Result<String> deleteCacheKey(HttpServletRequest httpServletRequest,@RequestParam("key") String key) {
+        return Result.success(adminService.deleteCacheKey(key));
+    }
+
     @Operation(summary = "更新商店礼包")
     @PostMapping("/admin/store/pack/update")
     public Result<String> updateStageResult(HttpServletRequest httpServletRequest,@RequestBody PackInfoDTO packInfoDTO) {
-
         return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoDTO));
     }
 
@@ -137,13 +148,7 @@ public class AdminController {
         return Result.success(packInfoService.deletePackItemById(id));
     }
 
-    @Operation(summary = "清除礼包缓存数据")
-    @GetMapping("/admin/pack/reset")
-    public Result<Object> clearPackCache(HttpServletRequest httpServletRequest){
-        StageConfigDTO stageConfigDTO = new StageConfigDTO();
-        packInfoService.uploadPackInfoPageToCos(stageConfigDTO);
-        return Result.success();
-    }
+
 
 
     @PostMapping("/admin/view/statistics")

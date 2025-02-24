@@ -81,7 +81,7 @@ public class StageDropUploadService {
             return ;
         }
 
-        Boolean lock = redisTemplate.opsForValue().setIfAbsent(penguinId, date.getTime(), 5, TimeUnit.SECONDS);
+        Boolean lock = redisTemplate.opsForValue().setIfAbsent("StageDropLimit:"+penguinId, date.getTime(), 5, TimeUnit.SECONDS);
 
         if (Boolean.FALSE.equals(lock)) {
             return ;
@@ -124,7 +124,7 @@ public class StageDropUploadService {
         }
 
         stageDropMapper.insert(stageDrop);
-        return ;
+
     }
 
     public void collectHourlyDropData(){

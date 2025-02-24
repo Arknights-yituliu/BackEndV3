@@ -2,7 +2,7 @@ package com.lhs.service.material;
 
 
 import com.lhs.entity.dto.material.StageConfigDTO;
-import com.lhs.entity.po.admin.HoneyCake;
+
 import com.lhs.entity.vo.material.ActivityStoreDataVO;
 
 import java.util.*;
@@ -33,12 +33,10 @@ public interface StoreService {
     String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo);
 
 
-    void updateHoneyCake(List<HoneyCake> honeyCakeList);
 
 
-    Map<String, HoneyCake> getHoneyCake();
 
-    List<HoneyCake> getHoneyCakeList();
+
 
 
 }

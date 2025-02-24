@@ -10,10 +10,10 @@ import lombok.Data;
 public class ItemCustom {
 
     @TableId
-    private String id;
+    private String itemId;
     private Integer zoneIndex;
-    private String name;
-    private Double value;
+    private String itemName;
+    private Double itemValue;
 
 
 }
