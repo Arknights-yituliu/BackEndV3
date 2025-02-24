@@ -20,7 +20,7 @@ public interface AdminService {
 
     HashMap<String,Object> getDeveloperInfo(String token);
 
-    Set<String> getCacheKeys();
+    Map<String, Object> getCacheKeys();
 
     String deleteCacheKey(String key);
 }

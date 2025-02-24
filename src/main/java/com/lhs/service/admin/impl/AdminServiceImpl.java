@@ -134,9 +134,13 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public Set<String> getCacheKeys() {
-
-        return redisTemplate.keys("item:*");
+    public Map<String, Object> getCacheKeys() {
+        Map<String, Object> map = new HashMap<>();
+        Set<String> keys = redisTemplate.keys("Item:*");
+        for(String key :keys){
+            map.put(key,redisTemplate.opsForValue().get(key));
+        }
+        return map;
     }
 
     @Override

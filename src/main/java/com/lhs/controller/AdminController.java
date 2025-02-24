@@ -97,7 +97,7 @@ public class AdminController {
 
 
     @GetMapping("/admin/cache/keys")
-    public Result<Set<String>> cacheKeys(HttpServletRequest httpServletRequest) {
+    public Result<Map<String, Object>> cacheKeys(HttpServletRequest httpServletRequest) {
         return Result.success(adminService.getCacheKeys());
     }
 
