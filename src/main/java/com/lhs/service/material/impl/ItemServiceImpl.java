@@ -97,6 +97,12 @@ public class ItemServiceImpl implements ItemService {
 
         Map<String, Item> itemValueMap = new HashMap<>();
 
+        List<ItemCustomValueDTO> customItem = stageConfigDTO.getCustomItem();
+        Map<String, Double> customItemMap = new HashMap<>();
+        if (customItem != null) {
+            customItemMap = customItem.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemId, ItemCustomValueDTO::getItemValue));
+        }
+
         for (Item item : itemList) {
             item.setVersion(version);
             item.setId(idGenerator.nextId());
@@ -121,12 +127,6 @@ public class ItemServiceImpl implements ItemService {
             //在itemValueMap 设置新的材料价值 新材料价值 = 旧材料价值/该材料主线最优关的关卡效率
             if (itemIterationValue.get(itemId) != null) {
                 item.setItemValueAp(item.getItemValueAp() / itemIterationValue.get(itemId));
-            }
-
-            List<ItemCustomValueDTO> customItem = stageConfigDTO.getCustomItem();
-            Map<String, Double> customItemMap = new HashMap<>();
-            if (customItem != null) {
-                customItemMap = customItem.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemId, ItemCustomValueDTO::getItemValue));
             }
 
             Double value = customItemMap.get(itemId);

@@ -16,8 +16,6 @@ public interface AdminService {
 
     Map<String,Object> login(LoginVo loginVo);
 
-
-
     HashMap<String,Object> getDeveloperInfo(String token);
 
     Map<String, Object> getCacheKeys();

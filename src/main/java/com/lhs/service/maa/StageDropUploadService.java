@@ -96,7 +96,7 @@ public class StageDropUploadService {
             }
 
             // 检查是否超过限制，每24小时仅可上传200,000次1-7，服务器塞满了放不下了
-            if (maxUploads != null && maxUploads > 200000) {
+            if (maxUploads != null && maxUploads > 120000) {
                 return ;
             }
         }
