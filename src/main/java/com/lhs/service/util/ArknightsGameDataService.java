@@ -3,6 +3,8 @@ package com.lhs.service.util;
 
 
 
+import com.lhs.entity.dto.hypergryph.FilePath;
+
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +31,7 @@ public interface ArknightsGameDataService {
      */
     void getSandboxFoodsTable();
 
-    void getAvatar();
+    void getAvatar(FilePath filePath);
 
 
 }

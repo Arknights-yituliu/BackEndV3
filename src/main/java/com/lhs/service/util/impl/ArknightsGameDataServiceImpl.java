@@ -2,11 +2,8 @@ package com.lhs.service.util.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.config.ConfigUtil;
-import com.lhs.common.enums.ResultCode;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
+import com.lhs.entity.dto.hypergryph.FilePath;
 import com.lhs.entity.dto.maa.BuildingData;
 import com.lhs.service.util.ArknightsGameDataService;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,10 +15,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
@@ -86,16 +81,16 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
     @Override
-    public void getAvatar() {
+    public void getAvatar(FilePath filePath) {
         try {
             // 创建流对象
 
-            String character_tableStr = FileUtil.read(GAME_DATA + "excel/character_table.json");
+            String character_tableStr = FileUtil.read(filePath.getGithubGameData() + "excel/character_table.json");
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
 
-            String startPath = githubBotResource + "avatar/";
+            String startPath = filePath.getGithubBotResource() + "avatar/";
 
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
@@ -108,7 +103,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 File source = new File(startPath + charId + ".png");
 
 
-                String  endPath = "C:/VCProject/ak-resources/image/avatar/";
+                String  endPath = filePath.getImagePath();
 
                 File tmpFile = new File(endPath);//获取文件夹路径
 

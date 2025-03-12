@@ -79,38 +79,38 @@ public class TaskService {
      * 统计干员练度数据
      */
     @Scheduled(cron = "0 0 0/1 * * ? ")
-    public void statisticsProgressionOperatorData(){
+    public void statisticsProgressionOperatorData() {
         operatorProgressionStatisticsService.statisticsOperatorProgressionData();
     }
 
     @Scheduled(cron = "0 0 2-4 * * ?")
-    public void archivedOperatorProgressionResult(){
+    public void archivedOperatorProgressionResult() {
         operatorProgressionStatisticsService.archivedOperatorProgressionResult();
     }
 
     @Scheduled(cron = "0 0 1 * * ?")
-    public void deleteOperatorProgressionResultExpireData(){
+    public void deleteOperatorProgressionResultExpireData() {
         operatorProgressionStatisticsService.deleteExpireData();
     }
 
 
     @Scheduled(cron = "0 0/5 * * * ?")
-    public void rogueSeedRatingStatistics(){
+    public void rogueSeedRatingStatistics() {
         rogueSeedService.ratingStatistics();
     }
 
     @Scheduled(cron = "0 0/5 * * * ?")
-    public void statisticsQuestionnaireResult(){
+    public void statisticsQuestionnaireResult() {
         questionnaireService.statisticsQuestionnaireResult(1, RecordType.DISPLAY.getCode());
     }
 
     @Scheduled(cron = "0 0 2-4 * * ?")
-    public void archivedOperatorCarryRateResult(){
+    public void archivedOperatorCarryRateResult() {
         questionnaireService.archivedOperatorCarryRateResult();
     }
 
     @Scheduled(cron = "0 0 1 * * ?")
-    public void deleteExpireData(){
+    public void deleteExpireData() {
         questionnaireService.deleteExpireData();
     }
 
