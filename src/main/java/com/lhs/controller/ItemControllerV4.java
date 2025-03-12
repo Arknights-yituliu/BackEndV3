@@ -75,12 +75,6 @@ public class ItemControllerV4 {
         return Result.success(items);
     }
 
-    @Operation(summary = "获取物品价值表")
-    @PostMapping("/item/value/v5")
-    public Result<List<Item>> getItemValue1(@RequestBody StageConfigDTO stageConfigDTO) {
-        List<Item> items = itemService.getCustomItemList(stageConfigDTO);
-        return Result.success(items);
-    }
 
     @Operation(summary = "获取搓玉推荐关卡")
     @PostMapping("/custom/stage/orundum")

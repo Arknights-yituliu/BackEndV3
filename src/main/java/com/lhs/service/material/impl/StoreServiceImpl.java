@@ -74,15 +74,15 @@ public class StoreServiceImpl implements StoreService {
         storeItemVOList.sort(Comparator.comparing(StoreItemVO::getItemPPR).reversed());
 
         ActivityStoreData act_name = storeActMapper.selectOne(new QueryWrapper<ActivityStoreData>().eq("act_name", actName));
-        ActivityStoreData build = ActivityStoreData.builder()
-                .actName(actName)
-                .endTime(new Date(activityStoreDataVo.getEndTime()))
-                .result(JsonMapper.toJSONString(activityStoreDataVo))
-                .build();
+        ActivityStoreData activityStoreData = new ActivityStoreData();
+        activityStoreData.setActName(actName);
+        activityStoreData.setEndTime(new Date(activityStoreDataVo.getEndTime()));
+        activityStoreData.setStoreData(JsonMapper.toJSONString(activityStoreDataVo));
+
         if (act_name == null) {
-            storeActMapper.insert(build);
+            storeActMapper.insert(activityStoreData);
         } else {
-            storeActMapper.updateById(build);
+            storeActMapper.updateById(activityStoreData);
         }
 
 
@@ -92,6 +92,26 @@ public class StoreServiceImpl implements StoreService {
 
 
         return "活动商店已更新";
+    }
+
+    @RedisCacheable(key="Item:ActStoreInfo")
+    @Override
+    public List<ActivityStoreDataVO> getActivityStoreInfo() {
+
+        LambdaQueryWrapper<ActivityStoreData> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.ge(ActivityStoreData::getEndTime, new Date());
+        List<ActivityStoreData> activityStoreDataList = storeActMapper.selectList(lambdaQueryWrapper);
+        List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
+        List<ImageInfo> imageInfos = imageInfoMapper.selectList(null);
+        Map<String, String> imageInfoMap = imageInfos.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
+        for(ActivityStoreData activityStoreData : activityStoreDataList){
+            String info = activityStoreData.getStoreData();
+            ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(info, ActivityStoreDataVO.class);
+            activityStoreDataVo.setImageLink(imageInfoMap.get(activityStoreDataVo.getActName()));
+            activityStoreDataVOList.add(activityStoreDataVo);
+        }
+
+        return activityStoreDataVOList;
     }
 
 
@@ -106,7 +126,7 @@ public class StoreServiceImpl implements StoreService {
         Map<String, String> imageInfoMap = imageInfos.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
 
         activityStoreData.forEach(e -> {
-            String result = e.getResult();
+            String result = e.getStoreData();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
             List<StoreItemVO> actStore = activityStoreDataVo.getActStore();
             for (StoreItemVO item : actStore) {
@@ -135,7 +155,7 @@ public class StoreServiceImpl implements StoreService {
         List<ActivityStoreData> activityStoreData = storeActMapper.selectList(queryWrapper);
         List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
         activityStoreData.forEach(activity -> {
-            String result = activity.getResult();
+            String result = activity.getStoreData();
             ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
             LambdaQueryWrapper<ImageInfo> imageInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
             imageInfoLambdaQueryWrapper.eq(ImageInfo::getImageName, activityStoreDataVo.getActName());
