@@ -95,8 +95,8 @@ public class StageDropUploadService {
                 redisTemplate.expire("1-7_MAX_UPLOADS_PER_DAY", EXPIRATION_TIME, TimeUnit.SECONDS);
             }
 
-            // 检查是否超过限制，每24小时仅可上传200,000次1-7，服务器塞满了放不下了
-            if (maxUploads != null && maxUploads > 120000) {
+            // 检查是否超过限制，每24小时仅可上传50000次1-7，服务器塞满了放不下了
+            if (maxUploads != null && maxUploads > 50000) {
                 return ;
             }
         }
