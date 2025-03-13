@@ -177,6 +177,10 @@ public class PackInfoService {
         return newItemCustom;
     }
 
+    public List<ItemCustom> listCustomItem() {
+        return itemCustomMapper.selectList(null);
+
+    }
 
     public List<ItemCustom> listCustomItem(StageConfigDTO stageConfigDTO) {
 
