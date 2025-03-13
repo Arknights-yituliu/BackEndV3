@@ -96,7 +96,7 @@ public class StoreServiceImpl implements StoreService {
 
     @RedisCacheable(key="Item:ActStoreInfo")
     @Override
-    public List<ActivityStoreDataVO> getActivityStoreInfo() {
+    public List<ActivityStoreDataVO> listActivityStoreData() {
 
         LambdaQueryWrapper<ActivityStoreData> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.ge(ActivityStoreData::getEndTime, new Date());

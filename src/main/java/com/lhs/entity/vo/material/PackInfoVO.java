@@ -14,7 +14,6 @@ public class PackInfoVO {
     private double price;  //价格
     private String saleType;  //礼包类型
     private String tags;
-    private String imageName;  //礼包图片名称
     private String imageLink;  //礼包图片名称
     private Integer gachaTicket;  //单抽券数量
     private Integer tenGachaTicket; //十连券数量

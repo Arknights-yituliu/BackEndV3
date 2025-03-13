@@ -1,10 +1,8 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.material.QueryStageDropDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
-import com.lhs.entity.po.material.Stage;
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Tag(name = "材料相关API-v4")
@@ -54,8 +51,14 @@ public class ItemControllerV5 {
 
     @Operation(summary = "获取活动商店列表")
     @GetMapping("/item/v5/store/activity")
-    public Result<List<ActivityStoreDataVO>> getActStoreInfo() {
-        return Result.success(storeService.getActivityStoreInfo());
+    public Result<List<ActivityStoreDataVO>> listActivityStoreData() {
+        return Result.success(storeService.listActivityStoreData());
+    }
+
+    @Operation(summary = "获取活动商店列表")
+    @GetMapping("/item/v5/store/pack")
+    public Result<List<PackInfoVOV5>> listPackInfo() {
+        return Result.success(packInfoService.listPackInfo());
     }
 
 

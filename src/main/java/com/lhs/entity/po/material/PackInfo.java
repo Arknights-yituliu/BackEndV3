@@ -9,7 +9,7 @@ import lombok.Data;
 import java.util.Date;
 
 
-@Data
+
 @TableName
 public class PackInfo {
     @TableId
@@ -27,8 +27,138 @@ public class PackInfo {
     private Date end;
     private Date createTime;
     private String note;
-    private Long contentId;
+    private String content;
     private Boolean deleteFlag = false;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getOfficialName() {
+        return officialName;
+    }
+
+    public void setOfficialName(String officialName) {
+        this.officialName = officialName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public String getSaleType() {
+        return saleType;
+    }
+
+    public void setSaleType(String saleType) {
+        this.saleType = saleType;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public Integer getOriginium() {
+        return originium;
+    }
+
+    public void setOriginium(Integer originium) {
+        this.originium = originium;
+    }
+
+    public Integer getOrundum() {
+        return orundum;
+    }
+
+    public void setOrundum(Integer orundum) {
+        this.orundum = orundum;
+    }
+
+    public Integer getGachaTicket() {
+        return gachaTicket;
+    }
+
+    public void setGachaTicket(Integer gachaTicket) {
+        this.gachaTicket = gachaTicket;
+    }
+
+    public Integer getTenGachaTicket() {
+        return tenGachaTicket;
+    }
+
+    public void setTenGachaTicket(Integer tenGachaTicket) {
+        this.tenGachaTicket = tenGachaTicket;
+    }
+
+    public Date getStart() {
+        return start;
+    }
+
+    public void setStart(Date start) {
+        this.start = start;
+    }
+
+    public Date getEnd() {
+        return end;
+    }
+
+    public void setEnd(Date end) {
+        this.end = end;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Boolean getDeleteFlag() {
+        return deleteFlag;
+    }
+
+    public void setDeleteFlag(Boolean deleteFlag) {
+        this.deleteFlag = deleteFlag;
+    }
 
     public void copy(PackInfoVO packInfoVO){
         this.id = packInfoVO.getId();

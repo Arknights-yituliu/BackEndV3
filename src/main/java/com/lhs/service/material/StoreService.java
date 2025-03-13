@@ -3,7 +3,6 @@ package com.lhs.service.material;
 
 import com.lhs.entity.dto.material.StageConfigDTO;
 
-import com.lhs.entity.po.material.Item;
 import com.lhs.entity.vo.material.ActivityStoreDataVO;
 
 import java.util.*;
@@ -34,5 +33,5 @@ public interface StoreService {
     String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo);
 
 
-    List<ActivityStoreDataVO> getActivityStoreInfo();
+    List<ActivityStoreDataVO> listActivityStoreData();
 }

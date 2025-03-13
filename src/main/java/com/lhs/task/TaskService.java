@@ -94,10 +94,10 @@ public class TaskService {
     }
 
 
-    @Scheduled(cron = "0 0/5 * * * ?")
-    public void rogueSeedRatingStatistics() {
-        rogueSeedService.ratingStatistics();
-    }
+//    @Scheduled(cron = "0 0/5 * * * ?")
+//    public void rogueSeedRatingStatistics() {
+//        rogueSeedService.ratingStatistics();
+//    }
 
     @Scheduled(cron = "0 0/5 * * * ?")
     public void statisticsQuestionnaireResult() {
