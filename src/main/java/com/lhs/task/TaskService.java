@@ -1,5 +1,6 @@
 package com.lhs.task;
 
+import com.lhs.common.enums.QuestionnaireType;
 import com.lhs.common.enums.RecordType;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.rogue.RogueSeedService;
@@ -106,7 +107,9 @@ public class TaskService {
 
     @Scheduled(cron = "0 0 2-4 * * ?")
     public void archivedOperatorCarryRateResult() {
-        questionnaireService.archivedOperatorCarryRateResult();
+        questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME);
+        questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME);
+        questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME);
     }
 
     @Scheduled(cron = "0 0 1 * * ?")

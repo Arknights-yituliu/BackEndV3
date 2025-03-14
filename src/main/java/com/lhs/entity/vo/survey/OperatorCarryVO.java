@@ -1,9 +1,9 @@
 package com.lhs.entity.vo.survey;
 
 
-public class OperatorCarryRateStatisticsVO {
+public class OperatorCarryVO {
     private String charId;
-    private Double carryRate;
+    private Integer carryCount;
 
     public String getCharId() {
         return charId;
@@ -13,11 +13,11 @@ public class OperatorCarryRateStatisticsVO {
         this.charId = charId;
     }
 
-    public Double getCarryRate() {
-        return carryRate;
+    public Integer getCarryCount() {
+        return carryCount;
     }
 
-    public void setCarryRate(Double carryRate) {
-        this.carryRate = carryRate;
+    public void setCarryCount(Integer carryCount) {
+        this.carryCount = carryCount;
     }
 }

@@ -2,7 +2,6 @@ package com.lhs.entity.po.survey;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
 
 import java.util.Date;
 
@@ -12,7 +11,8 @@ public class QuestionnaireResult {
     private Long id;
     private Long uid;
     private String content;
-    private Integer type;
+    private Integer questionnaireCode;
+
     private Date createTime;
     private Date updateTime;
     private String ip;
@@ -37,13 +37,14 @@ public class QuestionnaireResult {
         return content;
     }
 
-    public Integer getType() {
-        return type;
+    public Integer getQuestionnaireCode() {
+        return questionnaireCode;
     }
 
-    public void setType(Integer type) {
-        this.type = type;
+    public void setQuestionnaireCode(Integer questionnaireCode) {
+        this.questionnaireCode = questionnaireCode;
     }
+
 
     public void setContent(String content) {
         this.content = content;

@@ -2,7 +2,7 @@ package com.lhs.mapper.survey;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
-import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
+import com.lhs.entity.vo.survey.OperatorCarryVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -13,6 +13,6 @@ public interface OperatorCarryRateStatisticsMapper extends BaseMapper<OperatorCa
 
     Integer insertBatch(@Param("list") List<OperatorCarryRateStatistics> list);
 
-    List<OperatorCarryRateStatisticsVO> getOperatorCarryRateResult();
+    List<OperatorCarryVO> getOperatorCarryRateResult();
 
 }

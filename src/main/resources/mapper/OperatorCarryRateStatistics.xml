@@ -19,7 +19,7 @@
         </foreach>
     </insert>
 
-    <select id="getOperatorCarryRateResult" resultType="com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO">
+    <select id="getOperatorCarryRateResult" resultType="com.lhs.entity.vo.survey.OperatorCarryVO">
         SELECT char_id,carry_rate
         FROM operator_carry_rate_statistics
         WHERE record_type = 1;

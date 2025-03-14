@@ -1,26 +1,19 @@
 package com.lhs.entity.dto.survey;
 
-import lombok.Data;
-
-import java.io.Serializable;
 import java.util.List;
 
-
-public class QuestionnaireSubmitInfoDTO{
-
-    private static  final Long SerializableUid = 1L;
-
-    private Integer type;
+public class OperatorCarryQuestionnaireDTO {
+    private Integer questionnaireCode;
     private List<String> operatorList;
 
 
 
-    public Integer getType() {
-        return type;
+    public Integer getQuestionnaireCode() {
+        return questionnaireCode;
     }
 
-    public void setType(Integer type) {
-        this.type = type;
+    public void setQuestionnaireCode(Integer code) {
+        this.questionnaireCode = code;
     }
 
     public List<String> getOperatorList() {

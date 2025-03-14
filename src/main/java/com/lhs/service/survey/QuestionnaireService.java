@@ -2,30 +2,26 @@ package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.lhs.common.config.ConfigUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.enums.QuestionnaireType;
 import com.lhs.common.enums.RecordType;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.IdGenerator;
-import com.lhs.common.util.IpUtil;
+import com.lhs.common.util.*;
 import com.lhs.common.enums.ResultCode;
-import com.lhs.common.util.LogUtils;
-import com.lhs.common.util.RateLimiter;
-import com.lhs.entity.dto.survey.QuestionnaireSubmitInfoDTO;
-import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
+import com.lhs.entity.dto.survey.OperatorCarryQuestionnaireDTO;
 import com.lhs.entity.po.survey.QuestionnaireResult;
-import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
-import com.lhs.entity.vo.survey.OperatorCarryResultVO;
-import com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper;
+import com.lhs.entity.po.survey.QuestionnaireStatisticsResult;
+import com.lhs.entity.vo.survey.OperatorCarryVO;
+import com.lhs.entity.vo.survey.OperatorCarryStatisticsResultVO;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
+import com.lhs.mapper.survey.QuestionnaireStatisticsResultMapper;
 import com.lhs.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -37,37 +33,39 @@ public class QuestionnaireService {
     private final IdGenerator idGenerator;
     private final RateLimiter rateLimiter;
     private final UserService userService;
-    private final OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper;
+
+    private final QuestionnaireStatisticsResultMapper questionnaireStatisticsResultMapper;
 
     public QuestionnaireService(RedisTemplate<String, String> redisTemplate,
-                                    QuestionnaireResultMapper questionnaireResultMapper,
-                                    RateLimiter rateLimiter,
-                                    UserService userService, OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper) {
+                                QuestionnaireResultMapper questionnaireResultMapper,
+                                RateLimiter rateLimiter,
+                                UserService userService,
+                                QuestionnaireStatisticsResultMapper questionnaireStatisticsResultMapper) {
         this.redisTemplate = redisTemplate;
         this.questionnaireResultMapper = questionnaireResultMapper;
         this.rateLimiter = rateLimiter;
         this.userService = userService;
-        this.operatorCarryRateStatisticsMapper = operatorCarryRateStatisticsMapper;
+
+        this.questionnaireStatisticsResultMapper = questionnaireStatisticsResultMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
-    
-    public void uploadQuestionnaireResult(HttpServletRequest httpServletRequest, QuestionnaireSubmitInfoDTO questionnaireSubmitInfoDTO) {
+
+    public void uploadQuestionnaireResult(HttpServletRequest httpServletRequest, OperatorCarryQuestionnaireDTO operatorCarryQuestionnaireDTO) {
 
         //获取提交者IP
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);
+        String ipAddress = IpUtil.getIpAddress(httpServletRequest);
         Long uid = userService.getUidByHttpServletRequest(httpServletRequest);
         //提交间隔不能短于5s，短于5s抛出异常
         rateLimiter.tryAcquire("SurveySubmitterIP:" + ipAddress, 1, 5, ResultCode.NOT_REPEAT_REQUESTS);
 
 
-
         //检查上传的干员是否有重复
-        String result = getResultStr(questionnaireSubmitInfoDTO);
+        String result = getResultStr(operatorCarryQuestionnaireDTO);
         //根据问卷类型和提交者ip对应的id查询以前的问卷结果
         LambdaQueryWrapper<QuestionnaireResult> questionnaireResultQueryWrapper = new LambdaQueryWrapper<>();
         questionnaireResultQueryWrapper
-                .eq(QuestionnaireResult::getType, QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode())
+                .eq(QuestionnaireResult::getQuestionnaireCode,operatorCarryQuestionnaireDTO.getQuestionnaireCode())
                 .eq(QuestionnaireResult::getUid, uid)
                 .orderByDesc(QuestionnaireResult::getCreateTime)
                 .last("limit 1");
@@ -78,7 +76,8 @@ public class QuestionnaireService {
         QuestionnaireResult questionnaireResult = new QuestionnaireResult();
         questionnaireResult.setId(idGenerator.nextId());
         questionnaireResult.setUid(uid);
-        questionnaireResult.setType(QuestionnaireType.SELECTED_OPERATOR_FOR_NEW_GAME.getCode());
+        questionnaireResult.setQuestionnaireCode(operatorCarryQuestionnaireDTO.getQuestionnaireCode());
+
         questionnaireResult.setContent(result);
         questionnaireResult.setCreateTime(date);
         questionnaireResult.setUpdateTime(date);
@@ -88,13 +87,13 @@ public class QuestionnaireService {
         if (lastQuestionnaireResult == null) {
             //创建问卷结果信息
             questionnaireResultMapper.insert(questionnaireResult);
-           return;
+            return;
         }
 
         long currentTimeStamp = System.currentTimeMillis();
-        long timeInterval = currentTimeStamp-lastQuestionnaireResult.getCreateTime().getTime();
+        long timeInterval = currentTimeStamp - lastQuestionnaireResult.getCreateTime().getTime();
 
-        if(timeInterval<60*60*24*7*1000L) {
+        if (timeInterval < 60 * 60 * 24 * 7 * 1000L) {
             lastQuestionnaireResult.setContent(result);
             lastQuestionnaireResult.setUpdateTime(date);
             questionnaireResult.setIp(ipAddress);
@@ -105,23 +104,30 @@ public class QuestionnaireService {
         questionnaireResultMapper.insert(questionnaireResult);
     }
 
-    
+    /**
+     * 根据问卷编号统计数据
+     *
+     * @param questionnaireType 问卷编号
+     * @param recordType        记录类型
+     */
     public void statisticsQuestionnaireResult(Integer questionnaireType,Integer recordType) {
+
+
+
         LambdaQueryWrapper<QuestionnaireResult> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(QuestionnaireResult::getType, questionnaireType);
+        lambdaQueryWrapper.eq(QuestionnaireResult::getQuestionnaireCode, questionnaireType);
         List<QuestionnaireResult> resultList = questionnaireResultMapper.selectList(lambdaQueryWrapper);
 
         int count = 0;
-        List<OperatorCarryRateStatistics> operatorCarryRateStatisticsList = new ArrayList<>();
+        List<OperatorCarryStatisticsResultVO> operatorCarryStatisticsResultVOList = new ArrayList<>();
 
         count += resultList.size();
-        if(count<10){
+
+        if (count < 10) {
             return;
         }
 
-        LogUtils.info("本次统计的干员携带率问卷数量："+count);
-        redisTemplate.opsForValue().set("OperatorCarryRateSampleSize", String.valueOf(count),12, TimeUnit.HOURS);
-        redisTemplate.opsForValue().set("OperatorCarryRateUpdateTime", String.valueOf(new Date().getTime()),12, TimeUnit.HOURS);
+        LogUtils.info("本次统计的干员携带率问卷数量：" + count);
 
         HashMap<String, Integer> statisticsResult = new HashMap<>();
         for (QuestionnaireResult questionnaireResult : resultList) {
@@ -132,26 +138,37 @@ public class QuestionnaireService {
             }
         }
 
-        operatorCarryRateStatisticsMapper.expireOldData(RecordType.EXPIRE.getCode(),RecordType.DISPLAY.getCode());
+        questionnaireStatisticsResultMapper.expireOldData(RecordType.EXPIRE.getCode(), RecordType.DISPLAY.getCode());
 
-        Date date = new Date();
+
         int finalCount = count;
+        long timeStamp = System.currentTimeMillis();
 
         statisticsResult.forEach((charId, v) -> {
-            OperatorCarryRateStatistics operatorCarryRateStatistics = new OperatorCarryRateStatistics();
-            operatorCarryRateStatistics.setId(idGenerator.nextId());
-            operatorCarryRateStatistics.setCharId(charId);
-            operatorCarryRateStatistics.setCarryRate((double)v/finalCount);
-            operatorCarryRateStatistics.setCreateTime(date);
-            operatorCarryRateStatistics.setRecordType(recordType);
-            operatorCarryRateStatisticsList.add(operatorCarryRateStatistics);
+            OperatorCarryStatisticsResultVO operatorCarryStatisticsResultVO = new OperatorCarryStatisticsResultVO();
+            operatorCarryStatisticsResultVO.setUpdateTime(timeStamp);
+            operatorCarryStatisticsResultVO.setSampleSize(finalCount);
+            OperatorCarryVO operatorCarryVO = new OperatorCarryVO();
+            operatorCarryVO.setCharId(charId);
+            operatorCarryVO.setCarryCount(v);
+            operatorCarryStatisticsResultVO.getList().add(operatorCarryVO);
+            operatorCarryStatisticsResultVOList.add(operatorCarryStatisticsResultVO);
         });
 
-        operatorCarryRateStatisticsMapper.insertBatch(operatorCarryRateStatisticsList);
+
+        QuestionnaireStatisticsResult questionnaireStatisticsResult = new QuestionnaireStatisticsResult();
+        questionnaireStatisticsResult.setId(idGenerator.nextId());
+        questionnaireStatisticsResult.setQuestionnaireCode(questionnaireType);
+        questionnaireStatisticsResult.setRecordType(recordType);
+        questionnaireStatisticsResult.setCreateTime(new Date());
+        questionnaireStatisticsResult.setResult(JsonMapper.toJSONString(operatorCarryStatisticsResultVOList));
+
+        questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
+
     }
 
-    
-    public void archivedOperatorCarryRateResult() {
+
+    public void archivedQuestionnaireStatisticsResult(QuestionnaireType questionnaireType) {
 
         // 获取今天的开始时间和结束时间
         Calendar calendar = Calendar.getInstance();
@@ -167,61 +184,93 @@ public class QuestionnaireService {
         calendar.set(Calendar.MILLISECOND, 999);
         Date endOfDay = calendar.getTime();
 
-        LambdaUpdateWrapper<OperatorCarryRateStatistics> existQueryWrapper = new LambdaUpdateWrapper<>();
-        existQueryWrapper.eq(OperatorCarryRateStatistics::getRecordType,RecordType.ARCHIVED.getCode())
-                .ge(OperatorCarryRateStatistics::getCreateTime,startOfDay)
-                .le(OperatorCarryRateStatistics::getCreateTime,endOfDay);
+        LambdaUpdateWrapper<QuestionnaireStatisticsResult> existQueryWrapper = new LambdaUpdateWrapper<>();
+        existQueryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.ARCHIVED.getCode())
+                .eq(QuestionnaireStatisticsResult::getQuestionnaireCode,questionnaireType.getCode())
+                .ge(QuestionnaireStatisticsResult::getCreateTime, startOfDay)
+                .le(QuestionnaireStatisticsResult::getCreateTime, endOfDay);
 
-        boolean exists = operatorCarryRateStatisticsMapper.exists(existQueryWrapper);
-        if(exists){
-            LogUtils.info("干员携带率统计结果今日已归档");
+
+        boolean exists = questionnaireStatisticsResultMapper.exists(existQueryWrapper);
+        if (exists) {
+            LogUtils.info("问卷统计结果今日已归档");
             return;
         }
 
-        LambdaUpdateWrapper<OperatorCarryRateStatistics> queryWrapper = new LambdaUpdateWrapper<>();
-        queryWrapper.eq(OperatorCarryRateStatistics::getRecordType,RecordType.DISPLAY.getCode());
-        List<OperatorCarryRateStatistics> list = operatorCarryRateStatisticsMapper.selectList(queryWrapper);
-        for(OperatorCarryRateStatistics item:list){
-            item.setId(idGenerator.nextId());
-            item.setRecordType(RecordType.ARCHIVED.getCode());
-        }
+        LambdaUpdateWrapper<QuestionnaireStatisticsResult> queryWrapper = new LambdaUpdateWrapper<>();
+        queryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
+        QuestionnaireStatisticsResult questionnaireStatisticsResult = questionnaireStatisticsResultMapper.selectOne(queryWrapper);
+        questionnaireStatisticsResult.setId(idGenerator.nextId());
+        questionnaireStatisticsResult.setRecordType(RecordType.ARCHIVED.getCode());
 
-        Integer i = operatorCarryRateStatisticsMapper.insertBatch(list);
-        LogUtils.info("干员携带率统计结果归档成功"+i+"条");
+        questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
+        LogUtils.info("问卷统计结果归档成功");
     }
 
 
-    public void deleteExpireData(){
-        LambdaQueryWrapper<OperatorCarryRateStatistics> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OperatorCarryRateStatistics::getRecordType,RecordType.EXPIRE.getCode());
-        int delete = operatorCarryRateStatisticsMapper.delete(queryWrapper);
-        LogUtils.info("本次清理了"+delete+"条过期干员携带率统计数据");
-    }
-    
-    public OperatorCarryResultVO getQuestionnaireResultByType(Integer questionnaireType) {
-
-        List<OperatorCarryRateStatisticsVO> list = operatorCarryRateStatisticsMapper.getOperatorCarryRateResult();
-        OperatorCarryResultVO operatorCarryResultVO = new OperatorCarryResultVO();
-        if(list.isEmpty()){
-           return operatorCarryResultVO;
-        }
-
-        operatorCarryResultVO.setList(list);
-        String sampleSize = redisTemplate.opsForValue().get("OperatorCarryRateSampleSize");
-        if(sampleSize!=null){
-            operatorCarryResultVO.setSampleSize(Integer.parseInt(sampleSize));
-        }
-        String updateTime = redisTemplate.opsForValue().get("OperatorCarryRateUpdateTime");
-        if(updateTime!=null){
-            operatorCarryResultVO.setUpdateTime(Long.parseLong(updateTime));
-        }
-
-        return operatorCarryResultVO;
+    public void deleteExpireData() {
+        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.EXPIRE.getCode());
+        int delete = questionnaireStatisticsResultMapper.delete(queryWrapper);
+        LogUtils.info("本次清理了" + delete + "条过期干员携带率统计数据");
     }
 
 
-    private static String getResultStr(QuestionnaireSubmitInfoDTO questionnaireSubmitInfoDTO) {
-        List<String> operatorList = questionnaireSubmitInfoDTO.getOperatorList();
+
+    public List<OperatorCarryStatisticsResultVO> getQuestionnaireResultByType() {
+
+        List<OperatorCarryStatisticsResultVO> voList = new ArrayList<>();
+
+        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByMainAndSideStory = new LambdaQueryWrapper<>();
+        queryWrapperByMainAndSideStory.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
+        queryWrapperByMainAndSideStory.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
+                QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME.getCode());
+
+        QuestionnaireStatisticsResult resultByMainAndSideStory = questionnaireStatisticsResultMapper
+                .selectOne(queryWrapperByMainAndSideStory);
+
+        if (resultByMainAndSideStory != null) {
+            OperatorCarryStatisticsResultVO operatorCarryResultByMainAndSideStory = JsonMapper.parseObject(resultByMainAndSideStory.getResult(), new TypeReference<>() {
+            });
+            voList.add(operatorCarryResultByMainAndSideStory);
+        }
+
+
+        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByContingencyContract = new LambdaQueryWrapper<>();
+        queryWrapperByContingencyContract.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
+        queryWrapperByContingencyContract.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
+                QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME.getCode());
+
+        QuestionnaireStatisticsResult resultByContingencyContract = questionnaireStatisticsResultMapper
+                .selectOne(queryWrapperByContingencyContract);
+
+        if (resultByContingencyContract != null) {
+            OperatorCarryStatisticsResultVO operatorCarryResultByContingencyContract = JsonMapper.parseObject(resultByContingencyContract.getResult(), new TypeReference<>() {
+            });
+            voList.add(operatorCarryResultByContingencyContract);
+        }
+
+
+        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByIntegratedStrategies = new LambdaQueryWrapper<>();
+        queryWrapperByIntegratedStrategies.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
+        queryWrapperByIntegratedStrategies.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
+                QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME.getCode());
+        QuestionnaireStatisticsResult resultByIntegratedStrategies = questionnaireStatisticsResultMapper
+                .selectOne(queryWrapperByIntegratedStrategies);
+
+        if (resultByIntegratedStrategies != null) {
+            OperatorCarryStatisticsResultVO operatorCarryResultByIntegratedStrategies = JsonMapper.parseObject(resultByIntegratedStrategies.getResult(), new TypeReference<>() {
+            });
+            voList.add(operatorCarryResultByIntegratedStrategies);
+        }
+
+
+        return voList;
+    }
+
+
+    private static String getResultStr(OperatorCarryQuestionnaireDTO operatorCarryQuestionnaireDTO) {
+        List<String> operatorList = operatorCarryQuestionnaireDTO.getOperatorList();
         Set<String> operatorSet = new HashSet<>(operatorList);
 
 
