@@ -11,10 +11,22 @@ public class OperatorCarryStatisticsResultVO {
     private Long updateTime;
     private Integer sampleSize;
 
-    {
-      list=new ArrayList<>();
-      updateTime = 111111111111L;
-      sampleSize = 0;
+
+
+    public String getQuestionnaireType() {
+        return questionnaireType;
+    }
+
+    public void setQuestionnaireType(String questionnaireType) {
+        this.questionnaireType = questionnaireType;
+    }
+
+    public Integer getQuestionnaireCode() {
+        return questionnaireCode;
+    }
+
+    public void setQuestionnaireCode(Integer questionnaireCode) {
+        this.questionnaireCode = questionnaireCode;
     }
 
     public List<OperatorCarryVO> getList() {

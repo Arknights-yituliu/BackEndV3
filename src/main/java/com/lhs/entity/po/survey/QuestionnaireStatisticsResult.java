@@ -11,7 +11,7 @@ public class QuestionnaireStatisticsResult {
     @TableId
     private Long id;
     private Integer questionnaireCode;
-    private Integer questionnaireType;
+    private String questionnaireType;
     private String result;
     private Integer recordType;
     private Date createTime;
@@ -24,11 +24,11 @@ public class QuestionnaireStatisticsResult {
         this.id = id;
     }
 
-    public Integer getQuestionnaireType() {
+    public String getQuestionnaireType() {
         return questionnaireType;
     }
 
-    public void setQuestionnaireType(Integer questionnaireType) {
+    public void setQuestionnaireType(String  questionnaireType) {
         this.questionnaireType = questionnaireType;
     }
 

@@ -102,17 +102,17 @@ public class TaskService {
 
     @Scheduled(cron = "0 0/5 * * * ?")
     public void statisticsQuestionnaireResult() {
-        questionnaireService.statisticsQuestionnaireResult(1, RecordType.DISPLAY.getCode());
+        questionnaireService.statisticsQuestionnaireResult(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, RecordType.DISPLAY.getCode());
     }
 
-    @Scheduled(cron = "0 0 2-4 * * ?")
+    @Scheduled(cron = "0 0 1 * * ?")
     public void archivedOperatorCarryRateResult() {
         questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME);
         questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME);
         questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME);
     }
 
-    @Scheduled(cron = "0 0 1 * * ?")
+    @Scheduled(cron = "0 0 * * * ?")
     public void deleteExpireData() {
         questionnaireService.deleteExpireData();
     }

@@ -110,16 +110,15 @@ public class QuestionnaireService {
      * @param questionnaireType 问卷编号
      * @param recordType        记录类型
      */
-    public void statisticsQuestionnaireResult(Integer questionnaireType,Integer recordType) {
+    public void statisticsQuestionnaireResult(QuestionnaireType questionnaireType,Integer recordType) {
 
 
 
         LambdaQueryWrapper<QuestionnaireResult> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(QuestionnaireResult::getQuestionnaireCode, questionnaireType);
+        lambdaQueryWrapper.eq(QuestionnaireResult::getQuestionnaireCode, questionnaireType.getCode());
         List<QuestionnaireResult> resultList = questionnaireResultMapper.selectList(lambdaQueryWrapper);
 
         int count = 0;
-        List<OperatorCarryStatisticsResultVO> operatorCarryStatisticsResultVOList = new ArrayList<>();
 
         count += resultList.size();
 
@@ -138,33 +137,45 @@ public class QuestionnaireService {
             }
         }
 
-        questionnaireStatisticsResultMapper.expireOldData(RecordType.EXPIRE.getCode(), RecordType.DISPLAY.getCode());
-
+        expireQuestionnaireStatisticsResult(questionnaireType);
 
         int finalCount = count;
         long timeStamp = System.currentTimeMillis();
 
+        OperatorCarryStatisticsResultVO operatorCarryStatisticsResultVO = new OperatorCarryStatisticsResultVO();
+        operatorCarryStatisticsResultVO.setUpdateTime(timeStamp);
+        operatorCarryStatisticsResultVO.setSampleSize(finalCount);
+        operatorCarryStatisticsResultVO.setQuestionnaireType(questionnaireType.getType());
+        operatorCarryStatisticsResultVO.setQuestionnaireCode(questionnaireType.getCode());
+        operatorCarryStatisticsResultVO.setList(new ArrayList<>());
+
+
+
         statisticsResult.forEach((charId, v) -> {
-            OperatorCarryStatisticsResultVO operatorCarryStatisticsResultVO = new OperatorCarryStatisticsResultVO();
-            operatorCarryStatisticsResultVO.setUpdateTime(timeStamp);
-            operatorCarryStatisticsResultVO.setSampleSize(finalCount);
             OperatorCarryVO operatorCarryVO = new OperatorCarryVO();
             operatorCarryVO.setCharId(charId);
             operatorCarryVO.setCarryCount(v);
             operatorCarryStatisticsResultVO.getList().add(operatorCarryVO);
-            operatorCarryStatisticsResultVOList.add(operatorCarryStatisticsResultVO);
+
         });
 
 
         QuestionnaireStatisticsResult questionnaireStatisticsResult = new QuestionnaireStatisticsResult();
         questionnaireStatisticsResult.setId(idGenerator.nextId());
-        questionnaireStatisticsResult.setQuestionnaireCode(questionnaireType);
+        questionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
+        questionnaireStatisticsResult.setQuestionnaireType(questionnaireType.getType());
         questionnaireStatisticsResult.setRecordType(recordType);
         questionnaireStatisticsResult.setCreateTime(new Date());
-        questionnaireStatisticsResult.setResult(JsonMapper.toJSONString(operatorCarryStatisticsResultVOList));
+        questionnaireStatisticsResult.setResult(JsonMapper.toJSONString(operatorCarryStatisticsResultVO));
+
+
 
         questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
+    }
 
+
+    private void expireQuestionnaireStatisticsResult(QuestionnaireType questionnaireType){
+        questionnaireStatisticsResultMapper.updateStatisticsResultRecordType(questionnaireType.getCode(),RecordType.EXPIRE.getCode(), RecordType.DISPLAY.getCode());
     }
 
 
@@ -217,7 +228,7 @@ public class QuestionnaireService {
 
 
 
-    public List<OperatorCarryStatisticsResultVO> getQuestionnaireResultByType() {
+    public List<OperatorCarryStatisticsResultVO> getOperatorCarryStatisticsResult() {
 
         List<OperatorCarryStatisticsResultVO> voList = new ArrayList<>();
 
@@ -230,6 +241,7 @@ public class QuestionnaireService {
                 .selectOne(queryWrapperByMainAndSideStory);
 
         if (resultByMainAndSideStory != null) {
+            System.out.println(resultByMainAndSideStory.getResult());
             OperatorCarryStatisticsResultVO operatorCarryResultByMainAndSideStory = JsonMapper.parseObject(resultByMainAndSideStory.getResult(), new TypeReference<>() {
             });
             voList.add(operatorCarryResultByMainAndSideStory);

@@ -29,7 +29,7 @@ public class QuestionnaireController {
     @Operation(summary ="获取干员调查问卷信息结果")
     @GetMapping("/questionnaire/operator-carry")
     public Result<List<OperatorCarryStatisticsResultVO>> uploadQuestionnaireResult() {
-        return Result.success(questionnaireService.getQuestionnaireResultByType());
+        return Result.success(questionnaireService.getOperatorCarryStatisticsResult());
     }
 
 

@@ -6,5 +6,11 @@ import org.apache.ibatis.annotations.Param;
 
 public interface QuestionnaireStatisticsResultMapper extends BaseMapper<QuestionnaireStatisticsResult> {
 
-    void expireOldData(@Param("targetRecordType") Integer targetRecordType, @Param("currentRecordType") Integer currentRecordType);
+    /**
+     * 更新问卷统计结果状态
+     * @param questionnaireCode  问卷编号
+     * @param targetRecordType 更新后的状态
+     * @param currentRecordType  当前状态
+     */
+    void updateStatisticsResultRecordType(@Param("questionnaireCode") Integer questionnaireCode,@Param("targetRecordType") Integer targetRecordType, @Param("currentRecordType") Integer currentRecordType);
 }
