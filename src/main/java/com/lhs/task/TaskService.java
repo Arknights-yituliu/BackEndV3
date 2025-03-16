@@ -103,6 +103,8 @@ public class TaskService {
     @Scheduled(cron = "0 0/5 * * * ?")
     public void statisticsQuestionnaireResult() {
         questionnaireService.statisticsQuestionnaireResult(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, RecordType.DISPLAY.getCode());
+        questionnaireService.statisticsQuestionnaireResult(QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, RecordType.DISPLAY.getCode());
+        questionnaireService.statisticsQuestionnaireResult(QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, RecordType.DISPLAY.getCode());
     }
 
     @Scheduled(cron = "0 0 1 * * ?")
