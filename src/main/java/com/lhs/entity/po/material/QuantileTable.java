@@ -1,15 +1,14 @@
 package com.lhs.entity.po.material;
 
-import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 @TableName("quantile_table")   //样本置信度参照表
 public class QuantileTable {
     @TableId
-    @ExcelProperty("区间")
+
     private Double section;
-    @ExcelProperty("分位")
+
     private Double value;
 
     public Double getSection() {

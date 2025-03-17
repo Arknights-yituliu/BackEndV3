@@ -128,7 +128,11 @@
             <version>33.0.0-jre</version>
         </dependency>
 
-
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.15.4</version>
+        </dependency>
 
 
     </dependencies>

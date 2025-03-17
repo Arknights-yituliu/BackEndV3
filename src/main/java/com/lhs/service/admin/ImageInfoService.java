@@ -9,7 +9,6 @@ public interface ImageInfoService {
 
     void saveImage(MultipartFile multipartFile, String path, String imageName);
 
-    void saveImage(MultipartFile multipartFile, String path);
 
     List<ImageInfo> listImageInfo(String imageType);
 

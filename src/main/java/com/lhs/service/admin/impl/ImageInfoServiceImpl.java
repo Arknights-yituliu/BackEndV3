@@ -10,6 +10,7 @@ import com.lhs.service.util.TencentCloudService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -39,8 +40,8 @@ public class ImageInfoServiceImpl implements ImageInfoService {
         String bucketPath = path + imageId;
 
         ImageInfo imageInfo = new ImageInfo();
-        imageInfo.setImageId(imageId);
-        imageInfo.setCreateTime(System.currentTimeMillis());
+
+        imageInfo.setCreateTime(new Date());
         imageInfo.setImageName(imageName);
         imageInfo.setImageLink(bucketPath);
         LambdaQueryWrapper<ImageInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -54,38 +55,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
         tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
     }
 
-    @Override
-    public void saveImage(MultipartFile multipartFile, String path) {
 
-        String originalFilename = multipartFile.getOriginalFilename();
-        String fileType = "jpg";
-        String imageName = "默认图片";
-
-        if (originalFilename != null && !originalFilename.isEmpty()) {
-            String[] split = originalFilename.split("\\.");
-            fileType = split[1];
-        }
-        String imageId = idGenerator.nextId() + "." + fileType;
-        String bucketPath = path + imageId;
-
-        ImageInfo imageInfo = new ImageInfo();
-        imageInfo.setImageId(imageId);
-        imageInfo.setCreateTime(System.currentTimeMillis());
-        imageInfo.setImageName(imageName);
-        imageInfo.setImageLink(bucketPath);
-        LambdaQueryWrapper<ImageInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ImageInfo::getImageName, imageName);
-        ImageInfo exist = imageInfoMapper.selectOne(queryWrapper);
-        if (exist == null) {
-            imageInfoMapper.insert(imageInfo);
-        } else {
-            imageInfoMapper.updateById(imageInfo);
-        }
-
-
-        tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
-
-    }
 
     @Override
     public List<ImageInfo> listImageInfo(String imageType) {
@@ -113,8 +83,8 @@ public class ImageInfoServiceImpl implements ImageInfoService {
             String imageId = idGenerator.nextId() + "." + fileType;
             String bucketPath = path + imageId;
             ImageInfo imageInfo = new ImageInfo();
-            imageInfo.setImageId(imageId);
-            imageInfo.setCreateTime(System.currentTimeMillis());
+
+            imageInfo.setCreateTime(new Date());
             imageInfo.setImageName(imageName);
             imageInfo.setImageLink(bucketPath);
             LambdaQueryWrapper<ImageInfo> queryWrapper = new LambdaQueryWrapper<>();

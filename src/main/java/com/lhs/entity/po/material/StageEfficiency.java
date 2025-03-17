@@ -2,7 +2,8 @@ package com.lhs.entity.po.material;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import org.apache.poi.hpsf.Date;
+
+import java.util.Date;
 
 @TableName
 public class StageEfficiency {
