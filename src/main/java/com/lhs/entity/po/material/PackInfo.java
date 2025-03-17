@@ -192,4 +192,26 @@ public class PackInfo {
         this.note = packInfoDTO.getNote();
     }
 
+
+    @Override
+    public String toString() {
+        return "PackInfo{" +
+                "id=" + id +
+                ", officialName='" + officialName + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", price=" + price +
+                ", saleType='" + saleType + '\'' +
+                ", tags='" + tags + '\'' +
+                ", originium=" + originium +
+                ", orundum=" + orundum +
+                ", gachaTicket=" + gachaTicket +
+                ", tenGachaTicket=" + tenGachaTicket +
+                ", start=" + start +
+                ", end=" + end +
+                ", createTime=" + createTime +
+                ", note='" + note + '\'' +
+                ", content='" + content + '\'' +
+                ", deleteFlag=" + deleteFlag +
+                '}';
+    }
 }

@@ -146,6 +146,7 @@ public class PackInfoService {
             message = "更新礼包成功";
         }
 
+        redisTemplate.delete("Item:PackInfo");
 
         return message;
     }
