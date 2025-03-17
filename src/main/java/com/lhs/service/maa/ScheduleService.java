@@ -1,14 +1,15 @@
 package com.lhs.service.maa;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 
 import com.lhs.common.enums.ResultCode;
+import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.po.maa.Schedule;
 import com.lhs.mapper.ScheduleMapper;
 import com.lhs.service.util.OSSService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.util.Date;
+import java.util.Map;
 
 @Service
 public class ScheduleService {
@@ -36,24 +38,17 @@ public class ScheduleService {
         Schedule schedule = new Schedule();
         schedule.setUid(scheduleId);
         schedule.setScheduleId(scheduleId);
-        JSONObject jsonObject = JSONObject.parseObject(scheduleJson);
-        jsonObject.put("id", scheduleId);
-        schedule.setSchedule(JSON.toJSONString(jsonObject));
+        Map<Object,Object> map= JsonMapper.parseObject(scheduleJson,new TypeReference<>(){
+
+        });
+        map.put("id", scheduleId);
+        schedule.setSchedule(JsonMapper.toJSONString(map));
         schedule.setCreateTime(new Date());
         scheduleMapper.insert(schedule);
     }
 
 
-    public void exportScheduleFile(HttpServletResponse response, Long scheduleId) {
 
-        Schedule schedule = scheduleMapper.selectOne(new QueryWrapper<Schedule>().eq("schedule_id", scheduleId));
-
-        String jsonForMat = JSON.toJSONString(JSONObject.parseObject(schedule.getSchedule()), SerializerFeature.PrettyFormat,
-                SerializerFeature.WriteDateUseDateFormat, SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteNullListAsEmpty);
-
-        FileUtil.save(response, ConfigUtil.Schedule, scheduleId.toString()+".json", jsonForMat);
-    }
 
 
     public String retrieveScheduleJson(Long scheduleId) {
