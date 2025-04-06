@@ -1,10 +1,10 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
+import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
-import com.lhs.entity.po.survey.OperatorData;
-import com.lhs.entity.po.survey.OperatorDataVo;
+import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVO;
 import com.lhs.service.survey.*;
 
 import com.lhs.service.util.ArknightsGameDataService;
@@ -13,8 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +42,7 @@ public class SurveyOperatorController {
 
     @Operation(summary ="上传干员练度调查表")
     @PostMapping("/auth/survey/operator/upload")
-    public Result<Object> uploadCharacterForm(HttpServletRequest httpServletRequest,@RequestBody List<OperatorData> operatorDataList) {
+    public Result<Object> uploadCharacterForm(HttpServletRequest httpServletRequest,@RequestBody List<OperatorProgressionDataDTO> operatorDataList) {
         Map<String, Object> hashMap = operatorDataService.manualUploadOperator(httpServletRequest, operatorDataList);
         return Result.success(hashMap);
     }
@@ -52,7 +50,7 @@ public class SurveyOperatorController {
     @Operation(summary ="手动统计")
     @GetMapping("/survey/statistic")
     public Result<Object> statistic() {
-        operatorProgressionStatisticsService.statisticsOperatorProgressionData();
+        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2();
         return Result.success();
     }
 
@@ -90,18 +88,21 @@ public class SurveyOperatorController {
     @Operation(summary ="获取干员数据")
     @GetMapping("/survey/operator/info")
     public Result<Object> getOperatorTable(@RequestParam("token")String token) {
-        List<OperatorDataVo> surveyDataCharList = operatorDataService.getUserOperatorInfo(token);
-        surveyDataCharList.sort(Comparator.comparing(OperatorDataVo::getRarity).reversed());
-        return Result.success(surveyDataCharList);
+        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService.getUserOperatorInfo(token);
+//        operatorProgressionDataDTOList.sort(Comparator.comparing(OperatorProgressionDataDTO::getRarity).reversed());
+        return Result.success(operatorProgressionDataDTOList);
     }
-
-
 
     @Operation(summary ="干员练度调查表统计结果")
     @GetMapping("/survey/operator/result")
-    public Result<Object> characterStatisticsResult() {
-        HashMap<Object, Object> hashMap = operatorProgressionStatisticsService.getOperatorProgressionStatisticsResult();
-        return Result.success(hashMap);
+    public Result<OperatorProgressionStatisticalResultVO> characterStatisticalResult() {
+        return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResult());
+    }
+
+    @Operation(summary ="干员练度调查表统计结果")
+    @GetMapping("/survey/operator/result/v2")
+    public Result<OperatorProgressionStatisticalResultVO> characterStatisticalResultV2() {
+        return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());
     }
 
 

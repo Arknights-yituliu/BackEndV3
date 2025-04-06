@@ -21,6 +21,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -181,20 +182,23 @@ public class QuestionnaireService {
 
 
     public void archivedQuestionnaireStatisticsResult(QuestionnaireType questionnaireType) {
+        LogUtils.info("问卷统计开始归档");
 
         // 获取今天的开始时间和结束时间
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        Date startOfDay = calendar.getTime();
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.set(Calendar.HOUR_OF_DAY, 0);
+        calendar1.set(Calendar.MINUTE, 0);
+        calendar1.set(Calendar.SECOND, 0);
+        calendar1.set(Calendar.MILLISECOND, 0);
+        Date startOfDay = calendar1.getTime();
 
-        calendar.set(Calendar.HOUR_OF_DAY, 23);
-        calendar.set(Calendar.MINUTE, 59);
-        calendar.set(Calendar.SECOND, 59);
-        calendar.set(Calendar.MILLISECOND, 999);
-        Date endOfDay = calendar.getTime();
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.set(Calendar.HOUR_OF_DAY, 23);
+        calendar2.set(Calendar.MINUTE, 59);
+        calendar2.set(Calendar.SECOND, 59);
+        calendar2.set(Calendar.MILLISECOND, 999);
+        Date endOfDay = calendar2.getTime();
+
 
         LambdaUpdateWrapper<QuestionnaireStatisticsResult> existQueryWrapper = new LambdaUpdateWrapper<>();
         existQueryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.ARCHIVED.getCode())
@@ -204,6 +208,7 @@ public class QuestionnaireService {
 
 
         boolean exists = questionnaireStatisticsResultMapper.exists(existQueryWrapper);
+
         if (exists) {
             LogUtils.info("问卷统计结果今日已归档");
             return;

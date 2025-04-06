@@ -1,6 +1,7 @@
 package com.lhs.entity.dto.survey;
 
 import com.lhs.entity.po.survey.OperatorData;
+import com.lhs.entity.po.survey.OperatorProgressionData;
 import com.lhs.entity.po.survey.WarehouseInfo;
 import lombok.Data;
 
@@ -13,7 +14,7 @@ public class PlayerInfoDTO {
     private String nickName;
     private String channelName;
     private Integer channelMasterId;
-    private List<OperatorData> operatorDataList;
+    private List<OperatorProgressionDataDTO> operatorDataList;
     private List<WarehouseInfo> itemList;
 
 }
