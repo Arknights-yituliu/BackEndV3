@@ -75,13 +75,24 @@ public class OperatorProgressionStatisticsService {
 
         //查询数据库中最近两个月的干员练度数据
         long timeStamp = new Date().getTime() - 60 * 60 * 24 * 60 * 1000L;
-        LambdaQueryWrapper<OperatorProgressionData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.ge(OperatorProgressionData::getCreateTime, new Date(timeStamp));
-        List<OperatorProgressionData> operatorProgressionDataList = operatorProgressionDataMapper.selectList(queryWrapper);
+        Date createTime = new Date(timeStamp);
+
         //干员练度统计数据统计结果
         Map<String, OperatorProgressionStatisticalResultDTO> collect = new HashMap<>();
 
-        LogUtils.info("开始统计数据："+operatorProgressionDataList.size()+"条");
+        int count = 0;
+
+        List<OperatorProgressionData> operatorProgressionDataList= new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+
+             operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(createTime, i * 500);
+            if(operatorProgressionDataList.isEmpty()){
+                break;
+            }
+
+            count+=operatorProgressionDataList.size();
+
 
         //循环统计干员练度
         for (OperatorProgressionData operatorProgressionData : operatorProgressionDataList) {
@@ -114,9 +125,11 @@ public class OperatorProgressionStatisticsService {
             }
         }
 
+        }
+
         List<OperatorProgressionStatisticalResultDTO> list = collect.values().stream().toList();
         OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = new OperatorProgressionStatisticalResult();
-        operatorProgressionStatisticalResult.setSampleSize(operatorProgressionDataList.size());
+        operatorProgressionStatisticalResult.setSampleSize(count);
         operatorProgressionStatisticalResult.setId(idGenerator.nextId());
         operatorProgressionStatisticalResult.setRecordType(RecordType.DISPLAY.getCode());
         operatorProgressionStatisticalResult.setCreateTime(new Date());
@@ -124,6 +137,7 @@ public class OperatorProgressionStatisticsService {
         operatorProgressionStatisticalResult.setStatisticalResult(jsonString);
         operatorProgressionStatisticalResultMapper.insert(operatorProgressionStatisticalResult);
 
+        LogUtils.info("本次统计干员练度的抽样人数为："+count+"人次");
 
     }
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.survey.OperatorProgressionDataMapper">
+
+
+    <!--  批量插入干员练度信息表-->
+  <select id="getOperatorProgressionData" resultType="com.lhs.entity.po.survey.OperatorProgressionData">
+      SELECT *
+      FROM operator_progression_data
+      WHERE create_time &gt; #{createTime}
+      limit #{offset},500;
+  </select>
+
+
+</mapper>

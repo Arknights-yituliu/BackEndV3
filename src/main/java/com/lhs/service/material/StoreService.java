@@ -10,12 +10,7 @@ import java.util.*;
 public interface StoreService {
 
 
-    /**
-     * 获得当前未关闭的活动商店性价比
-     *
-     * @return 活动商店性价比
-     */
-    List<ActivityStoreDataVO> getActivityStoreData(StageConfigDTO stageConfigDTO);
+
 
     /**
      * 获取活动商店性价比历史数据

@@ -90,12 +90,6 @@ public class ItemControllerV4 {
         return Result.success(actStageVOList);
     }
 
-    @Operation(summary = "获取活动商店性价比")
-    @PostMapping("/custom/store/act")
-    public Result<List<ActivityStoreDataVO>> getStoreActData(@RequestBody StageConfigDTO stageConfigDTO) {
-        List<ActivityStoreDataVO> activityStoreDataVOList = storeService.getActivityStoreData(stageConfigDTO);
-        return Result.success(activityStoreDataVOList);
-    }
 
 
 

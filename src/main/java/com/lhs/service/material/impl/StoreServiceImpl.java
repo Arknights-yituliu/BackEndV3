@@ -56,22 +56,7 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public String updateActivityStoreDataByActivityName(ActivityStoreDataVO activityStoreDataVo) {
-        Map<String, Item> itemMap = itemService.getItemMapCache(new StageConfigDTO());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        List<StoreItemVO> storeItemVOList = activityStoreDataVo.getActStore();
         String actName = activityStoreDataVo.getActName();
-
-//        for (StoreItemVO vo : storeItemVOList) {
-//            Item item = itemMap.get(vo.getItemId());
-//            if (item == null) {
-//                LogUtils.error(vo.getItemName() + "不存在");
-//                continue;
-//            }
-//            vo.setItemPPR(item.getItemValueAp() * vo.getItemQuantity() / vo.getItemPrice());
-//            vo.setItemId(item.getItemId());
-//        }
-
-
 
         ActivityStoreData act_name = storeActMapper.selectOne(new QueryWrapper<ActivityStoreData>().eq("act_name", actName));
         ActivityStoreData activityStoreData = new ActivityStoreData();
@@ -85,11 +70,7 @@ public class StoreServiceImpl implements StoreService {
             storeActMapper.updateById(activityStoreData);
         }
 
-
-        StageConfigDTO stageConfigDTO = new StageConfigDTO();
-        List<ActivityStoreDataVO> activityStoreDataVOList = getActivityStoreDataNoCache(stageConfigDTO);
-        redisTemplate.opsForValue().set("Item:StoreAct", activityStoreDataVOList, 6, TimeUnit.HOURS);
-
+        redisTemplate.delete("Item:ActStoreInfo");
 
         return "活动商店已更新";
     }
@@ -115,38 +96,6 @@ public class StoreServiceImpl implements StoreService {
     }
 
 
-    public List<ActivityStoreDataVO> getActivityStoreDataNoCache(StageConfigDTO stageConfigDTO) {
-        QueryWrapper<ActivityStoreData> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ge("end_time", new Date());
-        List<ActivityStoreData> activityStoreData = storeActMapper.selectList(queryWrapper);
-        List<ActivityStoreDataVO> activityStoreDataVOList = new ArrayList<>();
-
-        Map<String, Item> itemMapCache = itemService.getItemMapCache(stageConfigDTO);
-        List<ImageInfo> imageInfos = imageInfoMapper.selectList(null);
-        Map<String, String> imageInfoMap = imageInfos.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
-
-        activityStoreData.forEach(e -> {
-            String result = e.getStoreData();
-            ActivityStoreDataVO activityStoreDataVo = JsonMapper.parseObject(result, ActivityStoreDataVO.class);
-            List<StoreItemVO> actStore = activityStoreDataVo.getActStore();
-            for (StoreItemVO item : actStore) {
-                double value = itemMapCache.get(item.getItemId()).getItemValueAp();
-                int quantity = item.getItemQuantity();
-                double price = item.getItemPrice();
-                double ppr = value * quantity / price;
-                item.setItemPPR(ppr);
-            }
-            activityStoreDataVo.setImageLink(imageInfoMap.get(activityStoreDataVo.getActName()));
-            activityStoreDataVOList.add(activityStoreDataVo);
-        });
-        return activityStoreDataVOList;
-    }
-
-    @Override
-    @RedisCacheable(key = "Item:StoreAct", paramOrMethod = "getVersionCode")
-    public List<ActivityStoreDataVO> getActivityStoreData(StageConfigDTO stageConfigDTO) {
-        return getActivityStoreDataNoCache(stageConfigDTO);
-    }
 
     @Override
     public List<ActivityStoreDataVO> getActivityStoreHistoryData() {
