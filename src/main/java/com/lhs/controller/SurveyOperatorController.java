@@ -4,7 +4,7 @@ import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
-import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVO;
+import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
 import com.lhs.service.survey.*;
 
 import com.lhs.service.util.ArknightsGameDataService;
@@ -94,14 +94,15 @@ public class SurveyOperatorController {
     }
 
     @Operation(summary ="干员练度调查表统计结果")
-    @GetMapping("/survey/operator/result")
-    public Result<OperatorProgressionStatisticalResultVO> characterStatisticalResult() {
-        return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResult());
+    @GetMapping("/survey/operator/move")
+    public Result<Object> characterStatisticalResult() {
+        operatorProgressionStatisticsService.move();
+        return Result.success();
     }
 
     @Operation(summary ="干员练度调查表统计结果")
     @GetMapping("/survey/operator/result/v2")
-    public Result<OperatorProgressionStatisticalResultVO> characterStatisticalResultV2() {
+    public Result<OperatorProgressionStatisticalResultVOV2> characterStatisticalResultV2() {
         return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());
     }
 

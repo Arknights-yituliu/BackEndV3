@@ -10,4 +10,8 @@
         AND questionnaire_code = #{questionnaireCode}
     </update>
 
+    <select id="getLastData" resultType="com.lhs.entity.po.survey.QuestionnaireStatisticsResult">
+         select * from questionnaire_statistics_result where  record_type = 1 AND questionnaire_code = #{questionnaireCode} ORDER BY create_time DESC LIMIT 1
+    </select>
+
 </mapper>

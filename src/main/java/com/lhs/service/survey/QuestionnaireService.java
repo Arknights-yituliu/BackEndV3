@@ -182,7 +182,7 @@ public class QuestionnaireService {
 
 
     public void archivedQuestionnaireStatisticsResult(QuestionnaireType questionnaireType) {
-        LogUtils.info("问卷统计开始归档");
+        LogUtils.info(questionnaireType.getType()+"问卷统计开始归档");
 
         // 获取今天的开始时间和结束时间
         Calendar calendar1 = Calendar.getInstance();
@@ -210,18 +210,17 @@ public class QuestionnaireService {
         boolean exists = questionnaireStatisticsResultMapper.exists(existQueryWrapper);
 
         if (exists) {
-            LogUtils.info("问卷统计结果今日已归档");
+            LogUtils.info(questionnaireType.getType()+"问卷统计结果今日已归档");
             return;
         }
 
-        LambdaUpdateWrapper<QuestionnaireStatisticsResult> queryWrapper = new LambdaUpdateWrapper<>();
-        queryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
-        QuestionnaireStatisticsResult questionnaireStatisticsResult = questionnaireStatisticsResultMapper.selectOne(queryWrapper);
+
+        QuestionnaireStatisticsResult questionnaireStatisticsResult = questionnaireStatisticsResultMapper.getLastData(questionnaireType.getCode());
         questionnaireStatisticsResult.setId(idGenerator.nextId());
         questionnaireStatisticsResult.setRecordType(RecordType.ARCHIVED.getCode());
 
         questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
-        LogUtils.info("问卷统计结果归档成功");
+        LogUtils.info(questionnaireType.getType()+"问卷统计结果归档成功");
     }
 
 

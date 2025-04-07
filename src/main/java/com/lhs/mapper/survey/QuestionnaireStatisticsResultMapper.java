@@ -13,4 +13,8 @@ public interface QuestionnaireStatisticsResultMapper extends BaseMapper<Question
      * @param currentRecordType  当前状态
      */
     void updateStatisticsResultRecordType(@Param("questionnaireCode") Integer questionnaireCode,@Param("targetRecordType") Integer targetRecordType, @Param("currentRecordType") Integer currentRecordType);
+
+
+    QuestionnaireStatisticsResult getLastData(@Param("questionnaireCode") Integer questionnaireCode );
+
 }

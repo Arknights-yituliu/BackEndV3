@@ -7,6 +7,8 @@ import java.util.Date;
 
 @TableName
 public class OperatorProgressionStatisticalResult {
+
+
     @TableId
     private Long id;
     private Integer sampleSize;

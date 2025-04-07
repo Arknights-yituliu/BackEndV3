@@ -79,26 +79,21 @@ public class TaskService {
     /**
      * 统计干员练度数据
      */
-    @Scheduled(cron = "0 0 0/1 * * ? ")
+    @Scheduled(cron = "0 0 0/1 * * ?")
     public void statisticsProgressionOperatorData() {
         operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2();
     }
 
-//    @Scheduled(cron = "0 0 2-4 * * ?")
-//    public void archivedOperatorProgressionResult() {
-//        operatorProgressionStatisticsService.archivedOperatorProgressionResult();
-//    }
-//
-//    @Scheduled(cron = "0 0 1 * * ?")
-//    public void deleteOperatorProgressionResultExpireData() {
-//        operatorProgressionStatisticsService.deleteExpireData();
-//    }
+    @Scheduled(cron = "0 23 * * * ?")
+    public void archivedOperatorProgressionResult() {
+        operatorProgressionStatisticsService.archivedOperatorProgressionResult();
+    }
 
+    @Scheduled(cron = "0 0 1 * * ?")
+    public void deleteOperatorProgressionResultExpireData() {
+        operatorProgressionStatisticsService.deleteExpireData();
+    }
 
-//    @Scheduled(cron = "0 0/5 * * * ?")
-//    public void rogueSeedRatingStatistics() {
-//        rogueSeedService.ratingStatistics();
-//    }
 
     @Scheduled(cron = "0 0/5 * * * ?")
     public void statisticsQuestionnaireResult() {
@@ -107,7 +102,7 @@ public class TaskService {
         questionnaireService.statisticsQuestionnaireResult(QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, RecordType.DISPLAY.getCode());
     }
 
-    @Scheduled(cron = "0 0 * * * ?")
+    @Scheduled(cron = "0 23 * * * ?")
     public void archivedOperatorCarryRateResult() {
         questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME);
         questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME);
