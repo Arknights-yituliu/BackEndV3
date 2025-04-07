@@ -64,12 +64,14 @@ public class OperatorProgressionStatisticsService {
 
 
     public void statisticsOperatorProgressionDataV2() {
+
         Date date = new Date();
         LambdaUpdateWrapper<OperatorProgressionStatisticalResult> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(OperatorProgressionStatisticalResult::getRecordType, RecordType.EXPIRE.getCode())
                 .eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.getCode())
                 .lt(OperatorProgressionStatisticalResult::getCreateTime, date);
         operatorProgressionStatisticalResultMapper.update(null, updateWrapper);
+
 
         //查询数据库中最近两个月的干员练度数据
         long timeStamp = new Date().getTime() - 60 * 60 * 24 * 60 * 1000L;
@@ -79,6 +81,7 @@ public class OperatorProgressionStatisticsService {
         //干员练度统计数据统计结果
         Map<String, OperatorProgressionStatisticalResultDTO> collect = new HashMap<>();
 
+        LogUtils.info("开始统计数据："+operatorProgressionDataList.size()+"条");
 
         //循环统计干员练度
         for (OperatorProgressionData operatorProgressionData : operatorProgressionDataList) {
