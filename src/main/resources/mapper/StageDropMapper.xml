@@ -15,6 +15,16 @@
         WHERE create_time &gt; #{start} AND create_time &lt;= #{end}
     </select>
 
+    <insert id="insertBatch">
+        INSERT INTO stage_drop
+        (id, stage_id, drops, times, server, source, create_time, uid, version)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},#{item.stageId},#{item.drops},#{item.times},
+            #{item.server},#{item.source},#{item.createTime},#{item.uid},#{item.version})
+        </foreach>
+    </insert>
+
     <insert id="insertBatchStageDropStatistics">
         INSERT INTO stage_drop_statistics
         (id, stage_id, item_id, times, quantity,start, end, time_granularity, create_time)
