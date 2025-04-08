@@ -1,4 +1,4 @@
-package com.lhs.entity.po.material;
+package com.lhs.entity.dto.drop;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 
@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @TableName
-public class StageDropDetail {
+public class StageDropDetailDTO {
     @TableId
     private Long id;
     private String uid;
