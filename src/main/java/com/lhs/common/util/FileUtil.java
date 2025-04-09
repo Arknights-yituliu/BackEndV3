@@ -104,6 +104,27 @@ public class FileUtil {
         }
     }
 
+
+    public static String read(File file) {
+        String context = "";
+        try {
+            Reader reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8);
+            int ch = 0;
+            StringBuilder sb = new StringBuilder();
+            while ((ch = reader.read()) != -1) {
+                sb.append((char) ch);
+            }
+
+            reader.close();
+            context = sb.toString();
+            return context;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static String read(MultipartFile multipartFile) {
         String jsonStr = "";
         try {

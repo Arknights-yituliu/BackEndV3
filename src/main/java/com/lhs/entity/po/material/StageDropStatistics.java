@@ -12,10 +12,13 @@ public class StageDropStatistics {
     private String itemId;
     private Integer times;
     private Integer quantity;
-    private Date end;
-    private Date start;
+    private Date endTime;
+    private Date startTime;
     private Integer timeGranularity;
     private Date createTime;
+
+    private Integer recordCode;
+
 
     public Long getId() {
         return id;
@@ -57,20 +60,20 @@ public class StageDropStatistics {
         this.quantity = quantity;
     }
 
-    public Date getStart() {
-        return start;
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public void setStart(Date start) {
-        this.start = start;
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
     }
 
-    public Date getEnd() {
-        return end;
+    public Date getEndTime() {
+        return endTime;
     }
 
-    public void setEnd(Date end) {
-        this.end = end;
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
     }
 
     public Integer getTimeGranularity() {
@@ -97,6 +100,13 @@ public class StageDropStatistics {
         this.quantity+=quantity;
     }
 
+    public Integer getRecordCode() {
+        return recordCode;
+    }
+
+    public void setRecordCode(Integer recordCode) {
+        this.recordCode = recordCode;
+    }
 
     @Override
     public String toString() {
@@ -106,7 +116,7 @@ public class StageDropStatistics {
                 ", itemId='" + itemId + '\'' +
                 ", times=" + times +
                 ", quantity=" + quantity +
-                ", statisticalPeriod=" + end +
+                ", statisticalPeriod=" + endTime +
                 ", timeGranularity=" + timeGranularity +
                 ", createTime=" + createTime +
                 '}';

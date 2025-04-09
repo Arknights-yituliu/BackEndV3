@@ -15,19 +15,13 @@ public enum RecordType {
         this.recordType = recordType;
     }
 
-    public Integer getCode() {
+    public Integer code() {
         return code;
     }
 
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public String getRecordType() {
+    public String recordType() {
         return recordType;
     }
 
-    public void setRecordType(String recordType) {
-        this.recordType = recordType;
-    }
+
 }

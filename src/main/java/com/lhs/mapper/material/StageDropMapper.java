@@ -14,6 +14,7 @@ import java.util.List;
 @Repository
 public interface StageDropMapper extends BaseMapper<StageDrop> {
 
+    Integer countByDate(@Param("start") Date start, @Param("end") Date end);
 
     List<StageDrop> listStageDropByDate(@Param("start") Date start, @Param("end") Date end);
 
@@ -22,13 +23,7 @@ public interface StageDropMapper extends BaseMapper<StageDrop> {
     List<StageDrop> listOldStageDropByDate(@Param("tableName") String tableName, @Param("start") Date start, @Param("end") Date end);
 
 
-    Integer insertBatchStageDropStatistics(@Param("list") List<StageDropStatistics> stageDropList);
 
-
-
-
-    List<StageDropStatistics> listStageDropStatisticsByStageId(@Param("stageId") String stageId, @Param("timeGranularity") Integer timeGranularity,
-                                                               @Param("start") Date start, @Param("end") Date end);
 
 
 

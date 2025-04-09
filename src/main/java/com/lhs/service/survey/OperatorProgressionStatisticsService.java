@@ -3,7 +3,6 @@ package com.lhs.service.survey;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.enums.RecordType;
 import com.lhs.common.util.IdGenerator;
@@ -14,8 +13,6 @@ import com.lhs.entity.dto.survey.OperatorProgressionStatisticalResultDTO;
 import com.lhs.entity.po.survey.*;
 
 import com.lhs.entity.po.user.AkPlayerBindInfo;
-import com.lhs.entity.vo.survey.OperatorProgressionStatisticalDataVO;
-import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVO;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
 import com.lhs.mapper.survey.OperatorDataMapper;
 import com.lhs.mapper.survey.OperatorProgressionDataMapper;
@@ -67,8 +64,8 @@ public class OperatorProgressionStatisticsService {
 
         Date date = new Date();
         LambdaUpdateWrapper<OperatorProgressionStatisticalResult> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.set(OperatorProgressionStatisticalResult::getRecordType, RecordType.EXPIRE.getCode())
-                .eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.getCode())
+        updateWrapper.set(OperatorProgressionStatisticalResult::getRecordType, RecordType.EXPIRE.code())
+                .eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.code())
                 .lt(OperatorProgressionStatisticalResult::getCreateTime, date);
         operatorProgressionStatisticalResultMapper.update(null, updateWrapper);
 
@@ -131,7 +128,7 @@ public class OperatorProgressionStatisticsService {
         OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = new OperatorProgressionStatisticalResult();
         operatorProgressionStatisticalResult.setSampleSize(count);
         operatorProgressionStatisticalResult.setId(idGenerator.nextId());
-        operatorProgressionStatisticalResult.setRecordType(RecordType.DISPLAY.getCode());
+        operatorProgressionStatisticalResult.setRecordType(RecordType.DISPLAY.code());
         operatorProgressionStatisticalResult.setCreateTime(new Date());
         String jsonString = JsonMapper.toJSONString(list);
         operatorProgressionStatisticalResult.setStatisticalResult(jsonString);
@@ -152,7 +149,7 @@ public class OperatorProgressionStatisticsService {
     @RedisCacheable(key = "Survey:OperatorProgressionStatistics")
     public OperatorProgressionStatisticalResultVOV2 getOperatorProgressionStatisticalResultV2() {
         LambdaUpdateWrapper<OperatorProgressionStatisticalResult> queryWrapper = new LambdaUpdateWrapper<>();
-        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.getCode());
+        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.code());
         List<OperatorProgressionStatisticalResult> list = operatorProgressionStatisticalResultMapper.selectList(queryWrapper);
         OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = list.get(0);
 
@@ -161,7 +158,7 @@ public class OperatorProgressionStatisticsService {
 
         OperatorProgressionStatisticalResultVOV2 operatorProgressionStatisticalResultVOV2 = new OperatorProgressionStatisticalResultVOV2();
         operatorProgressionStatisticalResultVOV2.setSampleSize(operatorProgressionStatisticalResult.getSampleSize());
-        operatorProgressionStatisticalResultVOV2.setRecordType(RecordType.DISPLAY.getCode());
+        operatorProgressionStatisticalResultVOV2.setRecordType(RecordType.DISPLAY.code());
         operatorProgressionStatisticalResultVOV2.setCreateTime(operatorProgressionStatisticalResult.getCreateTime().getTime());
         operatorProgressionStatisticalResultVOV2.setResult(progressionStatisticalResultDTOList);
         return operatorProgressionStatisticalResultVOV2;
@@ -185,7 +182,7 @@ public class OperatorProgressionStatisticsService {
         Date endOfDay = calendar.getTime();
 
         LambdaUpdateWrapper<OperatorProgressionStatisticalResult> existQueryWrapper = new LambdaUpdateWrapper<>();
-        existQueryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.ARCHIVED.getCode())
+        existQueryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.ARCHIVED.code())
                 .ge(OperatorProgressionStatisticalResult::getCreateTime, startOfDay)
                 .le(OperatorProgressionStatisticalResult::getCreateTime, endOfDay);
 
@@ -196,11 +193,11 @@ public class OperatorProgressionStatisticsService {
         }
 
         LambdaUpdateWrapper<OperatorProgressionStatisticalResult> queryWrapper = new LambdaUpdateWrapper<>();
-        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.getCode())
+        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.code())
                 .orderByDesc(OperatorProgressionStatisticalResult::getCreateTime);
         List<OperatorProgressionStatisticalResult> list = operatorProgressionStatisticalResultMapper.selectList(queryWrapper);
         OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = list.get(0);
-        operatorProgressionStatisticalResult.setRecordType(RecordType.ARCHIVED.getCode());
+        operatorProgressionStatisticalResult.setRecordType(RecordType.ARCHIVED.code());
         operatorProgressionStatisticalResult.setId(idGenerator.nextId());
 
         int i = operatorProgressionStatisticalResultMapper.insert(operatorProgressionStatisticalResult);
@@ -210,7 +207,7 @@ public class OperatorProgressionStatisticsService {
 
     public void deleteExpireData() {
         LambdaQueryWrapper<OperatorProgressionStatisticalResult> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.EXPIRE.getCode());
+        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.EXPIRE.code());
         int delete = operatorProgressionStatisticalResultMapper.delete(queryWrapper);
         LogUtils.info("本次清理了" + delete + "条过期干员携带率统计数据");
     }

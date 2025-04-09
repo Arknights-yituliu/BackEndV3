@@ -3,16 +3,25 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhs.mapper.material.StageDropMapper">
 
+    <select id="countByDate" resultType="Integer">
+        SELECT COUNT(*)
+        FROM stage_drop
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+    </select>
+
     <select id="listStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
         SELECT *
         FROM stage_drop
-        WHERE create_time &gt; #{start} AND create_time &lt;= #{end}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
     </select>
 
     <select id="listOldStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
         SELECT *
         FROM ${tableName}
-        WHERE create_time &gt; #{start} AND create_time &lt;= #{end}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
     </select>
 
     <insert id="insertBatch">
@@ -35,35 +44,20 @@
         </foreach>
     </insert>
 
-
-
-    <insert id="insertBatch">
-        INSERT INTO ${tableName}
-        (id, drops,stage_id, times, server, source, uid, version, create_time)
-        VALUES
-        <foreach collection="list" item="item" separator=",">
-            (#{item.id},#{item.drops},#{item.stageId},#{item.times},
-             #{item.server},#{item.source},#{item.uid},#{item.version},#{item.createTime})
-        </foreach>
-    </insert>
-
-
-
-
-
-
-
-
-
     <select id="listStageDropStatisticsByDate" resultType="com.lhs.entity.po.material.StageDropStatistics">
         SELECT *
         FROM stage_drop_statistics
-        WHERE time_granularity = #{timeGranularity} AND end &gt; #{start} AND end &lt;= #{end}
+        WHERE time_granularity = #{timeGranularity}
+          AND end &gt;= #{start}
+          AND end &lt; #{end}
     </select>
 
     <select id="listStageDropStatisticsByStageId" resultType="com.lhs.entity.po.material.StageDropStatistics">
         SELECT *
         FROM stage_drop_statistics
-        WHERE stage_id = #{stageId} AND time_granularity = #{timeGranularity} AND end &gt; #{start} AND end &lt;= #{end}
+        WHERE stage_id = #{stageId}
+          AND time_granularity = #{timeGranularity}
+          AND end &gt;= #{start}
+          AND end &lt; #{end}
     </select>
 </mapper>

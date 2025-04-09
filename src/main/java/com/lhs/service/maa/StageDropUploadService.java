@@ -112,134 +112,8 @@ public class StageDropUploadService {
         stageDropMapper.insert(stageDrop);
     }
 
-    public void stageDropHourlyStatistics() {
-        Date date = getCurrentHourTime();
-        long hour = 60 * 60 * 1000L;
-        long start = 1742400000000L;
-
-        for (int i = 0; i < 10000; i++) {
-            Date startTime = new Date(start);
-            Date endTime = new Date(start + hour);
-            List<StageDrop> stageDropList = stageDropMapper.listStageDropByDate(startTime, endTime);
-            start+=hour;
-            if(stageDropList.isEmpty()){
-                continue;
-            }
-
-            Map<String, StageDropCollect> dropCollectHashMap = new HashMap<>();
-            for (StageDrop stageDrop : stageDropList) {
-                String stageId = stageDrop.getStageId();
-                String server = stageDrop.getServer();
-                if (!"CN".equals(server)) {
-                    continue;
-                }
-                Integer times = stageDrop.getTimes();
-                if (times > 1) {
-                    continue;
-                }
-
-                StageDropCollect item = dropCollectHashMap.get(stageId);
-
-                if (item == null) {
-                    item = new StageDropCollect();
-                    dropCollectHashMap.put(stageId, item); // 将新对象放入 map
-                }
-
-                item.addTimes(1);
-                String drops = stageDrop.getDrops();
-                if (drops != null && drops.length() > 5) {
-                    List<StageDropDetailDTO> stageDropDetailDTOList = JsonMapper.parseJSONArray(drops, new TypeReference<>() {
-                    });
-                    for (StageDropDetailDTO dropDetail : stageDropDetailDTOList) {
-                        Integer quantity = dropDetail.getQuantity();
-                        String itemId = dropDetail.getItemId();
-                        item.getDrops().merge(itemId, quantity, Integer::sum);
-                    }
-                }
-            }
-
-            List<StageDropStatistics> stageDropStatisticsList = new ArrayList<>();
-            for(String stageId: dropCollectHashMap.keySet()){
-                StageDropCollect stageDropCollect = dropCollectHashMap.get(stageId);
-                Integer times = stageDropCollect.getTimes();
-                Map<String, Integer> drops = stageDropCollect.getDrops();
-                for(String itemId:drops.keySet()){
-                    Integer quantity = drops.get(itemId);
-                    StageDropStatistics stageDropStatistics = new StageDropStatistics();
-                    stageDropStatistics.setId(idGenerator.nextId());
-                    stageDropStatistics.setTimes(times);
-                    stageDropStatistics.setStageId(stageId);
-                    stageDropStatistics.setItemId(itemId);
-                    stageDropStatistics.setQuantity(quantity);
-                    stageDropStatistics.setStart(startTime);
-                    stageDropStatistics.setEnd(endTime);
-                    stageDropStatistics.setTimeGranularity(TimeGranularity.HOUR.code());
-                    stageDropStatistics.setCreateTime(date);
-                    stageDropStatisticsList.add(stageDropStatistics);
-                }
-            }
-
-            System.out.println("开始插入");
-            System.out.println(stageDropStatisticsList.size());
 
 
-            stageDropMapper.insertBatchStageDropStatistics(stageDropStatisticsList);
-        }
-    }
-
-
-    public void collectHourlyDropData() {
-        Date start = getCurrentHourTime();
-        long hour = 60 * 60 * 1000L;
-        Date end = new Date(start.getTime() + hour);
-        List<StageDrop> stageDropList = stageDropMapper.listStageDropByDate(start, end);
-        HashMap<String, Integer> timesMap = new HashMap<>();
-        HashMap<String, StageDropStatistics> dropQuantity = new HashMap<>();
-        Date date = new Date();
-        for (StageDrop stageDrop : stageDropList) {
-
-            if (!"CN".equals(stageDrop.getServer())) {
-                continue;
-            }
-
-            String stageId = stageDrop.getStageId();
-            timesMap.merge(stageId, 1, Integer::sum);
-
-            if (stageDrop.getDrops() != null && stageDrop.getDrops().length() > 5) {
-                List<StageDropDetailDTO> stageDropDetailDTOList = JsonMapper.parseJSONArray(stageDrop.getDrops(), new TypeReference<>() {
-                });
-                for (StageDropDetailDTO dropDetail : stageDropDetailDTOList) {
-                    String itemId = dropDetail.getItemId();
-                    String key = stageId + "&" + itemId;
-                    Integer quantity = dropDetail.getQuantity();
-                    if (dropQuantity.get(key) != null) {
-                        dropQuantity.get(key).addQuantity(quantity);
-                    } else {
-                        StageDropStatistics stageDropStatistics = new StageDropStatistics();
-                        stageDropStatistics.setStageId(stageId);
-                        stageDropStatistics.setItemId(itemId);
-                        stageDropStatistics.setQuantity(quantity);
-                        stageDropStatistics.setStart(start);
-                        stageDropStatistics.setEnd(end);
-                        stageDropStatistics.setTimeGranularity(TimeGranularity.HOUR.code());
-                        stageDropStatistics.setCreateTime(date);
-                        dropQuantity.put(key, stageDropStatistics);
-                    }
-                }
-            }
-        }
-
-        List<StageDropStatistics> insertList = new ArrayList<>();
-        for (String key : dropQuantity.keySet()) {
-            StageDropStatistics stageDropStatistics = dropQuantity.get(key);
-            stageDropStatistics.setId(idGenerator.nextId());
-            String stageId = stageDropStatistics.getStageId();
-            stageDropStatistics.setTimes(timesMap.get(stageId));
-            insertList.add(stageDropStatistics);
-        }
-
-        stageDropMapper.insertBatchStageDropStatistics(insertList);
-    }
 
     public void stageDropDataMigration(){
 
@@ -258,9 +132,12 @@ public class StageDropUploadService {
             stageDropMapper.insertBatch(stageDropList);
 
         }
-
-
     }
+
+
+
+
+
 
 
     /**

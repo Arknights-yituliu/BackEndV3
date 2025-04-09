@@ -21,7 +21,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -177,7 +176,7 @@ public class QuestionnaireService {
 
 
     private void expireQuestionnaireStatisticsResult(QuestionnaireType questionnaireType) {
-        questionnaireStatisticsResultMapper.updateStatisticsResultRecordType(questionnaireType.getCode(), RecordType.EXPIRE.getCode(), RecordType.DISPLAY.getCode());
+        questionnaireStatisticsResultMapper.updateStatisticsResultRecordType(questionnaireType.getCode(), RecordType.EXPIRE.code(), RecordType.DISPLAY.code());
     }
 
 
@@ -201,7 +200,7 @@ public class QuestionnaireService {
 
 
         LambdaUpdateWrapper<QuestionnaireStatisticsResult> existQueryWrapper = new LambdaUpdateWrapper<>();
-        existQueryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.ARCHIVED.getCode())
+        existQueryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.ARCHIVED.code())
                 .eq(QuestionnaireStatisticsResult::getQuestionnaireCode, questionnaireType.getCode())
                 .ge(QuestionnaireStatisticsResult::getCreateTime, startOfDay)
                 .le(QuestionnaireStatisticsResult::getCreateTime, endOfDay);
@@ -217,7 +216,7 @@ public class QuestionnaireService {
 
         QuestionnaireStatisticsResult questionnaireStatisticsResult = questionnaireStatisticsResultMapper.getLastData(questionnaireType.getCode());
         questionnaireStatisticsResult.setId(idGenerator.nextId());
-        questionnaireStatisticsResult.setRecordType(RecordType.ARCHIVED.getCode());
+        questionnaireStatisticsResult.setRecordType(RecordType.ARCHIVED.code());
 
         questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
         LogUtils.info(questionnaireType.getType()+"问卷统计结果归档成功");
@@ -226,7 +225,7 @@ public class QuestionnaireService {
 
     public void deleteExpireData() {
         LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.EXPIRE.getCode());
+        queryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.EXPIRE.code());
         int delete = questionnaireStatisticsResultMapper.delete(queryWrapper);
         LogUtils.info("本次清理了" + delete + "条过期干员携带率统计数据");
     }
@@ -237,7 +236,7 @@ public class QuestionnaireService {
         List<OperatorCarryStatisticsResultVO> voList = new ArrayList<>();
 
         LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByMainAndSideStory = new LambdaQueryWrapper<>();
-        queryWrapperByMainAndSideStory.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
+        queryWrapperByMainAndSideStory.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code());
         queryWrapperByMainAndSideStory.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
                 QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME.getCode());
 
@@ -252,7 +251,7 @@ public class QuestionnaireService {
 
 
         LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByContingencyContract = new LambdaQueryWrapper<>();
-        queryWrapperByContingencyContract.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
+        queryWrapperByContingencyContract.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code());
         queryWrapperByContingencyContract.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
                 QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME.getCode());
 
@@ -267,7 +266,7 @@ public class QuestionnaireService {
 
 
         LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByIntegratedStrategies = new LambdaQueryWrapper<>();
-        queryWrapperByIntegratedStrategies.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.getCode());
+        queryWrapperByIntegratedStrategies.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code());
         queryWrapperByIntegratedStrategies.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
                 QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME.getCode());
         QuestionnaireStatisticsResult resultByIntegratedStrategies = questionnaireStatisticsResultMapper
