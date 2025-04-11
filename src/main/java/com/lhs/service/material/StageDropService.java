@@ -69,23 +69,20 @@ public class StageDropService {
 
 
     public void stageDropHourlyStatistics(Long start) {
-
-
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
-
         long hour = 60 * 60 * 1000L;
         for (int i = 0; i < 10000; i++) {
             Date startTime = new Date(start);
             Date endTime = new Date(start + hour);
-            stageDropHourlyStatistics(startTime, endTime,simpleDateFormat);
+            stageDropHourlyStatistics(startTime, endTime, simpleDateFormat);
             //查询后将start递增
             start += hour;
         }
     }
 
-    public void stageDropHourlyStatistics(Date startTime, Date endTime,SimpleDateFormat simpleDateFormat) {
+    public void stageDropHourlyStatistics(Date startTime, Date endTime, SimpleDateFormat simpleDateFormat) {
 
-        LogUtils.info("{}开始执行关卡掉率统计——时段" + simpleDateFormat.format(startTime) + "-" + simpleDateFormat.format(endTime)+"{}");
+        LogUtils.info("{}开始执行关卡掉率统计——时段" + simpleDateFormat.format(startTime) + "-" + simpleDateFormat.format(endTime) + "{}");
 
         Date date = new Date();
         Date defaultDate = new Date(1556676000000L);
@@ -112,8 +109,8 @@ public class StageDropService {
         StageDropStatistics updateEntity = new StageDropStatistics();
         updateEntity.setRecordCode(RecordType.EXPIRE.code());
         int update = stageDropStatisticsMapper.update(updateEntity, updateWrapper);
-        if(update>0){
-            LogUtils.info("将"+update+"条旧数据过期");
+        if (update > 0) {
+            LogUtils.info("将" + update + "条旧数据过期");
         }
 
         //如果没有执行过当前统计时段和时间粒度的任务或统计未完成，执行下面的逻辑
@@ -145,6 +142,7 @@ public class StageDropService {
 
 
         Map<String, StageDropCollect> dropCollectHashMap = new HashMap<>();
+
         for (StageDrop stageDrop : stageDropList) {
             String stageId = stageDrop.getStageId();
             String server = stageDrop.getServer();
@@ -172,7 +170,7 @@ public class StageDropService {
                 for (StageDropDetailDTO dropDetail : stageDropDetailDTOList) {
                     Integer quantity = dropDetail.getQuantity();
                     String itemId = dropDetail.getItemId();
-                    item.getDrops().merge(itemId, quantity, Integer::sum);
+                    item.getDropMap().merge(itemId, quantity, Integer::sum);
                 }
             }
         }
@@ -181,7 +179,7 @@ public class StageDropService {
         for (String stageId : dropCollectHashMap.keySet()) {
             StageDropCollect stageDropCollect = dropCollectHashMap.get(stageId);
             Integer times = stageDropCollect.getTimes();
-            Map<String, Integer> drops = stageDropCollect.getDrops();
+            Map<String, Integer> drops = stageDropCollect.getDropMap();
             for (String itemId : drops.keySet()) {
                 Integer quantity = drops.get(itemId);
                 StageDropStatistics stageDropStatistics = new StageDropStatistics();
@@ -207,10 +205,10 @@ public class StageDropService {
         if (oldTaskLog != null) {
             taskLog.setId(oldTaskLog.getId());
             Integer i = stageDropStatisticsMapper.updateTaskLog(taskLog);
-            LogUtils.info("更新了统计日志"+ taskLog);
+            LogUtils.info("更新了统计日志" + taskLog);
         } else {
             Integer i = stageDropStatisticsMapper.insertTaskLog(taskLog);
-            LogUtils.info("新增了统计日志"+taskLog);
+            LogUtils.info("新增了统计日志" + taskLog);
         }
 
 
@@ -218,10 +216,37 @@ public class StageDropService {
     }
 
 
-    public void stageDropDailyStatistics() {
+    public void stageDropDailyStatistics(Long start) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+        long hour = 60 * 60 * 24 * 1000L;
+        for (int i = 0; i < 500; i++) {
+            Date startTime = new Date(start);
+            Date endTime = new Date(start + hour);
+            stageDropDailyStatistics(startTime, endTime, simpleDateFormat);
+            //查询后将start递增
+            start += hour;
+        }
+
+    }
 
 
-//        stageDropStatisticsMapper.listByDate(TimeGranularity.HOUR.code(),);
+    public void stageDropDailyStatistics(Date startTime, Date endTime, SimpleDateFormat simpleDateFormat) {
+        List<StageDropStatistics> stageDropStatisticsList = stageDropStatisticsMapper.listByDate(TimeGranularity.HOUR.code(), startTime, endTime);
+        Map<String, StageDropCollect> dropCollectHashMap = new HashMap<>();
+        for(StageDropStatistics stageDropStatistics:stageDropStatisticsList){
+            String itemId = stageDropStatistics.getItemId();
+            String stageId = stageDropStatistics.getStageId();
+            Integer times = stageDropStatistics.getTimes();
+            StageDropCollect item = dropCollectHashMap.get(stageId);
+            if (item == null) {
+                item = new StageDropCollect();
+                // 将新对象放入 map
+                dropCollectHashMap.put(stageId, item);
+            }
+
+            item.getTimesMap().merge(itemId,stageDropStatistics.getQuantity(),Integer::sum);
+        }
+
     }
 
 
@@ -230,7 +255,6 @@ public class StageDropService {
             vo.setStart(period.getTime() - 60 * 60 * 1000);
             vo.setEnd(period.getTime() + 60 * 60);
         }
-
 
         vo.setStart(period.getTime() - 60 * 60 * 1000);
         vo.setEnd(period.getTime());
