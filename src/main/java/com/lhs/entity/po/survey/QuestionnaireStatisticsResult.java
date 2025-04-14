@@ -13,7 +13,9 @@ public class QuestionnaireStatisticsResult {
     private Integer questionnaireCode;
     private String questionnaireType;
     private String result;
+    private Integer timeGranularity;
     private Integer recordType;
+    private String version;
     private Date createTime;
 
     public Long getId() {
@@ -28,7 +30,7 @@ public class QuestionnaireStatisticsResult {
         return questionnaireType;
     }
 
-    public void setQuestionnaireType(String  questionnaireType) {
+    public void setQuestionnaireType(String questionnaireType) {
         this.questionnaireType = questionnaireType;
     }
 
@@ -48,12 +50,32 @@ public class QuestionnaireStatisticsResult {
         this.result = result;
     }
 
+    public Integer getTimeGranularity() {
+        return timeGranularity;
+    }
+
+    public void setTimeGranularity(Integer timeGranularity) {
+        this.timeGranularity = timeGranularity;
+    }
+
     public Integer getRecordType() {
         return recordType;
     }
 
     public void setRecordType(Integer recordType) {
         this.recordType = recordType;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String createVersion() {
+        return "" + this.questionnaireCode + this.recordType + this.timeGranularity;
     }
 
     public Date getCreateTime() {

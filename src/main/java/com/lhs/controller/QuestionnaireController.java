@@ -26,10 +26,11 @@ public class QuestionnaireController {
         return Result.success();
     }
 
+
     @Operation(summary ="获取干员调查问卷信息结果")
-    @GetMapping("/questionnaire/operator-carry")
-    public Result<List<OperatorCarryStatisticsResultVO>> getOperatorCarryStatisticsResult() {
-        return Result.success(questionnaireService.getOperatorCarryStatisticsResult());
+    @GetMapping("/questionnaire/operator-carry/v2")
+    public Result<OperatorCarryStatisticsResultVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,@RequestParam("timeGranularity") Integer timeGranularity) {
+        return Result.success(questionnaireService.getOperatorCarryStatisticsResultByTypeAndTime(questionnaireType,timeGranularity));
     }
 
 

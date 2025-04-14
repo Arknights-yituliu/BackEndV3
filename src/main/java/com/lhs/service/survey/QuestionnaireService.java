@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.enums.QuestionnaireType;
 import com.lhs.common.enums.RecordType;
+import com.lhs.common.enums.TimeGranularity;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.common.enums.ResultCode;
@@ -104,17 +105,23 @@ public class QuestionnaireService {
         questionnaireResultMapper.insert(questionnaireResult);
     }
 
+
     /**
      * 根据问卷编号统计数据
      *
+     * @param startTime         统计起始时间
      * @param questionnaireType 问卷编号
-     * @param recordType        记录类型
+     * @param timeGranularity   时间粒度
      */
-    public void statisticsQuestionnaireResult(QuestionnaireType questionnaireType, Integer recordType) {
+    public void statisticsQuestionnaireResult(Date startTime, QuestionnaireType questionnaireType, TimeGranularity timeGranularity) {
 
         LambdaQueryWrapper<QuestionnaireResult> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(QuestionnaireResult::getQuestionnaireCode, questionnaireType.getCode());
+        if (startTime != null) {
+            lambdaQueryWrapper.ge(QuestionnaireResult::getCreateTime, startTime);
+        }
         List<QuestionnaireResult> resultList = questionnaireResultMapper.selectList(lambdaQueryWrapper);
+
 
         int count = 0;
 
@@ -136,7 +143,18 @@ public class QuestionnaireService {
             }
         }
 
-        expireQuestionnaireStatisticsResult(questionnaireType);
+        //新的统计结果
+        QuestionnaireStatisticsResult questionnaireStatisticsResult = new QuestionnaireStatisticsResult();
+        questionnaireStatisticsResult.setId(idGenerator.nextId());
+        questionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
+        questionnaireStatisticsResult.setQuestionnaireType(questionnaireType.getType());
+        questionnaireStatisticsResult.setRecordType(RecordType.DISPLAY.code());
+        questionnaireStatisticsResult.setTimeGranularity(timeGranularity.code());
+        String version = questionnaireStatisticsResult.createVersion();
+        questionnaireStatisticsResult.setVersion(version);
+        questionnaireStatisticsResult.setCreateTime(new Date());
+
+        expireQuestionnaireStatisticsResult(version);
 
         int finalCount = count;
         long timeStamp = System.currentTimeMillis();
@@ -162,12 +180,7 @@ public class QuestionnaireService {
 
         operatorCarryStatisticsResultVO.setList(list);
 
-        QuestionnaireStatisticsResult questionnaireStatisticsResult = new QuestionnaireStatisticsResult();
-        questionnaireStatisticsResult.setId(idGenerator.nextId());
-        questionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
-        questionnaireStatisticsResult.setQuestionnaireType(questionnaireType.getType());
-        questionnaireStatisticsResult.setRecordType(recordType);
-        questionnaireStatisticsResult.setCreateTime(new Date());
+
         questionnaireStatisticsResult.setResult(JsonMapper.toJSONString(operatorCarryStatisticsResultVO));
 
 
@@ -175,13 +188,13 @@ public class QuestionnaireService {
     }
 
 
-    private void expireQuestionnaireStatisticsResult(QuestionnaireType questionnaireType) {
-        questionnaireStatisticsResultMapper.updateStatisticsResultRecordType(questionnaireType.getCode(), RecordType.EXPIRE.code(), RecordType.DISPLAY.code());
+    private void expireQuestionnaireStatisticsResult(String version) {
+        questionnaireStatisticsResultMapper.updateRecordType(RecordType.EXPIRE.code(), version);
     }
 
 
     public void archivedQuestionnaireStatisticsResult(QuestionnaireType questionnaireType) {
-        LogUtils.info(questionnaireType.getType()+"问卷统计开始归档");
+        LogUtils.info(questionnaireType.getType() + "问卷统计开始归档");
 
         // 获取今天的开始时间和结束时间
         Calendar calendar1 = Calendar.getInstance();
@@ -198,10 +211,20 @@ public class QuestionnaireService {
         calendar2.set(Calendar.MILLISECOND, 999);
         Date endOfDay = calendar2.getTime();
 
+        QuestionnaireStatisticsResult archivedQuestionnaireStatisticsResult = new QuestionnaireStatisticsResult();
+        archivedQuestionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
+        archivedQuestionnaireStatisticsResult.setRecordType(RecordType.ARCHIVED.code());
+        archivedQuestionnaireStatisticsResult.setTimeGranularity(TimeGranularity.FROM_INCEPTION_TO_PRESENT.code());
+        String archivedVersion = archivedQuestionnaireStatisticsResult.createVersion();
+
+        QuestionnaireStatisticsResult displayQuestionnaireStatisticsResult = new QuestionnaireStatisticsResult();
+        displayQuestionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
+        displayQuestionnaireStatisticsResult.setRecordType(RecordType.DISPLAY.code());
+        displayQuestionnaireStatisticsResult.setTimeGranularity(TimeGranularity.FROM_INCEPTION_TO_PRESENT.code());
+        String displayVersion = displayQuestionnaireStatisticsResult.createVersion();
 
         LambdaUpdateWrapper<QuestionnaireStatisticsResult> existQueryWrapper = new LambdaUpdateWrapper<>();
-        existQueryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.ARCHIVED.code())
-                .eq(QuestionnaireStatisticsResult::getQuestionnaireCode, questionnaireType.getCode())
+        existQueryWrapper.eq(QuestionnaireStatisticsResult::getVersion, archivedVersion)
                 .ge(QuestionnaireStatisticsResult::getCreateTime, startOfDay)
                 .le(QuestionnaireStatisticsResult::getCreateTime, endOfDay);
 
@@ -209,17 +232,18 @@ public class QuestionnaireService {
         boolean exists = questionnaireStatisticsResultMapper.exists(existQueryWrapper);
 
         if (exists) {
-            LogUtils.info(questionnaireType.getType()+"问卷统计结果今日已归档");
+            LogUtils.info(questionnaireType.getType() + "问卷统计结果今日已归档");
             return;
         }
 
 
-        QuestionnaireStatisticsResult questionnaireStatisticsResult = questionnaireStatisticsResultMapper.getLastData(questionnaireType.getCode());
+        QuestionnaireStatisticsResult questionnaireStatisticsResult = questionnaireStatisticsResultMapper.getLastData(displayVersion);
         questionnaireStatisticsResult.setId(idGenerator.nextId());
         questionnaireStatisticsResult.setRecordType(RecordType.ARCHIVED.code());
+        questionnaireStatisticsResult.setVersion(questionnaireStatisticsResult.getVersion());
 
         questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
-        LogUtils.info(questionnaireType.getType()+"问卷统计结果归档成功");
+        LogUtils.info(questionnaireType.getType() + "问卷统计结果归档成功");
     }
 
 
@@ -230,57 +254,29 @@ public class QuestionnaireService {
         LogUtils.info("本次清理了" + delete + "条过期干员携带率统计数据");
     }
 
+    public OperatorCarryStatisticsResultVO getOperatorCarryStatisticsResultByTypeAndTime(Integer questionnaireType, Integer timeGranularity) {
 
-    public List<OperatorCarryStatisticsResultVO> getOperatorCarryStatisticsResult() {
+        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code())
+                .eq(QuestionnaireStatisticsResult::getQuestionnaireCode, questionnaireType)
+                .eq(QuestionnaireStatisticsResult::getTimeGranularity, timeGranularity)
+                .orderByDesc(QuestionnaireStatisticsResult::getCreateTime);
+        List<QuestionnaireStatisticsResult> questionnaireStatisticsResultList = questionnaireStatisticsResultMapper.selectList(queryWrapper);
 
-        List<OperatorCarryStatisticsResultVO> voList = new ArrayList<>();
-
-        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByMainAndSideStory = new LambdaQueryWrapper<>();
-        queryWrapperByMainAndSideStory.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code());
-        queryWrapperByMainAndSideStory.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
-                QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME.getCode());
-
-        QuestionnaireStatisticsResult resultByMainAndSideStory = questionnaireStatisticsResultMapper
-                .selectOne(queryWrapperByMainAndSideStory);
-
-        if (resultByMainAndSideStory != null) {
-            OperatorCarryStatisticsResultVO operatorCarryResultByMainAndSideStory = JsonMapper.parseObject(resultByMainAndSideStory.getResult(), new TypeReference<>() {
-            });
-            voList.add(operatorCarryResultByMainAndSideStory);
+        if (questionnaireStatisticsResultList.isEmpty()) {
+            throw new ServiceException(ResultCode.DATA_NONE);
         }
+        String result = questionnaireStatisticsResultList.get(0).getResult();
+
+        OperatorCarryStatisticsResultVO operatorCarryStatisticsResultVO = JsonMapper.parseObject(result, new TypeReference<>() {
+        });
 
 
-        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByContingencyContract = new LambdaQueryWrapper<>();
-        queryWrapperByContingencyContract.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code());
-        queryWrapperByContingencyContract.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
-                QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME.getCode());
-
-        QuestionnaireStatisticsResult resultByContingencyContract = questionnaireStatisticsResultMapper
-                .selectOne(queryWrapperByContingencyContract);
-
-        if (resultByContingencyContract != null) {
-            OperatorCarryStatisticsResultVO operatorCarryResultByContingencyContract = JsonMapper.parseObject(resultByContingencyContract.getResult(), new TypeReference<>() {
-            });
-            voList.add(operatorCarryResultByContingencyContract);
-        }
-
-
-        LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapperByIntegratedStrategies = new LambdaQueryWrapper<>();
-        queryWrapperByIntegratedStrategies.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code());
-        queryWrapperByIntegratedStrategies.eq(QuestionnaireStatisticsResult::getQuestionnaireCode,
-                QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME.getCode());
-        QuestionnaireStatisticsResult resultByIntegratedStrategies = questionnaireStatisticsResultMapper
-                .selectOne(queryWrapperByIntegratedStrategies);
-
-        if (resultByIntegratedStrategies != null) {
-            OperatorCarryStatisticsResultVO operatorCarryResultByIntegratedStrategies = JsonMapper.parseObject(resultByIntegratedStrategies.getResult(), new TypeReference<>() {
-            });
-            voList.add(operatorCarryResultByIntegratedStrategies);
-        }
-
-
-        return voList;
+        operatorCarryStatisticsResultVO.setList(operatorCarryStatisticsResultVO.getList().subList(0,70));
+        return operatorCarryStatisticsResultVO;
     }
+
+
 
 
     private static String getResultStr(OperatorCarryQuestionnaireDTO operatorCarryQuestionnaireDTO) {
