@@ -18,19 +18,15 @@ public enum QuestionnaireType {
     private Integer code;
     private String type;
 
-    public Integer getCode() {
+    public Integer code() {
         return code;
     }
 
-    public void setCode(Integer code) {
-        this.code = code;
-    }
 
-    public String getType() {
+
+    public String type() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+
 }

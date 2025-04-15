@@ -1,10 +1,12 @@
 package com.lhs.task;
 
 import com.lhs.common.enums.QuestionnaireType;
-import com.lhs.common.enums.RecordType;
 import com.lhs.common.enums.TimeGranularity;
+import com.lhs.common.enums.UnitTime;
+import com.lhs.common.util.TimeUtil;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.rogue.RogueSeedService;
+import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.OperatorProgressionStatisticsService;
 import com.lhs.service.material.*;
 
@@ -12,7 +14,10 @@ import com.lhs.service.survey.QuestionnaireService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 
@@ -29,13 +34,15 @@ public class TaskService {
 
     private final QuestionnaireService questionnaireService;
 
+    private final OperatorCarryRateService operatorCarryRateService;
+
     public TaskService(StoreService storeService,
                        StageCalService stageCalService,
                        StageService stageService,
                        OperatorProgressionStatisticsService operatorProgressionStatisticsService,
                        RogueSeedService rogueSeedService,
                        RecruitTagUploadService recruitTagUploadService,
-                       QuestionnaireService questionnaireService) {
+                       QuestionnaireService questionnaireService, OperatorCarryRateService operatorCarryRateService) {
         this.storeService = storeService;
         this.stageCalService = stageCalService;
         this.stageService = stageService;
@@ -43,6 +50,7 @@ public class TaskService {
         this.rogueSeedService = rogueSeedService;
         this.recruitTagUploadService = recruitTagUploadService;
         this.questionnaireService = questionnaireService;
+        this.operatorCarryRateService = operatorCarryRateService;
     }
 
 
@@ -98,23 +106,44 @@ public class TaskService {
     }
 
 
+//    @Scheduled(cron = "0 0/1 * * * ?")
+//    public void statisticsQuestionnaireResult() {
+//        long currentTimeStamp = System.currentTimeMillis();
+//        questionnaireService.statisticsOperatorCarryRate(null, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
+//        questionnaireService.statisticsOperatorCarryRate(null, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
+//        questionnaireService.statisticsOperatorCarryRate(null, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
+//
+//        Date pastWeek = new Date(currentTimeStamp - 60 * 60 * 24 * 7 * 1000L);
+//        questionnaireService.statisticsOperatorCarryRate(pastWeek, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
+//        questionnaireService.statisticsOperatorCarryRate(pastWeek, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
+//        questionnaireService.statisticsOperatorCarryRate(pastWeek, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
+//
+//        Date pastTwoWeek = new Date(currentTimeStamp - 60 * 60 * 24 * 14 * 1000L);
+//        questionnaireService.statisticsOperatorCarryRate(pastTwoWeek, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
+//        questionnaireService.statisticsOperatorCarryRate(pastTwoWeek, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
+//        questionnaireService.statisticsOperatorCarryRate(pastTwoWeek, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
+//    }
+
     @Scheduled(cron = "0 0/1 * * * ?")
-    public void statisticsQuestionnaireResult() {
-        long currentTimeStamp = System.currentTimeMillis();
-        questionnaireService.statisticsQuestionnaireResult(null, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
-        questionnaireService.statisticsQuestionnaireResult(null, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
-        questionnaireService.statisticsQuestionnaireResult(null, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
+    public void statisticsOperatorCarryRateTask() {
+        QuestionnaireType[] questionnaireTypeArr = new QuestionnaireType[]{
+                QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME,
+                QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME,
+                QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME
+        };
 
-        Date pastWeek = new Date(currentTimeStamp - 60 * 60 * 24 * 7 * 1000L);
-        questionnaireService.statisticsQuestionnaireResult(pastWeek, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
-        questionnaireService.statisticsQuestionnaireResult(pastWeek, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
-        questionnaireService.statisticsQuestionnaireResult(pastWeek, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
+        long time = TimeUtil.getCurrentDayTime().getTime();
 
-        Date pastTwoWeek = new Date(currentTimeStamp - 60 * 60 * 24 * 14 * 1000L);
-        questionnaireService.statisticsQuestionnaireResult(pastTwoWeek, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
-        questionnaireService.statisticsQuestionnaireResult(pastTwoWeek, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
-        questionnaireService.statisticsQuestionnaireResult(pastTwoWeek, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
+        Date startTime = new Date(time - UnitTime.ONE_DAY.milliseconds());
+        Date endTime = new Date(time);
+
+        for (QuestionnaireType questionnaireType : questionnaireTypeArr) {
+            operatorCarryRateService.statisticsOperatorCarryRate(startTime, endTime, questionnaireType);
+        }
+
+
     }
+
 
     @Scheduled(cron = "0 23 * * * ?")
     public void archivedOperatorCarryRateResult() {
@@ -127,5 +156,8 @@ public class TaskService {
     public void deleteExpireData() {
         questionnaireService.deleteExpireData();
     }
+
+
+
 
 }

@@ -2,21 +2,26 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorCarryQuestionnaireDTO;
-import com.lhs.entity.vo.survey.OperatorCarryStatisticsResultVO;
+import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
+import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.QuestionnaireService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Date;
 
 @RestController
 @Tag(name ="干员调查问卷")
 public class QuestionnaireController {
     private final QuestionnaireService questionnaireService;
-    public QuestionnaireController(QuestionnaireService questionnaireService) {
+
+    private final OperatorCarryRateService operatorCarryRateService;
+    public QuestionnaireController(QuestionnaireService questionnaireService,
+                                   OperatorCarryRateService operatorCarryRateService) {
         this.questionnaireService = questionnaireService;
+        this.operatorCarryRateService = operatorCarryRateService;
     }
 
     @Operation(summary ="上传干员调查问卷信息")
@@ -29,8 +34,12 @@ public class QuestionnaireController {
 
     @Operation(summary ="获取干员调查问卷信息结果")
     @GetMapping("/questionnaire/operator-carry/v2")
-    public Result<OperatorCarryStatisticsResultVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,@RequestParam("timeGranularity") Integer timeGranularity) {
-        return Result.success(questionnaireService.getOperatorCarryStatisticsResultByTypeAndTime(questionnaireType,timeGranularity));
+    public Result<OperatorCarryRateStatisticsVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,
+                                                                                  @RequestParam("startTime") Long start,
+                                                                                  @RequestParam("endTime") Long end) {
+        System.out.println("请求");
+        System.out.println(start+"-"+end);
+        return Result.success(operatorCarryRateService.getOperatorCarryRate(questionnaireType,new Date(start),new Date(end)));
     }
 
 

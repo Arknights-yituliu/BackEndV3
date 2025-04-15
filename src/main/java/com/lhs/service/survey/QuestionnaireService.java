@@ -13,7 +13,8 @@ import com.lhs.entity.dto.survey.OperatorCarryQuestionnaireDTO;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.entity.po.survey.QuestionnaireStatisticsResult;
 import com.lhs.entity.vo.survey.OperatorCarryVO;
-import com.lhs.entity.vo.survey.OperatorCarryStatisticsResultVO;
+import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
+import com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
 import com.lhs.mapper.survey.QuestionnaireStatisticsResultMapper;
 import com.lhs.service.user.UserService;
@@ -35,17 +36,21 @@ public class QuestionnaireService {
     private final RateLimiter rateLimiter;
     private final UserService userService;
 
+    private final OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper;
+
     private final QuestionnaireStatisticsResultMapper questionnaireStatisticsResultMapper;
 
     public QuestionnaireService(RedisTemplate<String, String> redisTemplate,
                                 QuestionnaireResultMapper questionnaireResultMapper,
                                 RateLimiter rateLimiter,
                                 UserService userService,
+                                OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper,
                                 QuestionnaireStatisticsResultMapper questionnaireStatisticsResultMapper) {
         this.redisTemplate = redisTemplate;
         this.questionnaireResultMapper = questionnaireResultMapper;
         this.rateLimiter = rateLimiter;
         this.userService = userService;
+        this.operatorCarryRateStatisticsMapper = operatorCarryRateStatisticsMapper;
 
         this.questionnaireStatisticsResultMapper = questionnaireStatisticsResultMapper;
         this.idGenerator = new IdGenerator(1L);
@@ -106,6 +111,9 @@ public class QuestionnaireService {
     }
 
 
+
+
+
     /**
      * 根据问卷编号统计数据
      *
@@ -113,13 +121,15 @@ public class QuestionnaireService {
      * @param questionnaireType 问卷编号
      * @param timeGranularity   时间粒度
      */
-    public void statisticsQuestionnaireResult(Date startTime, QuestionnaireType questionnaireType, TimeGranularity timeGranularity) {
+    public void statisticsOperatorCarryRate(Date startTime, QuestionnaireType questionnaireType, TimeGranularity timeGranularity) {
 
         LambdaQueryWrapper<QuestionnaireResult> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(QuestionnaireResult::getQuestionnaireCode, questionnaireType.getCode());
+        lambdaQueryWrapper.eq(QuestionnaireResult::getQuestionnaireCode, questionnaireType.code());
+
         if (startTime != null) {
             lambdaQueryWrapper.ge(QuestionnaireResult::getCreateTime, startTime);
         }
+
         List<QuestionnaireResult> resultList = questionnaireResultMapper.selectList(lambdaQueryWrapper);
 
 
@@ -128,11 +138,11 @@ public class QuestionnaireService {
         count += resultList.size();
 
         if (count < 10) {
-            LogUtils.info(questionnaireType.getType() + "问卷样本数量过少：" + count);
+            LogUtils.info(questionnaireType.type() + "问卷样本数量过少：" + count);
             return;
         }
 
-        LogUtils.info(questionnaireType.getType() + "问卷统计的样本数量：" + count);
+        LogUtils.info(questionnaireType.type() + "问卷统计的样本数量：" + count);
 
         HashMap<String, Integer> statisticsResult = new HashMap<>();
         for (QuestionnaireResult questionnaireResult : resultList) {
@@ -146,8 +156,8 @@ public class QuestionnaireService {
         //新的统计结果
         QuestionnaireStatisticsResult questionnaireStatisticsResult = new QuestionnaireStatisticsResult();
         questionnaireStatisticsResult.setId(idGenerator.nextId());
-        questionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
-        questionnaireStatisticsResult.setQuestionnaireType(questionnaireType.getType());
+        questionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.code());
+        questionnaireStatisticsResult.setQuestionnaireType(questionnaireType.type());
         questionnaireStatisticsResult.setRecordType(RecordType.DISPLAY.code());
         questionnaireStatisticsResult.setTimeGranularity(timeGranularity.code());
         String version = questionnaireStatisticsResult.createVersion();
@@ -159,13 +169,9 @@ public class QuestionnaireService {
         int finalCount = count;
         long timeStamp = System.currentTimeMillis();
 
-        OperatorCarryStatisticsResultVO operatorCarryStatisticsResultVO = new OperatorCarryStatisticsResultVO();
-        operatorCarryStatisticsResultVO.setUpdateTime(timeStamp);
-        operatorCarryStatisticsResultVO.setSampleSize(finalCount);
-        operatorCarryStatisticsResultVO.setQuestionnaireType(questionnaireType.getType());
-        operatorCarryStatisticsResultVO.setQuestionnaireCode(questionnaireType.getCode());
-        operatorCarryStatisticsResultVO.setList(new ArrayList<>());
+        OperatorCarryRateStatisticsVO operatorCarryRateStatisticsVO = new OperatorCarryRateStatisticsVO();
 
+        operatorCarryRateStatisticsVO.setSampleSize(finalCount);
 
         List<OperatorCarryVO> list = new ArrayList<>();
         statisticsResult.forEach((charId, v) -> {
@@ -173,15 +179,14 @@ public class QuestionnaireService {
             operatorCarryVO.setCharId(charId);
             operatorCarryVO.setCarryCount(v);
             list.add(operatorCarryVO);
-
         });
 
         list.sort(Comparator.comparing(OperatorCarryVO::getCarryCount).reversed());
 
-        operatorCarryStatisticsResultVO.setList(list);
+        operatorCarryRateStatisticsVO.setList(list);
 
 
-        questionnaireStatisticsResult.setResult(JsonMapper.toJSONString(operatorCarryStatisticsResultVO));
+        questionnaireStatisticsResult.setResult(JsonMapper.toJSONString(operatorCarryRateStatisticsVO));
 
 
         questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
@@ -194,7 +199,7 @@ public class QuestionnaireService {
 
 
     public void archivedQuestionnaireStatisticsResult(QuestionnaireType questionnaireType) {
-        LogUtils.info(questionnaireType.getType() + "问卷统计开始归档");
+        LogUtils.info(questionnaireType.type() + "问卷统计开始归档");
 
         // 获取今天的开始时间和结束时间
         Calendar calendar1 = Calendar.getInstance();
@@ -212,13 +217,13 @@ public class QuestionnaireService {
         Date endOfDay = calendar2.getTime();
 
         QuestionnaireStatisticsResult archivedQuestionnaireStatisticsResult = new QuestionnaireStatisticsResult();
-        archivedQuestionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
+        archivedQuestionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.code());
         archivedQuestionnaireStatisticsResult.setRecordType(RecordType.ARCHIVED.code());
         archivedQuestionnaireStatisticsResult.setTimeGranularity(TimeGranularity.FROM_INCEPTION_TO_PRESENT.code());
         String archivedVersion = archivedQuestionnaireStatisticsResult.createVersion();
 
         QuestionnaireStatisticsResult displayQuestionnaireStatisticsResult = new QuestionnaireStatisticsResult();
-        displayQuestionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.getCode());
+        displayQuestionnaireStatisticsResult.setQuestionnaireCode(questionnaireType.code());
         displayQuestionnaireStatisticsResult.setRecordType(RecordType.DISPLAY.code());
         displayQuestionnaireStatisticsResult.setTimeGranularity(TimeGranularity.FROM_INCEPTION_TO_PRESENT.code());
         String displayVersion = displayQuestionnaireStatisticsResult.createVersion();
@@ -232,7 +237,7 @@ public class QuestionnaireService {
         boolean exists = questionnaireStatisticsResultMapper.exists(existQueryWrapper);
 
         if (exists) {
-            LogUtils.info(questionnaireType.getType() + "问卷统计结果今日已归档");
+            LogUtils.info(questionnaireType.type() + "问卷统计结果今日已归档");
             return;
         }
 
@@ -243,7 +248,7 @@ public class QuestionnaireService {
         questionnaireStatisticsResult.setVersion(questionnaireStatisticsResult.getVersion());
 
         questionnaireStatisticsResultMapper.insert(questionnaireStatisticsResult);
-        LogUtils.info(questionnaireType.getType() + "问卷统计结果归档成功");
+        LogUtils.info(questionnaireType.type() + "问卷统计结果归档成功");
     }
 
 
@@ -254,7 +259,9 @@ public class QuestionnaireService {
         LogUtils.info("本次清理了" + delete + "条过期干员携带率统计数据");
     }
 
-    public OperatorCarryStatisticsResultVO getOperatorCarryStatisticsResultByTypeAndTime(Integer questionnaireType, Integer timeGranularity) {
+
+
+    public OperatorCarryRateStatisticsVO getOperatorCarryStatisticsResultByTypeAndTime(Integer questionnaireType, Integer timeGranularity) {
 
         LambdaQueryWrapper<QuestionnaireStatisticsResult> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(QuestionnaireStatisticsResult::getRecordType, RecordType.DISPLAY.code())
@@ -268,14 +275,13 @@ public class QuestionnaireService {
         }
         String result = questionnaireStatisticsResultList.get(0).getResult();
 
-        OperatorCarryStatisticsResultVO operatorCarryStatisticsResultVO = JsonMapper.parseObject(result, new TypeReference<>() {
+        OperatorCarryRateStatisticsVO operatorCarryRateStatisticsVO = JsonMapper.parseObject(result, new TypeReference<>() {
         });
 
 
-        operatorCarryStatisticsResultVO.setList(operatorCarryStatisticsResultVO.getList().subList(0,70));
-        return operatorCarryStatisticsResultVO;
+        operatorCarryRateStatisticsVO.setList(operatorCarryRateStatisticsVO.getList().subList(0, 70));
+        return operatorCarryRateStatisticsVO;
     }
-
 
 
 
@@ -298,6 +304,7 @@ public class QuestionnaireService {
         }
         return sb.toString();
     }
+
 
 
 }

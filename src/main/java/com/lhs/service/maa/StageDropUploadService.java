@@ -140,15 +140,6 @@ public class StageDropUploadService {
 
 
 
-    /**
-     * 获取当前小时的整点，例如当前时间为16时多一点，获取16:00:00
-     */
-    private static Date getCurrentHourTime() {
-        LocalDateTime now = LocalDateTime.now();
-        int hour = now.getHour();
-        LocalDateTime startOfHour = now.withMinute(0).withSecond(0).withNano(0);
-        return Date.from(startOfHour.atZone(ZoneId.systemDefault()).toInstant());
-    }
 
 
 }
