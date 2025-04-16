@@ -4,7 +4,7 @@ package com.lhs.entity.vo.survey;
 import java.util.List;
 
 public class OperatorCarryRateStatisticsVO {
-    private List<OperatorCarryVO> list;
+    private List<OperatorCarryRateVO> list;
 
     private Integer sampleSize;
 
@@ -12,11 +12,11 @@ public class OperatorCarryRateStatisticsVO {
 
 
 
-    public List<OperatorCarryVO> getList() {
+    public List<OperatorCarryRateVO> getList() {
         return list;
     }
 
-    public void setList(List<OperatorCarryVO> list) {
+    public void setList(List<OperatorCarryRateVO> list) {
         this.list = list;
     }
 

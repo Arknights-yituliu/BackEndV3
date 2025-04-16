@@ -37,8 +37,15 @@ public class QuestionnaireController {
     public Result<OperatorCarryRateStatisticsVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,
                                                                                   @RequestParam("startTime") Long start,
                                                                                   @RequestParam("endTime") Long end) {
-
         return Result.success(operatorCarryRateService.getOperatorCarryRate(questionnaireType,new Date(start),new Date(end)));
+    }
+
+
+    @Operation(summary ="获取干员携带率的折线图")
+    @GetMapping("/questionnaire/operator-carry/line-chart")
+    public Result<OperatorCarryRateStatisticsVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,
+                                                                                  @RequestParam("charId") String charId) {
+        return Result.success(operatorCarryRateService.getOperatorCarryRateLineChart(questionnaireType,charId));
     }
 
     @Operation(summary ="迁移数据")

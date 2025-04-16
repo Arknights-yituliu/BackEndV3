@@ -1,21 +1,24 @@
 package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.enums.QuestionnaireType;
+import com.lhs.common.enums.RecordType;
 import com.lhs.common.enums.TimeGranularity;
 import com.lhs.common.enums.UnitTime;
 import com.lhs.common.util.*;
+import com.lhs.entity.po.survey.OperatorCarryRate;
 import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.entity.tmp.QuestionnaireResultDTO;
 import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
-import com.lhs.entity.vo.survey.OperatorCarryVO;
+import com.lhs.entity.vo.survey.OperatorCarryRateVO;
+import com.lhs.mapper.survey.OperatorCarryRateMapper;
 import com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
-import com.lhs.mapper.survey.QuestionnaireStatisticsResultMapper;
-import com.lhs.service.user.UserService;
-import org.springframework.data.redis.core.RedisTemplate;
+
+import org.jacoco.agent.rt.RT;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -23,30 +26,22 @@ import java.util.*;
 @Service
 public class OperatorCarryRateService {
 
-    private final RedisTemplate<String, String> redisTemplate;
+
     private final QuestionnaireResultMapper questionnaireResultMapper;
 
     private final IdGenerator idGenerator;
-    private final RateLimiter rateLimiter;
-    private final UserService userService;
+
+    private final OperatorCarryRateMapper operatorCarryRateMapper;
 
     private final OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper;
 
-    private final QuestionnaireStatisticsResultMapper questionnaireStatisticsResultMapper;
 
-    public OperatorCarryRateService(RedisTemplate<String, String> redisTemplate,
-                                    QuestionnaireResultMapper questionnaireResultMapper,
-                                    RateLimiter rateLimiter,
-                                    UserService userService,
-                                    OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper,
-                                    QuestionnaireStatisticsResultMapper questionnaireStatisticsResultMapper) {
-        this.redisTemplate = redisTemplate;
+    public OperatorCarryRateService(QuestionnaireResultMapper questionnaireResultMapper,
+                                    OperatorCarryRateMapper operatorCarryRateMapper,
+                                    OperatorCarryRateStatisticsMapper operatorCarryRateStatisticsMapper) {
         this.questionnaireResultMapper = questionnaireResultMapper;
-        this.rateLimiter = rateLimiter;
-        this.userService = userService;
+        this.operatorCarryRateMapper = operatorCarryRateMapper;
         this.operatorCarryRateStatisticsMapper = operatorCarryRateStatisticsMapper;
-
-        this.questionnaireStatisticsResultMapper = questionnaireStatisticsResultMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -65,8 +60,8 @@ public class OperatorCarryRateService {
         for (QuestionnaireType questionnaireType : questionnaireTypeArr) {
             statisticsOperatorCarryRate(startTime, endTime, questionnaireType);
         }
-
     }
+
 
     public void statisticsYesterdayOperatorCarryRate() {
         QuestionnaireType[] questionnaireTypeArr = new QuestionnaireType[]{
@@ -87,6 +82,9 @@ public class OperatorCarryRateService {
 
 
     public void statisticsOperatorCarryRate(Date startTime, Date endTime, QuestionnaireType questionnaireType) {
+
+        Date date = new Date();
+
         LogUtils.info("开始统计" + questionnaireType.type() + "问卷");
         LambdaQueryWrapper<OperatorCarryRateStatistics> statisticsQueryWrapper = new LambdaQueryWrapper<>();
         statisticsQueryWrapper.eq(OperatorCarryRateStatistics::getQuestionnaireCode, questionnaireType.code())
@@ -109,17 +107,66 @@ public class OperatorCarryRateService {
         }
 
         int count = resultList.size();
+        Date dataStartTime = resultList.get(0).getUpdateTime();
+        Date dataEndTime = resultList.get(resultList.size() - 1).getUpdateTime();
 
         LogUtils.info(questionnaireType.type() + "问卷样本量：" + count);
-        HashMap<String, Integer> statisticsResult = new HashMap<>();
+        HashMap<String, OperatorCarryRateVO> statisticsResult = new HashMap<>();
         for (QuestionnaireResult questionnaireResult : resultList) {
             String questionnaireContent = questionnaireResult.getContent();
             String[] split = questionnaireContent.split(",");
             for (String charId : split) {
-                statisticsResult.put(charId, statisticsResult.getOrDefault(charId, 0) + 1);
+                if (statisticsResult.get(charId) != null) {
+                    statisticsResult.get(charId).incrementCarryCount(1);
+                } else {
+                    OperatorCarryRateVO operatorCarryRateVO = new OperatorCarryRateVO();
+                    operatorCarryRateVO.setSampleSize(count);
+                    operatorCarryRateVO.setCarryCount(1);
+                    operatorCarryRateVO.setCharId(charId);
+                    statisticsResult.put(charId, operatorCarryRateVO);
+                }
             }
         }
 
+
+        LambdaUpdateWrapper<OperatorCarryRate> updateWrapper = new LambdaUpdateWrapper<>();
+
+        updateWrapper.set(OperatorCarryRate::getRecordType,RecordType.EXPIRE.code())
+                .eq(OperatorCarryRate::getQuestionnaireCode, questionnaireType.code())
+                .ge(OperatorCarryRate::getStartTime, startTime)
+                .lt(OperatorCarryRate::getEndTime, endTime);
+
+        int update = operatorCarryRateMapper.update(null,updateWrapper);
+        LogUtils.info("过期了"+update+"条携带率数据");
+
+
+        List<OperatorCarryRate> operatorCarryRateList = new ArrayList<>();
+        statisticsResult.forEach((charId, vo) -> {
+            OperatorCarryRate operatorCarryRate = new OperatorCarryRate();
+            operatorCarryRate.setId(idGenerator.nextId());
+            operatorCarryRate.setCharId(charId);
+            operatorCarryRate.setCarryCount(vo.getCarryCount());
+            operatorCarryRate.setSampleSize(vo.getSampleSize());
+            operatorCarryRate.setCreateTime(date);
+            operatorCarryRate.setStartTime(dataStartTime);
+            operatorCarryRate.setEndTime(dataEndTime);
+            operatorCarryRate.setRecordType(RecordType.DISPLAY.code());
+            operatorCarryRate.setQuestionnaireCode(questionnaireType.code());
+            operatorCarryRateList.add(operatorCarryRate);
+        });
+        operatorCarryRateMapper.insertBatch(operatorCarryRateList);
+
+
+        List<OperatorCarryRateVO> list = statisticsResult.values().stream()
+                .sorted(Comparator.comparing(OperatorCarryRateVO::getCarryCount).reversed())
+                .toList();
+
+
+        OperatorCarryRateStatisticsVO operatorCarryRateStatisticsVO = new OperatorCarryRateStatisticsVO();
+        operatorCarryRateStatisticsVO.setSampleSize(count);
+        operatorCarryRateStatisticsVO.setList(new ArrayList<>());
+
+        operatorCarryRateStatisticsVO.setList(list);
 
         //新的统计结果
         OperatorCarryRateStatistics operatorCarryRateStatistics = new OperatorCarryRateStatistics();
@@ -127,29 +174,9 @@ public class OperatorCarryRateService {
         operatorCarryRateStatistics.setQuestionnaireCode(questionnaireType.code());
         operatorCarryRateStatistics.setQuestionnaireType(questionnaireType.type());
         operatorCarryRateStatistics.setTimeGranularity(TimeGranularity.DAY.code());
-        operatorCarryRateStatistics.setStartTime(resultList.get(0).getUpdateTime());
-        operatorCarryRateStatistics.setEndTime(resultList.get(resultList.size() - 1).getUpdateTime());
-        operatorCarryRateStatistics.setCreateTime(new Date());
-
-
-        long timeStamp = System.currentTimeMillis();
-
-        OperatorCarryRateStatisticsVO operatorCarryRateStatisticsVO = new OperatorCarryRateStatisticsVO();
-        operatorCarryRateStatisticsVO.setSampleSize(count);
-        operatorCarryRateStatisticsVO.setList(new ArrayList<>());
-
-        List<OperatorCarryVO> list = new ArrayList<>();
-        statisticsResult.forEach((charId, v) -> {
-            OperatorCarryVO operatorCarryVO = new OperatorCarryVO();
-            operatorCarryVO.setCharId(charId);
-            operatorCarryVO.setCarryCount(v);
-            list.add(operatorCarryVO);
-        });
-
-        list.sort(Comparator.comparing(OperatorCarryVO::getCarryCount).reversed());
-
-        operatorCarryRateStatisticsVO.setList(list);
-
+        operatorCarryRateStatistics.setStartTime(dataStartTime);
+        operatorCarryRateStatistics.setEndTime(dataEndTime);
+        operatorCarryRateStatistics.setCreateTime(date);
         operatorCarryRateStatistics.setResult(JsonMapper.toJSONString(operatorCarryRateStatisticsVO));
 
 
@@ -161,7 +188,14 @@ public class OperatorCarryRateService {
             LogUtils.info("新增了一条携带优先级统计数据");
             operatorCarryRateStatisticsMapper.insert(operatorCarryRateStatistics);
         }
+    }
 
+
+    public void deleteExpireData(){
+        LambdaQueryWrapper<OperatorCarryRate> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OperatorCarryRate::getRecordType,RecordType.EXPIRE.code());
+        int delete = operatorCarryRateMapper.delete(queryWrapper);
+        LogUtils.info("删除了"+delete+"条携带率数据");
     }
 
 
@@ -181,24 +215,24 @@ public class OperatorCarryRateService {
             OperatorCarryRateStatisticsVO vo = JsonMapper.parseObject(result, new TypeReference<>() {
             });
             sampleSize += vo.getSampleSize();
-            List<OperatorCarryVO> list = vo.getList();
-            for (OperatorCarryVO operatorCarryVO : list) {
-                statisticsResult.put(operatorCarryVO.getCharId(), statisticsResult.getOrDefault(operatorCarryVO.getCharId(), 0) + operatorCarryVO.getCarryCount());
+            List<OperatorCarryRateVO> list = vo.getList();
+            for (OperatorCarryRateVO operatorCarryRateVO : list) {
+                statisticsResult.put(operatorCarryRateVO.getCharId(), statisticsResult.getOrDefault(operatorCarryRateVO.getCharId(), 0) + operatorCarryRateVO.getCarryCount());
             }
         }
 
-        List<OperatorCarryVO> voList = new ArrayList<>();
+        List<OperatorCarryRateVO> voList = new ArrayList<>();
 
         statisticsResult.forEach((charId, v) -> {
-            OperatorCarryVO operatorCarryVO = new OperatorCarryVO();
-            operatorCarryVO.setCharId(charId);
-            operatorCarryVO.setCarryCount(v);
-            voList.add(operatorCarryVO);
+            OperatorCarryRateVO operatorCarryRateVO = new OperatorCarryRateVO();
+            operatorCarryRateVO.setCharId(charId);
+            operatorCarryRateVO.setCarryCount(v);
+            voList.add(operatorCarryRateVO);
         });
 
         int minCarryCount = (int) (sampleSize * 0.03);
 
-        List<OperatorCarryVO> list = voList.stream().filter(e -> e.getCarryCount() > minCarryCount).sorted(Comparator.comparing(OperatorCarryVO::getCarryCount).reversed()).toList();
+        List<OperatorCarryRateVO> list = voList.stream().filter(e -> e.getCarryCount() > minCarryCount).sorted(Comparator.comparing(OperatorCarryRateVO::getCarryCount).reversed()).toList();
         OperatorCarryRateStatisticsVO operatorCarryRateStatisticsVO = new OperatorCarryRateStatisticsVO();
         operatorCarryRateStatisticsVO.setSampleSize(sampleSize);
         operatorCarryRateStatisticsVO.setList(list);
@@ -206,7 +240,6 @@ public class OperatorCarryRateService {
         return operatorCarryRateStatisticsVO;
 
     }
-
 
 
     public void moveDate() {
@@ -226,4 +259,8 @@ public class OperatorCarryRateService {
     }
 
 
+    public OperatorCarryRateStatisticsVO getOperatorCarryRateLineChart(Integer questionnaireType, String charId) {
+
+        return null;
+    }
 }

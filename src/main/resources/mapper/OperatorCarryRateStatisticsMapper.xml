@@ -4,9 +4,6 @@
 <mapper namespace="com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper">
 
 
-   <select id="getOldData" resultType="com.lhs.entity.tmp.QuestionnaireResultDTO">
-         select * from questionnaire_result_1
-   </select>
 
 
 </mapper>

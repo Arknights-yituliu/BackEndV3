@@ -105,8 +105,6 @@ public class TaskService {
         operatorProgressionStatisticsService.deleteExpireData();
     }
 
-
-
     @Scheduled(cron = "0 0/1 * * * ?")
     public void statisticsTodayOperatorCarryRateTask() {
         operatorCarryRateService.statisticsTodayOperatorCarryRate();
@@ -115,6 +113,7 @@ public class TaskService {
     @Scheduled(cron = "0 0 0/6 * * ?")
     public void statisticsYesterdayOperatorCarryRateTask() {
         operatorCarryRateService.statisticsYesterdayOperatorCarryRate();
+        operatorCarryRateService.deleteExpireData();
     }
 
 }

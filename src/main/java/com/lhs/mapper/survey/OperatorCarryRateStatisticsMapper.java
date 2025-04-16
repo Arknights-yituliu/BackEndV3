@@ -1,6 +1,7 @@
 package com.lhs.mapper.survey;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lhs.entity.po.survey.OperatorCarryRate;
 import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 
 import com.lhs.entity.tmp.QuestionnaireResultDTO;
@@ -12,7 +13,7 @@ public interface OperatorCarryRateStatisticsMapper extends BaseMapper<OperatorCa
 
     List<QuestionnaireResultDTO> getOldData();
 
-    Integer insertBatch(@Param("list") List<OperatorCarryRateStatistics> list);
+    Integer insertBatchOperatorCarryRate(@Param("list")List<OperatorCarryRate> operatorCarryRateList);
 
 
 }
