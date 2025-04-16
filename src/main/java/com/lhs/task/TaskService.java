@@ -106,58 +106,15 @@ public class TaskService {
     }
 
 
-//    @Scheduled(cron = "0 0/1 * * * ?")
-//    public void statisticsQuestionnaireResult() {
-//        long currentTimeStamp = System.currentTimeMillis();
-//        questionnaireService.statisticsOperatorCarryRate(null, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
-//        questionnaireService.statisticsOperatorCarryRate(null, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
-//        questionnaireService.statisticsOperatorCarryRate(null, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.FROM_INCEPTION_TO_PRESENT);
-//
-//        Date pastWeek = new Date(currentTimeStamp - 60 * 60 * 24 * 7 * 1000L);
-//        questionnaireService.statisticsOperatorCarryRate(pastWeek, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
-//        questionnaireService.statisticsOperatorCarryRate(pastWeek, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
-//        questionnaireService.statisticsOperatorCarryRate(pastWeek, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.THE_PAST_WEEK);
-//
-//        Date pastTwoWeek = new Date(currentTimeStamp - 60 * 60 * 24 * 14 * 1000L);
-//        questionnaireService.statisticsOperatorCarryRate(pastTwoWeek, QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
-//        questionnaireService.statisticsOperatorCarryRate(pastTwoWeek, QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
-//        questionnaireService.statisticsOperatorCarryRate(pastTwoWeek, QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME, TimeGranularity.THE_PAST_TWO_WEEK);
-//    }
 
     @Scheduled(cron = "0 0/1 * * * ?")
-    public void statisticsOperatorCarryRateTask() {
-        QuestionnaireType[] questionnaireTypeArr = new QuestionnaireType[]{
-                QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME,
-                QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME,
-                QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME
-        };
-
-        long time = TimeUtil.getCurrentDayTime().getTime();
-
-        Date startTime = new Date(time - UnitTime.ONE_DAY.milliseconds());
-        Date endTime = new Date(time);
-
-        for (QuestionnaireType questionnaireType : questionnaireTypeArr) {
-            operatorCarryRateService.statisticsOperatorCarryRate(startTime, endTime, questionnaireType);
-        }
-
-
+    public void statisticsTodayOperatorCarryRateTask() {
+        operatorCarryRateService.statisticsTodayOperatorCarryRate();
     }
 
-
-    @Scheduled(cron = "0 23 * * * ?")
-    public void archivedOperatorCarryRateResult() {
-        questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME);
-        questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.CONTINGENCY_CONTRACT_Mode_FOR_NEW_GAME);
-        questionnaireService.archivedQuestionnaireStatisticsResult(QuestionnaireType.INTEGRATED_STRATEGIES_FOR_NEW_GAME);
+    @Scheduled(cron = "0 0 0/6 * * ?")
+    public void statisticsYesterdayOperatorCarryRateTask() {
+        operatorCarryRateService.statisticsYesterdayOperatorCarryRate();
     }
-
-    @Scheduled(cron = "0 0 * * * ?")
-    public void deleteExpireData() {
-        questionnaireService.deleteExpireData();
-    }
-
-
-
 
 }

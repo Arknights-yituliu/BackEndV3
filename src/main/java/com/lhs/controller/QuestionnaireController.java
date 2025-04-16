@@ -37,9 +37,15 @@ public class QuestionnaireController {
     public Result<OperatorCarryRateStatisticsVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,
                                                                                   @RequestParam("startTime") Long start,
                                                                                   @RequestParam("endTime") Long end) {
-        System.out.println("请求");
-        System.out.println(start+"-"+end);
+
         return Result.success(operatorCarryRateService.getOperatorCarryRate(questionnaireType,new Date(start),new Date(end)));
+    }
+
+    @Operation(summary ="迁移数据")
+    @GetMapping("/questionnaire/move")
+    public Result<Object> getOperatorCarryStatisticsResult() {
+        operatorCarryRateService.moveDate();
+        return Result.success();
     }
 
 
