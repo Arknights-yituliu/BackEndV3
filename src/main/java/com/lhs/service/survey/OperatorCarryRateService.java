@@ -152,15 +152,18 @@ public class OperatorCarryRateService {
             }
         }
 
-        List<OperatorCarryVO> list = new ArrayList<>();
+        List<OperatorCarryVO> voList = new ArrayList<>();
 
         statisticsResult.forEach((charId, v) -> {
             OperatorCarryVO operatorCarryVO = new OperatorCarryVO();
             operatorCarryVO.setCharId(charId);
             operatorCarryVO.setCarryCount(v);
-            list.add(operatorCarryVO);
+            voList.add(operatorCarryVO);
         });
 
+        int minCarryCount = (int) (sampleSize*0.03);
+
+        List<OperatorCarryVO> list = voList.stream().filter(e -> e.getCarryCount() > minCarryCount).sorted(Comparator.comparing(OperatorCarryVO::getCarryCount).reversed()).toList();
         OperatorCarryRateStatisticsVO operatorCarryRateStatisticsVO = new OperatorCarryRateStatisticsVO();
         operatorCarryRateStatisticsVO.setSampleSize(sampleSize);
         operatorCarryRateStatisticsVO.setList(list);
