@@ -94,6 +94,7 @@ public class OperatorCarryRate {
     @Override
     public String toString() {
         return "OperatorCarryRate{" +
+                ", questionnaireCode='" + questionnaireCode + '\'' +
                 ", charId='" + charId + '\'' +
                 ", carryCount=" + carryCount +
                 ", sampleSize=" + sampleSize +

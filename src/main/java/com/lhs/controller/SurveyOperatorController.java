@@ -40,12 +40,6 @@ public class SurveyOperatorController {
         this.warehouseInfoService = warehouseInfoService;
     }
 
-    @Operation(summary ="上传干员练度调查表")
-    @PostMapping("/auth/survey/operator/upload")
-    public Result<Object> uploadCharacterForm(HttpServletRequest httpServletRequest,@RequestBody List<OperatorProgressionDataDTO> operatorDataList) {
-        Map<String, Object> hashMap = operatorDataService.manualUploadOperator(httpServletRequest, operatorDataList);
-        return Result.success(hashMap);
-    }
 
     @Operation(summary ="手动统计")
     @GetMapping("/survey/statistic")
@@ -89,16 +83,10 @@ public class SurveyOperatorController {
     @GetMapping("/survey/operator/info")
     public Result<Object> getOperatorTable(@RequestParam("token")String token) {
         List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService.getUserOperatorInfo(token);
-//        operatorProgressionDataDTOList.sort(Comparator.comparing(OperatorProgressionDataDTO::getRarity).reversed());
         return Result.success(operatorProgressionDataDTOList);
     }
 
-    @Operation(summary ="干员练度调查表统计结果")
-    @GetMapping("/survey/operator/move")
-    public Result<Object> characterStatisticalResult() {
-        operatorProgressionStatisticsService.move();
-        return Result.success();
-    }
+
 
     @Operation(summary ="干员练度调查表统计结果")
     @GetMapping("/survey/operator/result/v2")

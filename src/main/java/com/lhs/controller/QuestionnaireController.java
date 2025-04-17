@@ -2,6 +2,8 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorCarryQuestionnaireDTO;
+import com.lhs.entity.dto.survey.OperatorCarryRateDailyDataRequestParamsDTO;
+import com.lhs.entity.vo.survey.OperatorCarryRateDailyDataVO;
 import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
 import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.QuestionnaireService;
@@ -34,18 +36,17 @@ public class QuestionnaireController {
 
     @Operation(summary ="获取干员调查问卷信息结果")
     @GetMapping("/questionnaire/operator-carry/v2")
-    public Result<OperatorCarryRateStatisticsVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,
+    public Result<OperatorCarryRateStatisticsVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireCode") Integer questionnaireCode,
                                                                                   @RequestParam("startTime") Long start,
                                                                                   @RequestParam("endTime") Long end) {
-        return Result.success(operatorCarryRateService.getOperatorCarryRate(questionnaireType,new Date(start),new Date(end)));
+        return Result.success(operatorCarryRateService.getOperatorCarryRate(questionnaireCode,new Date(start),new Date(end)));
     }
 
 
-    @Operation(summary ="获取干员携带率的折线图")
-    @GetMapping("/questionnaire/operator-carry/line-chart")
-    public Result<OperatorCarryRateStatisticsVO> getOperatorCarryStatisticsResult(@RequestParam("questionnaireType") Integer questionnaireType,
-                                                                                  @RequestParam("charId") String charId) {
-        return Result.success(operatorCarryRateService.getOperatorCarryRateLineChart(questionnaireType,charId));
+    @Operation(summary ="获取某个干员的携带率每日数据")
+    @PostMapping("/questionnaire/operator-carry/daily")
+    public Result<OperatorCarryRateDailyDataVO> getOperatorCarryStatisticsResult(@RequestBody OperatorCarryRateDailyDataRequestParamsDTO operatorCarryRateDailyDataRequestParamsDTO) {
+        return Result.success(operatorCarryRateService.getOperatorCarryRateLineChart(operatorCarryRateDailyDataRequestParamsDTO));
     }
 
     @Operation(summary ="迁移数据")

@@ -1,7 +1,6 @@
 package com.lhs.entity.dto.survey;
 
-import com.lhs.entity.po.survey.OperatorData;
-import com.lhs.entity.po.survey.OperatorProgressionData;
+
 import com.lhs.entity.po.survey.WarehouseInfo;
 import lombok.Data;
 

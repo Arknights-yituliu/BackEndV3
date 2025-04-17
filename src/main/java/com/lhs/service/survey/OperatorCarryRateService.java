@@ -3,15 +3,16 @@ package com.lhs.service.survey;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.lhs.common.enums.QuestionnaireType;
-import com.lhs.common.enums.RecordType;
-import com.lhs.common.enums.TimeGranularity;
-import com.lhs.common.enums.UnitTime;
+import com.lhs.common.enums.*;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
+import com.lhs.entity.dto.survey.OperatorCarryRateDailyDataRequestParamsDTO;
 import com.lhs.entity.po.survey.OperatorCarryRate;
 import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.entity.tmp.QuestionnaireResultDTO;
+import com.lhs.entity.vo.survey.CarryRateDailyDataVO;
+import com.lhs.entity.vo.survey.OperatorCarryRateDailyDataVO;
 import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
 import com.lhs.entity.vo.survey.OperatorCarryRateVO;
 import com.lhs.mapper.survey.OperatorCarryRateMapper;
@@ -131,13 +132,13 @@ public class OperatorCarryRateService {
 
         LambdaUpdateWrapper<OperatorCarryRate> updateWrapper = new LambdaUpdateWrapper<>();
 
-        updateWrapper.set(OperatorCarryRate::getRecordType,RecordType.EXPIRE.code())
+        updateWrapper.set(OperatorCarryRate::getRecordType, RecordType.EXPIRE.code())
                 .eq(OperatorCarryRate::getQuestionnaireCode, questionnaireType.code())
                 .ge(OperatorCarryRate::getStartTime, startTime)
                 .lt(OperatorCarryRate::getEndTime, endTime);
 
-        int update = operatorCarryRateMapper.update(null,updateWrapper);
-        LogUtils.info("过期了"+update+"条携带率数据");
+        int update = operatorCarryRateMapper.update(null, updateWrapper);
+        LogUtils.info("过期了" + update + "条携带率数据");
 
 
         List<OperatorCarryRate> operatorCarryRateList = new ArrayList<>();
@@ -191,11 +192,11 @@ public class OperatorCarryRateService {
     }
 
 
-    public void deleteExpireData(){
+    public void deleteExpireData() {
         LambdaQueryWrapper<OperatorCarryRate> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OperatorCarryRate::getRecordType,RecordType.EXPIRE.code());
+        queryWrapper.eq(OperatorCarryRate::getRecordType, RecordType.EXPIRE.code());
         int delete = operatorCarryRateMapper.delete(queryWrapper);
-        LogUtils.info("删除了"+delete+"条携带率数据");
+        LogUtils.info("删除了" + delete + "条携带率数据");
     }
 
 
@@ -259,8 +260,40 @@ public class OperatorCarryRateService {
     }
 
 
-    public OperatorCarryRateStatisticsVO getOperatorCarryRateLineChart(Integer questionnaireType, String charId) {
+    public OperatorCarryRateDailyDataVO getOperatorCarryRateLineChart(OperatorCarryRateDailyDataRequestParamsDTO operatorCarryRateDailyDataRequestParamsDTO) {
 
-        return null;
+        LambdaQueryWrapper<OperatorCarryRate> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OperatorCarryRate::getCharId, operatorCarryRateDailyDataRequestParamsDTO.getCharId())
+                .eq(OperatorCarryRate::getRecordType,RecordType.DISPLAY.code())
+                .eq(OperatorCarryRate::getQuestionnaireCode, operatorCarryRateDailyDataRequestParamsDTO.getQuestionnaireCode())
+                .ge(OperatorCarryRate::getStartTime, new Date(operatorCarryRateDailyDataRequestParamsDTO.getStart()))
+                .le(OperatorCarryRate::getEndTime, new Date(operatorCarryRateDailyDataRequestParamsDTO.getEnd()));
+        List<OperatorCarryRate> operatorCarryRateList = operatorCarryRateMapper.selectList(queryWrapper);
+
+        if (operatorCarryRateList.isEmpty()) {
+            throw new ServiceException(ResultCode.DATA_NONE);
+        }
+
+        OperatorCarryRateDailyDataVO operatorCarryRateDailyDataVO = new OperatorCarryRateDailyDataVO();
+        List<CarryRateDailyDataVO> carryRateDailyDataVOList = new ArrayList<>();
+        List<Long> dateList = new ArrayList<>();
+
+        operatorCarryRateList.stream()
+                .sorted(Comparator.comparing(OperatorCarryRate::getStartTime))
+                .filter(e->e.getSampleSize()>0&&e.getCarryCount()>0)
+                .forEach(e -> {
+//                    System.out.println(e);
+                    CarryRateDailyDataVO carryRateDailyDataVO = new CarryRateDailyDataVO();
+                    carryRateDailyDataVO.setCarryCount(e.getCarryCount());
+                    carryRateDailyDataVO.setSampleSize(e.getSampleSize());
+                    carryRateDailyDataVOList.add(carryRateDailyDataVO);
+                    dateList.add(e.getStartTime().getTime());
+                });
+
+        operatorCarryRateDailyDataVO.setDate(dateList);
+        operatorCarryRateDailyDataVO.setList(carryRateDailyDataVOList);
+        operatorCarryRateDailyDataVO.setCharId(operatorCarryRateDailyDataVO.getCharId());
+
+        return operatorCarryRateDailyDataVO;
     }
 }

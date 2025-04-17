@@ -12,14 +12,9 @@ import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionStatisticalResultDTO;
 import com.lhs.entity.po.survey.*;
 
-import com.lhs.entity.po.user.AkPlayerBindInfo;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
-import com.lhs.mapper.survey.OperatorDataMapper;
 import com.lhs.mapper.survey.OperatorProgressionDataMapper;
 import com.lhs.mapper.survey.OperatorProgressionStatisticalResultMapper;
-import com.lhs.mapper.user.AkPlayerBindInfoMapper;
-import com.lhs.service.util.OSSService;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -30,33 +25,22 @@ public class OperatorProgressionStatisticsService {
 
     private final OperatorProgressionStatisticalResultMapper operatorProgressionStatisticalResultMapper;
 
-    private final RedisTemplate<String, Object> redisTemplate;
-
-    private final OSSService ossService;
-
-    private final OperatorDataMapper operatorDataMapper;
 
     private final OperatorProgressionDataMapper operatorProgressionDataMapper;
 
-    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
+
     private final IdGenerator idGenerator;
 
 
     public OperatorProgressionStatisticsService(OperatorProgressionStatisticalResultMapper operatorProgressionStatisticalResultMapper,
-                                                RedisTemplate<String, Object> redisTemplate,
-                                                OSSService ossService,
-                                                OperatorDataMapper operatorDataMapper,
-                                                OperatorProgressionDataMapper operatorProgressionDataMapper,
-                                                AkPlayerBindInfoMapper akPlayerBindInfoMapper) {
+                                                OperatorProgressionDataMapper operatorProgressionDataMapper) {
 
         this.operatorProgressionStatisticalResultMapper = operatorProgressionStatisticalResultMapper;
-        this.redisTemplate = redisTemplate;
-        this.ossService = ossService;
-        this.operatorDataMapper = operatorDataMapper;
+
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
 
         this.idGenerator = new IdGenerator(1L);
-        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
+
     }
 
 
@@ -215,45 +199,7 @@ public class OperatorProgressionStatisticsService {
 
 
 
-    public void move() {
-        List<AkPlayerBindInfo> akPlayerBindInfos = akPlayerBindInfoMapper.selectList(null);
-        for (AkPlayerBindInfo akPlayerBindInfo : akPlayerBindInfos) {
-            String akUid = akPlayerBindInfo.getAkUid();
-            LambdaQueryWrapper<OperatorData> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(OperatorData::getAkUid, akUid);
-            List<OperatorData> operatorDataList = operatorDataMapper.selectList(queryWrapper);
-            if (operatorDataList.isEmpty()) {
-                continue;
 
-            }
-            List<OperatorProgressionDataDTO> dataDTOList = new ArrayList<>();
-            for (OperatorData operatorData : operatorDataList) {
-                OperatorProgressionDataDTO operatorProgressionDataDTO = new OperatorProgressionDataDTO();
-                operatorProgressionDataDTO.setCharId(operatorData.getCharId());
-                operatorProgressionDataDTO.setOwn(operatorData.getOwn());
-                operatorProgressionDataDTO.setLevel(operatorData.getLevel());
-                operatorProgressionDataDTO.setElite(operatorData.getElite());
-                operatorProgressionDataDTO.setPotential(operatorData.getPotential());
-                operatorProgressionDataDTO.setRarity(operatorData.getRarity());
-                operatorProgressionDataDTO.setMainSkill(operatorData.getMainSkill());
-                operatorProgressionDataDTO.setSkill1(operatorData.getSkill1());
-                operatorProgressionDataDTO.setSkill2(operatorData.getSkill2());
-                operatorProgressionDataDTO.setSkill3(operatorData.getSkill3());
-                operatorProgressionDataDTO.setModX(operatorData.getModX());
-                operatorProgressionDataDTO.setModY(operatorData.getModY());
-                operatorProgressionDataDTO.setModD(operatorData.getModD());
-                operatorProgressionDataDTO.setModA(operatorData.getModA());
-                dataDTOList.add(operatorProgressionDataDTO);
-            }
-
-
-            OperatorProgressionData operatorProgressionData = new OperatorProgressionData();
-            operatorProgressionData.setAkUid(akUid);
-            operatorProgressionData.setCreateTime(new Date(akPlayerBindInfo.getUpdateTime()));
-            operatorProgressionData.setOperatorProgression(JsonMapper.toJSONString(dataDTOList));
-            operatorProgressionDataMapper.insert(operatorProgressionData);
-        }
-    }
 
 
 

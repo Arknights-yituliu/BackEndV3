@@ -10,13 +10,6 @@ import java.util.*;
 
 
 public interface OperatorDataService  {
-    /**
-     * 手动上传干员练度调查表
-     * @param httpServletRequest 请求信息
-     * @param surveyOperatorDataList 干员练度调查表单
-     * @return 成功消息
-     */
-    Map<String, Object> manualUploadOperator(HttpServletRequest httpServletRequest, List<OperatorProgressionDataDTO> surveyOperatorDataList);
 
 
     /**

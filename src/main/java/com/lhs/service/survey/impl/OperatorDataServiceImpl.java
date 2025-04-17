@@ -47,16 +47,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
 
-    //    @TakeCount(name = "上传评分")
-    @Override
-    public Map<String, Object> manualUploadOperator(HttpServletRequest httpServletRequest, List<OperatorProgressionDataDTO> surveyOperatorDataList) {
-        UserInfoVO userInfo = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        String akUid = String.valueOf(userInfo.getUid());
-        if(userInfo.getAkUid()!=null){
-            akUid = userInfo.getAkUid();
-        }
-        return saveOperatorData(String.valueOf(akUid), surveyOperatorDataList);
-    }
+
 
 
 
@@ -135,21 +126,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
 
-    private void protectManuallyUploadedData(OperatorData newData, OperatorData lastData) {
-        //检查干员旧数据的模组等级大于新导入的模组等级时，保留旧数据的等级
-        if (lastData.getModX() > newData.getModX()) {
-            newData.setModX(lastData.getModX());
-            LogUtils.info(newData.getCharId() + "X模组被手动设置等级了");
-        }
-        if (lastData.getModY() > newData.getModY()) {
-            newData.setModY(lastData.getModY());
-            LogUtils.info(newData.getCharId() + "Y模组被手动设置等级了");
-        }
-        if (lastData.getModD() > newData.getModD()) {
-            newData.setModD(lastData.getModD());
-            LogUtils.info(newData.getCharId() + "D模组被手动设置等级了");
-        }
-    }
+
 
     /**
      * 对新老干员数据进行检查，是否有非法数据
