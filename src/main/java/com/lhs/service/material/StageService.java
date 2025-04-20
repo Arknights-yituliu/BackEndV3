@@ -11,10 +11,10 @@ import com.lhs.entity.po.material.Stage;
 import com.lhs.entity.vo.material.ZoneTableVO;
 import com.lhs.mapper.material.StageMapper;
 
+import com.lhs.service.util.TencentCloudService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -26,9 +26,12 @@ public class StageService {
     private final StageMapper stageMapper;
     private final RedisTemplate<String,Object> redisTemplate;
 
-    public StageService(StageMapper stageMapper, RedisTemplate<String, Object> redisTemplate) {
+    private final TencentCloudService tencentCloudService;
+
+    public StageService(StageMapper stageMapper, RedisTemplate<String, Object> redisTemplate, TencentCloudService tencentCloudService) {
         this.stageMapper = stageMapper;
         this.redisTemplate = redisTemplate;
+        this.tencentCloudService = tencentCloudService;
     }
 
 
@@ -135,6 +138,8 @@ public class StageService {
         String responseAuto = HttpRequestUtil.get(penguinAuto, new HashMap<>());
         if (responseAuto == null) return;
         FileUtil.save(ConfigUtil.Penguin, "penguin.json", responseAuto);
+
+        tencentCloudService.uploadJsonToCOS(responseAuto,"/stage-drop/matrix.json");
     }
 
 
