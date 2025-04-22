@@ -1,5 +1,6 @@
 package com.lhs.service.maa;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.enums.TimeGranularity;
 import com.lhs.common.util.*;
@@ -113,33 +114,54 @@ public class StageDropUploadService {
     }
 
 
-
-
-    public void stageDropDataMigration(){
+    public void stageDropDataMigration() {
 
         long hour = 60 * 60 * 1000L;
-        long start = 1740758400000L;
+        long start = 1744182000000L;
 
         for (int i = 0; i < 10000; i++) {
             Date startTime = new Date(start);
             Date endTime = new Date(start + hour);
-            List<StageDrop> stageDropList = stageDropMapper.listOldStageDropByDate("stage_drop_20250303_20250322", startTime, endTime);
+            List<StageDrop> stageDropList = stageDropMapper.listOldStageDropByDate("stage_drop_20250322_20250422", startTime, endTime);
             System.out.println(startTime);
-            start = start+hour;
-            if(stageDropList.isEmpty()){
+            start = start + hour;
+            if (stageDropList.isEmpty()) {
                 continue;
             }
+            for (StageDrop stageDrop : stageDropList) {
+                stageDrop.setId(idGenerator.nextId());
+            }
             stageDropMapper.insertBatch(stageDropList);
-
         }
     }
 
 
+    public void stageDropArchiveDataByQuarter() {
 
+        long hour = 60 * 60 * 1 * 1000L;
+        long start = 1739462400000L;
+        long end = 1743436800000L;
 
-
-
-
+        for (int i = 0; i < 10000; i++) {
+            if (start >= end) {
+                break;
+            }
+            Date startTime = new Date(start);
+            Date endTime = new Date(start + hour);
+            LambdaQueryWrapper<StageDrop> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.ge(StageDrop::getCreateTime, startTime).lt(StageDrop::getCreateTime, endTime);
+            List<StageDrop> stageDropList = stageDropMapper.selectList(queryWrapper);
+            System.out.println("开始于————" + startTime);
+            start = start + hour;
+            if (stageDropList.isEmpty()) {
+                continue;
+            }
+            for (StageDrop stageDrop : stageDropList) {
+                stageDrop.setId(idGenerator.nextId());
+            }
+            stageDropMapper.insertBatchByTable("stage_drop_2025_q1", stageDropList);
+        }
+    }
 
 
 }

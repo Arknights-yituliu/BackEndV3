@@ -20,6 +20,8 @@ public interface StageDropMapper extends BaseMapper<StageDrop> {
 
     Integer insertBatch(@Param("list") List<StageDrop> stageDropList);
 
+    Integer insertBatchByTable(@Param("table") String table,@Param("list") List<StageDrop> stageDropList);
+
     List<StageDrop> listOldStageDropByDate(@Param("tableName") String tableName, @Param("start") Date start, @Param("end") Date end);
 
 
