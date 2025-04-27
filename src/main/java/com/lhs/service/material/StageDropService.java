@@ -9,6 +9,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.TimeUtil;
 import com.lhs.entity.dto.material.QueryStageDropDTO;
 import com.lhs.entity.dto.material.StageDropCollect;
 import com.lhs.entity.dto.material.StageDropDetailDTO;
@@ -68,7 +69,7 @@ public class StageDropService {
     }
 
 
-    public void stageDropHourlyStatistics(Long start) {
+    public void stageDropHourlyStatistics1111(Long start) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         long hour = 60 * 60 * 1000L;
         for (int i = 0; i < 10000; i++) {
@@ -78,6 +79,13 @@ public class StageDropService {
             //查询后将start递增
             start += hour;
         }
+    }
+
+    public void stageDropHourlyStatistics(){
+        Date startTime = TimeUtil.getCurrentHourTime();
+        Date endTime = new Date(startTime.getTime()-60*60*1000L);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
+        stageDropHourlyStatistics(startTime,endTime,simpleDateFormat);
     }
 
     public void stageDropHourlyStatistics(Date startTime, Date endTime, SimpleDateFormat simpleDateFormat) {
