@@ -56,10 +56,16 @@ public class ItemControllerV5 {
         return Result.success(storeService.listActivityStoreData());
     }
 
-    @Operation(summary = "获取活动商店列表")
+    @Operation(summary = "获取礼包商店列表")
     @GetMapping("/item/v5/store/pack")
     public Result<List<PackInfoVOV5>> listPackInfo() {
         return Result.success(packInfoService.listPackInfo());
+    }
+
+    @Operation(summary = "获取礼包商店列表")
+    @GetMapping("/item/v5/store/pack/version")
+    public Result<String> getPackInfoVersion() {
+        return Result.success(packInfoService.getPackInfoVersion());
     }
 
     @Operation(summary = "获取自定义材料价值表")

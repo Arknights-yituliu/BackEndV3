@@ -25,6 +25,9 @@ import com.lhs.service.util.TencentCloudService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,35 +60,6 @@ public class PackInfoService {
         this.imageInfoService = imageInfoService;
     }
 
-
-    public List<PackInfoVO> listPackInfo(StageConfigDTO stageConfigDTO) {
-        return listAllPackInfo(stageConfigDTO);
-    }
-
-    @RedisCacheable(key = "Item:PackInfo", timeout = 43200)
-    public List<PackInfoVOV5> listPackInfo() {
-        //查询所有礼包
-        LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
-        packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
-        List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
-        List<PackInfoVOV5> packInfoVOV5List = new ArrayList<>();
-        List<ImageInfo> imageInfoList = imageInfoService.listImageInfo("");
-        Map<String, String> imageLinkMap = imageInfoList.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
-
-        for (PackInfo packInfo : packInfoList) {
-            PackInfoVOV5 packInfoVOV5 = new PackInfoVOV5();
-            packInfoVOV5.copy(packInfo);
-            ImageInfo imageInfo = imageInfoService.getImageInfo(packInfo.getOfficialName());
-            if (imageInfo != null) {
-                packInfoVOV5.setImageLink(imageInfo.getImageLink());
-            }
-            packInfoVOV5List.add(packInfoVOV5);
-        }
-
-        return packInfoVOV5List;
-    }
-
-
     public List<PackInfoVO> listAllPackInfo(StageConfigDTO stageConfigDTO) {
         //查询所有礼包
         LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
@@ -112,7 +86,52 @@ public class PackInfoService {
         return VOList;
     }
 
+    public List<PackInfoVO> listPackInfo(StageConfigDTO stageConfigDTO) {
+        return listAllPackInfo(stageConfigDTO);
+    }
 
+    @RedisCacheable(key = "Item:PackInfo", timeout = 43200)
+    public List<PackInfoVOV5> listPackInfo() {
+        //查询所有礼包
+        LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
+        packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
+        List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
+        List<PackInfoVOV5> packInfoVOV5List = new ArrayList<>();
+        List<ImageInfo> imageInfoList = imageInfoService.listImageInfo("");
+        Map<String, String> imageLinkMap = imageInfoList.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
+
+        for (PackInfo packInfo : packInfoList) {
+            PackInfoVOV5 packInfoVOV5 = new PackInfoVOV5();
+            packInfoVOV5.copy(packInfo);
+            String imageLink = imageLinkMap.get(packInfo.getOfficialName());
+            if (imageLink != null) {
+                packInfoVOV5.setImageLink(imageLink);
+            }
+            packInfoVOV5List.add(packInfoVOV5);
+        }
+
+        return packInfoVOV5List;
+    }
+
+
+    public String getPackInfoVersion() {
+
+        Object key = redisTemplate.opsForValue().get("Item:PackInfoVersion");
+
+        if(key==null){
+            return "2025/04/27 00:00:00";
+        }
+
+        return key.toString();
+
+    }
+
+    /**
+     * 保存或更新礼包
+     *
+     * @param packInfoDTO 礼包信息
+     * @return 成功消息
+     */
     public String saveOrUpdatePackInfo(PackInfoDTO packInfoDTO) {
         Date currentDate = new Date();
         //创建一个po对象存储数据
@@ -136,7 +155,6 @@ public class PackInfoService {
         if (packInfoById == null) {
             //新礼包直接生成一个id保存到数据库
             packInfo.setId(idGenerator.nextId());
-            packInfo.setCreateTime(new Date());
             packInfo.setDeleteFlag(false);
             packInfoMapper.insert(packInfo);
             packInfo.setCreateTime(currentDate);
@@ -148,10 +166,24 @@ public class PackInfoService {
 
         redisTemplate.delete("Item:PackInfo");
 
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
+        // 定义格式化模式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        // 格式化为字符串
+        String formattedDateTime = now.format(formatter);
+
+        redisTemplate.opsForValue().set("Item:PackInfoVersion",formattedDateTime);
+
         return message;
     }
 
 
+    /**
+     * 根据礼包id获取礼包信息
+     * @param idStr 礼包id
+     * @return 礼包信息
+     */
     public PackInfoVO getPackById(String idStr) {
         long id = Long.parseLong(idStr);
         PackInfo packInfo = packInfoMapper.selectOne(new QueryWrapper<PackInfo>().eq("id", id));
@@ -165,7 +197,12 @@ public class PackInfoService {
     }
 
 
-    public ItemCustom saveOrUpdatePackItem(ItemCustom newItemCustom) {
+    /**
+     * 保存或更新自定义材料
+     * @param newItemCustom 自定义材料信息
+     * @return  自定义材料信息
+     */
+    public ItemCustom saveOrUpdateCustomItem(ItemCustom newItemCustom) {
         LambdaQueryWrapper<ItemCustom> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ItemCustom::getItemId, newItemCustom.getItemId());
         ItemCustom itemCustom = itemCustomMapper.selectOne(queryWrapper);
@@ -183,6 +220,11 @@ public class PackInfoService {
 
     }
 
+    /**
+     * 获取自定义材料信息
+     * @param stageConfigDTO
+     * @return
+     */
     public List<ItemCustom> listCustomItem(StageConfigDTO stageConfigDTO) {
 
         List<Item> itemList = itemService.getItemListCache(stageConfigDTO);
@@ -205,20 +247,16 @@ public class PackInfoService {
     }
 
 
+    /**
+     * 根据礼包id删除礼包信息
+     * @param id 礼包id
+     * @return 成功消息
+     */
     public String deletePackItemById(String id) {
         QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", id);
         int delete = itemCustomMapper.delete(queryWrapper);
         return "删除了" + delete + "条物品数据";
-    }
-
-
-    public String clearPackInfoCache() {
-        Boolean delete = redisTemplate.delete("Item:PackData");
-        if (Boolean.FALSE.equals(delete)) {
-            throw new ServiceException(ResultCode.REDIS_CLEAR_CACHE_ERROR);
-        }
-        return "缓存清除成功";
     }
 
 
@@ -350,6 +388,7 @@ public class PackInfoService {
         int delete = packInfoMapper.updateById(packInfo);
         return "删除了" + delete + "条礼包数据";
     }
+
 
 
 }
