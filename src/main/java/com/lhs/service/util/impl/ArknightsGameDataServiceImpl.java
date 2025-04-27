@@ -175,11 +175,11 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         }
 
 
-        FileUtil.save(JSON_BUILD + "src/static/json/operator/",
+        FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/operator/",
                 "character_table_simple.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
 
 
-        FileUtil.save(JSON_BUILD + "src/static/json/operator/",
+        FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/operator/",
                 "operator_item_cost_table.json", JsonMapper.toJSONString(itemCostMap));
 
     }
@@ -464,7 +464,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //                .collect(Collectors.groupingBy(BuildingData::getRoomType));
 //        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
         Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
-        FileUtil.save(JSON_BUILD + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
         // 测试输出路径
 //        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
     }
@@ -595,7 +595,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (termDescriptionDict != null) {
             Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
-            FileUtil.save(JSON_BUILD + "src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+            FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
             // 测试输出路径
 //            FileUtil.save(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
         }
@@ -648,7 +648,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (v2FoodsDetail != null) {
             Map<String, Object> foodsMap = createFoodsDataJson(v2FoodsDetail.get("foodMatData"), v2FoodsDetail.get("foodData"), v2ItemData);
-            FileUtil.save(JSON_BUILD + "src/static/json/build/", "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
+            FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/build/", "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
         }
     }
 
