@@ -1,56 +1,42 @@
 package com.lhs.task;
 
-import com.lhs.common.enums.QuestionnaireType;
-import com.lhs.common.enums.TimeGranularity;
-import com.lhs.common.enums.UnitTime;
-import com.lhs.common.util.TimeUtil;
 import com.lhs.service.maa.RecruitTagUploadService;
-import com.lhs.service.rogue.RogueSeedService;
 import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.OperatorProgressionStatisticsService;
 import com.lhs.service.material.*;
 
-import com.lhs.service.survey.QuestionnaireService;
+import com.lhs.service.user.UserService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 @Service
 
 public class TaskService {
 
 
-    private final StoreService storeService;
     private final StageCalService stageCalService;
     private final StageService stageService;
     private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
-
-    private final RogueSeedService rogueSeedService;
     private final RecruitTagUploadService recruitTagUploadService;
-
-    private final QuestionnaireService questionnaireService;
-
     private final OperatorCarryRateService operatorCarryRateService;
 
-    public TaskService(StoreService storeService,
-                       StageCalService stageCalService,
-                       StageService stageService,
-                       OperatorProgressionStatisticsService operatorProgressionStatisticsService,
-                       RogueSeedService rogueSeedService,
-                       RecruitTagUploadService recruitTagUploadService,
-                       QuestionnaireService questionnaireService, OperatorCarryRateService operatorCarryRateService) {
-        this.storeService = storeService;
+    private final StageDropService stageDropService;
+
+    private final UserService userService;
+
+    public TaskService(
+            StageCalService stageCalService,
+            StageService stageService,
+            OperatorProgressionStatisticsService operatorProgressionStatisticsService,
+            RecruitTagUploadService recruitTagUploadService,
+            OperatorCarryRateService operatorCarryRateService, StageDropService stageDropService, UserService userService) {
         this.stageCalService = stageCalService;
         this.stageService = stageService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
-        this.rogueSeedService = rogueSeedService;
         this.recruitTagUploadService = recruitTagUploadService;
-        this.questionnaireService = questionnaireService;
         this.operatorCarryRateService = operatorCarryRateService;
+        this.stageDropService = stageDropService;
+        this.userService = userService;
     }
 
 
@@ -90,7 +76,7 @@ public class TaskService {
     /**
      * 统计干员练度数据
      */
-    @Scheduled(cron = "0 5 0/1 * * ?")
+    @Scheduled(cron = "0 0 0/1 * * ?")
     public void statisticsProgressionOperatorData() {
         operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2();
     }
@@ -119,6 +105,21 @@ public class TaskService {
     public void statisticsYesterdayOperatorCarryRateTask() {
         operatorCarryRateService.statisticsYesterdayOperatorCarryRate();
     }
+
+
+    @Scheduled(cron = "0 0 0/19 * * ?")
+    public void stageDropHourlyStatistics() {
+        stageDropService.stageDropHourlyStatistics();
+    }
+
+
+    @Scheduled(cron = "0 11 * * * ?")
+    public void backupUserInfo() {
+        userService.backupUserInfo();
+        userService.backupUserExternalAccountBinding();
+    }
+
+
 
 
 

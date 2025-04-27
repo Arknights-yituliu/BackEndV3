@@ -8,7 +8,6 @@
   <select id="getOperatorProgressionData" resultType="com.lhs.entity.po.survey.OperatorProgressionData">
       SELECT *
       FROM operator_progression_data
-      WHERE create_time &gt; #{createTime}
       limit #{offset},500;
   </select>
 

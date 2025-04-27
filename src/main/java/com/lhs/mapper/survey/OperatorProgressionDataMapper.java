@@ -9,5 +9,7 @@ import java.util.List;
 
 public interface OperatorProgressionDataMapper extends BaseMapper<OperatorProgressionData> {
 
-    List<OperatorProgressionData> getOperatorProgressionData(@Param("createTime") Date createTime, @Param("offset") Integer offset);
+    List<OperatorProgressionData> getOperatorProgressionDataByDate(@Param("createTime") Date createTime, @Param("offset") Integer offset);
+
+    List<OperatorProgressionData> getOperatorProgressionData(@Param("offset") Integer offset);
 }

@@ -6,6 +6,7 @@ import java.util.Map;
 public class OperatorProgressionStatisticalResultDTO {
     private String charId;
     private Integer own;
+    private Integer sampleSize;
     private Map<Integer, Integer> elite;
     private Map<Integer, Integer> skill1;
     private Map<Integer, Integer> skill2;
@@ -16,6 +17,7 @@ public class OperatorProgressionStatisticalResultDTO {
     private Map<Integer, Integer> modD;
 
     {
+        sampleSize = 0;
         own = 0;
         elite = new HashMap<>();
         skill1 = new HashMap<>();
@@ -30,7 +32,6 @@ public class OperatorProgressionStatisticalResultDTO {
     public String getCharId() {
         return charId;
     }
-
     public void setCharId(String charId) {
         this.charId = charId;
     }
@@ -41,6 +42,14 @@ public class OperatorProgressionStatisticalResultDTO {
 
     public void setOwn(Integer own) {
         this.own = own;
+    }
+
+    public Integer getSampleSize() {
+        return sampleSize;
+    }
+
+    public void setSampleSize(Integer sampleSize) {
+        this.sampleSize = sampleSize;
     }
 
     public Map<Integer, Integer> getElite() {
@@ -110,7 +119,9 @@ public class OperatorProgressionStatisticalResultDTO {
     public void increaseOwn() {
         this.own++;
     }
-
+    public void increaseSampleSize() {
+        this.sampleSize++;
+    }
 
     public void mergeElite(Integer elite) {
 
