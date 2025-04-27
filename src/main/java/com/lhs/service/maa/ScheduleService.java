@@ -16,6 +16,7 @@ import com.lhs.service.util.OSSService;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.File;
 import java.util.Date;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class ScheduleService {
         Schedule schedule = new Schedule();
         schedule.setUid(scheduleId);
         schedule.setScheduleId(scheduleId);
-        Map<Object,Object> map= JsonMapper.parseObject(scheduleJson,new TypeReference<>(){
+        Map<Object, Object> map = JsonMapper.parseObject(scheduleJson, new TypeReference<>() {
 
         });
         map.put("id", scheduleId);
@@ -48,21 +49,12 @@ public class ScheduleService {
     }
 
 
-
-
-
     public String retrieveScheduleJson(Long scheduleId) {
         Schedule schedule = scheduleMapper
-                .selectOne(new QueryWrapper<Schedule>().eq("schedule_id",scheduleId));
+                .selectOne(new QueryWrapper<Schedule>().eq("schedule_id", scheduleId));
 
-
-        if(schedule==null){
-            File file = new File(ConfigUtil.Schedule + scheduleId + ".json");
-            if(file.exists()){
-                return FileUtil.read(ConfigUtil.Schedule + scheduleId + ".json");
-            }
-             throw new ServiceException(ResultCode.DATA_NONE);
-
+        if (schedule == null) {
+            throw new ServiceException(ResultCode.DATA_NONE);
         }
 
         return schedule.getSchedule();

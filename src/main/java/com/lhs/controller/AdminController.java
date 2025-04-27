@@ -24,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @Tag(name = "一图流后台")
@@ -137,7 +136,7 @@ public class AdminController {
     @Operation(summary = "更新礼包材料表")
     @PostMapping("/admin/item/update")
     public Result<ItemCustom> saveOrUpdatePackItem(HttpServletRequest httpServletRequest,@RequestBody ItemCustom newItemCustom){
-        ItemCustom itemCustom = packInfoService.saveOrUpdatePackItem(newItemCustom);
+        ItemCustom itemCustom = packInfoService.saveOrUpdateCustomItem(newItemCustom);
         return Result.success(itemCustom);
     }
 
@@ -191,7 +190,7 @@ public class AdminController {
     @Operation(summary = "获取礼包自定义材料表")
     @GetMapping("/store/pack/item/list")
     public Result<List<ItemCustom>> getItemList() {
-        List<ItemCustom> itemCustomList = packInfoService.listCustomItem(new StageConfigDTO());
+        List<ItemCustom> itemCustomList = packInfoService.listCustomItem();
         return Result.success(itemCustomList);
     }
 }

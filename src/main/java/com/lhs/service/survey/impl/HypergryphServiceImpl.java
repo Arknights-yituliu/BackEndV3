@@ -7,7 +7,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
 import com.lhs.entity.vo.survey.AkPlayerBindingListVO;
-import com.lhs.mapper.survey.AkPlayerBindInfoV2Mapper;
+
 import com.lhs.service.survey.HypergryphService;
 import org.springframework.stereotype.Service;
 
@@ -28,11 +28,11 @@ public class HypergryphServiceImpl implements HypergryphService {
     private final static String PLAYER_INFO_URL = "/api/v1/game/player/info";
     private final static String PLAYER_BINDING_URL = "/api/v1/game/player/binding";
 
-    private final AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper;
+
     private final IdGenerator idGenerator;
 
-    public HypergryphServiceImpl(AkPlayerBindInfoV2Mapper akPlayerBindInfoV2Mapper) {
-        this.akPlayerBindInfoV2Mapper = akPlayerBindInfoV2Mapper;
+    public HypergryphServiceImpl() {
+
         this.idGenerator = new IdGenerator(1L);
     }
 

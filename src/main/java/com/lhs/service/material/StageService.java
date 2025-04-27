@@ -137,7 +137,7 @@ public class StageService {
         String penguinAuto = ConfigUtil.PenguinAuto;
         String responseAuto = HttpRequestUtil.get(penguinAuto, new HashMap<>());
         if (responseAuto == null) return;
-        FileUtil.save(ConfigUtil.Penguin, "penguin.json", responseAuto);
+        FileUtil.saveJsonFile(ConfigUtil.Penguin, "penguin.json", responseAuto);
 
         tencentCloudService.uploadJsonToCOS(responseAuto,"/stage-drop/matrix.json");
     }

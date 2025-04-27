@@ -661,7 +661,7 @@ public class UserServiceImpl implements UserService {
         }
 
 
-        backupSurveyUser(userInfo);
+
         UserInfoVO userInfoVO = new UserInfoVO();
         userInfoVO.setHasPassword(true);
 
@@ -696,7 +696,7 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.NOT_SET_PASSWORD_OR_BIND_EMAIL);
         }
 
-        backupSurveyUser(userInfo);
+
         UserInfoVO response = new UserInfoVO();
         response.setUserName(userInfo.getUserName());
         return response;
@@ -706,17 +706,23 @@ public class UserServiceImpl implements UserService {
         userInfo.setAvatar(updateUserDataDto.getAvatar());
         UserInfoVO response = new UserInfoVO();
         response.setAvatar(userInfo.getAvatar());
-        backupSurveyUser(userInfo);
+
         return response;
     }
 
     @Override
-    public void backupSurveyUser(UserInfo userInfo) {
-        userInfo.setUpdateTime(new Date());
-        userInfoMapper.updateById(userInfo);  //更新用户表
+    public void backupUserInfo() {
+        List<UserInfo> userInfoList = userInfoMapper.selectList(null);
+        FileUtil.saveJsonFile(ConfigUtil.Backup,"userInfo.json",JsonMapper.toJSONString(userInfoList));
+    }
 
-        Long id = userInfo.getId();
-        ossService.upload(JsonMapper.toJSONString(userInfo), "survey/user/info/" + id + ".json");
+    @Override
+    public void backupUserExternalAccountBinding() {
+        List<UserExternalAccountBinding> list1 = userExternalAccountBindingMapper.selectList(null);
+        FileUtil.saveJsonFile(ConfigUtil.Backup,"userExternalAccountBinding.json",JsonMapper.toJSONString(list1));
+
+        List<AkPlayerBindInfo> list2 = akPlayerBindInfoMapper.selectList(null);
+        FileUtil.saveJsonFile(ConfigUtil.Backup,"akPlayerBindInfo.json",JsonMapper.toJSONString(list2));
     }
 
 

@@ -1,8 +1,6 @@
 package com.lhs.common.util;
 
-import com.lhs.common.exception.ServiceException;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ServerErrorException;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -14,8 +12,13 @@ import java.util.Objects;
 public class FileUtil {
 
 
-
-    public static void save(String filepath,String filename,String json){
+    /**
+     * 保存文件
+     * @param filepath 文件路径
+     * @param filename 文件名称
+     * @param json json
+     */
+    public static void saveJsonFile(String filepath, String filename, String json){
         File file = new File(filepath);
         if(!file.exists()){
             file.mkdir();
@@ -41,7 +44,7 @@ public class FileUtil {
 
     }
 
-    public static void save(HttpServletResponse response, String filePath, String fileName, String jsonForMat) {
+    public static void saveJsonFile(HttpServletResponse response, String filePath, String fileName, String jsonForMat) {
         try {
             // 拼接文件完整路径
             String fullPath = filePath + fileName ;

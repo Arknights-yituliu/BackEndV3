@@ -46,8 +46,27 @@ public interface UserService {
      * @param emailRequestDto 邮件请求数据
      */
     void sendVerificationCode(EmailRequestDTO emailRequestDto);
+
+    /**
+     * 发送更新邮箱的验证码
+     * @param httpServletRequest HTTP请求对象
+     * @param emailRequestDto 邮箱请求信息
+     */
     void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto);
+
+    /**
+     * 检查验证码
+     * @param httpServletRequest HTTP请求对象
+     * @param verificationCode 验证码
+     * @return 成功消息
+     */
     String checkVerificationCode(HttpServletRequest httpServletRequest,String verificationCode);
+
+    /**
+     * 绑定邮箱
+     * @param httpServletRequest HTTP请求对象
+     * @param updateUserDataDto 用户信息
+     */
     void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto);
     /**
      * 通过token获取用户信息
@@ -91,7 +110,6 @@ public interface UserService {
 
     /**
      * 获取用户的各种自定义配置
-     *
      * @param request 请求体
      * @return 用户配置
      */
@@ -112,7 +130,9 @@ public interface UserService {
      */
     UserInfoVO updateUserData(HttpServletRequest httpServletRequest,UpdateUserDataDTO updateUserDataDto);
 
-    void backupSurveyUser(UserInfo userInfo);
+    void backupUserInfo();
+
+    void backupUserExternalAccountBinding();
 
     /**
      * 找回账号
