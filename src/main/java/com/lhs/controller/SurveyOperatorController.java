@@ -82,7 +82,7 @@ public class SurveyOperatorController {
     @Operation(summary ="获取干员数据")
     @GetMapping("/survey/operator/info")
     public Result<Object> getOperatorTable(@RequestParam("token")String token) {
-        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService.getUserOperatorInfo(token);
+        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService.listOperatorProgressionData(token);
         return Result.success(operatorProgressionDataDTOList);
     }
 

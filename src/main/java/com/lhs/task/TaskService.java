@@ -2,9 +2,11 @@ package com.lhs.task;
 
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.survey.OperatorCarryRateService;
+import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.OperatorProgressionStatisticsService;
 import com.lhs.service.material.*;
 
+import com.lhs.service.survey.QuestionnaireService;
 import com.lhs.service.user.UserService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,11 @@ public class TaskService {
     private final RecruitTagUploadService recruitTagUploadService;
     private final OperatorCarryRateService operatorCarryRateService;
 
+    private final QuestionnaireService questionnaireService;
+
     private final StageDropService stageDropService;
+
+    private final OperatorDataService operatorDataService;
 
     private final UserService userService;
 
@@ -29,13 +35,18 @@ public class TaskService {
             StageService stageService,
             OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             RecruitTagUploadService recruitTagUploadService,
-            OperatorCarryRateService operatorCarryRateService, StageDropService stageDropService, UserService userService) {
+            OperatorCarryRateService operatorCarryRateService,
+            QuestionnaireService questionnaireService, StageDropService stageDropService,
+            OperatorDataService operatorDataService,
+            UserService userService) {
         this.stageCalService = stageCalService;
         this.stageService = stageService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.recruitTagUploadService = recruitTagUploadService;
         this.operatorCarryRateService = operatorCarryRateService;
+        this.questionnaireService = questionnaireService;
         this.stageDropService = stageDropService;
+        this.operatorDataService = operatorDataService;
         this.userService = userService;
     }
 
@@ -107,20 +118,32 @@ public class TaskService {
     }
 
 
-    @Scheduled(cron = "0 0 0/19 * * ?")
+    /**
+     * 每小时的19、39、59分执行一次
+     */
+    @Scheduled(cron = "0 19,39,59 * * * ?")
     public void stageDropHourlyStatistics() {
         stageDropService.stageDropHourlyStatistics();
     }
 
-
-    @Scheduled(cron = "0 11 * * * ?")
+    /**
+     * 备份用户数据
+     */
+    @Scheduled(cron = "0 21 * * * ?")
     public void backupUserInfo() {
         userService.backupUserInfo();
         userService.backupUserExternalAccountBinding();
     }
 
+    @Scheduled(cron = "0 26 * * * ?")
+    public void backupQuestionnaireResult() {
+        questionnaireService.backup();
+    }
 
-
+    @Scheduled(cron = "0 35 * * * ?")
+    public void backupOperatorProgressionData() {
+        operatorDataService.backupOperatorProgressionData();
+    }
 
 
 }

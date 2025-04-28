@@ -2,6 +2,7 @@ package com.lhs.service.survey.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
@@ -45,9 +46,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         this.warehouseInfoService = warehouseInfoService;
         this.idGenerator = new IdGenerator(1L);
     }
-
-
-
 
 
 
@@ -184,7 +182,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
 
     @Override
-    public List<OperatorProgressionDataDTO> getUserOperatorInfo(String token) {
+    public List<OperatorProgressionDataDTO> listOperatorProgressionData(String token) {
         //查询用户信息
         UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
         LogUtils.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
@@ -196,40 +194,30 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
         OperatorProgressionData operatorProgressionData = operatorProgressionDataMapper.selectOne(queryWrapper);
 
-//        if (operatorProgressionData == null) {
-//            return operatorDataVoList;
-//        }
+        if (operatorProgressionData == null) {
+            return operatorProgressionDataDTOList;
+        }
 
 
         String operatorProgression = operatorProgressionData.getOperatorProgression();
          operatorProgressionDataDTOList = JsonMapper.parseJSONArray(operatorProgression, new TypeReference<>() {
         });
 
-//        //转换为前端要展示的格式
-//        surveyOperatorDataList.forEach(e -> {
-//            OperatorDataVo build = OperatorDataVo.builder()
-//                    .charId(e.getCharId())
-//                    .level(e.getLevel())
-//                    .own(e.getOwn())
-//                    .mainSkill(e.getMainSkill())
-//                    .elite(e.getElite())
-//                    .potential(e.getPotential())
-//                    .rarity(e.getRarity())
-//                    .skill1(e.getSkill1())
-//                    .skill2(e.getSkill2())
-//                    .skill3(e.getSkill3())
-//                    .modX(e.getModX())
-//                    .modY(e.getModY())
-//                    .modD(e.getModD())
-//                    .modA(e.getModA())
-//                    .build();
-//            operatorDataVoList.add(build);
-//        });
-
         return operatorProgressionDataDTOList;
     }
 
+    @Override
+    public void backupOperatorProgressionData(){
 
+        List<OperatorProgressionData> operatorProgressionDataList;
+        for (int i = 0; i < 100; i++) {
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 500);
+            if (operatorProgressionDataList.isEmpty()) {
+                break;
+            }
+            FileUtil.saveJsonFile(ConfigUtil.Backup,"operatorProgressionData"+i+".json",JsonMapper.toJSONString(operatorProgressionDataList));
+        }
+    }
 
 
 

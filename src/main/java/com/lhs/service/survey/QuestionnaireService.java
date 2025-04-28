@@ -1,6 +1,7 @@
 package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.RecordType;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
@@ -26,7 +27,6 @@ public class QuestionnaireService {
     private final IdGenerator idGenerator;
     private final RateLimiter rateLimiter;
     private final UserService userService;
-
 
 
     public QuestionnaireService(RedisTemplate<String, String> redisTemplate,
@@ -65,7 +65,6 @@ public class QuestionnaireService {
         Date date = new Date();
 
 
-
         QuestionnaireResult questionnaireResult = new QuestionnaireResult();
         questionnaireResult.setId(idGenerator.nextId());
         questionnaireResult.setUid(uid);
@@ -98,18 +97,19 @@ public class QuestionnaireService {
     }
 
 
+    public void backup() {
 
-
-
-
-
-
-
-
-
-
-
-
+        List<QuestionnaireResult> questionnaireResults;
+        for (int i = 0; i < 10; i++) {
+            LambdaQueryWrapper<QuestionnaireResult> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.last("limit " + i * 1000 + ",1000");
+            questionnaireResults = questionnaireResultMapper.selectList(queryWrapper);
+            if (questionnaireResults.isEmpty()) {
+                break;
+            }
+            FileUtil.saveJsonFile(ConfigUtil.Backup, "questionnaireResultData" + i + ".json", JsonMapper.toJSONString(questionnaireResults));
+        }
+    }
 
 
     private static String getResultStr(OperatorCarryQuestionnaireDTO operatorCarryQuestionnaireDTO) {
@@ -131,7 +131,6 @@ public class QuestionnaireService {
         }
         return sb.toString();
     }
-
 
 
 }

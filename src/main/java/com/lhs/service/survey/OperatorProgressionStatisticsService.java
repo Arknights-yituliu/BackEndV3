@@ -77,10 +77,6 @@ public class OperatorProgressionStatisticsService {
         operatorProgressionStatisticalResultMapper.update(null, updateWrapper);
 
 
-        //查询数据库中最近两个月的干员练度数据
-        long timeStamp = new Date().getTime() - 60 * 60 * 24 * 60 * 1000L;
-        Date startTime = new Date(timeStamp);
-
         //干员练度统计数据统计结果
         Map<String, OperatorProgressionStatisticalResultDTO> collect = new HashMap<>();
 

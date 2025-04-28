@@ -82,8 +82,8 @@ public class StageDropService {
     }
 
     public void stageDropHourlyStatistics(){
-        Date startTime = TimeUtil.getCurrentHourTime();
-        Date endTime = new Date(startTime.getTime()-60*60*1000L);
+        Date endTime = TimeUtil.getCurrentHourTime();
+        Date startTime = new Date(endTime.getTime()-60*60*1000L);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH");
         stageDropHourlyStatistics(startTime,endTime,simpleDateFormat);
     }

@@ -3,7 +3,6 @@ package com.lhs.service.survey;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
-import com.lhs.entity.po.survey.*;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.*;
@@ -23,10 +22,11 @@ public interface OperatorDataService  {
      * 找回用户填写的数据
      * @return 成功消息
      */
-    List<OperatorProgressionDataDTO> getUserOperatorInfo(String token);
+    List<OperatorProgressionDataDTO> listOperatorProgressionData(String token);
 
 
     Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO);
 
 
+    void backupOperatorProgressionData();
 }
