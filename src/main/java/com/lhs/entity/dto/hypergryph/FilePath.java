@@ -1,42 +1,42 @@
 package com.lhs.entity.dto.hypergryph;
 
 public class FilePath {
-    private String GithubBotResource;
-    private String GithubGameData;
-    private String JsonBuild;
+    private String arknightsGameResourcePath;
+    private String arknightsGameDataPath;
+    private String JsonOutputPath;
 
-    private String ImagePath;
+    private String ImageOutputPath;
 
 
-    public String getGithubBotResource() {
-        return GithubBotResource;
+    public String getArknightsGameResourcePath() {
+        return arknightsGameResourcePath;
     }
 
-    public void setGithubBotResource(String githubBotResource) {
-        GithubBotResource = githubBotResource;
+    public void setArknightsGameResourcePath(String arknightsGameResourcePath) {
+        this.arknightsGameResourcePath = arknightsGameResourcePath;
     }
 
-    public String getGithubGameData() {
-        return GithubGameData;
+    public String getArknightsGameDataPath() {
+        return arknightsGameDataPath;
     }
 
-    public void setGithubGameData(String githubGameData) {
-        GithubGameData = githubGameData;
+    public void setArknightsGameDataPath(String arknightsGameDataPath) {
+        this.arknightsGameDataPath = arknightsGameDataPath;
     }
 
-    public String getJsonBuild() {
-        return JsonBuild;
+    public String getJsonOutputPath() {
+        return JsonOutputPath;
     }
 
-    public void setJsonBuild(String jsonBuild) {
-        JsonBuild = jsonBuild;
+    public void setJsonOutputPath(String jsonOutputPath) {
+        JsonOutputPath = jsonOutputPath;
     }
 
-    public String getImagePath() {
-        return ImagePath;
+    public String getImageOutputPath() {
+        return ImageOutputPath;
     }
 
-    public void setImagePath(String imagePath) {
-        ImagePath = imagePath;
+    public void setImageOutputPath(String imageOutputPath) {
+        ImageOutputPath = imageOutputPath;
     }
 }

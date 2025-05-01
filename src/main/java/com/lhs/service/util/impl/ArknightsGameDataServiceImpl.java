@@ -22,17 +22,6 @@ import java.util.regex.Pattern;
 public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
-//    private final static String githubBotResource = "C:/VCProject/ArknightsGameResource/";
-//    private final static String GAME_DATA = "C:/IDEAProject/ArknightsGameData/zh_CN/gamedata/";
-//    private final static String JSON_BUILD = "C:/VCProject/frontend-v2-plus/";
-
-    //工位上的开发路径
-    //泰迪的仓库
-    private final static String githubBotResource = "C:/WebStormProject/ArknightsGameResource/";
-    //PRTS的仓库
-    private final static String GAME_DATA = "C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/";
-    //输出路径
-    private final static String JSON_BUILD = "C:/WebStormProject/frontend-v2-plus/";
 
     // 测试路径
 //    private final static String GAME_DATA = "C:/Users/22509/Downloads/";
@@ -79,18 +68,17 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
 
-
     @Override
     public void getAvatar(FilePath filePath) {
         try {
             // 创建流对象
 
-            String character_tableStr = FileUtil.read(filePath.getGithubGameData() + "excel/character_table.json");
+            String character_tableStr = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/character_table.json");
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
 
-            String startPath = filePath.getGithubBotResource() + "avatar/";
+            String startPath = filePath.getArknightsGameResourcePath() + "avatar/";
 
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
@@ -103,7 +91,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 File source = new File(startPath + charId + ".png");
 
 
-                String  endPath = filePath.getImagePath();
+                String  endPath = filePath.getImageOutputPath();
 
                 File tmpFile = new File(endPath);//获取文件夹路径
 
@@ -122,15 +110,15 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
     @Override
-    public void getOperatorInfoSimpleTable() {
+    public void getOperatorInfoSimpleTable(FilePath filePath) {
         //干员信息
-        String character_tableText = FileUtil.read(GAME_DATA + "excel/character_table.json");
+        String character_tableText = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/character_table.json");
         JsonNode characterTable = JsonMapper.parseJSONObject(character_tableText);
         Iterator<Map.Entry<String, JsonNode>> characterTableFields = characterTable.fields();
 
 
         //生变干员信息
-        String char_patch_tableText = FileUtil.read(GAME_DATA + "excel/char_patch_table.json");
+        String char_patch_tableText = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/char_patch_table.json");
         JsonNode charPatchTable = JsonMapper.parseJSONObject(char_patch_tableText);
         JsonNode patchChars = charPatchTable.get("patchChars");
         Iterator<Map.Entry<String, JsonNode>> patchCharsFields = patchChars.fields();
@@ -141,8 +129,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
 
-        Map<Object, String> skillMap = getSkillMap();
-        Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap();
+        Map<Object, String> skillMap = getSkillMap(filePath);
+        Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap(filePath);
 
         while (characterTableFields.hasNext()) {
             String charId = characterTableFields.next().getKey();
@@ -175,20 +163,86 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         }
 
 
-        FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/operator/",
+        FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/operator/",
                 "character_table_simple.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
 
 
-        FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/operator/",
+        FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/operator/",
                 "operator_item_cost_table.json", JsonMapper.toJSONString(itemCostMap));
 
     }
 
-    private Map<String, List<Map<String, Object>>> getEquipInfoMap() {
+
+
+    @Override
+    public void getBuildingTable(FilePath filePath) {
+        //读取基建相关解包文件
+        String read = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/building_data.json");
+        String read1 = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/character_table.json");
+
+
+        //获取干员部分信息，测试时需分离
+
+
+        JsonNode building = JsonMapper.parseJSONObject(read);
+        JsonNode characters = JsonMapper.parseJSONObject(read1);
+        JsonNode buffs = building.get("buffs");
+        JsonNode chars = building.get("chars");
+        List<BuildingData> buildingDataList = new ArrayList<>();
+        for (JsonNode jsonNode : chars) {
+            String charId = jsonNode.get("charId").asText();
+            JsonNode character = characters.get(charId);
+            String name = character.get("name").asText();
+            JsonNode buffChar = jsonNode.get("buffChar");
+            for (JsonNode buffCharElement : buffChar) {
+                JsonNode buffData = buffCharElement.get("buffData");
+                for (JsonNode buffDataElement : buffData) {
+                    String buffId = buffDataElement.get("buffId").asText();
+                    JsonNode cond = buffDataElement.get("cond");
+                    BuildingData buildingData = new BuildingData();
+                    buildingData.setCharId(charId);
+                    buildingData.setLevel(cond.get("level").asInt());
+                    buildingData.setPhase(getPhase(cond.get("phase").asText()));
+                    JsonNode buff = buffs.get(buffId);
+                    if (buff == null) continue;
+
+
+                    String buffName = buff.get("buffName").asText();
+                    String buffColor = buff.get("buffColor").asText();
+                    String textColor = buff.get("textColor").asText();
+                    String description = buff.get("description").asText();
+                    String roomType = buff.get("buffIcon").asText();
+                    buildingData.setBuffName(buffName);
+                    buildingData.setBuffColor(buffColor);
+                    buildingData.setTextColor(textColor);
+//                    if (name.equals("假日威龙陈")) {
+//                        System.out.println(description);
+//                    }
+
+                    buildingData.setDescription(replaceDescription(description));
+                    buildingData.setRoomType(roomType);
+                    buildingData.setName(name);
+                    buildingDataList.add(buildingData);
+
+                }
+            }
+        }
+
+
+//        Map<String, List<BuildingData>> collect = buildingDataList.stream()
+//                .collect(Collectors.groupingBy(BuildingData::getRoomType));
+//        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
+        Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
+        FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        // 测试输出路径
+//        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
+    }
+
+    private Map<String, List<Map<String, Object>>> getEquipInfoMap(FilePath filePath) {
 
         Map<String, List<Map<String, Object>>> equipInfoMap = new HashMap<>();
 
-        String uniequip_tableText = FileUtil.read(GAME_DATA + "excel/uniequip_table.json");
+        String uniequip_tableText = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/uniequip_table.json");
         JsonNode uniequip_table = JsonMapper.parseJSONObject(uniequip_tableText);
         JsonNode equipDict = uniequip_table.get("equipDict");
         Iterator<Map.Entry<String, JsonNode>> equipDictElements = equipDict.fields();
@@ -253,8 +307,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         return equipInfoMap;
     }
 
-    private Map<Object, String> getSkillMap() {
-        String skill_tableText = FileUtil.read(GAME_DATA + "excel/skill_table.json");
+    private Map<Object, String> getSkillMap(FilePath filePath) {
+        String skill_tableText = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/skill_table.json");
         JsonNode skillTable = JsonMapper.parseJSONObject(skill_tableText);
         Map<Object, String> skillMap = new HashMap<>();
         Iterator<Map.Entry<String, JsonNode>> skillTableElements = skillTable.fields();
@@ -403,71 +457,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         return operator;
     }
 
-    @Override
-    public void getBuildingTable() {
-        //读取基建相关解包文件
-        String read = FileUtil.read(GAME_DATA + "excel/building_data.json");
-        String read1 = FileUtil.read(GAME_DATA + "excel/character_table.json");
-//        测试路径
-//        String read = FileUtil.read(GAME_DATA + "building_data.json");
-//        String read1 = FileUtil.read(GAME_DATA + "character_table.json");
 
-        //获取干员部分信息，测试时需分离
-
-
-        JsonNode building = JsonMapper.parseJSONObject(read);
-        JsonNode characters = JsonMapper.parseJSONObject(read1);
-        JsonNode buffs = building.get("buffs");
-        JsonNode chars = building.get("chars");
-        List<BuildingData> buildingDataList = new ArrayList<>();
-        for (JsonNode jsonNode : chars) {
-            String charId = jsonNode.get("charId").asText();
-            JsonNode character = characters.get(charId);
-            String name = character.get("name").asText();
-            JsonNode buffChar = jsonNode.get("buffChar");
-            for (JsonNode buffCharElement : buffChar) {
-                JsonNode buffData = buffCharElement.get("buffData");
-                for (JsonNode buffDataElement : buffData) {
-                    String buffId = buffDataElement.get("buffId").asText();
-                    JsonNode cond = buffDataElement.get("cond");
-                    BuildingData buildingData = new BuildingData();
-                    buildingData.setCharId(charId);
-                    buildingData.setLevel(cond.get("level").asInt());
-                    buildingData.setPhase(getPhase(cond.get("phase").asText()));
-                    JsonNode buff = buffs.get(buffId);
-                    if (buff == null) continue;
-
-
-                    String buffName = buff.get("buffName").asText();
-                    String buffColor = buff.get("buffColor").asText();
-                    String textColor = buff.get("textColor").asText();
-                    String description = buff.get("description").asText();
-                    String roomType = buff.get("buffIcon").asText();
-                    buildingData.setBuffName(buffName);
-                    buildingData.setBuffColor(buffColor);
-                    buildingData.setTextColor(textColor);
-//                    if (name.equals("假日威龙陈")) {
-//                        System.out.println(description);
-//                    }
-
-                    buildingData.setDescription(replaceDescription(description));
-                    buildingData.setRoomType(roomType);
-                    buildingData.setName(name);
-                    buildingDataList.add(buildingData);
-
-                }
-            }
-        }
-
-
-//        Map<String, List<BuildingData>> collect = buildingDataList.stream()
-//                .collect(Collectors.groupingBy(BuildingData::getRoomType));
-//        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
-        Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
-        FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
-        // 测试输出路径
-//        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
-    }
 
     private Integer getPhase(String text) {
         return Integer.parseInt(text.replace("PHASE_", ""));
@@ -586,8 +576,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
     @Override
-    public void getTermDescriptionTable() {
-        String read = FileUtil.read(GAME_DATA + "excel/gamedata_const.json");
+    public void getTermDescriptionTable(FilePath filePath) {
+        String read = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/gamedata_const.json");
         // 测试路径
 //        String read = FileUtil.read(GAME_DATA + "gamedata_const.json");
         JsonNode rootNode = JsonMapper.parseJSONObject(read);
@@ -595,7 +585,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (termDescriptionDict != null) {
             Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
-            FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+            FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
             // 测试输出路径
 //            FileUtil.save(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
         }
@@ -639,8 +629,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
     @Override
-    public void getSandboxFoodsTable() {
-        String read = FileUtil.read(GAME_DATA + "excel/sandbox_perm_table.json");
+    public void getSandboxFoodsTable(FilePath filePath) {
+        String read = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/sandbox_perm_table.json");
 //        String read = FileUtil.read(GAME_DATA + "sandbox_perm_table.json");
         JsonNode rootNode = JsonMapper.parseJSONObject(read);
         JsonNode v2FoodsDetail = rootNode.get("detail").get("SANDBOX_V2").get("sandbox_1");
@@ -648,7 +638,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
         if (v2FoodsDetail != null) {
             Map<String, Object> foodsMap = createFoodsDataJson(v2FoodsDetail.get("foodMatData"), v2FoodsDetail.get("foodData"), v2ItemData);
-            FileUtil.saveJsonFile(JSON_BUILD + "src/static/json/build/", "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
+            FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/build/", "sandbox_foods_v2.json", JsonMapper.toJSONString(foodsMap));
         }
     }
 
