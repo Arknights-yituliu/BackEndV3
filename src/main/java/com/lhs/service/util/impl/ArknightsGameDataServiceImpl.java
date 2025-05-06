@@ -158,6 +158,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
             Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
+
+            operatorItemCost.put("elite",new ArrayList<>());
+            operatorItemCost.put("allSkill",new ArrayList<>());
             itemCostMap.put(charId, operatorItemCost);
             operatorInfoSimpleMap.put(charId, operatorInfo);
         }
