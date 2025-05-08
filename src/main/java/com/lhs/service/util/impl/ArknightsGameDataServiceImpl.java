@@ -345,8 +345,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             //获取技能图标
             String iconId = skillMap.get(skillId + "icon");
             //将部分特殊符号替换
-            iconId = iconId.replace("[", "_");
-            iconId = iconId.replace("]", "_");
+            iconId = iconId.replace("[", "x5b");
+            iconId = iconId.replace("]", "x5d");
             HashMap<Object, Object> skill = new HashMap<>();
             //保存技能的图标和名称
             skill.put("iconId", iconId);
