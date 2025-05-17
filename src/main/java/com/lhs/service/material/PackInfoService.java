@@ -150,14 +150,14 @@ public class PackInfoService {
         PackInfo packInfoById = packInfoMapper.selectOne(queryWrapper);
 
         String message = "新增礼包成功";
-
+        packInfo.setCreateTime(currentDate);
         //判断是新礼包还是旧礼包
         if (packInfoById == null) {
             //新礼包直接生成一个id保存到数据库
             packInfo.setId(idGenerator.nextId());
             packInfo.setDeleteFlag(false);
             packInfoMapper.insert(packInfo);
-            packInfo.setCreateTime(currentDate);
+
         } else {
             //如果旧礼包存在则根据id更新
             packInfoMapper.updateById(packInfo);
