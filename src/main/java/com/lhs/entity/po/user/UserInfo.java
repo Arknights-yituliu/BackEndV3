@@ -17,7 +17,7 @@ import java.util.Date;
 @TableName
 public class UserInfo {
     @TableId
-    private Long id;   //唯一id （自增
+    private Long id;
     private String userName;  //用户名称
     @TableField(value = "pass_word")
     private String password; //密码

@@ -10,19 +10,16 @@ public class ConfigUtil implements InitializingBean {
 
     @Value("${resourcesPath.penguin}")
     private String penguin;  //    企鹅物流数据文件路径
-    @Value("${resourcesPath.item}")
-    private String item;  //    材料相关数据文件路径
-
-    @Value("${resourcesPath.schedule}")
-    private String schedule;  //    排班文件路径
+    @Value("${resourcesPath.config}")
+    private String config;  //    材料相关数据文件路径
 
     @Value("${encryption.secret}")
     private String secret;
     @Value("${encryption.signKey}")
     private String signKey;
 
-    @Value("${resourcesPath.resources}")
-    private String resources;
+    @Value("${resourcesPath.backup}")
+    private String backup;
 
     @Value("${penguin.auto}")
     private String penguinAuto;
@@ -40,10 +37,14 @@ public class ConfigUtil implements InitializingBean {
     @Value("${tencent.secretKey}")
     private String cosSecretKey;
 
-    public static String Penguin;
-    public static String Item;
 
-    public static String Schedule;
+
+    public static String Penguin;
+    public static String Config;
+
+
+
+    public static String Backup;
 
     public static String Secret;
     public static String SignKey;
@@ -54,8 +55,6 @@ public class ConfigUtil implements InitializingBean {
     public static String SKLandPlayerBindingAPI;
     public static String SKLandPlayerInfoAPI;
 
-    public static String Resources;
-
     public static String CosSecretId;
 
     public static String CosSecretKey;
@@ -63,11 +62,11 @@ public class ConfigUtil implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         Penguin = penguin;
-        Item = item;
-        Resources = resources;
+        Config = config;
+        Backup = backup;
 
 
-        Schedule = schedule;
+
         Secret = secret;
         SignKey = signKey;
 

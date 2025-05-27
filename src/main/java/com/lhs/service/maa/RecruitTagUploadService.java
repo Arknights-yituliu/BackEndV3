@@ -2,7 +2,9 @@ package com.lhs.service.maa;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.LogUtils;
 import com.lhs.entity.po.maa.RecruitData;
 import com.lhs.entity.po.maa.RecruitStatistics;
 import com.lhs.mapper.survey.RecruitDataMapper;
@@ -21,9 +23,11 @@ public class RecruitTagUploadService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private final IdGenerator idGenerator;
     public RecruitTagUploadService(RecruitDataMapper recruitDataMapper, RedisTemplate<String, Object> redisTemplate) {
         this.recruitDataMapper = recruitDataMapper;
         this.redisTemplate = redisTemplate;
+        this.idGenerator = new IdGenerator(1L);
     }
 
     private String getDBTableIndex() {
@@ -31,10 +35,9 @@ public class RecruitTagUploadService {
     }
 
     public String saveMaaRecruitDataNew(MaaRecruitVo maaRecruitVo) {
-        Long maaRecruitId = redisTemplate.opsForValue().increment("MaaRecruitId");
         String tableName = getDBTableIndex();
         RecruitData recruitData = RecruitData.builder()
-                .id(maaRecruitId)
+                .id(idGenerator.nextId())
                 .uid(maaRecruitVo.getUuid())
                 .level(maaRecruitVo.getLevel())
                 .server(maaRecruitVo.getServer())
@@ -59,14 +62,24 @@ public class RecruitTagUploadService {
         Date date = new Date();
 
         Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
-        if (lastStatisticsTime == null) lastStatisticsTime = date.getTime() - 10000000;
+
+
+        if (lastStatisticsTime == null){
+            lastStatisticsTime = date.getTime() - 60*60*4*1000;
+        }
+
+
         long lastTime = Long.parseLong(String.valueOf(lastStatisticsTime));
+        long currentTime = System.currentTimeMillis();
+        if(currentTime-lastTime>60*60*4*1000){
+            lastTime = date.getTime() - 60*60*4*1000;
+        }
 
 
         String tableName = getDBTableIndex();
 
         List<RecruitData> recruit_data_DB = recruitDataMapper.selectRecruitDataByCreateTime(tableName, lastTime, date.getTime());
-
+        LogUtils.info("本次公招统计条数为："+recruit_data_DB.size());
 
         Map<Integer, List<RecruitData>> collect = recruit_data_DB.stream()
                 .collect(Collectors.groupingBy(RecruitData::getLevel));

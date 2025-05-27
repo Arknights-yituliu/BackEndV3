@@ -5,9 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @TableName("survey_operator_1")
 public class SurveyOperatorData {
 
@@ -43,4 +40,6 @@ public class SurveyOperatorData {
     private Integer modY;
 
     private Integer modD;
+
+    private Integer modA;
 }

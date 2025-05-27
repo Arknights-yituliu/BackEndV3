@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.IpUtil;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;

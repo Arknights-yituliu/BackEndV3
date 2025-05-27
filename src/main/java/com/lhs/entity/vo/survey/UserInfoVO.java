@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 @Data
 public class UserInfoVO implements Serializable {
@@ -14,6 +15,7 @@ public class UserInfoVO implements Serializable {
 
     private Long uid;
     private String userName;
+    private String nickName;
     @Sensitive(prefixNoMaskLen = 4,suffixNoMaskLen = 6)
     private String email;
     private Integer status;
@@ -21,6 +23,7 @@ public class UserInfoVO implements Serializable {
     private String avatar;
     private String akNickName;
     private String akUid;
+    private Map<String,Object> config;
     private Boolean hasEmail = false;
     private Boolean hasPassword = false;
 }

@@ -2,18 +2,19 @@ package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.enums.StageType;
 import com.lhs.common.util.*;
 import com.lhs.entity.po.material.Stage;
 
 import com.lhs.entity.vo.material.ZoneTableVO;
 import com.lhs.mapper.material.StageMapper;
-import com.lhs.service.util.OSSService;
+
+import com.lhs.service.util.TencentCloudService;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.Resource;
-
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,13 +22,51 @@ import java.util.stream.Collectors;
 @Service
 public class StageService {
 
-    @Resource
-    private StageMapper stageMapper;
-    @Resource
-    private OSSService ossService;
+
+    private final StageMapper stageMapper;
+    private final RedisTemplate<String,Object> redisTemplate;
+
+    private final TencentCloudService tencentCloudService;
+
+    public StageService(StageMapper stageMapper, RedisTemplate<String, Object> redisTemplate, TencentCloudService tencentCloudService) {
+        this.stageMapper = stageMapper;
+        this.redisTemplate = redisTemplate;
+        this.tencentCloudService = tencentCloudService;
+    }
+
 
     public List<Stage> getStageList(QueryWrapper<Stage> queryWrapper) {
         return stageMapper.selectList(queryWrapper);
+    }
+
+
+    @RedisCacheable(key = "StageInfoMap",timeout = 43200)
+    public Map<String, Stage> getStageInfoMap(){
+        List<Stage> stageList = stageMapper.selectList(null);
+
+        return stageList
+                .stream()
+                .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
+    }
+
+    public List<Map<String,Object>> getStageInfo(){
+           List<Map<String,Object>> list = new ArrayList<>();
+           List<Stage> stageList = stageMapper.selectList(null);
+           for(Stage item : stageList){
+               Map<String,Object> map = new HashMap<>();
+               map.put("stageId",item.getStageId());
+               map.put("stageCode",item.getStageCode());
+               map.put("zoneId",item.getZoneId());
+               map.put("zoneName",item.getZoneName());
+               map.put("stageType",item.getStageType());
+               map.put("apCost",item.getApCost());
+               map.put("type",item.getStageType());
+               map.put("spm",item.getSpm());
+               map.put("start",item.getStartTime().getTime());
+               map.put("end",item.getEndTime().getTime());
+               list.add(map);
+           }
+           return list;
     }
 
     public Map<String, Stage> getStageMapKeyIsStageId() {
@@ -90,32 +129,31 @@ public class StageService {
 
 
     public void savePenguinData() {
-        String yyyyMMdd = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // 设置日期格式
-        String yyyyMMddHHmm = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()); // 设置日期格式
-
-
-        String penguinGlobal = ConfigUtil.PenguinGlobal;
-        String responseGlobal = HttpRequestUtil.get(penguinGlobal, new HashMap<>());
-        if (responseGlobal == null) return;
-        FileUtil.save(ConfigUtil.Penguin, "matrix global.json", responseGlobal);
-//        ossService.upload(responseGlobal, "backup/penguin/" + yyyyMMdd + "/matrix global " + yyyyMMddHHmm + ".json");
-
+//        String penguinGlobal = ConfigUtil.PenguinGlobal;
+//        String responseGlobal = HttpRequestUtil.get(penguinGlobal, new HashMap<>());
+//        if (responseGlobal == null) return;
+//        FileUtil.save(ConfigUtil.Penguin, "matrix global.json", responseGlobal);
 
         String penguinAuto = ConfigUtil.PenguinAuto;
         String responseAuto = HttpRequestUtil.get(penguinAuto, new HashMap<>());
         if (responseAuto == null) return;
-        FileUtil.save(ConfigUtil.Penguin, "matrix auto.json", responseAuto);
-//        ossService.upload(responseAuto, "backup/penguin/" + yyyyMMdd + "/matrix auto " + yyyyMMddHHmm + ".json");
+        FileUtil.saveJsonFile(ConfigUtil.Penguin, "penguin.json", responseAuto);
+
+        tencentCloudService.uploadJsonToCOS(responseAuto,"/stage-drop/matrix.json");
     }
 
 
     public void getPenguinStagesDropData(){
         String response = HttpRequestUtil.get("https://penguin-stats.io/PenguinStats/api/v2/stages", new HashMap<>());
         JsonNode stageDtoList = JsonMapper.parseJSONObject(response);
+        List<Stage> stageList = stageMapper.selectList(null);
 
-        Map<String, Stage> stageMap = stageMapper.selectList(null)
+
+        Map<String, Stage> stageMap = stageList
                 .stream()
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
+
+
 
         for(JsonNode jsonNode:stageDtoList){
             String stageId = jsonNode.get("stageId").asText();
@@ -160,8 +198,13 @@ public class StageService {
             JsonNode existence = JsonMapper.parseJSONObject(jsonNode.get("existence").toPrettyString());
             JsonNode existenceCN = existence.get("CN");
 
-            if(existenceCN.get("openTime")!=null)openTime = new Date(existenceCN.get("openTime").asLong());
-            if(existenceCN.get("closeTime")!=null)  endTime = new Date(existenceCN.get("closeTime").asLong());
+            if(existenceCN.get("openTime")!=null){
+                openTime = new Date(existenceCN.get("openTime").asLong());
+            }
+
+            if(existenceCN.get("closeTime")!=null)  {
+                endTime = new Date(existenceCN.get("closeTime").asLong());
+            }
 
             Stage stage = new Stage();
             stage.setStageId(stageId);
@@ -175,9 +218,11 @@ public class StageService {
             stage.setSpm(spm);
             stage.setMinClearTime(minClearTime);
 
-            Logger.info("本次拉取更新的关卡是："+stageId);
+            LogUtils.info("本次拉取更新的关卡是："+stageId);
             stageMapper.insert(stage);
         }
+
+        redisTemplate.delete("StageInfoMap");
 
     }
 

@@ -3,6 +3,8 @@ package com.lhs.common.util;
 
 
 
+import com.lhs.common.enums.ResultCode;
+
 import java.io.Serializable;
 
 /**

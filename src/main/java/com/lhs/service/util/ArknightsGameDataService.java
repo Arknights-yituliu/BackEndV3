@@ -1,7 +1,9 @@
 package com.lhs.service.util;
 
 
-import com.lhs.entity.po.survey.OperatorTable;
+
+
+import com.lhs.entity.dto.hypergryph.FilePath;
 
 import java.util.List;
 import java.util.Map;
@@ -9,35 +11,27 @@ import java.util.Map;
 public interface ArknightsGameDataService {
 
 
+    void saveOperatorDataTag(String tag);
+    String getOperatorDataTag();
 
-    Map<String, String> getEquipIdAndType();
-
-    /**
-     * 获取干员信息集合，里面主要用到干员的获取方式和实装时间
-     * @return
-     */
-    List<OperatorTable> getOperatorTable();
-
-    void getOperatorInfoSimpleTable();
+    void getOperatorInfoSimpleTable(FilePath filePath);
 
     /**
      * 生成基建技能一览json
      */
-    void getBuildingTable();
+    void getBuildingTable(FilePath filePath);
 
     /**
      * 生成术语对应表json
      */
-    void getTermDescriptionTable();
+    void getTermDescriptionTable(FilePath filePath);
 
     /**
      * 生成生息演算食物/食材一览表json
      */
-    void getSandboxFoodsTable();
+    void getSandboxFoodsTable(FilePath filePath);
 
-    void getPortrait();
-
-    void getAvatar();
+    void getAvatar(FilePath filePath);
 
 
 }

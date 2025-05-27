@@ -1,20 +1,17 @@
 package com.lhs.entity.dto.material;
 
-import com.alibaba.excel.annotation.ExcelProperty;
-
 public class ItemCustomValueDTO {
 
-    @ExcelProperty("物品名称")
-    private String itemName;
-    @ExcelProperty("等效理智价值")
+    private String itemId;
+
     private Double itemValue;
 
-    public String getItemName() {
-        return itemName;
+    public String getItemId() {
+        return itemId;
     }
 
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
     }
 
     public Double getItemValue() {
@@ -28,7 +25,7 @@ public class ItemCustomValueDTO {
     @Override
     public String toString() {
         return "ItemCustomValue{" +
-                "itemName='" + itemName + '\'' +
+                "itemName='" + itemId + '\'' +
                 ", itemValue='" + itemValue + '\'' +
                 '}';
     }

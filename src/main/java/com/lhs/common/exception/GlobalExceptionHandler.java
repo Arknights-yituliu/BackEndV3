@@ -1,7 +1,7 @@
 package com.lhs.common.exception;
 
 
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.Result;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-	
+
+
+
 	@ResponseBody
     @ExceptionHandler(Exception.class)
     public Object handleException(Exception e) {
@@ -23,9 +25,19 @@ public class GlobalExceptionHandler {
 			result = Result.failure(((ServiceException) e).getResultCode());
 		}
 		else {
-			Logger.error(e.getMessage());
+			String message = e.getMessage();
 			e.printStackTrace();
-            result = Result.failure(500, "服务器内部错误");
+			if(message.contains("database")){
+				int index = message.indexOf("###");
+				if(index>-1){
+					int endIndex = message.indexOf("###", index + 3);
+					if(endIndex>-1){
+						message = message.substring(0,endIndex);
+					}
+				}
+
+			}
+            result = Result.failure(500, message);
 		}
 		return result;
     }

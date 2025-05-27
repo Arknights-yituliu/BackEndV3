@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.material.StageDropMapper">
+
+    <select id="countByDate" resultType="Integer">
+        SELECT COUNT(*)
+        FROM stage_drop
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+    </select>
+
+    <select id="listStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
+        SELECT *
+        FROM stage_drop
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+    </select>
+
+    <select id="listOldStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
+        SELECT *
+        FROM ${tableName}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+    </select>
+
+    <insert id="insertBatch">
+        INSERT INTO stage_drop
+        (id, stage_id, drops, times, server, source, create_time, uid, version)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},#{item.stageId},#{item.drops},#{item.times},
+            #{item.server},#{item.source},#{item.createTime},#{item.uid},#{item.version})
+        </foreach>
+    </insert>
+
+    <insert id="insertBatchByTable">
+        INSERT INTO ${table}
+        (id, stage_id, drops, times, server, source, create_time, uid, version)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},#{item.stageId},#{item.drops},#{item.times},
+            #{item.server},#{item.source},#{item.createTime},#{item.uid},#{item.version})
+        </foreach>
+    </insert>
+
+
+
+</mapper>

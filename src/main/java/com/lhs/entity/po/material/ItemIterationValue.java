@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 
 @TableName("item_iteration_value")
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ItemIterationValue {
     @TableId
     private Long id;
@@ -17,4 +15,5 @@ public class ItemIterationValue {
     private String itemId;
     private Double iterationValue;
     private String version;
+    private String stageCode;
 }

@@ -3,25 +3,31 @@ package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.enums.ResultCode;
+import com.lhs.entity.dto.material.PackInfoDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.ImageInfo;
-import com.lhs.entity.po.material.PackContent;
+import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.PackInfo;
-import com.lhs.entity.po.material.PackItem;
+import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.material.PackContentVO;
 import com.lhs.entity.vo.material.PackInfoVO;
-import com.lhs.mapper.material.PackContentMapper;
+import com.lhs.entity.vo.material.PackInfoVOV5;
 import com.lhs.mapper.material.PackInfoMapper;
-import com.lhs.mapper.material.PackItemMapper;
-import com.lhs.mapper.material.service.PackContentMapperService;
+import com.lhs.mapper.material.ItemCustomMapper;
 import com.lhs.service.admin.ImageInfoService;
-import com.lhs.service.util.COSService;
+import com.lhs.service.util.TencentCloudService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,51 +35,42 @@ import java.util.stream.Collectors;
 public class PackInfoService {
 
     private final PackInfoMapper packInfoMapper;
-    private final PackContentMapper packContentMapper;
-    private final PackItemMapper packItemMapper;
+
+    private final ItemCustomMapper itemCustomMapper;
     private final IdGenerator idGenerator;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final COSService cosService;
-    private final PackContentMapperService packContentMapperService;
+    private final TencentCloudService tencentCloudService;
+
+    private final ItemService itemService;
     private final ImageInfoService imageInfoService;
 
-    public PackInfoService(PackInfoMapper packInfoMapper, PackContentMapper packContentMapper, RedisTemplate<String, Object> redisTemplate, COSService cosService, PackContentMapperService packContentMapperService, PackItemMapper packItemMapper, ImageInfoService imageInfoService) {
-        this.packInfoMapper = packInfoMapper;
-        this.packContentMapper = packContentMapper;
-        this.redisTemplate = redisTemplate;
-        this.idGenerator = new IdGenerator(1L);
 
-        this.cosService = cosService;
-        this.packContentMapperService = packContentMapperService;
-        this.packItemMapper = packItemMapper;
+    public PackInfoService(PackInfoMapper packInfoMapper,
+                           RedisTemplate<String, Object> redisTemplate,
+                           TencentCloudService tencentCloudService,
+                           ItemCustomMapper itemCustomMapper,
+                           ItemService itemService,
+                           ImageInfoService imageInfoService) {
+        this.packInfoMapper = packInfoMapper;
+        this.redisTemplate = redisTemplate;
+        this.itemService = itemService;
+        this.idGenerator = new IdGenerator(1L);
+        this.tencentCloudService = tencentCloudService;
+        this.itemCustomMapper = itemCustomMapper;
         this.imageInfoService = imageInfoService;
     }
 
-
-    public String packInfoTag(){
-        Object packInfoTag = redisTemplate.opsForValue().get("PackInfoTag");
-        return packInfoTag!=null?packInfoTag.toString():"NO_DATA";
-    }
-
-    public List<PackInfoVO> listPackInfo() {
-        return listAllPackInfo();
-    }
-
-
-    public List<PackInfoVO> listAllPackInfo() {
+    public List<PackInfoVO> listAllPackInfo(StageConfigDTO stageConfigDTO) {
         //查询所有礼包
         LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
         packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
         List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
 
-        //根据上面内容id的集合对礼包内容进行查询
-        List<PackContent> packContentList = packContentMapper.selectList(null);
-
-        //查询出来的礼包内容根据packId进行一个分组
-        Map<Long, List<PackContent>> mapPackContentByContentId = packContentList.stream().collect(Collectors.groupingBy(PackContent::getContentId));
 
         //将礼包价值表转为map对象，方便使用
-        Map<String, Double> itemValueMap = packItemMapper.selectList(null).stream().collect(Collectors.toMap(PackItem::getId, PackItem::getValue));
+        Map<String, Double> itemValueMap = listCustomItem(stageConfigDTO)
+                .stream()
+                .collect(Collectors.toMap(ItemCustom::getItemId, ItemCustom::getItemValue));
 
         List<PackInfoVO> VOList = new ArrayList<>();
 
@@ -81,7 +78,7 @@ public class PackInfoService {
         Map<String, String> imageLinkMap = imageInfoList.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
 
         for (PackInfo packInfo : packInfoList) {
-            PackInfoVO packInfoVO = getPackInfoVO(packInfo, mapPackContentByContentId.get(packInfo.getContentId()));
+            PackInfoVO packInfoVO = getPackInfoVO(packInfo);
             packInfoVO.setImageLink(imageLinkMap.get(packInfo.getOfficialName()));
             VOList.add(packInfoVO);
             packPromotionRatioCalc(packInfoVO, itemValueMap);
@@ -89,129 +86,189 @@ public class PackInfoService {
         return VOList;
     }
 
+    public List<PackInfoVO> listPackInfo(StageConfigDTO stageConfigDTO) {
+        return listAllPackInfo(stageConfigDTO);
+    }
 
-    public String saveOrUpdatePackInfo(PackInfoVO packInfoVO) {
+    @RedisCacheable(key = "Item:PackInfo", timeout = 43200)
+    public List<PackInfoVOV5> listPackInfo() {
+        //查询所有礼包
+        LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
+        packInfoQueryWrapper.eq(PackInfo::getDeleteFlag, false);
+        List<PackInfo> packInfoList = packInfoMapper.selectList(packInfoQueryWrapper);
+        List<PackInfoVOV5> packInfoVOV5List = new ArrayList<>();
+        List<ImageInfo> imageInfoList = imageInfoService.listImageInfo("");
+        Map<String, String> imageLinkMap = imageInfoList.stream().collect(Collectors.toMap(ImageInfo::getImageName, ImageInfo::getImageLink));
+
+        for (PackInfo packInfo : packInfoList) {
+            PackInfoVOV5 packInfoVOV5 = new PackInfoVOV5();
+            packInfoVOV5.copy(packInfo);
+            String imageLink = imageLinkMap.get(packInfo.getOfficialName());
+            if (imageLink != null) {
+                packInfoVOV5.setImageLink(imageLink);
+            }
+            packInfoVOV5List.add(packInfoVOV5);
+        }
+
+        return packInfoVOV5List;
+    }
+
+
+    public String getPackInfoVersion() {
+
+        Object key = redisTemplate.opsForValue().get("Item:PackInfoVersion");
+
+        if(key==null){
+            return "2025/04/27 00:00:00";
+        }
+
+        return key.toString();
+
+    }
+
+    /**
+     * 保存或更新礼包
+     *
+     * @param packInfoDTO 礼包信息
+     * @return 成功消息
+     */
+    public String saveOrUpdatePackInfo(PackInfoDTO packInfoDTO) {
         Date currentDate = new Date();
         //创建一个po对象存储数据
         PackInfo packInfo = new PackInfo();
         //将VO类的数据传递给po
-        packInfo.copy(packInfoVO);
-        Long contentId = idGenerator.nextId();
-        packInfo.setContentId(contentId);
+        packInfo.copy(packInfoDTO);
+
+        if (packInfoDTO.getPackContent() != null) {
+            String content = JsonMapper.toJSONString(packInfoDTO.getPackContent());
+            packInfo.setContent(content);
+        }
 
         //旧礼包需要更新,通过id查询旧礼包的信息
         LambdaQueryWrapper<PackInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(PackInfo::getId, packInfoVO.getId());
+        queryWrapper.eq(PackInfo::getId, packInfoDTO.getId());
         PackInfo packInfoById = packInfoMapper.selectOne(queryWrapper);
 
         String message = "新增礼包成功";
-
+        packInfo.setCreateTime(currentDate);
         //判断是新礼包还是旧礼包
         if (packInfoById == null) {
             //新礼包直接生成一个id保存到数据库
             packInfo.setId(idGenerator.nextId());
-            packInfo.setCreateTime(new Date());
             packInfo.setDeleteFlag(false);
             packInfoMapper.insert(packInfo);
-            packInfo.setCreateTime(currentDate);
+
         } else {
-            Long oldContentId = packInfoById.getContentId();
-            int deleteRows = packContentMapper.deleteById(oldContentId);
             //如果旧礼包存在则根据id更新
             packInfoMapper.updateById(packInfo);
-            message = "更新礼包成功，删除了" + deleteRows + "条内容数据";
+            message = "更新礼包成功";
         }
 
-        //礼包id
-        Long packId = packInfo.getId();
+        redisTemplate.delete("Item:PackInfo");
 
-        //礼包没有除四种抽卡资源之外内容直接返回礼包信息
-        if (packInfoVO.getPackContent() == null) {
-            return message;
-        }
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
+        // 定义格式化模式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        // 格式化为字符串
+        String formattedDateTime = now.format(formatter);
 
-        //礼包的额外内容
-        List<PackContentVO> packContentVOList = packInfoVO.getPackContent();
-        //创建一个礼包额外内容的po类的集合
-        List<PackContent> packContentList = new ArrayList<>();
-        //将vo类的内容拷贝到po,同时生成礼包id
-        for (PackContentVO packContentVO : packContentVOList) {
-            PackContent packContent = new PackContent();
-            packContent.copy(packContentVO);
-            packContent.setId(idGenerator.nextId());
-            packContent.setContentId(contentId);
-            packContent.setPackId(packId);
-            packContentList.add(packContent);
-        }
-
-
-        //批量保存
-        packContentMapperService.saveBatch(packContentList);
-
-        redisTemplate.delete("Item:PackData");
+        redisTemplate.opsForValue().set("Item:PackInfoVersion",formattedDateTime);
 
         return message;
     }
 
 
+    /**
+     * 根据礼包id获取礼包信息
+     * @param idStr 礼包id
+     * @return 礼包信息
+     */
     public PackInfoVO getPackById(String idStr) {
         long id = Long.parseLong(idStr);
         PackInfo packInfo = packInfoMapper.selectOne(new QueryWrapper<PackInfo>().eq("id", id));
-        LambdaQueryWrapper<PackContent> packContentQueryWrapper = new LambdaQueryWrapper<>();
-        packContentQueryWrapper.eq(PackContent::getContentId, packInfo.getContentId());
-        List<PackContent> packContentList = packContentMapper.selectList(packContentQueryWrapper);
-        return getPackInfoVO(packInfo, packContentList);
-    }
 
-
-    public PackItem saveOrUpdatePackItem(PackItem newPackItem) {
-        QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", newPackItem.getId());
-        PackItem packItem = packItemMapper.selectOne(queryWrapper);
-        if (packItem == null) {
-            newPackItem.setId(String.valueOf(idGenerator.nextId()));
-            packItemMapper.insert(newPackItem);
-        } else {
-            packItemMapper.update(newPackItem, queryWrapper);
+        PackInfoVO packInfoVO = getPackInfoVO(packInfo);
+        ImageInfo imageInfo = imageInfoService.getImageInfo(packInfo.getOfficialName());
+        if (imageInfo != null) {
+            packInfoVO.setImageLink(imageInfo.getImageLink());
         }
-        return newPackItem;
+        return packInfoVO;
     }
 
 
-    public List<PackItem> listPackItem() {
-        return packItemMapper.selectList(null);
+    /**
+     * 保存或更新自定义材料
+     * @param newItemCustom 自定义材料信息
+     * @return  自定义材料信息
+     */
+    public ItemCustom saveOrUpdateCustomItem(ItemCustom newItemCustom) {
+        LambdaQueryWrapper<ItemCustom> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ItemCustom::getItemId, newItemCustom.getItemId());
+        ItemCustom itemCustom = itemCustomMapper.selectOne(queryWrapper);
+        if (itemCustom == null) {
+            newItemCustom.setItemId(String.valueOf(idGenerator.nextId()));
+            itemCustomMapper.insert(newItemCustom);
+        } else {
+            itemCustomMapper.update(newItemCustom, queryWrapper);
+        }
+        return newItemCustom;
+    }
+
+    public List<ItemCustom> listCustomItem() {
+        return itemCustomMapper.selectList(null);
+
+    }
+
+    /**
+     * 获取自定义材料信息
+     * @param stageConfigDTO
+     * @return
+     */
+    public List<ItemCustom> listCustomItem(StageConfigDTO stageConfigDTO) {
+
+        List<Item> itemList = itemService.getItemListCache(stageConfigDTO);
+        List<ItemCustom> itemCustomList = new ArrayList<>();
+
+        for (Item item : itemList) {
+            ItemCustom itemCustom = new ItemCustom();
+            itemCustom.setItemId(item.getItemId());
+            itemCustom.setItemValue(item.getItemValueAp());
+            itemCustom.setItemName(item.getItemName());
+            itemCustom.setZoneIndex(item.getCardNum());
+            itemCustomList.add(itemCustom);
+        }
+
+        List<ItemCustom> itemCustoms = itemCustomMapper.selectList(null);
+        itemCustomList.addAll(itemCustoms);
+
+        return itemCustomList;
 
     }
 
 
+    /**
+     * 根据礼包id删除礼包信息
+     * @param id 礼包id
+     * @return 成功消息
+     */
     public String deletePackItemById(String id) {
-        QueryWrapper<PackItem> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<ItemCustom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", id);
-        int delete = packItemMapper.delete(queryWrapper);
+        int delete = itemCustomMapper.delete(queryWrapper);
         return "删除了" + delete + "条物品数据";
     }
 
 
-    public String clearPackInfoCache() {
-        Boolean delete = redisTemplate.delete("Item:PackData");
-        if (Boolean.FALSE.equals(delete)) {
-            throw new ServiceException(ResultCode.REDIS_CLEAR_CACHE_ERROR);
-        }
-        return "缓存清除成功";
-    }
-
-
-    private PackInfoVO getPackInfoVO(PackInfo packInfo, List<PackContent> packContentList) {
+    private PackInfoVO getPackInfoVO(PackInfo packInfo) {
         PackInfoVO packInfoVO = new PackInfoVO();
         packInfoVO.copy(packInfo);
-        if (packContentList != null) {
-            List<PackContentVO> packContentVOList = new ArrayList<>();
-            for (PackContent packContent : packContentList) {
-                PackContentVO packContentVO = new PackContentVO();
-                packContentVO.copy(packContent);
-                packContentVOList.add(packContentVO);
-                packInfoVO.setPackContent(packContentVOList);
-            }
+        String content = packInfo.getContent();
+        if (content != null && content.length() > 10) {
+            List<PackContentVO> packContentVOList = JsonMapper.parseJSONArray(content, new TypeReference<List<PackContentVO>>() {
+            });
+
+            packInfoVO.setPackContent(packContentVOList);
         }
 
         return packInfoVO;
@@ -280,8 +337,8 @@ public class PackInfoService {
 
         packedOriginiumPrice = packedOriginium > 0 ? packInfoVO.getPrice() / packedOriginium : 0;
 
-
         packedOriginiumPriceKernel = packedOriginiumKernel > 0 ? packInfoVO.getPrice() / packedOriginiumKernel : 0;
+
         //综合性价比计算
         packEfficiency = packedOriginiumPrice > 0 ? eachOriginalOriginiumPrice / packedOriginiumPrice : 0;
         packEfficiencyKernel = packedOriginiumPriceKernel > 0 ? eachOriginalOriginiumPrice / packedOriginiumPriceKernel : 0;
@@ -313,15 +370,15 @@ public class PackInfoService {
         packInfoVO.setPackEfficiencyKernel(packEfficiencyKernel);
     }
 
-    public void uploadPackInfoPageToCos(){
-        List<PackInfoVO> packInfoVOS = listPackInfo();
-        Map<String,Object> response = new HashMap<>();
+    public void uploadPackInfoPageToCos(StageConfigDTO stageConfigDTO) {
+        List<PackInfoVO> packInfoVOS = listPackInfo(stageConfigDTO);
+        Map<String, Object> response = new HashMap<>();
         long timeStamp = System.currentTimeMillis();
-        response.put("data",packInfoVOS);
-        response.put("update",timeStamp);
+        response.put("data", packInfoVOS);
+        response.put("update", timeStamp);
         String jsonString = JsonMapper.toJSONString(response);
-        cosService.uploadJson(jsonString,"/store/pack/"+timeStamp+".json");
-        redisTemplate.opsForValue().set("PackInfoTag",timeStamp);
+        tencentCloudService.uploadJsonToCOS(jsonString, "/store/pack/" + timeStamp + ".json");
+        redisTemplate.opsForValue().set("PackInfoTag", timeStamp);
     }
 
     public String deletePackInfoById(String id) {
@@ -331,4 +388,7 @@ public class PackInfoService {
         int delete = packInfoMapper.updateById(packInfo);
         return "删除了" + delete + "条礼包数据";
     }
+
+
+
 }

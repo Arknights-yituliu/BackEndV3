@@ -30,9 +30,6 @@ public class SensitiveSerialize extends JsonSerializer<String> implements Contex
     }
 
 
-
-
-
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider serializerProvider, BeanProperty beanProperty) throws JsonMappingException {
         if (beanProperty != null) {

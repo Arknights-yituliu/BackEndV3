@@ -3,7 +3,7 @@ package com.lhs.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.Logger;
+import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.material.StageDropDTO;
 import com.lhs.service.maa.StageDropUploadService;
@@ -65,9 +65,8 @@ public class MaaController {
 
     @Operation(summary = "MAA关卡掉落上传")
     @PostMapping("/upload/stageDrop")
-    public Result<Object> stageDropUpload(HttpServletRequest httpServletRequest, @RequestBody StageDropDTO stageDropDTO) {
-        ;
-        return Result.success(stageDropUploadService.saveStageDrop(httpServletRequest, stageDropDTO));
+    public void stageDropUpload(HttpServletRequest httpServletRequest, @RequestBody StageDropDTO stageDropDTO) {
+        stageDropUploadService.saveStageDrop(httpServletRequest, stageDropDTO);
     }
 
     @Operation(summary = "生成基建排班协议文件")
@@ -82,12 +81,7 @@ public class MaaController {
     }
 
 
-    @Operation(summary = "导出基建排班协议文件")
-    @GetMapping("/schedule/export")
-    public void exportMaaScheduleJson(HttpServletResponse response, @RequestParam Long schedule_id) {
-        Logger.info("导出的排班id是：" + schedule_id);
-        scheduleService.exportScheduleFile(response, schedule_id);
-    }
+
 
     @Operation(summary = "找回基建排班协议文件")
     @GetMapping("/schedule/retrieve")

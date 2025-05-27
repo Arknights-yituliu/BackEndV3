@@ -1,8 +1,8 @@
 package com.lhs.service.util.impl;
 
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.Logger;
-import com.lhs.common.util.ResultCode;
+import com.lhs.common.util.LogUtils;
+import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.service.util.Email163Service;
 import jakarta.annotation.Resource;
@@ -20,14 +20,14 @@ public class Email163ServiceImpl implements Email163Service {
     @Resource
     private JavaMailSender javaMailSender;
 
-    private final RedisTemplate<String,Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public Email163ServiceImpl(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     @Override
-    public void sendSimpleEmail(EmailFormDTO email){
+    public void sendSimpleEmail(EmailFormDTO email) {
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
         simpleMailMessage.setFrom(email.getFrom());
         simpleMailMessage.setTo(email.getTo());
@@ -37,7 +37,7 @@ public class Email163ServiceImpl implements Email163Service {
     }
 
     @Override
-    public Integer CreateVerificationCode(String emailAddress, Integer maxCodeNum){
+    public Integer createVerificationCode(String emailAddress, Integer maxCodeNum) {
         int random = new Random().nextInt(8999) + 1000;
         String code = String.valueOf(random);
         redisTemplate.opsForValue().set("CODE:CODE." + emailAddress, code, 300, TimeUnit.SECONDS);
@@ -45,16 +45,23 @@ public class Email163ServiceImpl implements Email163Service {
     }
 
     @Override
-    public Boolean compareVerificationCode(String inputCode,String emailAddress){
-        Object code = redisTemplate.opsForValue().get(emailAddress);
-        Logger.info("输入的验证码："+inputCode+"---------服务端验证码："+code);
-        if(inputCode==null) throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
+    public void compareVerificationCode(String inputCode, String key) {
+        Object code = redisTemplate.opsForValue().get("CODE:CODE." + key);
 
-        if(code==null)throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_EXIST);
+        if (code == null) {
+            throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_EXIST);
+        }
 
-        if(!inputCode.equals(code)) throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
+        LogUtils.info("输入的验证码：" + inputCode + "---------服务端验证码：" + code);
 
-        return true;
+        if (inputCode == null) {
+            throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_ENTER);
+        }
+
+        if (!inputCode.equals(code)) {
+            throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
+        }
+
     }
 
 }
