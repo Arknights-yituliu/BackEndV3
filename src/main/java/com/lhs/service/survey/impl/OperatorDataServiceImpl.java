@@ -208,14 +208,14 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     @Override
     public void backupOperatorProgressionData(){
-
+        String dayText = TimeUtil.getDayText();
         List<OperatorProgressionData> operatorProgressionDataList;
         for (int i = 0; i < 100; i++) {
             operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 500);
             if (operatorProgressionDataList.isEmpty()) {
                 break;
             }
-            FileUtil.saveJsonFile(ConfigUtil.Backup,"operatorProgressionData"+i+".json",JsonMapper.toJSONString(operatorProgressionDataList));
+            FileUtil.saveJsonFile(ConfigUtil.Backup+"operatorProgressionData/"+dayText+"/","operatorProgressionData"+i+".json",JsonMapper.toJSONString(operatorProgressionDataList));
         }
     }
 

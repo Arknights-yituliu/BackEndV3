@@ -1,6 +1,8 @@
 package com.lhs.common.util;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class TimeUtil {
@@ -27,5 +29,12 @@ public class TimeUtil {
                 .withSecond(0)
                 .withNano(0);
         return Date.from(startOfHour.toInstant());
+    }
+
+
+    public static String getDayText(){
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return date.format(formatter);
     }
 }

@@ -98,7 +98,7 @@ public class QuestionnaireService {
 
 
     public void backup() {
-
+        String dayText = TimeUtil.getDayText();
         List<QuestionnaireResult> questionnaireResults;
         for (int i = 0; i < 10; i++) {
             LambdaQueryWrapper<QuestionnaireResult> queryWrapper = new LambdaQueryWrapper<>();
@@ -107,7 +107,7 @@ public class QuestionnaireService {
             if (questionnaireResults.isEmpty()) {
                 break;
             }
-            FileUtil.saveJsonFile(ConfigUtil.Backup, "questionnaireResultData" + i + ".json", JsonMapper.toJSONString(questionnaireResults));
+            FileUtil.saveJsonFile(ConfigUtil.Backup+"questionnaireResultData/"+dayText+"/", "questionnaireResultData" + i + ".json", JsonMapper.toJSONString(questionnaireResults));
         }
     }
 

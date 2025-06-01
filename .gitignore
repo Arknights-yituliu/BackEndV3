@@ -37,5 +37,4 @@ build/
 /src/main/resources/schedule/
 /src/main/resources/backups/
 /src/main/java/com/lhs/dev/
-/src/main/java/com/lhs/mapper/DeveloperMapper.java
-/src/test/java/com/lhs/
+/src/test/java/com/test/

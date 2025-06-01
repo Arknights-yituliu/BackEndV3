@@ -712,17 +712,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void backupUserInfo() {
+
         List<UserInfo> userInfoList = userInfoMapper.selectList(null);
-        FileUtil.saveJsonFile(ConfigUtil.Backup,"userInfo.json",JsonMapper.toJSONString(userInfoList));
+        String dayText = TimeUtil.getDayText();
+        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","userInfo.json",JsonMapper.toJSONString(userInfoList));
     }
+
+
 
     @Override
     public void backupUserExternalAccountBinding() {
+        String dayText = TimeUtil.getDayText();
         List<UserExternalAccountBinding> list1 = userExternalAccountBindingMapper.selectList(null);
-        FileUtil.saveJsonFile(ConfigUtil.Backup,"userExternalAccountBinding.json",JsonMapper.toJSONString(list1));
+        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","userExternalAccountBinding.json",JsonMapper.toJSONString(list1));
 
         List<AkPlayerBindInfo> list2 = akPlayerBindInfoMapper.selectList(null);
-        FileUtil.saveJsonFile(ConfigUtil.Backup,"akPlayerBindInfo.json",JsonMapper.toJSONString(list2));
+        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","akPlayerBindInfo.json",JsonMapper.toJSONString(list2));
     }
 
 
