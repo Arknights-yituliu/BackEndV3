@@ -3,6 +3,7 @@ package com.lhs.entity.dto.hypergryph;
 public class FilePath {
     private String arknightsGameResourcePath;
     private String arknightsGameDataPath;
+    private String arknightsGameResourceAvatarPath;
     private String JsonOutputPath;
 
     private String ImageOutputPath;
@@ -22,6 +23,14 @@ public class FilePath {
 
     public void setArknightsGameDataPath(String arknightsGameDataPath) {
         this.arknightsGameDataPath = arknightsGameDataPath;
+    }
+
+    public String getArknightsGameResourceAvatarPath() {
+        return arknightsGameResourceAvatarPath;
+    }
+
+    public void setArknightsGameResourceAvatarPath(String arknightsGameResourceAvatarPath) {
+        this.arknightsGameResourceAvatarPath = arknightsGameResourceAvatarPath;
     }
 
     public String getJsonOutputPath() {

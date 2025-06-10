@@ -1,7 +1,7 @@
 package com.lhs.service.util.impl;
 
-import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
+import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.LogUtils;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.service.util.TencentCloudService;
@@ -20,6 +20,7 @@ import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
 import com.tencentcloudapi.common.profile.HttpProfile;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,82 +34,112 @@ import java.util.List;
 
 @Service
 public class TencentCloudServiceImpl implements TencentCloudService {
-    @Override
-    public void uploadFileToCOS(File file, String bucketPath) {
-        uploadCOS(file, bucketPath);
-    }
+
+
+    @Value("${tencent.secretId}")
+    private  String SecretId;
+    @Value("${tencent.secretKey}")
+    private  String SecretKey;
+    @Value("${tencent.staticBucket}")
+    private  String StaticBucket;
+    @Value("${tencent.backupBucket}")
+    private  String BackupBucket;
+
+
+
 
     @Override
-    public void uploadJsonToCOS(String text, String bucketPath) {
+    public void uploadCOS(String text, String bucketPath) {
         try {
             File file = convertJsonStringToFile(text);
-            uploadFileToCOS(file,bucketPath);
+            uploadCOS(file,bucketPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-    }
-
-
-    private File convertJsonStringToFile(String jsonString) throws IOException {
-        File tempFile = File.createTempFile("json", ".tmp");
-        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-            fos.write(jsonString.getBytes());
-        }
-        return tempFile;
     }
 
     @Override
-    public void uploadFileToCOS(MultipartFile multipartFile, String bucketPath) {
-        uploadCOS(multipartFile, bucketPath);
-    }
-
-    private void uploadCOS(File file, String bucketPath){
-        String secretId = ConfigUtil.CosSecretId;
-        String secretKey = ConfigUtil.CosSecretKey;
-        COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
-        // 2 设置 bucket 的地域, COS 地域的简称请参见 https://cloud.tencent.com/document/product/436/6224
-        // clientConfig 中包含了设置 region, https(默认 http), 超时, 代理等 set 方法, 使用可参见源码或者常见问题 Java SDK 部分。
-        Region region = new Region("ap-nanjing");
-        ClientConfig clientConfig = new ClientConfig(region);
-        // 这里建议设置使用 https 协议
-        // 从 5.6.54 版本开始，默认使用了 https
-        clientConfig.setHttpProtocol(HttpProtocol.https);
-        // 3 生成 cos 客户端。
-        COSClient cosClient = new COSClient(cred, clientConfig);
+    public void uploadCOS(File file, String bucketPath) {
+        COSClient cosClient = createCOSClient();
 
         // 指定文件将要存放的存储桶
-        String bucketName = "yituliu-static-1307648010";
+        String bucketName = StaticBucket;
         // 指定文件上传到 COS 上的路径，即对象键。例如对象键为 folder/picture.jpg，则表示将文件 picture.jpg 上传到 folder 路径下
 
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, file);
-        PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest);
-        String requestId = putObjectResult.getRequestId();
+        cosClient.putObject(putObjectRequest);
         cosClient.shutdown();
     }
 
-    private void uploadCOS(MultipartFile file, String bucketPath)  {
+    @Override
+    public void uploadCOS(MultipartFile multipartFile, String bucketPath) {
         COSClient cosClient = createCOSClient();
         // 指定文件将要存放的存储桶
-        String bucketName = "yituliu-static-1307648010";
+        String bucketName = StaticBucket;
         // 指定文件上传到 COS 上的路径，即对象键。例如对象键为 folder/picture.jpg，则表示将文件 picture.jpg 上传到 folder 路径下
         InputStream inputStream = null;
         try {
-            inputStream = file.getInputStream();
+            inputStream = multipartFile.getInputStream();
         } catch (IOException e) {
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentLength(file.getSize());
+        objectMetadata.setContentLength(multipartFile.getSize());
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, inputStream,objectMetadata);
         cosClient.putObject(putObjectRequest);
         cosClient.shutdown();
     }
 
     @Override
+    public void backupCOS(String text, String bucketPath) {
+        try {
+            File file = convertJsonStringToFile(text);
+            backupCOS(file,bucketPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void backupCOS(File file, String bucketPath) {
+        COSClient cosClient = createCOSClient();
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+
+        // 指定文件将要存放的存储桶
+        String bucketName = BackupBucket;
+        // 指定文件上传到 COS 上的路径，即对象键。例如对象键为 folder/picture.jpg，则表示将文件 picture.jpg 上传到 folder 路径下
+        ByteArrayInputStream inputStream = null;
+        try {
+            byte[] zipBytes = FileUtil.zipFile(file);
+            objectMetadata.setContentLength(zipBytes.length);
+            inputStream =   new ByteArrayInputStream(zipBytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        bucketPath =  bucketPath.replace(".json",".zip");
+
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, inputStream,objectMetadata);
+        cosClient.putObject(putObjectRequest);
+        cosClient.shutdown();
+    }
+
+    private File convertJsonStringToFile(String jsonString) throws IOException {
+        File tempFile = File.createTempFile("data", ".json");
+        tempFile.deleteOnExit(); // 程序退出时自动清理
+
+        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+            fos.write(jsonString.getBytes());
+        }
+        return tempFile;
+    }
+
+
+
+    @Override
     public COSClient createCOSClient(){
-        String secretId = ConfigUtil.CosSecretId;
-        String secretKey = ConfigUtil.CosSecretKey;
+        String secretId = SecretId;
+        String secretKey = SecretKey;
         COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
         Region region = new Region("ap-nanjing");
         ClientConfig clientConfig = new ClientConfig(region);
@@ -129,8 +160,8 @@ public class TencentCloudServiceImpl implements TencentCloudService {
 
     @Override
     public void frontEndDeployment(String projectPath,String regionStr,String bucketName) {
-        String secretId = ConfigUtil.CosSecretId;
-        String secretKey = ConfigUtil.CosSecretKey;
+        String secretId = SecretId;
+        String secretKey = SecretKey;
 
         COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
         // 2 设置 bucket 的地域, COS 地域的简称请参见 https://cloud.tencent.com/document/product/436/6224
@@ -236,8 +267,8 @@ public class TencentCloudServiceImpl implements TencentCloudService {
 
     @Override
     public void CDNRefreshDirectory(String domain)  {
-        String secretId = ConfigUtil.CosSecretId;
-        String secretKey = ConfigUtil.CosSecretKey;
+        String secretId = SecretId;
+        String secretKey = SecretKey;
         try{
             // 实例化一个认证对象，入参需要传入腾讯云账户 SecretId 和 SecretKey，此处还需注意密钥对的保密
             // 代码泄露可能会导致 SecretId 和 SecretKey 泄露，并威胁账号下所有资源的安全性。以下代码示例仅供参考，建议采用更安全的方式来使用密钥，请参见：https://cloud.tencent.com/document/product/1278/85305

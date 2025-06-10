@@ -12,10 +12,8 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.po.maa.Schedule;
 import com.lhs.mapper.ScheduleMapper;
-import com.lhs.service.util.OSSService;
 import org.springframework.stereotype.Service;
 
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.File;
 import java.util.Date;
@@ -26,11 +24,10 @@ public class ScheduleService {
 
 
     private final ScheduleMapper scheduleMapper;
-    private final OSSService ossService;
 
-    public ScheduleService(ScheduleMapper scheduleMapper, OSSService ossService) {
+
+    public ScheduleService(ScheduleMapper scheduleMapper) {
         this.scheduleMapper = scheduleMapper;
-        this.ossService = ossService;
     }
 
 

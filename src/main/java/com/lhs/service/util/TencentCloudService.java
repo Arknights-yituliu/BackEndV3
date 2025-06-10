@@ -7,11 +7,15 @@ import java.io.File;
 
 public interface TencentCloudService {
 
-   void uploadFileToCOS(File file, String bucketPath);
+   void uploadCOS(File file, String bucketPath);
 
-    void uploadJsonToCOS(String text, String bucketPath);
+    void uploadCOS(String text, String bucketPath);
 
-   void uploadFileToCOS(MultipartFile multipartFile, String bucketPath);
+   void uploadCOS(MultipartFile multipartFile, String bucketPath);
+
+    void backupCOS(String text, String bucketPath);
+
+    void backupCOS(File file, String bucketPath);
 
     COSClient createCOSClient();
 

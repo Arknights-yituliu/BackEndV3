@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class StageService {
 
 
+
     private final StageMapper stageMapper;
     private final RedisTemplate<String,Object> redisTemplate;
 
@@ -139,7 +140,7 @@ public class StageService {
         if (responseAuto == null) return;
         FileUtil.saveJsonFile(ConfigUtil.Penguin, "penguin.json", responseAuto);
 
-        tencentCloudService.uploadJsonToCOS(responseAuto,"/stage-drop/matrix.json");
+        tencentCloudService.uploadCOS(responseAuto,"/stage-drop/matrix.json");
     }
 
 

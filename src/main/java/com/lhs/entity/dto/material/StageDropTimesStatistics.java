@@ -3,7 +3,7 @@ package com.lhs.entity.dto.material;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StageDropCollect {
+public class StageDropTimesStatistics {
     private Integer times = 0;
 
     private Map<String,Integer> timesMap = new HashMap<>();

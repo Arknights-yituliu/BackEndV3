@@ -11,7 +11,6 @@ import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.DataCacheService;
-import com.lhs.service.util.OSSService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +26,7 @@ public class StageResultService {
     private final ItemService itemService;
     private final StageCalService stageCalService;
     private final StageService stageService;
-    private final OSSService ossService;
+
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final UserService userService;
@@ -38,7 +37,6 @@ public class StageResultService {
                               ItemService itemService,
                               StageCalService stageCalService,
                               StageService stageService,
-                              OSSService ossService,
                               RedisTemplate<String, Object> redisTemplate,
                               UserService userService, DataCacheService dataCacheService) {
         this.stageResultDetailMapper = stageResultDetailMapper;
@@ -46,7 +44,6 @@ public class StageResultService {
         this.itemService = itemService;
         this.stageCalService = stageCalService;
         this.stageService = stageService;
-        this.ossService = ossService;
         this.redisTemplate = redisTemplate;
         this.userService = userService;
         this.dataCacheService = dataCacheService;

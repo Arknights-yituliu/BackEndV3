@@ -16,10 +16,14 @@ public interface ArknightsGameDataService {
 
     void getOperatorInfoSimpleTable(FilePath filePath);
 
+    void getOperatorInfoSimpleTableByGameResource(FilePath filePath);
+
     /**
      * 生成基建技能一览json
      */
     void getBuildingTable(FilePath filePath);
+
+    void getBuildingTableByGameResource(FilePath filePath);
 
     /**
      * 生成术语对应表json

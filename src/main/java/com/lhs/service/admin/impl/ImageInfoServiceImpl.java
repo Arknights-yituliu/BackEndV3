@@ -52,7 +52,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
         } else {
             imageInfoMapper.updateById(imageInfo);
         }
-        tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
+        tencentCloudService.uploadCOS(multipartFile, bucketPath);
     }
 
 
@@ -97,7 +97,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
                 LogUtils.info("文件已存在");
                 imageInfoMapper.updateById(imageInfo);
             }
-            tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
+            tencentCloudService.uploadCOS(multipartFile, bucketPath);
         }
         return "文件上传成功";
     }

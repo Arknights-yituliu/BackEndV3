@@ -8,7 +8,7 @@
   <select id="getOperatorProgressionData" resultType="com.lhs.entity.po.survey.OperatorProgressionData">
       SELECT *
       FROM operator_progression_data
-      limit #{offset},500;
+      limit #{offset},#{rowNum};
   </select>
 
 

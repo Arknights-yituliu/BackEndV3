@@ -47,7 +47,7 @@ public class StageEfficiencyService {
     public void stageEfficiencyCalc(StageConfigDTO stageConfigDTO) {
         Map<String, Item> itemMapCache = itemService.getItemMapCache(stageConfigDTO);
         Map<String, Stage> stageInfoMap = stageService.getStageInfoMap();
-        Map<String, String> stageBlackMap = stageConfigDTO.getStageBlackMap();
+        Map<String, Integer> stageBlackMap = stageConfigDTO.getStageBlackMap();
         Map<String, List<PenguinMatrixDTO>> penguinMatrix = PenguinMatrixCollect
                 .filterAndMergePenguinData("penguin",itemMapCache, stageInfoMap,
                         stageBlackMap, stageConfigDTO.getSampleSize());

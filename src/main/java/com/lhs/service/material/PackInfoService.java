@@ -5,10 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.material.PackInfoDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.po.admin.ImageInfo;
@@ -25,7 +23,6 @@ import com.lhs.service.util.TencentCloudService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -377,7 +374,7 @@ public class PackInfoService {
         response.put("data", packInfoVOS);
         response.put("update", timeStamp);
         String jsonString = JsonMapper.toJSONString(response);
-        tencentCloudService.uploadJsonToCOS(jsonString, "/store/pack/" + timeStamp + ".json");
+        tencentCloudService.uploadCOS(jsonString, "/store/pack/" + timeStamp + ".json");
         redisTemplate.opsForValue().set("PackInfoTag", timeStamp);
     }
 

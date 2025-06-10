@@ -86,7 +86,7 @@ public class OperatorProgressionStatisticsService {
 
         for (int i = 0; i < 100; i++) {
 
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 500);
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 1000,1000);
 
             if (operatorProgressionDataList.isEmpty()) {
                 break;

@@ -2,7 +2,6 @@ package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.config.ConfigUtil;
-import com.lhs.common.enums.RecordType;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.common.enums.ResultCode;
@@ -10,6 +9,7 @@ import com.lhs.entity.dto.survey.OperatorCarryQuestionnaireDTO;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
 import com.lhs.service.user.UserService;
+import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -27,16 +27,18 @@ public class QuestionnaireService {
     private final IdGenerator idGenerator;
     private final RateLimiter rateLimiter;
     private final UserService userService;
+    private final TencentCloudService tencentCloudService;
 
 
     public QuestionnaireService(RedisTemplate<String, String> redisTemplate,
                                 QuestionnaireResultMapper questionnaireResultMapper,
                                 RateLimiter rateLimiter,
-                                UserService userService) {
+                                UserService userService, TencentCloudService tencentCloudService) {
         this.redisTemplate = redisTemplate;
         this.questionnaireResultMapper = questionnaireResultMapper;
         this.rateLimiter = rateLimiter;
         this.userService = userService;
+        this.tencentCloudService = tencentCloudService;
 
         this.idGenerator = new IdGenerator(1L);
     }
@@ -107,7 +109,7 @@ public class QuestionnaireService {
             if (questionnaireResults.isEmpty()) {
                 break;
             }
-            FileUtil.saveJsonFile(ConfigUtil.Backup+"questionnaireResultData/"+dayText+"/", "questionnaireResultData" + i + ".json", JsonMapper.toJSONString(questionnaireResults));
+            tencentCloudService.backupCOS(JsonMapper.toJSONString(questionnaireResults),"/mysql/questionnaireResultData/"+dayText+"/"+i+".json");
         }
     }
 

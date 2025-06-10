@@ -1,19 +1,15 @@
 package com.lhs.service.material;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ConfigUtil;
-import com.lhs.common.enums.ResultCode;
 import com.lhs.common.enums.StageType;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
 import com.lhs.entity.dto.material.StageConfigDTO;
 import com.lhs.entity.dto.material.StageCalculationParametersDTO;
 import com.lhs.entity.dto.material.StageResultTmpDTO;
-import com.lhs.entity.po.common.DataCache;
 import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.material.RecommendedStageVO;
 import com.lhs.entity.vo.material.StageResultVOV2;
@@ -22,7 +18,6 @@ import com.lhs.mapper.material.QuantileMapper;
 import com.lhs.mapper.material.StageResultMapper;
 import com.lhs.mapper.material.StageResultDetailMapper;
 import com.lhs.service.user.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -69,10 +64,10 @@ public class StageCalService {
     }
 
 
-    private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config + "item_series_table.json"));
+    private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.ConfigFilePath + "item_series_table.json"));
 
     public void updateStageResultByTaskConfig() {
-        String read = FileUtil.read(ConfigUtil.Config + "stage_task_config_v3.json");
+        String read = FileUtil.read(ConfigUtil.ConfigFilePath + "stage_task_config_v3.json");
         if (read == null) {
             LogUtils.error("更新关卡配置文件为空");
             return;
@@ -165,7 +160,7 @@ public class StageCalService {
                 .collect(Collectors.toMap(Stage::getStageId, Function.identity()));
 
 
-        Map<String, String> stageBlackMap = stageConfigDTO.getStageBlackMap();
+        Map<String, Integer> stageBlackMap = stageConfigDTO.getStageBlackMap();
 
         //获得一个企鹅物流掉落数据的Map对象，key为关卡id，value为关卡掉落集合，过滤掉低于样本阈值的数据，合并标准和磨难难度的关卡掉落
         Map<String, List<PenguinMatrixDTO>> groupByStageId =  PenguinMatrixCollect
@@ -433,7 +428,7 @@ public class StageCalService {
         }
 
         //获取材料的上下位材料
-        JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config + "item_type_table.json"));
+        JsonNode itemTypeTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.ConfigFilePath + "item_type_table.json"));
         JsonNode itemTypeNode = itemTypeTable.get(itemType);
 
         //该系材料的每种等级材料在关卡中的占比

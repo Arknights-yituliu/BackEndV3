@@ -25,7 +25,7 @@ import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.survey.HypergryphService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.Email163Service;
-import com.lhs.service.util.OSSService;
+import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -42,10 +42,7 @@ public class UserServiceImpl implements UserService {
     private final RedisTemplate<String, String> redisTemplate;
 
     private final Email163Service email163Service;
-
-
-    private final OSSService ossService;
-
+    private final TencentCloudService tencentCloudService;
     private final IdGenerator idGenerator;
     private final HypergryphService HypergryphService;
 
@@ -59,14 +56,15 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserInfoMapper userInfoMapper,
                            RedisTemplate<String, String> redisTemplate,
                            Email163Service email163Service,
-                           OSSService ossService,
-                           HypergryphService HypergryphService,
+
+                           TencentCloudService tencentCloudService, HypergryphService HypergryphService,
                            UserExternalAccountBindingMapper userExternalAccountBindingMapper,
                            AkPlayerBindInfoMapper akPlayerBindInfoMapper, UserConfigMapper userConfigMapper) {
         this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
         this.email163Service = email163Service;
-        this.ossService = ossService;
+        this.tencentCloudService = tencentCloudService;
+
         this.HypergryphService = HypergryphService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
@@ -715,7 +713,8 @@ public class UserServiceImpl implements UserService {
 
         List<UserInfo> userInfoList = userInfoMapper.selectList(null);
         String dayText = TimeUtil.getDayText();
-        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","userInfo.json",JsonMapper.toJSONString(userInfoList));
+
+        tencentCloudService.backupCOS(JsonMapper.toJSONString(userInfoList),"/mysql/user/"+dayText+"/user_info.json");
     }
 
 
@@ -724,10 +723,12 @@ public class UserServiceImpl implements UserService {
     public void backupUserExternalAccountBinding() {
         String dayText = TimeUtil.getDayText();
         List<UserExternalAccountBinding> list1 = userExternalAccountBindingMapper.selectList(null);
-        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","userExternalAccountBinding.json",JsonMapper.toJSONString(list1));
+        tencentCloudService.backupCOS(JsonMapper.toJSONString(list1),"/mysql/user/"+dayText+"/user_external_account_binding.json");
+//        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","userExternalAccountBinding.json",JsonMapper.toJSONString(list1));
 
         List<AkPlayerBindInfo> list2 = akPlayerBindInfoMapper.selectList(null);
-        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","akPlayerBindInfo.json",JsonMapper.toJSONString(list2));
+        tencentCloudService.backupCOS(JsonMapper.toJSONString(list2),"/mysql/user/"+dayText+"/ak_player_bind_info.json");
+//        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","akPlayerBindInfo.json",JsonMapper.toJSONString(list2));
     }
 
 

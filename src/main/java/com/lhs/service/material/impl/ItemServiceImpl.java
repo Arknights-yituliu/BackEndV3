@@ -48,7 +48,7 @@ public class ItemServiceImpl implements ItemService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.Config + "item_series_table.json"));
+    private static final JsonNode ITEM_SERIES_TABLE = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.ConfigFilePath + "item_series_table.json"));
 
 
     public ItemServiceImpl(ItemMapper itemMapper,
@@ -625,7 +625,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private List<CompositeTableDTO> getCompositeTable() {
-        String compositeTableText = FileUtil.read(ConfigUtil.Config + "composite_table.v2.json");
+        String compositeTableText = FileUtil.read(ConfigUtil.ConfigFilePath + "composite_table.v2.json");
         //读取加工站材料合成表
         if (compositeTableText == null) throw new ServiceException(ResultCode.DATA_NONE);
 

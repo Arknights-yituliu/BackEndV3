@@ -140,7 +140,7 @@ public class TaskService {
         questionnaireService.backup();
     }
 
-    @Scheduled(cron = "0 35 * * * ?")
+    @Scheduled(cron = "0 54 * * * ?")
     public void backupOperatorProgressionData() {
         operatorDataService.backupOperatorProgressionData();
     }

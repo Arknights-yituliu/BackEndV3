@@ -1,15 +1,11 @@
 package com.lhs.service.maa;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.lhs.common.enums.TimeGranularity;
 import com.lhs.common.util.*;
 
-import com.lhs.entity.dto.material.StageDropCollect;
 import com.lhs.entity.dto.material.StageDropDTO;
 import com.lhs.entity.dto.material.StageDropDetailDTO;
 import com.lhs.entity.po.material.StageDrop;
-import com.lhs.entity.po.material.StageDropStatistics;
 
 import com.lhs.mapper.material.StageDropMapper;
 
@@ -17,8 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 

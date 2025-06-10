@@ -73,17 +73,18 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         try {
             // 创建流对象
 
-            String character_tableStr = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/character_table.json");
+            String character_tableStr = FileUtil.read(filePath.getArknightsGameResourcePath() + "excel/character_table.json");
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
 
-            String startPath = filePath.getArknightsGameResourcePath() + "avatar/";
+            String startPath = filePath.getArknightsGameResourceAvatarPath() ;
 
 
             Iterator<Map.Entry<String, JsonNode>> fields = characterTable.fields();
 
             while (fields.hasNext()) {
+
                 String charId = fields.next().getKey();
                 if (!charId.startsWith("char")) continue;
                 JsonNode charData = characterTable.get(charId);
@@ -129,8 +130,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
 
-        Map<Object, String> skillMap = getSkillMap(filePath);
-        Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap(filePath);
+        Map<Object, String> skillMap = getSkillMap(filePath.getArknightsGameDataPath());
+        Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap(filePath.getArknightsGameDataPath());
 
         while (characterTableFields.hasNext()) {
             String charId = characterTableFields.next().getKey();
@@ -146,7 +147,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 continue;
             }
 
-            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap);
+            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap,0);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
             itemCostMap.put(charId, operatorItemCost);
             operatorInfoSimpleMap.put(charId, operatorInfo);
@@ -156,7 +157,73 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             String charId = patchCharsFields.next().getKey();
             JsonNode data = patchChars.get(charId);
 
-            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap);
+            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap,0);
+            Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
+
+            operatorItemCost.put("elite",new ArrayList<>());
+            operatorItemCost.put("allSkill",new ArrayList<>());
+            itemCostMap.put(charId, operatorItemCost);
+            operatorInfoSimpleMap.put(charId, operatorInfo);
+        }
+
+
+        FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/operator/",
+                "character_table_simple.json", JsonMapper.toJSONString(operatorInfoSimpleMap));
+
+
+        FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/operator/",
+                "operator_item_cost_table.json", JsonMapper.toJSONString(itemCostMap));
+
+    }
+
+    @Override
+    public void getOperatorInfoSimpleTableByGameResource(FilePath filePath) {
+        //干员信息
+        String character_tableText = FileUtil.read(filePath.getArknightsGameResourcePath() + "excel/character_table.json");
+        JsonNode characterTable = JsonMapper.parseJSONObject(character_tableText);
+        Iterator<Map.Entry<String, JsonNode>> characterTableFields = characterTable.fields();
+
+
+        //生变干员信息
+        String char_patch_tableText = FileUtil.read(filePath.getArknightsGameResourcePath() + "excel/char_patch_table.json");
+        JsonNode charPatchTable = JsonMapper.parseJSONObject(char_patch_tableText);
+        JsonNode patchChars = charPatchTable.get("patchChars");
+        Iterator<Map.Entry<String, JsonNode>> patchCharsFields = patchChars.fields();
+
+
+        Map<String, Object> operatorInfoSimpleMap = new HashMap<>();
+        Map<String, Object> itemCostMap = new HashMap<>();
+
+
+
+        Map<Object, String> skillMap = getSkillMap(filePath.getArknightsGameResourcePath());
+        Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap(filePath.getArknightsGameResourcePath());
+
+        while (characterTableFields.hasNext()) {
+            String charId = characterTableFields.next().getKey();
+
+            if (!charId.startsWith("char")) {
+                continue;
+            }
+
+            JsonNode data = characterTable.get(charId);
+
+            if (data.get("itemObtainApproach") == null ||
+                    Objects.equals(data.get("itemObtainApproach").asText(), "null")) {
+                continue;
+            }
+
+            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap,1);
+            Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
+            itemCostMap.put(charId, operatorItemCost);
+            operatorInfoSimpleMap.put(charId, operatorInfo);
+        }
+
+        while (patchCharsFields.hasNext()) {
+            String charId = patchCharsFields.next().getKey();
+            JsonNode data = patchChars.get(charId);
+
+            Map<String, Object> operatorInfo = getOperatorInfo(charId, data, skillMap, equipInfoMap,1);
             Map<String, Object> operatorItemCost = getOperatorItemCost(charId, data, skillMap, equipInfoMap);
 
             operatorItemCost.put("elite",new ArrayList<>());
@@ -176,7 +243,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
 
-
     @Override
     public void getBuildingTable(FilePath filePath) {
         //读取基建相关解包文件
@@ -185,8 +251,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
 
         //获取干员部分信息，测试时需分离
-
-
         JsonNode building = JsonMapper.parseJSONObject(read);
         JsonNode characters = JsonMapper.parseJSONObject(read1);
         JsonNode buffs = building.get("buffs");
@@ -241,11 +305,74 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
     }
 
-    private Map<String, List<Map<String, Object>>> getEquipInfoMap(FilePath filePath) {
+
+    @Override
+    public void getBuildingTableByGameResource(FilePath filePath) {
+        //读取基建相关解包文件
+        String read = FileUtil.read(filePath.getArknightsGameResourcePath()+ "excel/building_data.json");
+        String read1 = FileUtil.read(filePath.getArknightsGameResourcePath() + "excel/character_table.json");
+
+
+        //获取干员部分信息，测试时需分离
+        JsonNode building = JsonMapper.parseJSONObject(read);
+        JsonNode characters = JsonMapper.parseJSONObject(read1);
+        JsonNode buffs = building.get("buffs");
+        JsonNode chars = building.get("chars");
+        List<BuildingData> buildingDataList = new ArrayList<>();
+        for (JsonNode jsonNode : chars) {
+            String charId = jsonNode.get("charId").asText();
+            JsonNode character = characters.get(charId);
+            String name = character.get("name").asText();
+            JsonNode buffChar = jsonNode.get("buffChar");
+            for (JsonNode buffCharElement : buffChar) {
+                JsonNode buffData = buffCharElement.get("buffData");
+                for (JsonNode buffDataElement : buffData) {
+                    String buffId = buffDataElement.get("buffId").asText();
+                    JsonNode cond = buffDataElement.get("cond");
+                    BuildingData buildingData = new BuildingData();
+                    buildingData.setCharId(charId);
+                    buildingData.setLevel(cond.get("level").asInt());
+                    buildingData.setPhase(getPhase(cond.get("phase").asText()));
+                    JsonNode buff = buffs.get(buffId);
+                    if (buff == null) continue;
+
+
+                    String buffName = buff.get("buffName").asText();
+                    String buffColor = buff.get("buffColor").asText();
+                    String textColor = buff.get("textColor").asText();
+                    String description = buff.get("description").asText();
+                    String roomType = buff.get("buffIcon").asText();
+                    buildingData.setBuffName(buffName);
+                    buildingData.setBuffColor(buffColor);
+                    buildingData.setTextColor(textColor);
+//                    if (name.equals("假日威龙陈")) {
+//                        System.out.println(description);
+//                    }
+
+                    buildingData.setDescription(replaceDescription(description));
+                    buildingData.setRoomType(roomType);
+                    buildingData.setName(name);
+                    buildingDataList.add(buildingData);
+
+                }
+            }
+        }
+
+
+//        Map<String, List<BuildingData>> collect = buildingDataList.stream()
+//                .collect(Collectors.groupingBy(BuildingData::getRoomType));
+//        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
+        Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
+        FileUtil.saveJsonFile(filePath.getJsonOutputPath() + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        // 测试输出路径
+//        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
+    }
+
+    private Map<String, List<Map<String, Object>>> getEquipInfoMap(String filePath) {
 
         Map<String, List<Map<String, Object>>> equipInfoMap = new HashMap<>();
 
-        String uniequip_tableText = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/uniequip_table.json");
+        String uniequip_tableText = FileUtil.read(filePath + "excel/uniequip_table.json");
         JsonNode uniequip_table = JsonMapper.parseJSONObject(uniequip_tableText);
         JsonNode equipDict = uniequip_table.get("equipDict");
         Iterator<Map.Entry<String, JsonNode>> equipDictElements = equipDict.fields();
@@ -310,8 +437,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         return equipInfoMap;
     }
 
-    private Map<Object, String> getSkillMap(FilePath filePath) {
-        String skill_tableText = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/skill_table.json");
+    private Map<Object, String> getSkillMap(String filePath) {
+        String skill_tableText = FileUtil.read(filePath + "excel/skill_table.json");
         JsonNode skillTable = JsonMapper.parseJSONObject(skill_tableText);
         Map<Object, String> skillMap = new HashMap<>();
         Iterator<Map.Entry<String, JsonNode>> skillTableElements = skillTable.fields();
@@ -331,7 +458,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     }
 
     private Map<String, Object> getOperatorInfo(String charId, JsonNode data, Map<Object, String> skillMap,
-                                                Map<String, List<Map<String, Object>>> equipMap) {
+                                                Map<String, List<Map<String, Object>>> equipMap,Integer index) {
 
         Map<String, Object> operatorInfo = new HashMap<>();
 
@@ -366,11 +493,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         //职业
         String profession = data.get("profession").asText();
         //星级
-        int rarity = getRarity(data.get("rarity").asText());
+        int rarity = getRarity(data.get("rarity").asText())+index;
         //分支
         String subProfessionId = data.get("subProfessionId").asText();
-
-
 
         operatorInfo.put("name", name);
         operatorInfo.put("charId", charId);

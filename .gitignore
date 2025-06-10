@@ -38,3 +38,4 @@ build/
 /src/main/resources/backups/
 /src/main/java/com/lhs/dev/
 /src/test/java/com/test/
+/src/test/java/com/lhs/local/

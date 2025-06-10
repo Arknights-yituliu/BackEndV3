@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
 
@@ -20,11 +22,14 @@ public class FileUtil {
      */
     public static void saveJsonFile(String filepath, String filename, String json){
         File file = new File(filepath);
+
         if(!file.exists()){
-            file.mkdir();
+            boolean mkdir = file.mkdirs();
+            System.out.println("创建目录结果"+mkdir);
         }
 
         File file1 = new File(filepath,filename);
+
         if(!file1.exists()){
             try {
                 file1.createNewFile();
@@ -173,6 +178,37 @@ public class FileUtil {
             ins.close();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+
+    public static byte[] zipFile(File fileToZip) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (ZipOutputStream zipOut = new ZipOutputStream(byteArrayOutputStream)) {
+            zipFile(fileToZip, fileToZip.getName(), zipOut);
+        }
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            // 如果是目录，则遍历子文件
+            for (File childFile : Objects.requireNonNull(fileToZip.listFiles())) {
+                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+            }
+        } else {
+            try (FileInputStream fis = new FileInputStream(fileToZip)) {
+                ZipEntry zipEntry = new ZipEntry(fileName);
+                zipOut.putNextEntry(zipEntry);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = fis.read(buffer)) >= 0) {
+                    zipOut.write(buffer, 0, length);
+                }
+            }
         }
     }
 

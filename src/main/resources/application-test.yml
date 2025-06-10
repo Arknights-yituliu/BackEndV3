@@ -13,11 +13,7 @@ spring:
     username: 数据库账号
     #  密码
     password: 数据库密码
-  # 自动生成表配置，不一定好用（X
-  jpa:
-    hibernate:
-      ddl-auto: update
-    open-in-view: false
+
   data:
     #reids配置
     redis:
@@ -34,13 +30,27 @@ spring:
           max-wait: -1
           max-idle: 5
           min-idle: 0
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: 邮箱名
+    password: 密钥
+    default-encoding: utf-8
+    properties:
+      mail:
+        smtp:
+          socketFactory:
+            port: 465
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+          ssl:
+            enable: true
+    protocol: smtp
 
 #资源路径
 resourcesPath:
   penguin: src/main/resources/penguin/
-  item: src/main/resources/item/
-  schedule: src/main/resources/schedule/
-  resources: src/main/resources/
+  config: src/main/resources/config/
+  backup: src/main/resources/backup/
 
 #AES密匙和签名值
 encryption:
@@ -52,11 +62,9 @@ penguin:
   auto: 企鹅物流API
   global: https://penguin-stats.io/PenguinStats/api/v2/result/matrix?show_closed_zones=true
 
-#阿里云AccessKey
-aliyun:
-  accessKeyID:  阿里云密匙
-  accessKeySecret: 阿里云密匙
-  bakBucketName: 存储桶名称
+tencent:
+  secretId: 密匙
+  secretKey: 签名
 
 # 森空岛API
 skland:

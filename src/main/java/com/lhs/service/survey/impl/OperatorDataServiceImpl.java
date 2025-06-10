@@ -16,6 +16,7 @@ import com.lhs.mapper.survey.OperatorProgressionDataMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.UserService;
+import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -38,12 +39,16 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final WarehouseInfoService warehouseInfoService;
 
+
+    private final TencentCloudService tencentCloudService;
+
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-                                   UserService userService, OperatorProgressionDataMapper operatorProgressionDataMapper, WarehouseInfoService warehouseInfoService) {
+                                   UserService userService, OperatorProgressionDataMapper operatorProgressionDataMapper, WarehouseInfoService warehouseInfoService, TencentCloudService tencentCloudService) {
         this.redisTemplate = redisTemplate;
         this.userService = userService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
         this.warehouseInfoService = warehouseInfoService;
+        this.tencentCloudService = tencentCloudService;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -211,11 +216,12 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         String dayText = TimeUtil.getDayText();
         List<OperatorProgressionData> operatorProgressionDataList;
         for (int i = 0; i < 100; i++) {
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 500);
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 2000,2000);
             if (operatorProgressionDataList.isEmpty()) {
                 break;
             }
-            FileUtil.saveJsonFile(ConfigUtil.Backup+"operatorProgressionData/"+dayText+"/","operatorProgressionData"+i+".json",JsonMapper.toJSONString(operatorProgressionDataList));
+            tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),"/mysql/operatorProgressionData/"+dayText+"/"+i+".json");
+//            FileUtil.saveJsonFile(ConfigUtil.Backup+"operatorProgressionData/"+dayText+"/","operatorProgressionData"+i+".json",JsonMapper.toJSONString(operatorProgressionDataList));
         }
     }
 

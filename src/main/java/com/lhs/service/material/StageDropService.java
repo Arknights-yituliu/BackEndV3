@@ -11,11 +11,10 @@ import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.TimeUtil;
 import com.lhs.entity.dto.material.QueryStageDropDTO;
-import com.lhs.entity.dto.material.StageDropCollect;
+import com.lhs.entity.dto.material.StageDropTimesStatistics;
 import com.lhs.entity.dto.material.StageDropDetailDTO;
 import com.lhs.entity.po.material.StageDrop;
 import com.lhs.entity.po.material.StageDropStatisticalTaskLog;
-import com.lhs.entity.po.material.StageDropStatistics;
 import com.lhs.entity.vo.material.StageDropStatisticsVO;
 import com.lhs.mapper.material.StageDropMapper;
 import com.lhs.mapper.material.StageDropStatisticsMapper;
@@ -46,7 +45,7 @@ public class StageDropService {
     }
 
     public List<StageDropStatisticsVO> getStageDropByStageId(QueryStageDropDTO queryStageDropDTO) {
-        List<StageDropStatistics> stageDropStatisticsList = stageDropStatisticsMapper.
+        List<com.lhs.entity.po.material.StageDropStatistics> stageDropStatisticsList = stageDropStatisticsMapper.
                 listByStageId(queryStageDropDTO.getStageId(), queryStageDropDTO.getTimeGranularity(),
                         new Date(queryStageDropDTO.getStart()), new Date(queryStageDropDTO.getEnd()));
 
@@ -55,7 +54,7 @@ public class StageDropService {
         }
 
         List<StageDropStatisticsVO> voList = new ArrayList<>();
-        for (StageDropStatistics po : stageDropStatisticsList) {
+        for (com.lhs.entity.po.material.StageDropStatistics po : stageDropStatisticsList) {
             StageDropStatisticsVO stageDropStatisticsVO = new StageDropStatisticsVO();
             stageDropStatisticsVO.setStageId(po.getStageId());
             stageDropStatisticsVO.setItemId(po.getItemId());
@@ -109,12 +108,12 @@ public class StageDropService {
             return;
         }
 
-        LambdaUpdateWrapper<StageDropStatistics> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(StageDropStatistics::getTimeGranularity, HOUR)
-                .ge(StageDropStatistics::getStartTime, startTime)
-                .lt(StageDropStatistics::getStartTime, endTime);
+        LambdaUpdateWrapper<com.lhs.entity.po.material.StageDropStatistics> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(com.lhs.entity.po.material.StageDropStatistics::getTimeGranularity, HOUR)
+                .ge(com.lhs.entity.po.material.StageDropStatistics::getStartTime, startTime)
+                .lt(com.lhs.entity.po.material.StageDropStatistics::getStartTime, endTime);
 
-        StageDropStatistics updateEntity = new StageDropStatistics();
+        com.lhs.entity.po.material.StageDropStatistics updateEntity = new com.lhs.entity.po.material.StageDropStatistics();
         updateEntity.setRecordCode(RecordType.EXPIRE.code());
         int update = stageDropStatisticsMapper.update(updateEntity, updateWrapper);
         if (update > 0) {
@@ -149,7 +148,7 @@ public class StageDropService {
         taskLog.setDataCount(countByDate);
 
 
-        Map<String, StageDropCollect> dropCollectHashMap = new HashMap<>();
+        Map<String, StageDropTimesStatistics> dropCollectHashMap = new HashMap<>();
 
         for (StageDrop stageDrop : stageDropList) {
             String stageId = stageDrop.getStageId();
@@ -162,10 +161,10 @@ public class StageDropService {
                 continue;
             }
 
-            StageDropCollect item = dropCollectHashMap.get(stageId);
+            StageDropTimesStatistics item = dropCollectHashMap.get(stageId);
 
             if (item == null) {
-                item = new StageDropCollect();
+                item = new StageDropTimesStatistics();
                 // 将新对象放入 map
                 dropCollectHashMap.put(stageId, item);
             }
@@ -183,14 +182,14 @@ public class StageDropService {
             }
         }
 
-        List<StageDropStatistics> stageDropStatisticsList = new ArrayList<>();
+        List<com.lhs.entity.po.material.StageDropStatistics> stageDropStatisticsList = new ArrayList<>();
         for (String stageId : dropCollectHashMap.keySet()) {
-            StageDropCollect stageDropCollect = dropCollectHashMap.get(stageId);
+            StageDropTimesStatistics stageDropCollect = dropCollectHashMap.get(stageId);
             Integer times = stageDropCollect.getTimes();
             Map<String, Integer> drops = stageDropCollect.getDropMap();
             for (String itemId : drops.keySet()) {
                 Integer quantity = drops.get(itemId);
-                StageDropStatistics stageDropStatistics = new StageDropStatistics();
+                com.lhs.entity.po.material.StageDropStatistics stageDropStatistics = new com.lhs.entity.po.material.StageDropStatistics();
                 stageDropStatistics.setId(idGenerator.nextId());
                 stageDropStatistics.setTimes(times);
                 stageDropStatistics.setStageId(stageId);
@@ -239,15 +238,15 @@ public class StageDropService {
 
 
     public void stageDropDailyStatistics(Date startTime, Date endTime, SimpleDateFormat simpleDateFormat) {
-        List<StageDropStatistics> stageDropStatisticsList = stageDropStatisticsMapper.listByDate(TimeGranularity.HOUR.code(), startTime, endTime);
-        Map<String, StageDropCollect> dropCollectHashMap = new HashMap<>();
-        for(StageDropStatistics stageDropStatistics:stageDropStatisticsList){
+        List<com.lhs.entity.po.material.StageDropStatistics> stageDropStatisticsList = stageDropStatisticsMapper.listByDate(TimeGranularity.HOUR.code(), startTime, endTime);
+        Map<String, StageDropTimesStatistics> dropCollectHashMap = new HashMap<>();
+        for(com.lhs.entity.po.material.StageDropStatistics stageDropStatistics:stageDropStatisticsList){
             String itemId = stageDropStatistics.getItemId();
             String stageId = stageDropStatistics.getStageId();
             Integer times = stageDropStatistics.getTimes();
-            StageDropCollect item = dropCollectHashMap.get(stageId);
+            StageDropTimesStatistics item = dropCollectHashMap.get(stageId);
             if (item == null) {
-                item = new StageDropCollect();
+                item = new StageDropTimesStatistics();
                 // 将新对象放入 map
                 dropCollectHashMap.put(stageId, item);
             }

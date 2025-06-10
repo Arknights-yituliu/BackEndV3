@@ -22,10 +22,11 @@ public class StageConfigDTO {
     private Double lmdCoefficient;
     //是否计算活动关卡
     private Boolean useActivityStage;
+    private Boolean useActivityAverageStage;
     //芯片是否按均价计算
     private Boolean chipIsValueConsistent;
     //关卡黑名单，计算中不使用这些关卡
-    private List<StageBlacklistDTO> stageBlacklist;
+    private List<String> stageBlacklist;
     //强制指定某个材料的价值（例如无限池扭转醇）
     private List<ItemCustomValueDTO> customItem;
     private Long updateTime;
@@ -42,10 +43,10 @@ public class StageConfigDTO {
     }
 
     //关卡黑名单字典
-    public Map<String, String> getStageBlackMap() {
-        Map<String, String> stageBlackMap = new HashMap<>();
-        for( StageBlacklistDTO stage: this.stageBlacklist){
-            stageBlackMap.put(stage.getStageId(),stage.getStageCode());
+    public Map<String, Integer> getStageBlackMap() {
+        Map<String, Integer> stageBlackMap = new HashMap<>();
+        for( String stageId: this.stageBlacklist){
+            stageBlackMap.put(stageId,1);
         }
         return stageBlackMap;
     }
@@ -114,11 +115,11 @@ public class StageConfigDTO {
         this.chipIsValueConsistent = chipIsValueConsistent;
     }
 
-    public List<StageBlacklistDTO> getStageBlacklist() {
+    public List<String> getStageBlacklist() {
         return stageBlacklist;
     }
 
-    public void setStageBlacklist(List<StageBlacklistDTO> stageBlacklist) {
+    public void setStageBlacklist(List<String> stageBlacklist) {
         this.stageBlacklist = stageBlacklist;
     }
 

@@ -207,7 +207,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         String imageName = idGenerator.nextId() + ".jpg";
         String bucketPath = "rogue-seed/settlement-chart/" + imageName;
-        tencentCloudService.uploadFileToCOS(multipartFile, bucketPath);
+        tencentCloudService.uploadCOS(multipartFile, bucketPath);
 
         Map<String, Object> response = new HashMap<>();
         response.put("imagePath", bucketPath);

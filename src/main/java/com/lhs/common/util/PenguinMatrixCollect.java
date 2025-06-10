@@ -7,10 +7,13 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.common.enums.StageType;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
+import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.material.StageInfoAndDrop;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.Stage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -18,12 +21,114 @@ import java.util.stream.Collectors;
 
 public class PenguinMatrixCollect {
 
+    public static Map<String, StageInfoAndDrop> getStageInfoAndDropMap(Map<String, Item> itemMap, Map<String, Stage> stageInfoMap, StageConfigDTO stageConfigDTO){
+        //获取企鹅物流关卡矩阵
+        String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + "auto.json");
+        if (penguinStageDataText == null) {
+            throw new ServiceException(ResultCode.DATA_NONE);
+        }
+        String matrixText = JsonMapper.parseJSONObject(penguinStageDataText).get("matrix").toPrettyString();
+        List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<>() {
+        });
+
+        //将磨难关卡筛选出来
+        Map<String, PenguinMatrixDTO> toughStageMap = penguinMatrixDTOList.stream()
+                .filter(e -> e.getStageId().contains("tough"))
+                .collect(Collectors.toMap(e -> e.getStageId()
+                        .replace("tough", "main") + "." + e.getItemId(), Function.identity()));
+
+        Map<String, Integer> stageBlackMap = stageConfigDTO.getStageBlackMap();
+
+        Integer sampleSize = 300;
+
+        if (stageConfigDTO.getSampleSize()!=null) {
+            sampleSize = stageConfigDTO.getSampleSize();
+        }
+
+        Map<String, StageInfoAndDrop> stageInfoAndDropMap = new HashMap<>();
+
+
+        for (PenguinMatrixDTO element : penguinMatrixDTOList) {
+
+            String stageId = element.getStageId();
+
+            if(stageBlackMap.get(stageId)!=null){
+                continue;
+            }
+
+            if (stageId.contains("tough")) {
+                continue;
+            }
+
+            if (stageId.startsWith("main_14")) {
+                if (element.getEnd() != null) {
+                    continue;
+                }
+            }
+
+            if (toughStageMap.get(stageId + "." + element.getItemId()) != null) {
+                PenguinMatrixDTO toughItem = toughStageMap.get(stageId + "." + element.getItemId());
+                element.setQuantity(element.getQuantity() + toughItem.getQuantity());
+                element.setTimes(element.getTimes() + toughItem.getTimes());
+            }
+
+            if (element.getTimes() < sampleSize) {
+                continue;
+            }
+
+            //掉落为零进行下次循环
+            if (element.getQuantity() == 0) {
+                continue;
+            }
+
+            //材料不在材料表继续下次循环
+            if (itemMap.get(element.getItemId()) == null) {
+                continue;
+            }
+
+            //关卡不在关卡表继续下次循环
+            if (!stageInfoMap.containsKey(element.getStageId())) {
+                continue;
+            }
+
+            Stage stageInfo = stageInfoMap.get(stageId);
+
+            if (element.getItemId().startsWith("ap_supply")) {
+                continue;
+            }
+
+            if (element.getItemId().startsWith("randomMaterial")) {
+                continue;
+            }
+
+            if(stageInfoAndDropMap.containsKey(stageId)){
+                stageInfoAndDropMap.get(stageId).getDropList().add(element);
+            }else {
+                StageInfoAndDrop stageInfoAndDrop = new StageInfoAndDrop();
+                stageInfoAndDrop.setStageId(stageId);
+                stageInfoAndDrop.setStageCode(stageInfo.getStageCode());
+                stageInfoAndDrop.setApCost(stageInfo.getApCost());
+                stageInfoAndDrop.setStageType(stageInfo.getStageType());
+                stageInfoAndDrop.setZoneId(stageInfo.getZoneId());
+                stageInfoAndDrop.setZoneName(stageInfo.getZoneName());
+                List<PenguinMatrixDTO> list = new ArrayList<>();
+                stageInfoAndDrop.setDropList(list);
+                list.add(element);
+                stageInfoAndDropMap.put(stageId,stageInfoAndDrop);
+            }
+
+        }
+
+
+        return stageInfoAndDropMap;
+    }
+
     /**
      * 企鹅物流关卡矩阵中的磨难与标准关卡合并掉落次数和样本量
      *
      * @return 合并完的企鹅数据
      */
-    public static Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(String source,Map<String, Item> itemMap, Map<String, Stage> stageMap,Map<String, String> stageBlackMap, Integer sampleSize) {
+    public static Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(String source,Map<String, Item> itemMap, Map<String, Stage> stageMap,Map<String, Integer> stageBlackMap, Integer sampleSize) {
 
         //获取企鹅物流关卡矩阵
         String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + source+".json");

@@ -19,4 +19,7 @@ public class ExpectedValueOfWorkshopByproducts {
     public void setExpectValue(Double expectValue) {
         this.expectValue = expectValue;
     }
+
+
+
 }

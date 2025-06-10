@@ -11,5 +11,5 @@ public interface OperatorProgressionDataMapper extends BaseMapper<OperatorProgre
 
     List<OperatorProgressionData> getOperatorProgressionDataByDate(@Param("createTime") Date createTime, @Param("offset") Integer offset);
 
-    List<OperatorProgressionData> getOperatorProgressionData(@Param("offset") Integer offset);
+    List<OperatorProgressionData> getOperatorProgressionData(@Param("offset") Integer offset,@Param("rowNum")Integer rowNum);
 }
