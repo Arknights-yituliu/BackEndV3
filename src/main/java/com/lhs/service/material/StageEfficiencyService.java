@@ -3,7 +3,7 @@ package com.lhs.service.material;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.PenguinMatrixCollect;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.Stage;
 import com.lhs.entity.po.material.StageEfficiency;

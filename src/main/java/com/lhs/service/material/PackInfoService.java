@@ -8,7 +8,7 @@ import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.dto.material.PackInfoDTO;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.PackInfo;

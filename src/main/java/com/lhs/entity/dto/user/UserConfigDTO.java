@@ -1,6 +1,6 @@
 package com.lhs.entity.dto.user;
 
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import lombok.Data;
 
 @Data

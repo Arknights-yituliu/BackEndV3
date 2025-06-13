@@ -1,7 +1,7 @@
 package com.lhs.service.material;
 
 import com.lhs.entity.po.material.ItemIterationValue;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;

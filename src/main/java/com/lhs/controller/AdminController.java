@@ -2,7 +2,7 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.material.PackInfoDTO;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.po.admin.LogInfo;
 import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.dev.LoginVo;

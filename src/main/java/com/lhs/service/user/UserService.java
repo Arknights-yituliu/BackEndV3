@@ -1,6 +1,6 @@
 package com.lhs.service.user;
 
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.dto.user.*;
 import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;

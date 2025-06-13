@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.material;
+package com.lhs.entity.dto.item;
 
 public class ExpectedValueOfWorkshopByproducts {
     private Integer rarity;

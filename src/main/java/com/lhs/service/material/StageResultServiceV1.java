@@ -3,7 +3,7 @@ package com.lhs.service.material;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.enums.StageType;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.Stage;
 import com.lhs.entity.po.material.StageResult;

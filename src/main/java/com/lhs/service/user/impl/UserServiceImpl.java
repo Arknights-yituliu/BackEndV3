@@ -9,7 +9,7 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.dto.user.*;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.user.AkPlayerBindInfo;

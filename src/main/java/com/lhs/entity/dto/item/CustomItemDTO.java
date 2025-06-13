@@ -1,6 +1,6 @@
-package com.lhs.entity.dto.material;
+package com.lhs.entity.dto.item;
 
-public class ItemCustomValueDTO {
+public class CustomItemDTO {
 
     private String itemId;
 

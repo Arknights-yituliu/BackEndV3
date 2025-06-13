@@ -1,10 +1,10 @@
-package com.lhs.entity.dto.material;
+package com.lhs.entity.dto.item;
 
-public class ItemIterationValueDTO {
+
+public class PathwayDTO {
     private String itemId;
     private String itemName;
-    private Double iterationValue;
-
+    private Integer count;
 
     public String getItemId() {
         return itemId;
@@ -22,11 +22,11 @@ public class ItemIterationValueDTO {
         this.itemName = itemName;
     }
 
-    public Double getIterationValue() {
-        return iterationValue;
+    public Integer getCount() {
+        return count;
     }
 
-    public void setIterationValue(Double iterationValue) {
-        this.iterationValue = iterationValue;
+    public void setCount(Integer count) {
+        this.count = count;
     }
 }

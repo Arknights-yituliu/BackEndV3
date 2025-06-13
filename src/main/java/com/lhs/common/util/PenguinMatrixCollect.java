@@ -1,27 +1,25 @@
 package com.lhs.common.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.lhs.common.annotation.RedisCacheable;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.enums.StageType;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
-import com.lhs.entity.dto.material.StageConfigDTO;
-import com.lhs.entity.dto.material.StageInfoAndDrop;
+import com.lhs.entity.dto.item.StageConfigDTO;
+import com.lhs.entity.dto.item.StageInfoAndDrop;
 import com.lhs.entity.po.material.Item;
+import com.lhs.entity.po.material.ItemInfo;
 import com.lhs.entity.po.material.Stage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PenguinMatrixCollect {
 
-    public static Map<String, StageInfoAndDrop> getStageInfoAndDropMap(Map<String, Item> itemMap, Map<String, Stage> stageInfoMap, StageConfigDTO stageConfigDTO){
+    public static Map<String, StageInfoAndDrop> getStageInfoAndDropMap(Map<String, ItemInfo> itemMap, Map<String, Stage> stageInfoMap, StageConfigDTO stageConfigDTO) {
         //获取企鹅物流关卡矩阵
         String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + "auto.json");
         if (penguinStageDataText == null) {
@@ -30,6 +28,70 @@ public class PenguinMatrixCollect {
         String matrixText = JsonMapper.parseJSONObject(penguinStageDataText).get("matrix").toPrettyString();
         List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<>() {
         });
+
+        String ytlStageDataText = FileUtil.read(ConfigUtil.DataFilePath + "ytl_stage_info.json");
+        JsonNode jsonNodeObj = JsonMapper.parseJSONObject(ytlStageDataText);
+
+
+        HashMap<String, StageInfoAndDrop> ytlStageInfoAndDropMap = new HashMap<>();
+
+        Iterator<Map.Entry<String, JsonNode>> fields = jsonNodeObj.fields();
+
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            String itemId = entry.getKey();             // 如 "30013"
+            JsonNode valueNode = entry.getValue();   // 对应的内部对象
+
+            String stageId = valueNode.get("stageId").asText();
+            String stageCode = valueNode.get("stageCode").asText();
+            Integer apCost = valueNode.get("apCost").asInt();
+            String stageType = valueNode.get("stageType").asText();
+            String zoneId = valueNode.get("zoneId").asText();
+            String zoneName = valueNode.get("zoneName").asText();
+            Long end = valueNode.get("end").asLong();
+            Long start = valueNode.get("start").asLong();
+            StageInfoAndDrop stageInfoAndDrop = new StageInfoAndDrop();
+            stageInfoAndDrop.setStageId(stageId);
+            stageInfoAndDrop.setStageCode(stageCode);
+            stageInfoAndDrop.setApCost(apCost);
+            stageInfoAndDrop.setStageType(stageType);
+            stageInfoAndDrop.setZoneId(zoneId);
+            stageInfoAndDrop.setZoneName(zoneName);
+            List<PenguinMatrixDTO> list = new ArrayList<>();
+            stageInfoAndDrop.setDropList(list);
+
+            PenguinMatrixDTO drop = new PenguinMatrixDTO();
+            drop.setStageId(stageId);
+            drop.setTimes(0);
+            drop.setQuantity(0);
+            drop.setItemId(itemId);
+            drop.setEnd(end);
+            drop.setStart(start);
+            list.add(drop);
+
+            PenguinMatrixDTO lmdDrop = new PenguinMatrixDTO();
+            lmdDrop.setStageId(stageId);
+            lmdDrop.setTimes(1);
+            lmdDrop.setQuantity(21 * 12);
+            lmdDrop.setItemId("4001");
+            lmdDrop.setEnd(end);
+            lmdDrop.setStart(start);
+            list.add(lmdDrop);
+
+            PenguinMatrixDTO storeUnlimitedExchangeDrop = new PenguinMatrixDTO();
+            lmdDrop.setStageId(stageId);
+            lmdDrop.setTimes(1);
+            lmdDrop.setQuantity(21 * 20);
+            lmdDrop.setItemId("4001");
+            lmdDrop.setEnd(end);
+            lmdDrop.setStart(start);
+            list.add(storeUnlimitedExchangeDrop);
+
+            ytlStageInfoAndDropMap.put(itemId, stageInfoAndDrop);
+        }
+
+
+
 
         //将磨难关卡筛选出来
         Map<String, PenguinMatrixDTO> toughStageMap = penguinMatrixDTOList.stream()
@@ -41,7 +103,7 @@ public class PenguinMatrixCollect {
 
         Integer sampleSize = 300;
 
-        if (stageConfigDTO.getSampleSize()!=null) {
+        if (stageConfigDTO.getSampleSize() != null) {
             sampleSize = stageConfigDTO.getSampleSize();
         }
 
@@ -52,7 +114,7 @@ public class PenguinMatrixCollect {
 
             String stageId = element.getStageId();
 
-            if(stageBlackMap.get(stageId)!=null){
+            if (stageBlackMap.get(stageId) != null) {
                 continue;
             }
 
@@ -92,6 +154,8 @@ public class PenguinMatrixCollect {
             }
 
             Stage stageInfo = stageInfoMap.get(stageId);
+            String stageType = stageInfo.getStageType();
+            Integer apCost = stageInfo.getApCost();
 
             if (element.getItemId().startsWith("ap_supply")) {
                 continue;
@@ -101,9 +165,24 @@ public class PenguinMatrixCollect {
                 continue;
             }
 
-            if(stageInfoAndDropMap.containsKey(stageId)){
+            if("ACT".equals(stageType)||"ACT_REP".equals(stageType)){
+               if(apCost==21){
+                   String itemId = element.getItemId();
+                   if(ytlStageInfoAndDropMap.containsKey(itemId)){
+                       StageInfoAndDrop stageInfoAndDrop = ytlStageInfoAndDropMap.get(itemId);
+                       PenguinMatrixDTO penguinMatrixDTO = stageInfoAndDrop.getDropList().get(0);
+                       penguinMatrixDTO.setQuantity(penguinMatrixDTO.getQuantity()+element.getQuantity());
+                       penguinMatrixDTO.setTimes(penguinMatrixDTO.getTimes()+element.getTimes());
+                   }
+               }
+            }
+
+
+
+
+            if (stageInfoAndDropMap.containsKey(stageId)) {
                 stageInfoAndDropMap.get(stageId).getDropList().add(element);
-            }else {
+            } else {
                 StageInfoAndDrop stageInfoAndDrop = new StageInfoAndDrop();
                 stageInfoAndDrop.setStageId(stageId);
                 stageInfoAndDrop.setStageCode(stageInfo.getStageCode());
@@ -114,9 +193,35 @@ public class PenguinMatrixCollect {
                 List<PenguinMatrixDTO> list = new ArrayList<>();
                 stageInfoAndDrop.setDropList(list);
                 list.add(element);
-                stageInfoAndDropMap.put(stageId,stageInfoAndDrop);
+
+                PenguinMatrixDTO lmdDrop = new PenguinMatrixDTO();
+                lmdDrop.setStageId(stageId);
+                lmdDrop.setTimes(1);
+                lmdDrop.setQuantity(21 * 12);
+                lmdDrop.setItemId("4001");
+                lmdDrop.setEnd(element.getEnd());
+                lmdDrop.setStart(element.getStart());
+                list.add(lmdDrop);
+
+                if("ACT".equals(stageType)||"ACT_REP".equals(stageType)){
+                    PenguinMatrixDTO storeUnlimitedExchangeDrop = new PenguinMatrixDTO();
+                    lmdDrop.setStageId(stageId);
+                    lmdDrop.setTimes(1);
+                    lmdDrop.setQuantity(21 * 20);
+                    lmdDrop.setItemId("4001");
+                    lmdDrop.setEnd(element.getEnd());
+                    lmdDrop.setStart(element.getStart());
+                    list.add(storeUnlimitedExchangeDrop);
+                }
+
+                stageInfoAndDropMap.put(stageId, stageInfoAndDrop);
             }
 
+        }
+
+
+        for(StageInfoAndDrop stageInfoAndDrop:ytlStageInfoAndDropMap.values()){
+            stageInfoAndDropMap.put(stageInfoAndDrop.getStageId(),stageInfoAndDrop);
         }
 
 
@@ -128,10 +233,10 @@ public class PenguinMatrixCollect {
      *
      * @return 合并完的企鹅数据
      */
-    public static Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(String source,Map<String, Item> itemMap, Map<String, Stage> stageMap,Map<String, Integer> stageBlackMap, Integer sampleSize) {
+    public static Map<String, List<PenguinMatrixDTO>> filterAndMergePenguinData(String source, Map<String, Item> itemMap, Map<String, Stage> stageMap, Map<String, Integer> stageBlackMap, Integer sampleSize) {
 
         //获取企鹅物流关卡矩阵
-        String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + source+".json");
+        String penguinStageDataText = FileUtil.read(ConfigUtil.Penguin + source + ".json");
 
         if (penguinStageDataText == null) {
             throw new ServiceException(ResultCode.DATA_NONE);
@@ -148,13 +253,12 @@ public class PenguinMatrixCollect {
                         .replace("tough", "main") + "." + e.getItemId(), Function.identity()));
 
 
-
         //将磨难关卡和标准关卡合并
         List<PenguinMatrixDTO> mergeList = new ArrayList<>();
         for (PenguinMatrixDTO element : penguinMatrixDTOList) {
             String stageId = element.getStageId();
 
-            if(stageBlackMap.get(stageId)!=null){
+            if (stageBlackMap.get(stageId) != null) {
                 continue;
             }
 
@@ -168,7 +272,7 @@ public class PenguinMatrixCollect {
                 element.setTimes(element.getTimes() + toughItem.getTimes());
             }
 
-            if (stageId.startsWith("main_14")&&"penguin".equals(source)) {
+            if (stageId.startsWith("main_14") && "penguin".equals(source)) {
                 if (element.getEnd() != null) {
                     continue;
                 }
@@ -204,7 +308,7 @@ public class PenguinMatrixCollect {
         Map<String, List<PenguinMatrixDTO>> collect = mergeList.stream()
                 .collect(Collectors.groupingBy(PenguinMatrixDTO::getStageId));
 
-        collect.forEach((k,v)->{
+        collect.forEach((k, v) -> {
             stageDropAddLMD(v, stageMap.get(k));
         });
 

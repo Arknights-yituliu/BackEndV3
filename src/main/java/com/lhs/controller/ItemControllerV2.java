@@ -1,7 +1,7 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 
 import com.lhs.entity.vo.material.*;
 import com.lhs.service.material.*;
@@ -9,7 +9,6 @@ import com.lhs.service.material.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

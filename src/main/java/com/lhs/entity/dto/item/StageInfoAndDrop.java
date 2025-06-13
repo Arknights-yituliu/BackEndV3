@@ -1,4 +1,6 @@
-package com.lhs.entity.dto.material;
+package com.lhs.entity.dto.item;
+
+import com.lhs.entity.dto.material.PenguinMatrixDTO;
 
 import java.util.List;
 

@@ -16,8 +16,6 @@ public class ItemIterationParamDTO {
 
     private List<Item> itemList;
 
-
-
     public void init() {
         WorkShopProducts workShopProductsT1 = new WorkShopProducts();
         workShopProductsT1.setItemRank("rarity_1");

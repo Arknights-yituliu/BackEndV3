@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.material;
+package com.lhs.entity.dto.item;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,12 +23,14 @@ public class StageConfigDTO {
     //是否计算活动关卡
     private Boolean useActivityStage;
     private Boolean useActivityAverageStage;
+    private Double workshopEliteMaterialByProductRate;
+    private Double workshopSkillSummaryByProductRate;
     //芯片是否按均价计算
     private Boolean chipIsValueConsistent;
     //关卡黑名单，计算中不使用这些关卡
     private List<String> stageBlacklist;
     //强制指定某个材料的价值（例如无限池扭转醇）
-    private List<ItemCustomValueDTO> customItem;
+    private List<CustomItemDTO> customItem;
     private Long updateTime;
 
     {
@@ -69,6 +71,30 @@ public class StageConfigDTO {
 
     public String getVersion() {
         return version;
+    }
+
+    public Boolean getUseActivityAverageStage() {
+        return useActivityAverageStage;
+    }
+
+    public void setUseActivityAverageStage(Boolean useActivityAverageStage) {
+        this.useActivityAverageStage = useActivityAverageStage;
+    }
+
+    public Double getWorkshopEliteMaterialByProductRate() {
+        return workshopEliteMaterialByProductRate;
+    }
+
+    public void setWorkshopEliteMaterialByProductRate(Double workshopEliteMaterialByProductRate) {
+        this.workshopEliteMaterialByProductRate = workshopEliteMaterialByProductRate;
+    }
+
+    public Double getWorkshopSkillSummaryByProductRate() {
+        return workshopSkillSummaryByProductRate;
+    }
+
+    public void setWorkshopSkillSummaryByProductRate(Double workshopSkillSummaryByProductRate) {
+        this.workshopSkillSummaryByProductRate = workshopSkillSummaryByProductRate;
     }
 
     public void setVersion(String version) {
@@ -123,11 +149,11 @@ public class StageConfigDTO {
         this.stageBlacklist = stageBlacklist;
     }
 
-    public List<ItemCustomValueDTO> getCustomItem() {
+    public List<CustomItemDTO> getCustomItem() {
         return customItem;
     }
 
-    public void setCustomItem(List<ItemCustomValueDTO> customItem) {
+    public void setCustomItem(List<CustomItemDTO> customItem) {
         this.customItem = customItem;
     }
 

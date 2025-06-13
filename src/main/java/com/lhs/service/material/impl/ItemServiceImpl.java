@@ -11,6 +11,10 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.common.enums.StageType;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
+import com.lhs.entity.dto.material.CompositeTableDTO;
+import com.lhs.entity.dto.item.CustomItemDTO;
+import com.lhs.entity.dto.material.ItemCostDTO;
+import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.dto.material.*;
 import com.lhs.entity.po.material.*;
 import com.lhs.mapper.DataCacheMapper;
@@ -97,10 +101,10 @@ public class ItemServiceImpl implements ItemService {
 
         Map<String, Item> itemValueMap = new HashMap<>();
 
-        List<ItemCustomValueDTO> customItem = stageConfigDTO.getCustomItem();
+        List<CustomItemDTO> customItem = stageConfigDTO.getCustomItem();
         Map<String, Double> customItemMap = new HashMap<>();
         if (customItem != null) {
-            customItemMap = customItem.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemId, ItemCustomValueDTO::getItemValue));
+            customItemMap = customItem.stream().collect(Collectors.toMap(CustomItemDTO::getItemId, CustomItemDTO::getItemValue));
         }
 
         for (Item item : itemList) {
@@ -281,8 +285,8 @@ public class ItemServiceImpl implements ItemService {
 
         Map<String, Item> itemValueMap = new HashMap<>();
 
-        List<ItemCustomValueDTO> customItem = stageConfigDTO.getCustomItem();
-        Map<String, Double> customItemMap = customItem.stream().collect(Collectors.toMap(ItemCustomValueDTO::getItemId, ItemCustomValueDTO::getItemValue));
+        List<CustomItemDTO> customItem = stageConfigDTO.getCustomItem();
+        Map<String, Double> customItemMap = customItem.stream().collect(Collectors.toMap(CustomItemDTO::getItemId, CustomItemDTO::getItemValue));
 
         for (Item item : itemList) {
             item.setVersion(version);
