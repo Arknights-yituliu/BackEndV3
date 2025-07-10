@@ -73,7 +73,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         try {
             // 创建流对象
 
-            String character_tableStr = FileUtil.read(filePath.getArknightsGameResourcePath() + "excel/character_table.json");
+            String character_tableStr = FileUtil.read(filePath.getArknightsGameDataPath() + "excel/character_table.json");
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode characterTable = objectMapper.readTree(character_tableStr);
 
@@ -101,6 +101,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 }
 
                 File dest = new File(endPath + charId + ".png");
+                System.out.println(endPath + charId + ".png");
                 copyFile(source, dest);
 
             }
@@ -322,6 +323,8 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
         for (JsonNode jsonNode : chars) {
             String charId = jsonNode.get("charId").asText();
             JsonNode character = characters.get(charId);
+            System.out.println(charId);
+            System.out.println(character);
             String name = character.get("name").asText();
             JsonNode buffChar = jsonNode.get("buffChar");
             for (JsonNode buffCharElement : buffChar) {

@@ -33,6 +33,8 @@ public class StageConfigDTO {
     private List<CustomItemDTO> customItem;
     private Long updateTime;
 
+
+
     {
         id = 202412050002L;
         version = "v4";
