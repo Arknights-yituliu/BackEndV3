@@ -49,7 +49,7 @@ public class ArknightsBaseDataTest {
 
 
     @Test
-    public void building() {
+    public void getAvatar() {
         FilePath filePath = new FilePath();
         filePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
         filePath.setArknightsGameResourceAvatarPath("C:/WebStormProject/ArknightsGameResource/avatar/");
