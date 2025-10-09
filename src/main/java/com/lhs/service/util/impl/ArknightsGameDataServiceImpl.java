@@ -387,6 +387,9 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             if (equipId.contains("_001_")) continue;
             if (equipData == null) continue;
             String charId = equipData.get("charId").asText();
+            if(equipData.get("tmplId")!=null){
+                charId = equipData.get("tmplId").asText();
+            }
             String typeName1 = equipData.get("typeName1").asText();
             String typeName2 = equipData.get("typeName2").asText();
             String uniEquipIcon = equipData.get("uniEquipIcon").asText();
