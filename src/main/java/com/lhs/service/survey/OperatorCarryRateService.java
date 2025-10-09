@@ -261,13 +261,22 @@ public class OperatorCarryRateService {
 
 
     public OperatorCarryRateDailyDataVO getOperatorCarryRateLineChart(OperatorCarryRateDailyDataRequestParamsDTO operatorCarryRateDailyDataRequestParamsDTO) {
+        Long startTimeStamp = operatorCarryRateDailyDataRequestParamsDTO.getStart();
+        Long endTimeStamp = operatorCarryRateDailyDataRequestParamsDTO.getEnd();
+        if(startTimeStamp>endTimeStamp){
+            throw new ServiceException(ResultCode.START_TIME_CANNOT_BE_GREATER_THAN_END_TIME);
+        }
+
+        if((endTimeStamp- startTimeStamp)>60*60*24*15*1000){
+            throw new ServiceException(ResultCode.DATE_RANGE_TOO_LARGE);
+        }
 
         LambdaQueryWrapper<OperatorCarryRate> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(OperatorCarryRate::getCharId, operatorCarryRateDailyDataRequestParamsDTO.getCharId())
                 .eq(OperatorCarryRate::getRecordType,RecordType.DISPLAY.code())
                 .eq(OperatorCarryRate::getQuestionnaireCode, operatorCarryRateDailyDataRequestParamsDTO.getQuestionnaireCode())
-                .ge(OperatorCarryRate::getStartTime, new Date(operatorCarryRateDailyDataRequestParamsDTO.getStart()))
-                .le(OperatorCarryRate::getEndTime, new Date(operatorCarryRateDailyDataRequestParamsDTO.getEnd()));
+                .ge(OperatorCarryRate::getStartTime, new Date(startTimeStamp))
+                .le(OperatorCarryRate::getEndTime, new Date(endTimeStamp));
         List<OperatorCarryRate> operatorCarryRateList = operatorCarryRateMapper.selectList(queryWrapper);
 
         if (operatorCarryRateList.isEmpty()) {
