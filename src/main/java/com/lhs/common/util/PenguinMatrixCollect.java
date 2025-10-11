@@ -281,21 +281,26 @@ public class PenguinMatrixCollect {
             if (element.getTimes() < sampleSize) {
                 continue;
             }
+
             //掉落为零进行下次循环
             if (element.getQuantity() == 0) {
                 continue;
             }
+
             //材料不在材料表继续下次循环
             if (itemMap.get(element.getItemId()) == null) {
                 continue;
             }
+
             //关卡不在关卡表继续下次循环
             if (stageMap.get(element.getStageId()) == null) {
                 continue;
             }
+
             if (element.getItemId().startsWith("ap_supply")) {
                 continue;
             }
+
             if (element.getItemId().startsWith("randomMaterial")) {
                 continue;
             }

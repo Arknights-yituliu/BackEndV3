@@ -4,6 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -166,6 +167,23 @@ public class FileUtil {
     }
 
 
+    public static void copyFile(File source, File dest) {
+
+        try {
+            FileInputStream is = new FileInputStream(source);
+            FileOutputStream os = new FileOutputStream(dest);
+            FileChannel sourceChannel = is.getChannel();
+            FileChannel destChannel = os.getChannel();
+            sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
+            sourceChannel.close();
+            destChannel.close();
+            is.close();
+            os.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void inputStreamToFile(InputStream ins, File file) {
         try {
             OutputStream os = Files.newOutputStream(file.toPath());
@@ -211,6 +229,8 @@ public class FileUtil {
             }
         }
     }
+
+
 
 
     /**
@@ -264,6 +284,8 @@ public class FileUtil {
         }
         return stringBuilder.toString().toUpperCase();
     }
+
+
 
     /**
      * 校验是否为excel

@@ -112,8 +112,6 @@ public enum ResultCode {
 	PERMISSION_NO_ACCESS(80001, "无访问权限");
 
 
-
-	
 	private Integer code;
 
 	private String message;

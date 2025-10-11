@@ -1,6 +1,6 @@
 package com.lhs.entity.dto.hypergryph;
 
-public class FilePath {
+public class GameDataFormatFilePath {
     private String arknightsGameResourcePath;
     private String arknightsGameDataPath;
     private String arknightsGameResourceAvatarPath;
