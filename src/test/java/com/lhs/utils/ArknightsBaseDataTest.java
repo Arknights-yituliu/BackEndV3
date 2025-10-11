@@ -1,6 +1,6 @@
 package com.lhs.utils;
 
-import com.lhs.entity.dto.hypergryph.FilePath;
+import com.lhs.entity.dto.hypergryph.GameDataFormatFilePath;
 import com.lhs.service.util.ArknightsGameDataService;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
@@ -26,36 +26,36 @@ public class ArknightsBaseDataTest {
 
     @Test
     public void getOperatorInfoSimpleTable() {
-        FilePath filePath = new FilePath();
-        filePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/");
-        filePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
-        filePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
-        filePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
-        arknightsGameDataService.getOperatorInfoSimpleTable(filePath);
-        arknightsGameDataService.getBuildingTable(filePath);
+        GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
+        arknightsGameDataService.getOperatorInfoSimpleTable(gameDataFormatFilePath);
+        arknightsGameDataService.getBuildingTable(gameDataFormatFilePath);
     }
 
 
     @Test
     public void getOperatorInfoSimpleTableByGameResource() {
-        FilePath filePath = new FilePath();
-        filePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
-        filePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
-        filePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
-        filePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
-        arknightsGameDataService.getOperatorInfoSimpleTableByGameResource(filePath);
-        arknightsGameDataService.getBuildingTableByGameResource(filePath);
+        GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
+        arknightsGameDataService.getOperatorInfoSimpleTableByGameResource(gameDataFormatFilePath);
+        arknightsGameDataService.getBuildingTableByGameResource(gameDataFormatFilePath);
     }
 
 
     @Test
     public void getAvatar() {
-        FilePath filePath = new FilePath();
-        filePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
-        filePath.setArknightsGameResourceAvatarPath("C:/WebStormProject/ArknightsGameResource/avatar/");
-        filePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
-        filePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
-        arknightsGameDataService.getAvatar(filePath);
+        GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameResourceAvatarPath("C:/WebStormProject/ArknightsGameResource/avatar/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
+        arknightsGameDataService.getAvatar(gameDataFormatFilePath);
     }
 
 }

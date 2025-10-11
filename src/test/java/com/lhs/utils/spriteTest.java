@@ -32,8 +32,8 @@ public class spriteTest {
         // 格式化为字符串
         String todayStr = today.format(formatter);
         String spriteFilename = "avatar"+todayStr+".png";
-        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\avatar\\";     // 图片输入目录
-        String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
+        String inputDir = "C:\\VCProject\\ak-resources\\image\\avatar\\";     // 图片输入目录
+        String outputDir = "C:\\VCProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         String cssFilename = "sprite_avatar.css";
 
         SpriteInfo spriteInfo = new SpriteInfo();
@@ -56,8 +56,8 @@ public class spriteTest {
         // 格式化为字符串
         String todayStr = today.format(formatter);
         String spriteFilename = "skills"+todayStr+".png";
-        String inputDir = "C:\\WebStormProject\\ArknightsGameResource\\skill\\";     // 图片输入目录
-        String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
+        String inputDir = "C:\\VCProject\\ArknightsGameResource\\skill\\";     // 图片输入目录
+        String outputDir = "C:\\VCProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         String cssFilename = "sprite_skill.css";
 
         SpriteInfo spriteInfo = new SpriteInfo();
@@ -69,6 +69,11 @@ public class spriteTest {
 
         SpriteCreateUtil.spriteCreate(spriteInfo);
     }
+
+
+
+
+
 
     @Test
     void spriteGenerator() {

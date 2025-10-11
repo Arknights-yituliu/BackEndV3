@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class CustomItemTest {
+public class CustomItemDTOTest {
 
     @Resource
     private CustomItemService customItemService;
