@@ -26,8 +26,8 @@ public class CustomItemServiceImpl implements CustomItemService {
 
     private final StageService stageService;
 
-    private static final Integer BASE_LMD_VALUE = 36/10000;
-    private static final Integer BASE_EXP_VALUE = 36/10000;
+    private static final Integer BASE_LMD_VALUE = 36 / 10000;
+    private static final Integer BASE_EXP_VALUE = 36 / 10000;
 
     public CustomItemServiceImpl(StageService stageService) {
         this.stageService = stageService;
@@ -40,7 +40,9 @@ public class CustomItemServiceImpl implements CustomItemService {
 
 
     @Override
-    public void getCustomItemList() {
+    public void getCustomItemList(ItemValueConfigDTO itemValueConfigDTO) {
+        checkItemValueConfig(itemValueConfigDTO);
+
         JsonNode recruitmentTableJson = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "recruitment_table.json"));
 
         //招募许可定价方案
@@ -50,18 +52,32 @@ public class CustomItemServiceImpl implements CustomItemService {
 
         String itemInfoText = FileUtil.read(ConfigUtil.DataFilePath + "item_info.json");
 
-        List<ItemInfoDTO> itemInfoDTOList = JsonMapper.parseObject(itemInfoText, new TypeReference<>() {
+        List<ItemInfoDTO> itemInfoDTOList = JsonMapper.parseJSONArray(itemInfoText, new TypeReference<>() {
         });
 
-        Map<Integer, Map<String,Double>> workshopByproductWeightMap = new HashMap<>();
 
-        for(ItemInfoDTO itemInfoDTO : itemInfoDTOList){
-            if(itemInfoDTO.getWeight()>0){
-               if(!workshopByproductWeightMap.containsKey(itemInfoDTO.getRarity())){
-                  workshopByproductWeightMap.put(itemInfoDTO.getRarity(),new HashMap<>());
-               }
-               workshopByproductWeightMap.get(itemInfoDTO.getRarity()).put(itemInfoDTO.getItemId(), itemInfoDTO.getWeight());
+        //将精英材料根据品质进行分类，方便后面计算每级品质精英材料的加工站期望产出
+        Map<Integer, Map<String, Double>> workshopByproductWeightMap = new HashMap<>();
+
+
+        //循环所有精英材料
+        for (ItemInfoDTO itemInfoDTO : itemInfoDTOList) {
+            //权重值
+            double weight = itemInfoDTO.getWeight();
+            //权重为0跳过
+            if (weight <= 0) {
+                continue;
             }
+            //分组id10600以上为非精英材料，此时结束循环
+            if (itemInfoDTO.getGroupId() > 10600) {
+                break;
+            }
+            //稀有度
+            int rarity = itemInfoDTO.getRarity();
+            //物品ID
+            String itemId = itemInfoDTO.getItemId();
+            //将物品权重根据稀有度进行分类存入map
+            workshopByproductWeightMap.computeIfAbsent(rarity, k -> new HashMap<>()).put(itemId, weight);
         }
 
     }
@@ -80,29 +96,74 @@ public class CustomItemServiceImpl implements CustomItemService {
         Map<String, Stage> stageInfoMap = stageService.getStageInfoMap();
 
 
-        Map<String, Integer> stageBlacklistMap = itemValueConfigDTO.getStageBlacklist().stream().collect(Collectors.toMap(stageId->stageId, stageId->1));
-
-        int sampleSize = 300;
-        if (itemValueConfigDTO.getSampleSize() != null) {
-            sampleSize = itemValueConfigDTO.getSampleSize();
-        }
-    }
-
-    private void checkItemValueConfig(ItemValueConfigDTO configDTO){
-        if(configDTO.getSampleSize()==null&&configDTO.getSampleSize()<=50){
-            throw new ServiceException(ResultCode.PARAM_IS_INVALID);
-        }
+        int sampleSize = itemValueConfigDTO.getSampleSize();
 
 
     }
+
+    private void checkItemValueConfig(ItemValueConfigDTO configDTO) {
+        checkNotNull(configDTO.getUseActivityAverageStage());
+        checkNotNull(configDTO.getSampleSize());
+        checkNotNull(configDTO.getStageBlacklist());
+        checkNotNull(configDTO.getStageWhitelist());
+        checkNotNull(configDTO.getKernelHeadhuntingPermitPricingStrategy());
+        checkNotNull(configDTO.getKernelHeadhuntingPermitCoefficient());
+        checkNotNull(configDTO.getLmdPricingStrategy());
+        checkNotNull(configDTO.getLmdCoefficient());
+        checkNotNull(configDTO.getExpPricingStrategy());
+        checkNotNull(configDTO.getExpCoefficient());
+        checkNotNull(configDTO.getModUnlockTokenPricingStrategy());
+        checkNotNull(configDTO.getModUnlockTokenValue());
+        checkNotNull(configDTO.getRecruitmentPermitPricingStrategy());
+        checkNotNull(configDTO.getRecruitmentPermitValue());
+        checkNotNull(configDTO.getExpeditedPlanPricingStrategy());
+        checkNotNull(configDTO.getExpeditedPlanValue());
+        checkNotNull(configDTO.getFurniturePartPricingStrategy());
+        checkNotNull(configDTO.getFurniturePartValue());
+        checkNotNull(configDTO.getCustomItemDTO());
+        checkNotNull(configDTO.getWorkshopStrategyDTO());
+        checkNotNull(configDTO.getChipPreferenceDTO());
+
+        if(configDTO.getOrundumPricingStrategy()==null&&configDTO.getOrundumValue()==null){
+            configDTO.setOrundumValue(0.75);
+        }
+
+        if(configDTO.getOrundumValue()<=0){
+            throw new ServiceException(ResultCode.ORUNDUM_VALUE_CANNOT_BE_LESS_THAN_0);
+        }
+
+        if(configDTO.getOriginitePrimePricingStrategy()==null&&configDTO.getOriginitePrimeCoefficient()==null){
+            configDTO.setOrundumValue(180.0);
+        }
+
+        if(configDTO.getOriginitePrimeCoefficient()<=0){
+            throw new ServiceException(ResultCode.ORIGINITE_PRIME_VALUE_CANNOT_BE_LESS_THAN_0);
+        }
+
+
+
+
+
+        if (configDTO.getSampleSize() <= 50) {
+            throw new ServiceException(ResultCode.SAMPLE_SIZE_CANNOT_BE_ZERO_OR_LESS_THAN_50);
+        }
+    }
+
+
+    private static void checkNotNull(Object value) {
+        if (value == null) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK);
+        }
+    }
+
 
     @RedisCacheable(key = "Json:Recruitment_Table")
-    private JsonNode getRecruitmentTable(){
+    private JsonNode getRecruitmentTable() {
         return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "recruitment_table.json"));
     }
 
     @RedisCacheable(key = "Json:Item_Info")
-    private JsonNode getItemInfo(){
+    private JsonNode getItemInfo() {
         return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "itemInfo.json"));
     }
 

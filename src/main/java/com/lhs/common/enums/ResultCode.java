@@ -69,7 +69,14 @@ public enum ResultCode {
 
 
 
-	/*游戏养成相关报错：31000-31999*/
+
+	//自定义材料相关报错
+	SAMPLE_SIZE_CANNOT_BE_ZERO_OR_LESS_THAN_50(30100, "样本量不能为0或小于50"),
+	ORUNDUM_PRICING_OR_PRICING_STRATEGY_MUST_BE_SPECIFIED(30101, "必须指定合成玉定价或合成玉定价策略"),
+	ORUNDUM_VALUE_CANNOT_BE_LESS_THAN_0(30102, "合成玉价值不能小于0"),
+	ORIGINITE_PRIME_VALUE_CANNOT_BE_LESS_THAN_0(30103, "源石系数不能小于0"),
+
+
 
 
 	/*通用逻辑相关报错：39000-39999*/

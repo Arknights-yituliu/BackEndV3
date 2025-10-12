@@ -9,8 +9,8 @@ public interface CustomItemService {
 
     void customItemValueCalculation();
 
-    void getCustomItemList();
 
+    void getCustomItemList(ItemValueConfigDTO itemValueConfigDTO);
 
     void getStageDropCollect(ItemValueConfigDTO itemValueConfigDTO);
 }
