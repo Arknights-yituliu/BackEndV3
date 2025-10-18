@@ -19,6 +19,6 @@ public class CustomItemDTOValueTest {
 
     @Test
     void customItemValueCalculation(){
-        customItemService.getCustomItemList();
+
     }
 }

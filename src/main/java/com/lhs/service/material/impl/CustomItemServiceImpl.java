@@ -10,15 +10,14 @@ import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.entity.dto.item.custom.ItemInfoDTO;
 import com.lhs.entity.dto.item.custom.ItemValueConfigDTO;
+import com.lhs.entity.dto.item.custom.StageDropDTO;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
 import com.lhs.entity.po.material.Stage;
 import com.lhs.service.material.CustomItemService;
 import com.lhs.service.material.StageService;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +53,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
         List<ItemInfoDTO> itemInfoDTOList = JsonMapper.parseJSONArray(itemInfoText, new TypeReference<>() {
         });
+
 
 
         //将精英材料根据品质进行分类，方便后面计算每级品质精英材料的加工站期望产出
@@ -97,6 +97,51 @@ public class CustomItemServiceImpl implements CustomItemService {
 
 
         int sampleSize = itemValueConfigDTO.getSampleSize();
+
+        Set<String> stageBlcklistSet = new HashSet<>();
+        if(itemValueConfigDTO.getStageBlacklist()!=null){
+            stageBlcklistSet = itemValueConfigDTO.getStageBlacklist();
+        }
+
+        Map<String, PenguinMatrixDTO> toughStageMap = penguinMatrixDTOList.stream()
+                .filter(item -> item.getStageId().contains("tough"))
+                .collect(Collectors
+                        .toMap(item -> item.getStageId().replace("tough","main")+"—"+item.getItemId(), item -> item));
+
+        Map<String,List<StageDropDTO>> stageDropCollect = new HashMap<>();
+
+        for(PenguinMatrixDTO penguinMatrixDTO:penguinMatrixDTOList){
+
+            String stageId = penguinMatrixDTO.getStageId();
+            String itemId = penguinMatrixDTO.getItemId();
+            Integer quantity = penguinMatrixDTO.getQuantity();
+            Integer times = penguinMatrixDTO.getTimes();
+            Long start = penguinMatrixDTO.getStart();
+            Long end = penguinMatrixDTO.getEnd();
+
+            if(stageBlcklistSet.contains(stageId)){
+                continue;
+            }
+
+            if((stageId.contains("main_14")&&end!=null)||stageId.contains("tough")){
+                continue;
+            }
+
+            if(times<sampleSize){
+                continue;
+            }
+
+            Stage stage = stageInfoMap.get(stageId);
+
+            if(stage==null){
+                continue;
+            }
+
+            String main14StageDropMergeKey = stageId+"—"+itemId;
+
+
+
+        }
 
 
     }
