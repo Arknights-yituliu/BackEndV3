@@ -21,21 +21,21 @@ public class ItemValueConfigDTO {
     private String expPricingStrategy;
     private Double expCoefficient;
     private String modUnlockTokenPricingStrategy;
-    private Object modUnlockTokenValue;
+    private Double modUnlockTokenValue;
     private String recruitmentPermitPricingStrategy;
-    private Object recruitmentPermitValue;
+    private Double recruitmentPermitValue;
     private String expeditedPlanPricingStrategy;
     private Integer expeditedPlanValue;
     private String furniturePartPricingStrategy;
     private Integer furniturePartValue;
-    private List<CustomItemDTO> customItemDTO;
-    private WorkshopStrategyDTO workshopStrategyDTO;
-    private ChipPreferenceDTO chipPreferenceDTO;
+    private List<CustomItemDTO> customItem;
+    private WorkshopStrategyDTO workshopStrategy;
+    private ChipPreferenceDTO chipPreference;
 
     public ItemValueConfigDTO() {
     }
 
-    public ItemValueConfigDTO(String source, String version, Boolean useActivityAverageStage, Integer sampleSize, Set<String> stageBlacklist, Set<String> stageWhitelist, String orundumPricingStrategy, Double orundumValue, String originitePrimePricingStrategy, Double originitePrimeCoefficient, String kernelHeadhuntingPermitPricingStrategy, Double kernelHeadhuntingPermitCoefficient, String lmdPricingStrategy, Double lmdCoefficient, String expPricingStrategy, Double expCoefficient, String modUnlockTokenPricingStrategy, Object modUnlockTokenValue, String recruitmentPermitPricingStrategy, Object recruitmentPermitValue, String expeditedPlanPricingStrategy, Integer expeditedPlanValue, String furniturePartPricingStrategy, Integer furniturePartValue, List<CustomItemDTO> customItemDTO, WorkshopStrategyDTO workshopStrategyDTO, ChipPreferenceDTO chipPreferenceDTO) {
+    public ItemValueConfigDTO(String source, String version, Boolean useActivityAverageStage, Integer sampleSize, Set<String> stageBlacklist, Set<String> stageWhitelist, String orundumPricingStrategy, Double orundumValue, String originitePrimePricingStrategy, Double originitePrimeCoefficient, String kernelHeadhuntingPermitPricingStrategy, Double kernelHeadhuntingPermitCoefficient, String lmdPricingStrategy, Double lmdCoefficient, String expPricingStrategy, Double expCoefficient, String modUnlockTokenPricingStrategy, Double modUnlockTokenValue, String recruitmentPermitPricingStrategy, Double recruitmentPermitValue, String expeditedPlanPricingStrategy, Integer expeditedPlanValue, String furniturePartPricingStrategy, Integer furniturePartValue, List<CustomItemDTO> customItem, WorkshopStrategyDTO workshopStrategy, ChipPreferenceDTO chipPreference) {
         this.source = source;
         this.version = version;
         this.useActivityAverageStage = useActivityAverageStage;
@@ -60,9 +60,9 @@ public class ItemValueConfigDTO {
         this.expeditedPlanValue = expeditedPlanValue;
         this.furniturePartPricingStrategy = furniturePartPricingStrategy;
         this.furniturePartValue = furniturePartValue;
-        this.customItemDTO = customItemDTO;
-        this.workshopStrategyDTO = workshopStrategyDTO;
-        this.chipPreferenceDTO = chipPreferenceDTO;
+        this.customItem = customItem;
+        this.workshopStrategy = workshopStrategy;
+        this.chipPreference = chipPreference;
     }
 
     public String getSource() {
@@ -201,11 +201,11 @@ public class ItemValueConfigDTO {
         this.modUnlockTokenPricingStrategy = modUnlockTokenPricingStrategy;
     }
 
-    public Object getModUnlockTokenValue() {
+    public Double getModUnlockTokenValue() {
         return modUnlockTokenValue;
     }
 
-    public void setModUnlockTokenValue(Object modUnlockTokenValue) {
+    public void setModUnlockTokenValue(Double modUnlockTokenValue) {
         this.modUnlockTokenValue = modUnlockTokenValue;
     }
 
@@ -217,11 +217,11 @@ public class ItemValueConfigDTO {
         this.recruitmentPermitPricingStrategy = recruitmentPermitPricingStrategy;
     }
 
-    public Object getRecruitmentPermitValue() {
+    public Double getRecruitmentPermitValue() {
         return recruitmentPermitValue;
     }
 
-    public void setRecruitmentPermitValue(Object recruitmentPermitValue) {
+    public void setRecruitmentPermitValue(Double recruitmentPermitValue) {
         this.recruitmentPermitValue = recruitmentPermitValue;
     }
 
@@ -257,28 +257,28 @@ public class ItemValueConfigDTO {
         this.furniturePartValue = furniturePartValue;
     }
 
-    public List<CustomItemDTO> getCustomItemDTO() {
-        return customItemDTO;
+    public List<CustomItemDTO> getCustomItem() {
+        return customItem;
     }
 
-    public void setCustomItemDTO(List<CustomItemDTO> customItemDTO) {
-        this.customItemDTO = customItemDTO;
+    public void setCustomItem(List<CustomItemDTO> customItem) {
+        this.customItem = customItem;
     }
 
-    public WorkshopStrategyDTO getWorkshopStrategyDTO() {
-        return workshopStrategyDTO;
+    public WorkshopStrategyDTO getWorkshopStrategy() {
+        return workshopStrategy;
     }
 
-    public void setWorkshopStrategyDTO(WorkshopStrategyDTO workshopStrategyDTO) {
-        this.workshopStrategyDTO = workshopStrategyDTO;
+    public void setWorkshopStrategy(WorkshopStrategyDTO workshopStrategy) {
+        this.workshopStrategy = workshopStrategy;
     }
 
-    public ChipPreferenceDTO getChipPreferenceDTO() {
-        return chipPreferenceDTO;
+    public ChipPreferenceDTO getChipPreference() {
+        return chipPreference;
     }
 
-    public void setChipPreferenceDTO(ChipPreferenceDTO chipPreferenceDTO) {
-        this.chipPreferenceDTO = chipPreferenceDTO;
+    public void setChipPreference(ChipPreferenceDTO chipPreference) {
+        this.chipPreference = chipPreference;
     }
 
     @Override
@@ -308,9 +308,9 @@ public class ItemValueConfigDTO {
                 ", expeditedPlanValue=" + expeditedPlanValue +
                 ", furniturePartPricingStrategy='" + furniturePartPricingStrategy + '\'' +
                 ", furniturePartValue=" + furniturePartValue +
-                ", customItemDTO=" + customItemDTO +
-                ", workshopStrategyDTO=" + workshopStrategyDTO +
-                ", chipPreferenceDTO=" + chipPreferenceDTO +
+                ", customItemDTO=" + customItem +
+                ", workshopStrategyDTO=" + workshopStrategy +
+                ", chipPreferenceDTO=" + chipPreference +
                 '}';
     }
 }

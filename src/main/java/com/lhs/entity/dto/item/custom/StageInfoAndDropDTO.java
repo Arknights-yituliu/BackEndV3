@@ -1,13 +1,13 @@
 package com.lhs.entity.dto.item.custom;
 
-public class StageDropDTO {
+public class StageInfoAndDropDTO {
 
     private String stageId;
     private String itemId;
     private Integer quantity;
     private Integer times;
-    private String start;
-    private String end;
+    private Long start;
+    private Long end;
     private String stageCode;
     private Integer apCost;
     private Double spm;
@@ -15,10 +15,10 @@ public class StageDropDTO {
     private String zoneName;
     private String zoneId;
 
-    public StageDropDTO() {
+    public StageInfoAndDropDTO() {
     }
 
-    public StageDropDTO(String stageId, String itemId, Integer quantity, Integer times, String start, String end, String stageCode, Integer apCost, Double spm, String stageType, String zoneName, String zoneId) {
+    public StageInfoAndDropDTO(String stageId, String itemId, Integer quantity, Integer times, Long start, Long end, String stageCode, Integer apCost, Double spm, String stageType, String zoneName, String zoneId) {
         this.stageId = stageId;
         this.itemId = itemId;
         this.quantity = quantity;
@@ -28,6 +28,9 @@ public class StageDropDTO {
         this.stageCode = stageCode;
         this.apCost = apCost;
         this.spm = spm;
+        this.stageType = stageType;
+        this.zoneName = zoneName;
+        this.zoneId = zoneId;
     }
 
     public String getStageId() {
@@ -62,19 +65,19 @@ public class StageDropDTO {
         this.times = times;
     }
 
-    public String getStart() {
+    public Long getStart() {
         return start;
     }
 
-    public void setStart(String start) {
+    public void setStart(Long start) {
         this.start = start;
     }
 
-    public String getEnd() {
+    public Long getEnd() {
         return end;
     }
 
-    public void setEnd(String end) {
+    public void setEnd(Long end) {
         this.end = end;
     }
 

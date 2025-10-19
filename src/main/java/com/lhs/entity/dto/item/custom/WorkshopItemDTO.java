@@ -3,12 +3,12 @@ package com.lhs.entity.dto.item.custom;
 public class WorkshopItemDTO {
 
     private String strategy;
-    private Object byproductRateIncrease;
+    private Double byproductRateIncrease;
 
     public WorkshopItemDTO() {
     }
 
-    public WorkshopItemDTO(String strategy, Object byproductRateIncrease) {
+    public WorkshopItemDTO(String strategy, Double byproductRateIncrease) {
         this.strategy = strategy;
         this.byproductRateIncrease = byproductRateIncrease;
     }
@@ -21,11 +21,11 @@ public class WorkshopItemDTO {
         this.strategy = strategy;
     }
 
-    public Object getByproductRateIncrease() {
+    public Double getByproductRateIncrease() {
         return byproductRateIncrease;
     }
 
-    public void setByproductRateIncrease(Object byproductRateIncrease) {
+    public void setByproductRateIncrease(Double byproductRateIncrease) {
         this.byproductRateIncrease = byproductRateIncrease;
     }
 }
