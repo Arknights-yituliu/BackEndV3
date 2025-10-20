@@ -51,8 +51,11 @@ public class CustomItemServiceImpl implements CustomItemService {
         //公开招募干员概率
         JsonNode operatorRecruitmentRates = recruitmentTableJson.get("operatorRecruitmentRates");
 
-        String itemInfoTableText = FileUtil.read(ConfigUtil.DataFilePath + "item_info_table.json");
 
+        JsonNode compositeTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "composite_table.v2.json"));
+
+
+        String itemInfoTableText = FileUtil.read(ConfigUtil.DataFilePath + "item_info_table.json");
         Map<String, ItemInfoDTO> itemInfoMap = JsonMapper.parseJSONArray(itemInfoTableText, new TypeReference<>() {
         });
 
@@ -70,11 +73,11 @@ public class CustomItemServiceImpl implements CustomItemService {
         itemValueMap.put("AP_GAMEPLAY", 1.0);
         itemValueMap.put("EXP", 0.0);
 
-        Map<Integer, Integer> workshopByproductExpectedValue = Map.of(
-                1, 3,
-                2, 9,
-                3, 27,
-                4, 81
+        Map<Integer, Double> workshopByproductExpectedValue = Map.of(
+                1, 3.0,
+                2, 9.0,
+                3, 27.0,
+                4, 81.0
         );
 
         List<CustomItemDTO> customItem = itemValueConfigDTO.getCustomItem();
@@ -99,14 +102,15 @@ public class CustomItemServiceImpl implements CustomItemService {
         Map<String, List<StageInfoAndDropDTO>> stageInfoAndDropCollect = getStageInfoAndDropCollect(itemValueConfigDTO);
 
 
-        for (int i = 0; i < maxIteration; i++) {
-            calculateCommonItemValue(itemValueMap, itemValueConfigDTO,recruitmentPermitPricing,operatorRecruitmentRates);
+        for (int i = 0; i < tolerance; i++) {
+            calculateCommonItemValue(itemValueMap, itemValueConfigDTO, recruitmentPermitPricing, operatorRecruitmentRates);
+            calculateEliteMaterialValueFromT3(itemValueMap, itemValueConfigDTO, workshopByproductExpectedValue, compositeTable,customItemValueMap);
         }
 
     }
 
 
-    private void calculateCommonItemValue(Map<String, Double> itemValueMap, ItemValueConfigDTO itemValueConfigDTO,JsonNode recruitmentPermitPricing,JsonNode operatorRecruitmentRates) {
+    private void calculateCommonItemValue(Map<String, Double> itemValueMap, ItemValueConfigDTO itemValueConfigDTO, JsonNode recruitmentPermitPricing, JsonNode operatorRecruitmentRates) {
         // 因果价值
         double causalityValue = itemValueMap.get("causality");
 
@@ -174,13 +178,12 @@ public class CustomItemServiceImpl implements CustomItemService {
         } else {
             JsonNode recruitmentPermitPricingStrategy = recruitmentPermitPricing.get(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
             Iterator<Map.Entry<String, JsonNode>> fields = recruitmentPermitPricingStrategy.fields();
-            while (fields.hasNext()){
+            while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> next = fields.next();
-                JsonNode value = next.getValue();
+                JsonNode strategy = next.getValue();
                 String rarity = next.getKey();
                 itemValue7001 += operatorRecruitmentRates.get(rarity).asDouble() *
-                        (value.get("4005").asDouble() * itemValue4005 +
-                                value.get("4004").asDouble() * itemValue4004);
+                        (strategy.get("4005").asDouble() * itemValue4005 + strategy.get("4004").asDouble() * itemValue4004);
             }
         }
 
@@ -231,7 +234,10 @@ public class CustomItemServiceImpl implements CustomItemService {
         }
 
         // 芯片组
+
+        //均衡芯片价值   36(关卡消耗理智) - 0.0036(龙门币价值)*12(每理智掉落10龙门币*1.2三星作战奖励)*36(关卡消耗理智)
         double balancedChipPackValue = 36 * (1 - itemValue4001 * 12);
+        //强势弱势芯片价值
         double strongChipPackValue, weakChipPackValue;
         WorkshopItemDTO chipPack = itemValueConfigDTO.getWorkshopStrategy().getChipPack();
         String chipPackStrategy = chipPack.getStrategy();
@@ -328,7 +334,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
         // 芯片偏好设置
         Map<String, String> chipPreferenceMap = new HashMap<>();
-        setupChipPreference(chipPreferenceMap,itemValueConfigDTO);
+        setupChipPreference(chipPreferenceMap, itemValueConfigDTO);
 
         // 设置芯片价值
         for (Map.Entry<String, String> entry : chipPreferenceMap.entrySet()) {
@@ -354,7 +360,152 @@ public class CustomItemServiceImpl implements CustomItemService {
         }
     }
 
-    private void setupChipPreference(Map<String, String> chipPreferenceMap,ItemValueConfigDTO itemValueConfigDTO) {
+    private void calculateEliteMaterialValueFromT3(Map<String, Double> itemValueMap,
+                                                   ItemValueConfigDTO itemValueConfigDTO,
+                                                   Map<Integer, Double> workshopByproductExpectedValue,
+                                                   JsonNode compositeTable,
+                                                   Map<String, Double> customItemValueMap) {
+        // 龙门币价值 */
+        Double lmdValue = itemValueMap.get("4001");
+
+        // 计算因果价值
+        // 随机蓝材料的价值 */
+        Double t3workShopProductsValue = workshopByproductExpectedValue.get(3);
+
+        // 解构蓝合紫的加工站策略
+        WorkshopItemDTO t3toT4Strategy = itemValueConfigDTO.getWorkshopStrategy().getEliteMaterialT3toT4();
+        String strategy = t3toT4Strategy.getStrategy();
+        Double byproductRateIncrease = t3toT4Strategy.getByproductRateIncrease();
+
+        // 蓝合紫时消耗的龙门币数量 */
+        int lmdCost = ("WORKSHOP_STRATEGY_BLEMISHINE".equals(strategy)) ? 0 : 300;
+
+        // 蓝合紫时的实际副产品产出概率 */
+        double byproductRate;
+        if ("WORKSHOP_STRATEGY_BLEMISHINE".equals(strategy)) {
+            byproductRate = 0.14;
+        } else {
+            byproductRate = 0.1 * (1 + (byproductRateIncrease != null ? byproductRateIncrease : 0));
+        }
+
+        // 因果价值 */
+        double causalityValue = ((1 - byproductRate) * t3workShopProductsValue - (300 - lmdCost) * lmdValue) / (9.0 / 10.0 * 36);
+        // 更新因果价值
+        itemValueMap.put("causality", causalityValue);
+
+        // 消耗材料和目标材料的稀有度映射
+        Map<Integer, Integer> rarityMap = new HashMap<>();
+        rarityMap.put(1, 1);
+        rarityMap.put(2, 2);
+        rarityMap.put(4, 3);
+        rarityMap.put(5, 4);
+
+        for (JsonNode table : compositeTable) {
+            // 解构加工路径表：合成或拆解的物品 ID、判断拆解还是合成（resolve === true 为拆解）、合成路径、稀有度
+            String itemId = table.get("itemId").asText();
+            boolean resolve = table.get("resolve").asBoolean();
+            JsonNode pathway = table.get("pathway");
+            Integer rarity = table.get("rarity").asInt();
+
+            // 如果这个物品被自定义了，不再通过合成路径得到价值
+            if (customItemValueMap.containsKey(itemId)) {
+                continue;
+            }
+
+            Integer sourceRarity = rarityMap.get(rarity);
+            int targetRarity = sourceRarity + 1;
+
+            // 加工消耗的心情 等于 `2 ** (sourceRarity - 1)
+            double morale = Math.pow(2, sourceRarity - 1);
+
+            // 获取自定义加工策略和副产品产出概率提升量
+            String strategyPropertyName = "eliteMaterialT" + sourceRarity + "toT" + targetRarity;
+            WorkshopItemDTO materialStrategy;
+
+            WorkshopStrategyDTO workshopStrategy = itemValueConfigDTO.getWorkshopStrategy();
+
+            switch (strategyPropertyName) {
+                case "eliteMaterialT1toT2":
+                    materialStrategy = workshopStrategy.getEliteMaterialT1toT2();
+                    break;
+                case "eliteMaterialT2toT3":
+                    materialStrategy = workshopStrategy.getEliteMaterialT2toT3();
+                    break;
+                case "eliteMaterialT3toT4":
+                    materialStrategy = workshopStrategy.getEliteMaterialT3toT4();;
+                    break;
+                case "eliteMaterialT4toT5":
+                    materialStrategy = workshopStrategy.getEliteMaterialT4toT5();
+                    break;
+                default:
+                    continue; // 或者抛出异常
+            }
+
+            String currentStrategy = materialStrategy.getStrategy();
+            Double currentByproductRateIncrease = materialStrategy.getByproductRateIncrease();
+
+            /*
+             实际的副产品产出概率
+              - 使用九色鹿获取因果为 `0.1`
+              - 使用瑕光为 `0.14`
+              - 使用其他干员加工为 `0.1 * (1 + byproductRateIncrease)`
+             */
+            double currentByproductRate;
+            switch (currentStrategy) {
+                case "WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN":
+                    currentByproductRate = 0.1;
+                    break;
+                case "WORKSHOP_STRATEGY_BLEMISHINE":
+                    currentByproductRate = 0.14;
+                    break;
+                case "WORKSHOP_STRATEGY_COMMON":
+                    currentByproductRate = 0.1 * (1 + (currentByproductRateIncrease != null ? currentByproductRateIncrease : 0));
+                    break;
+                default:
+                    currentByproductRate = 0.1; // 默认值
+            }
+
+            //副产品价值的期望
+            Double expectedByproductValue = workshopByproductExpectedValue.get(sourceRarity);
+
+            // 加工消耗的龙门币  对于精英材料，不使用瑕光的情况下，消耗的龙门币 = 100 * 原材料稀有度
+            int currentLmdCost = ("WORKSHOP_STRATEGY_BLEMISHINE".equals(currentStrategy)) ? 0 : (sourceRarity * 100);
+
+            //期望获取的因果数量 - 使用九色鹿获取因果时，期望获取的因果数量 = 0.9 * 加工消耗的心情
+
+            double expectedCausalityObtained = ("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN".equals(currentStrategy)) ? (0.9 * morale) : 0;
+
+            // 物品新价值 */
+            double newItemValue = 0.0;
+
+            if (resolve) {  // 白、绿色材料是向下拆解
+                JsonNode target = pathway.get(0);  // 拆解路径只有一个物品
+                // 目标材料价值 */
+                Double targetItemValue = itemValueMap.get(target.get("itemId").asText());
+                if (targetItemValue == null) targetItemValue = 0.0;
+                if (expectedByproductValue == null) expectedByproductValue = 0.0;
+
+                // 消耗材料价值 = (目标材料价值 + 副产品 + 因果（若有） - 龙门币) / 合成所需灰绿材料数量
+                newItemValue = (targetItemValue + expectedByproductValue * currentByproductRate + expectedCausalityObtained * causalityValue - currentLmdCost * lmdValue) / target.get("count").asInt();
+            } else {
+                // 紫、金材料是向上合成
+                for (JsonNode cost : pathway) {
+                    // 消耗材料价值 */
+                    Double sourceItemValue = itemValueMap.get(cost.get("itemId").asText());
+                    if (sourceItemValue == null) sourceItemValue = 0.0;
+                    newItemValue += sourceItemValue * cost.get("count").asInt();
+                }
+                // 目标材料价值 = 消耗材料价值之和 + 龙门币 - 副产品
+                if (expectedByproductValue == null) expectedByproductValue = 0.0;
+                newItemValue += currentLmdCost * lmdValue - expectedByproductValue * currentByproductRate;
+            }
+
+            // 更新物品新价值
+            itemValueMap.put(itemId, newItemValue);
+        }
+    }
+
+    private void setupChipPreference(Map<String, String> chipPreferenceMap, ItemValueConfigDTO itemValueConfigDTO) {
         switch (itemValueConfigDTO.getChipPreference().getTANK_MEDIC()) {
             case "TANK":
                 chipPreferenceMap.put("3", "STRONG");
