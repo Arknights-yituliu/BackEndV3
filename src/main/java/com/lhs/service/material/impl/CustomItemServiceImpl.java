@@ -55,11 +55,13 @@ public class CustomItemServiceImpl implements CustomItemService {
         JsonNode compositeTable = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "composite_table.v2.json"));
 
 
+
         String itemInfoTableText = FileUtil.read(ConfigUtil.DataFilePath + "item_info_table.json");
         Map<String, ItemInfoDTO> itemInfoMap = JsonMapper.parseJSONArray(itemInfoTableText, new TypeReference<>() {
         });
 
         Map<String, Double> itemValueMap = new HashMap<>();
+
         for (ItemInfoDTO itemInfoDTO : itemInfoMap.values()) {
             String itemId = itemInfoDTO.getItemId();
             if ("精英材料".equals(itemInfoDTO.getType())) {
@@ -110,7 +112,10 @@ public class CustomItemServiceImpl implements CustomItemService {
     }
 
 
-    private void calculateCommonItemValue(Map<String, Double> itemValueMap, ItemValueConfigDTO itemValueConfigDTO, JsonNode recruitmentPermitPricing, JsonNode operatorRecruitmentRates) {
+    private void calculateCommonItemValue(Map<String, Double> itemValueMap,
+                                          ItemValueConfigDTO itemValueConfigDTO,
+                                          JsonNode recruitmentPermitPricing,
+                                          JsonNode operatorRecruitmentRates) {
         // 因果价值
         double causalityValue = itemValueMap.get("causality");
 
@@ -360,6 +365,103 @@ public class CustomItemServiceImpl implements CustomItemService {
         }
     }
 
+
+    private void setupChipPreference(Map<String, String> chipPreferenceMap, ItemValueConfigDTO itemValueConfigDTO) {
+        switch (itemValueConfigDTO.getChipPreference().getTANK_MEDIC()) {
+            case "TANK":
+                chipPreferenceMap.put("3", "STRONG");
+                chipPreferenceMap.put("6", "WEAK");
+                break;
+            case "MEDIC":
+                chipPreferenceMap.put("3", "WEAK");
+                chipPreferenceMap.put("6", "STRONG");
+                break;
+            case "BALANCED":
+                chipPreferenceMap.put("3", "BALANCED");
+                chipPreferenceMap.put("6", "BALANCED");
+                break;
+        }
+
+        switch (itemValueConfigDTO.getChipPreference().getSNIPER_CASTER()) {
+            case "SNIPER":
+                chipPreferenceMap.put("4", "STRONG");
+                chipPreferenceMap.put("5", "WEAK");
+                break;
+            case "CASTER":
+                chipPreferenceMap.put("4", "WEAK");
+                chipPreferenceMap.put("5", "STRONG");
+                break;
+            case "BALANCED":
+                chipPreferenceMap.put("4", "BALANCED");
+                chipPreferenceMap.put("5", "BALANCED");
+                break;
+        }
+
+        switch (itemValueConfigDTO.getChipPreference().getPIONEER_SUPPORT()) {
+            case "PIONEER":
+                chipPreferenceMap.put("1", "STRONG");
+                chipPreferenceMap.put("7", "WEAK");
+                break;
+            case "SUPPORT":
+                chipPreferenceMap.put("1", "WEAK");
+                chipPreferenceMap.put("7", "STRONG");
+                break;
+            case "BALANCED":
+                chipPreferenceMap.put("1", "BALANCED");
+                chipPreferenceMap.put("7", "BALANCED");
+                break;
+        }
+
+        switch (itemValueConfigDTO.getChipPreference().getWARRIOR_SPECIAL()) {
+            case "WARRIOR":
+                chipPreferenceMap.put("2", "STRONG");
+                chipPreferenceMap.put("8", "WEAK");
+                break;
+            case "SPECIAL":
+                chipPreferenceMap.put("2", "WEAK");
+                chipPreferenceMap.put("8", "STRONG");
+                break;
+            case "BALANCED":
+                chipPreferenceMap.put("2", "BALANCED");
+                chipPreferenceMap.put("8", "BALANCED");
+                break;
+        }
+    }
+
+    /**
+     * 计算技巧概要的价值
+     */
+    private SkillSummaryValue calculateSkillSummaryValue(String strategy1to2, double rateIncrease1to2,
+                                                         String strategy2to3, double rateIncrease2to3,
+                                                         double lmdValue, double causalityValue) {
+        double a1 = (strategy1to2.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ?
+                (1.1) : (1 + 0.1 * (1 + rateIncrease1to2));
+        double a2 = (strategy2to3.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ?
+                (1.1) : (1 + 0.1 * (1 + rateIncrease2to3));
+        double b1 = (strategy1to2.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ? (0.9) : (0);
+        double b2 = (strategy2to3.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ? (0.9) : (0);
+
+        double itemValue3302 = (30 * (1 - lmdValue * 12) - b1 * causalityValue / 2 + 4 * b2 * causalityValue / a2) /
+                (a1 / 2 + 3 / 2.0 + 6 / a2);
+        double itemValue3301 = (a1 * itemValue3302 + b1 * causalityValue) / 3;
+        double itemValue3303 = (3 * itemValue3302 - 2 * b2 * causalityValue) / a2;
+
+        return new SkillSummaryValue(itemValue3301, itemValue3302, itemValue3303);
+    }
+
+    // 辅助类
+    private static class SkillSummaryValue {
+        public final double itemValue3301;
+        public final double itemValue3302;
+        public final double itemValue3303;
+
+        public SkillSummaryValue(double itemValue3301, double itemValue3302, double itemValue3303) {
+            this.itemValue3301 = itemValue3301;
+            this.itemValue3302 = itemValue3302;
+            this.itemValue3303 = itemValue3303;
+        }
+    }
+
     private void calculateEliteMaterialValueFromT3(Map<String, Double> itemValueMap,
                                                    ItemValueConfigDTO itemValueConfigDTO,
                                                    Map<Integer, Double> workshopByproductExpectedValue,
@@ -505,101 +607,272 @@ public class CustomItemServiceImpl implements CustomItemService {
         }
     }
 
-    private void setupChipPreference(Map<String, String> chipPreferenceMap, ItemValueConfigDTO itemValueConfigDTO) {
-        switch (itemValueConfigDTO.getChipPreference().getTANK_MEDIC()) {
-            case "TANK":
-                chipPreferenceMap.put("3", "STRONG");
-                chipPreferenceMap.put("6", "WEAK");
-                break;
-            case "MEDIC":
-                chipPreferenceMap.put("3", "WEAK");
-                chipPreferenceMap.put("6", "STRONG");
-                break;
-            case "BALANCED":
-                chipPreferenceMap.put("3", "BALANCED");
-                chipPreferenceMap.put("6", "BALANCED");
-                break;
-        }
+    private void calculateWorkshopByproductExpectedValue(Map<Integer, Map<String, Double>> workshopByproductWeightMap,Map<String,Double> itemValueMap, Map<Integer, Double> workshopByproductExpectedValue) {
+        // 计算按物品等级分类后的加工站各级物品副产品期望产出
+        for (Map.Entry<Integer, Map<String, Double>> entry : workshopByproductWeightMap.entrySet()) {
+            Integer rarity = entry.getKey();
+            Map<String, Double> group = entry.getValue();
 
-        switch (itemValueConfigDTO.getChipPreference().getSNIPER_CASTER()) {
-            case "SNIPER":
-                chipPreferenceMap.put("4", "STRONG");
-                chipPreferenceMap.put("5", "WEAK");
-                break;
-            case "CASTER":
-                chipPreferenceMap.put("4", "WEAK");
-                chipPreferenceMap.put("5", "STRONG");
-                break;
-            case "BALANCED":
-                chipPreferenceMap.put("4", "BALANCED");
-                chipPreferenceMap.put("5", "BALANCED");
-                break;
-        }
+            double expectValue = 0.0;
+            for (Map.Entry<String, Double> itemEntry : group.entrySet()) {
+                String itemId = itemEntry.getKey();
+                Double weight = itemEntry.getValue();
 
-        switch (itemValueConfigDTO.getChipPreference().getPIONEER_SUPPORT()) {
-            case "PIONEER":
-                chipPreferenceMap.put("1", "STRONG");
-                chipPreferenceMap.put("7", "WEAK");
-                break;
-            case "SUPPORT":
-                chipPreferenceMap.put("1", "WEAK");
-                chipPreferenceMap.put("7", "STRONG");
-                break;
-            case "BALANCED":
-                chipPreferenceMap.put("1", "BALANCED");
-                chipPreferenceMap.put("7", "BALANCED");
-                break;
-        }
-
-        switch (itemValueConfigDTO.getChipPreference().getWARRIOR_SPECIAL()) {
-            case "WARRIOR":
-                chipPreferenceMap.put("2", "STRONG");
-                chipPreferenceMap.put("8", "WEAK");
-                break;
-            case "SPECIAL":
-                chipPreferenceMap.put("2", "WEAK");
-                chipPreferenceMap.put("8", "STRONG");
-                break;
-            case "BALANCED":
-                chipPreferenceMap.put("2", "BALANCED");
-                chipPreferenceMap.put("8", "BALANCED");
-                break;
+                // 确保itemValueMap中包含该物品ID
+                if (itemValueMap.containsKey(itemId)) {
+                    expectValue += itemValueMap.get(itemId) * weight;
+                }
+            }
+            // 更新加工站各级物品副产品期望产出
+            workshopByproductExpectedValue.put(rarity, expectValue);
         }
     }
 
-    /**
-     * 计算技巧概要的价值
-     */
-    private SkillSummaryValue calculateSkillSummaryValue(String strategy1to2, double rateIncrease1to2,
-                                                         String strategy2to3, double rateIncrease2to3,
-                                                         double lmdValue, double causalityValue) {
-        double a1 = (strategy1to2.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ?
-                (1.1) : (1 + 0.1 * (1 + rateIncrease1to2));
-        double a2 = (strategy2to3.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ?
-                (1.1) : (1 + 0.1 * (1 + rateIncrease2to3));
-        double b1 = (strategy1to2.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ? (0.9) : (0);
-        double b2 = (strategy2to3.equals("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN")) ? (0.9) : (0);
 
-        double itemValue3302 = (30 * (1 - lmdValue * 12) - b1 * causalityValue / 2 + 4 * b2 * causalityValue / a2) /
-                (a1 / 2 + 3 / 2.0 + 6 / a2);
-        double itemValue3301 = (a1 * itemValue3302 + b1 * causalityValue) / 3;
-        double itemValue3303 = (3 * itemValue3302 - 2 * b2 * causalityValue) / a2;
+    private void calculateStageDropExpectedValue(Map<String,StageEfficiencyAndMainItem> stageEfficiencyAndMainItemMap,
+                                                                                   Map<String, List<StageInfoAndDropDTO>> stageInfoAndDropCollect,
+                                                                                   Map<String, Double> itemValueMap) {
 
-        return new SkillSummaryValue(itemValue3301, itemValue3302, itemValue3303);
+        stageEfficiencyAndMainItemMap.clear();
+
+        // 循环关卡的物品掉落集合，每个集合是根据关卡id分组的
+        for (Map.Entry<String, List<StageInfoAndDropDTO>> entry : stageInfoAndDropCollect.entrySet()) {
+            String stageId = entry.getKey();
+            List<StageInfoAndDropDTO> dropList = entry.getValue();
+
+            if (dropList.isEmpty()) {
+                continue;
+            }
+
+            // 提取关卡消耗理智
+            double apCost = dropList.get(0).getApCost();
+
+            // 关卡期望产出总理智
+            double stageExpectedOutput = 0;
+
+            // 主产物物品id
+            // 这里主产物定义为价值占比最高的物品
+            String mainItemId = "";
+            // 最高的单项物品产出价值
+            double maxValue = Double.NEGATIVE_INFINITY;
+
+            // 循环关卡的物品掉落集合
+            for (StageInfoAndDropDTO drop : dropList) {
+                // 获取物品id，掉落次数，样本数
+                String itemId = drop.getItemId();
+                double quantity = drop.getQuantity();
+                double times = drop.getTimes();
+
+                // 从物品表里面取出对应掉落物的信息
+                Double itemValue = itemValueMap.get(itemId);
+
+                // 如果查不到物品信息则跳过
+                if (itemValue == null) {
+                    continue;
+                }
+
+                // 计算物品掉率
+                double knockRating = quantity / times;
+
+                // 计算单项物品期望产出价值
+                double expectedOutput = knockRating * itemValue;
+
+                // 比较单项物品最大产出，最大的为主产物
+                if (expectedOutput > maxValue) {
+                    mainItemId = itemId;
+                    maxValue = expectedOutput;
+                }
+
+                // 计算关卡期望产出总理智
+                stageExpectedOutput += expectedOutput;
+            }
+
+            // 创建关卡信息对象并存储
+            StageEfficiencyAndMainItem stageEfficiencyAndMainItem = new StageEfficiencyAndMainItem(stageExpectedOutput / apCost, mainItemId);
+            stageEfficiencyAndMainItemMap.put(stageId, stageEfficiencyAndMainItem);
+        }
+
+
+
     }
 
-    // 辅助类
-    private static class SkillSummaryValue {
-        public final double itemValue3301;
-        public final double itemValue3302;
-        public final double itemValue3303;
+    private static class StageEfficiencyAndMainItem {
+        public  double efficiency;
+        public  String mainItem;
 
-        public SkillSummaryValue(double itemValue3301, double itemValue3302, double itemValue3303) {
-            this.itemValue3301 = itemValue3301;
-            this.itemValue3302 = itemValue3302;
-            this.itemValue3303 = itemValue3303;
+        public StageEfficiencyAndMainItem(double efficiency, String mainItem) {
+            this.efficiency = efficiency;
+            this.mainItem = mainItem;
         }
     }
+
+
+    private void updateT3EliteMaterialValue(Map<String,StageEfficiencyAndMainItem> stageEfficiencyAndMainItemMap,Map<String,Double> customItemValueMap,Map<String,Double> itemValueMap) {
+
+        Map<String,MaxStageEfficiencyInfo> maxStageEfficiencyMap = new HashMap<>();
+
+        Map<String, ItemSeriesInfo> itemSeriesInfoByItemId = getItemSeriesInfoByItemId();
+
+        // 遍历所有作战
+        for (Map.Entry<String, StageEfficiencyAndMainItem> entry : stageEfficiencyAndMainItemMap.entrySet()) {
+            String stageId = entry.getKey();
+            StageEfficiencyAndMainItem stageEfficiencyAndMainItem = entry.getValue();
+            double stageEfficiency = stageEfficiencyAndMainItem.efficiency;
+            String mainItemId = stageEfficiencyAndMainItem.mainItem;
+
+            // 获取精英材料对应系列的信息  如凝胶系为[凝胶、聚合凝胶]
+            ItemSeriesInfo itemSeriesInfo = itemSeriesInfoByItemId.get(mainItemId);
+
+            //如果为空，代表主产物不为精英材料，则跳过
+            if (itemSeriesInfo==null) {
+                continue;
+            }
+
+            // 物品系列的id和名称
+            String seriesId = itemSeriesInfo.getSeriesId();
+
+            // 该系列材料的最高作战效率
+            MaxStageEfficiencyInfo currentMax = maxStageEfficiencyMap.get(seriesId);
+            double currentMaxStageEfficiency = currentMax.getStageEfficiency();
+
+            if (stageEfficiency > currentMaxStageEfficiency) {
+                // 如果当前作战效率大于该系列材料的最高效率，则更新最高效率
+                maxStageEfficiencyMap.put(seriesId, new MaxStageEfficiencyInfo(stageId, stageEfficiency));
+            }
+        }
+
+        // 更新蓝材料的价值
+        for (Map.Entry<String, MaxStageEfficiencyInfo> entry : maxStageEfficiencyMap.entrySet()) {
+            String seriesId = entry.getKey();
+            MaxStageEfficiencyInfo maxStageEfficiencyInfo = entry.getValue();
+            String stageId = maxStageEfficiencyInfo.getStageId();
+            double stageEfficiency = maxStageEfficiencyInfo.getStageEfficiency();
+
+            // 获取该系列蓝材料的物品 ID，蓝材料物品 ID 就是系列 ID
+            String itemIdT3 = seriesId;
+
+            // 获取该系列蓝材料之前的价值
+            Double itemValueT3 = itemValueMap.get(itemIdT3);
+            if (itemValueT3 == null) {
+                continue;
+            }
+
+            // 更新蓝材料的价值
+            if (stageEfficiency != Double.NEGATIVE_INFINITY && stageEfficiency != 0) {
+                itemValueMap.put(itemIdT3, itemValueT3 / stageEfficiency);
+            }
+        }
+
+        // 将自定义精英材料价值写入物品价值映射
+        for (Map.Entry<String, Double> entry : customItemValueMap.entrySet()) {
+            String itemId = entry.getKey();
+            Double itemValue = entry.getValue();
+            itemValueMap.put(itemId, itemValue);
+        }
+
+
+    }
+
+    @RedisCacheable(key = "Json:Item_Series_Info")
+    private Map<String,ItemSeriesInfo> getItemSeriesInfoByItemId(){
+        JsonNode itemSeriesInfoNode = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "item_series_info.json"));
+        Map<String,ItemSeriesInfo> itemSeriesInfoByItemId = new HashMap<>();
+        for(JsonNode seriesInfoNode:itemSeriesInfoNode){
+            JsonNode itemSeries = seriesInfoNode.get("itemSeries");
+            for(JsonNode item:itemSeries){
+                String itemId = item.get("itemId").asText();
+                ItemSeriesInfo itemSeriesInfo = new ItemSeriesInfo(seriesInfoNode.get("seriesId").asText(),
+                        seriesInfoNode.get("seriesName").asText(),
+                        item.get("itemName").asText(),
+                        itemId);
+                itemSeriesInfoByItemId.put(itemId,itemSeriesInfo);
+            }
+        }
+
+        return itemSeriesInfoByItemId;
+    }
+
+    private class ItemSeriesInfo {
+        private String seriesId;
+        private String seriesName;
+        private String itemName;
+        private String itemId;
+
+        // 无参构造函数
+        public ItemSeriesInfo() {
+        }
+
+        // 全参构造函数
+        public ItemSeriesInfo(String seriesId, String seriesName, String itemName, String itemId) {
+            this.seriesId = seriesId;
+            this.seriesName = seriesName;
+            this.itemName = itemName;
+            this.itemId = itemId;
+        }
+
+        // Getter和Setter方法
+        public String getSeriesId() {
+            return seriesId;
+        }
+
+        public void setSeriesId(String seriesId) {
+            this.seriesId = seriesId;
+        }
+
+        public String getSeriesName() {
+            return seriesName;
+        }
+
+        public void setSeriesName(String seriesName) {
+            this.seriesName = seriesName;
+        }
+
+        public String getItemName() {
+            return itemName;
+        }
+
+        public void setItemName(String itemName) {
+            this.itemName = itemName;
+        }
+
+        public String getItemId() {
+            return itemId;
+        }
+
+        public void setItemId(String itemId) {
+            this.itemId = itemId;
+        }
+    }
+
+    private  class MaxStageEfficiencyInfo {
+        private String stageId;
+        private double stageEfficiency;
+
+        public MaxStageEfficiencyInfo() {
+        }
+
+        public MaxStageEfficiencyInfo(String stageId, double stageEfficiency) {
+            this.stageId = stageId;
+            this.stageEfficiency = stageEfficiency;
+        }
+
+        public void setStageId(String stageId) {
+            this.stageId = stageId;
+        }
+
+        public void setStageEfficiency(double stageEfficiency) {
+            this.stageEfficiency = stageEfficiency;
+        }
+
+        public String getStageId() {
+            return stageId;
+        }
+
+        public double getStageEfficiency() {
+            return stageEfficiency;
+        }
+    }
+
 
 
     @RedisCacheable(key = "Json:Penguin_Matrix")
