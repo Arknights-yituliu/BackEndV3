@@ -24,7 +24,7 @@ public class CustomItemDTOTest {
     @Test
     void customItemValueTest(){
         ItemValueConfigDTO itemValueConfigDTO = new ItemValueConfigDTO();
-        customItemService.getCustomItemList(itemValueConfigDTO,10);
+        customItemService.getCustomItemList(itemValueConfigDTO);
     }
 
     @Test

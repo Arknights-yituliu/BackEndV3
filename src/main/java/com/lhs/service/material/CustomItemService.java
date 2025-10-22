@@ -1,7 +1,10 @@
 package com.lhs.service.material;
 
 
+import com.lhs.entity.dto.item.custom.ItemInfoDTO;
 import com.lhs.entity.dto.item.custom.ItemValueConfigDTO;
+
+import java.util.List;
 
 public interface CustomItemService {
 
@@ -10,5 +13,5 @@ public interface CustomItemService {
 
 
 
-    void getCustomItemList(ItemValueConfigDTO itemValueConfigDTO, Integer maxIteration);
+    List<ItemInfoDTO> getCustomItemList(ItemValueConfigDTO itemValueConfigDTO);
 }

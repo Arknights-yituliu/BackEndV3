@@ -24,10 +24,8 @@ public class ItemValueConfigDTO {
     private Double modUnlockTokenValue;
     private String recruitmentPermitPricingStrategy;
     private Double recruitmentPermitValue;
-    private String expeditedPlanPricingStrategy;
-    private Integer expeditedPlanValue;
     private String furniturePartPricingStrategy;
-    private Integer furniturePartValue;
+    private Double furniturePartValue;
     private List<CustomItemDTO> customItem;
     private WorkshopStrategyDTO workshopStrategy;
     private ChipPreferenceDTO chipPreference;
@@ -35,7 +33,7 @@ public class ItemValueConfigDTO {
     public ItemValueConfigDTO() {
     }
 
-    public ItemValueConfigDTO(String source, String version, Boolean useActivityAverageStage, Integer sampleSize, Set<String> stageBlacklist, Set<String> stageWhitelist, String orundumPricingStrategy, Double orundumValue, String originitePrimePricingStrategy, Double originitePrimeCoefficient, String kernelHeadhuntingPermitPricingStrategy, Double kernelHeadhuntingPermitCoefficient, String lmdPricingStrategy, Double lmdCoefficient, String expPricingStrategy, Double expCoefficient, String modUnlockTokenPricingStrategy, Double modUnlockTokenValue, String recruitmentPermitPricingStrategy, Double recruitmentPermitValue, String expeditedPlanPricingStrategy, Integer expeditedPlanValue, String furniturePartPricingStrategy, Integer furniturePartValue, List<CustomItemDTO> customItem, WorkshopStrategyDTO workshopStrategy, ChipPreferenceDTO chipPreference) {
+    public ItemValueConfigDTO(String source, String version, Boolean useActivityAverageStage, Integer sampleSize, Set<String> stageBlacklist, Set<String> stageWhitelist, String orundumPricingStrategy, Double orundumValue, String originitePrimePricingStrategy, Double originitePrimeCoefficient, String kernelHeadhuntingPermitPricingStrategy, Double kernelHeadhuntingPermitCoefficient, String lmdPricingStrategy, Double lmdCoefficient, String expPricingStrategy, Double expCoefficient, String modUnlockTokenPricingStrategy, Double modUnlockTokenValue, String recruitmentPermitPricingStrategy, Double recruitmentPermitValue, String furniturePartPricingStrategy, Double furniturePartValue, List<CustomItemDTO> customItem, WorkshopStrategyDTO workshopStrategy, ChipPreferenceDTO chipPreference) {
         this.source = source;
         this.version = version;
         this.useActivityAverageStage = useActivityAverageStage;
@@ -56,8 +54,6 @@ public class ItemValueConfigDTO {
         this.modUnlockTokenValue = modUnlockTokenValue;
         this.recruitmentPermitPricingStrategy = recruitmentPermitPricingStrategy;
         this.recruitmentPermitValue = recruitmentPermitValue;
-        this.expeditedPlanPricingStrategy = expeditedPlanPricingStrategy;
-        this.expeditedPlanValue = expeditedPlanValue;
         this.furniturePartPricingStrategy = furniturePartPricingStrategy;
         this.furniturePartValue = furniturePartValue;
         this.customItem = customItem;
@@ -225,21 +221,7 @@ public class ItemValueConfigDTO {
         this.recruitmentPermitValue = recruitmentPermitValue;
     }
 
-    public String getExpeditedPlanPricingStrategy() {
-        return expeditedPlanPricingStrategy;
-    }
 
-    public void setExpeditedPlanPricingStrategy(String expeditedPlanPricingStrategy) {
-        this.expeditedPlanPricingStrategy = expeditedPlanPricingStrategy;
-    }
-
-    public Integer getExpeditedPlanValue() {
-        return expeditedPlanValue;
-    }
-
-    public void setExpeditedPlanValue(Integer expeditedPlanValue) {
-        this.expeditedPlanValue = expeditedPlanValue;
-    }
 
     public String getFurniturePartPricingStrategy() {
         return furniturePartPricingStrategy;
@@ -249,11 +231,11 @@ public class ItemValueConfigDTO {
         this.furniturePartPricingStrategy = furniturePartPricingStrategy;
     }
 
-    public Integer getFurniturePartValue() {
+    public Double getFurniturePartValue() {
         return furniturePartValue;
     }
 
-    public void setFurniturePartValue(Integer furniturePartValue) {
+    public void setFurniturePartValue(Double furniturePartValue) {
         this.furniturePartValue = furniturePartValue;
     }
 
@@ -304,8 +286,6 @@ public class ItemValueConfigDTO {
                 ", modUnlockTokenValue=" + modUnlockTokenValue +
                 ", recruitmentPermitPricingStrategy='" + recruitmentPermitPricingStrategy + '\'' +
                 ", recruitmentPermitValue=" + recruitmentPermitValue +
-                ", expeditedPlanPricingStrategy='" + expeditedPlanPricingStrategy + '\'' +
-                ", expeditedPlanValue=" + expeditedPlanValue +
                 ", furniturePartPricingStrategy='" + furniturePartPricingStrategy + '\'' +
                 ", furniturePartValue=" + furniturePartValue +
                 ", customItemDTO=" + customItem +

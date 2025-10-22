@@ -2,6 +2,8 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.item.StageConfigDTO;
+import com.lhs.entity.dto.item.custom.ItemInfoDTO;
+import com.lhs.entity.dto.item.custom.ItemValueConfigDTO;
 import com.lhs.entity.po.material.Item;
 import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.material.*;
@@ -20,34 +22,30 @@ import java.util.List;
 public class ItemControllerV5 {
 
     private final ItemService itemService;
-
-    private final StageService stageService;
-
     private final StoreService storeService;
     private final PackInfoService packInfoService;
-    private final StageCalService stageCalService;
-    private final StageResultService stageResultService;
-    private final StageDropService stageDropService;
 
-    public ItemControllerV5(ItemService itemService, StageService stageService, StoreService storeService,
-                            StageResultService stageResultService,
-                            PackInfoService packInfoService, StageCalService stageCalService, StageDropService stageDropService) {
+    private final CustomItemService customItemService;
+
+    public ItemControllerV5(ItemService itemService, StoreService storeService, PackInfoService packInfoService, CustomItemService customItemService) {
         this.itemService = itemService;
-        this.stageService = stageService;
         this.storeService = storeService;
-        this.stageResultService = stageResultService;
         this.packInfoService = packInfoService;
-        this.stageCalService = stageCalService;
-        this.stageDropService = stageDropService;
+        this.customItemService = customItemService;
     }
-
-
 
     @Operation(summary = "获取物品价值表")
     @PostMapping("/item/v5/value")
     public Result<List<Item>> getItemValue1(@RequestBody StageConfigDTO stageConfigDTO) {
         List<Item> items = itemService.getCustomItemList(stageConfigDTO);
         return Result.success(items);
+    }
+
+    @Operation(summary = "获取物品价值表V6")
+    @PostMapping("/item/v6/value")
+    public Result<List<ItemInfoDTO>> getItemValueV6(@RequestBody ItemValueConfigDTO itemValueConfigDTO) {
+        List<ItemInfoDTO> customItemList = customItemService.getCustomItemList(itemValueConfigDTO);
+        return Result.success(customItemList);
     }
 
     @Operation(summary = "获取活动商店列表")
