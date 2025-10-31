@@ -719,7 +719,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
             Map<String, Map<String, String>> termDescriptionMap = createTermDescriptionJson(termDescriptionDict);
             FileUtil.saveJsonFile(gameDataFormatFilePath.getJsonOutputPath() + "src/static/json/build/", "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
             // 测试输出路径
-//            FileUtil.save(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
+//            FileUtil.saveJsonFile(JSON_BUILD, "term_description.json", JsonMapper.toJSONString(termDescriptionMap));
         }
     }
 
