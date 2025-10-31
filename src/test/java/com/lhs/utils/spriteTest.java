@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
@@ -70,8 +71,30 @@ public class spriteTest {
         SpriteCreateUtil.spriteCreate(spriteInfo);
     }
 
+    @Test
+    void ItemSpriteGeneratorTest() {
+        // 获取当前日期
+        LocalDateTime now = LocalDateTime.now();
 
+        // 定义格式化方式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
+        // 格式化为字符串
+        String todayStr = now.format(formatter);
+        String spriteFilename = "item"+todayStr+".png";
+        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\items\\";     // 图片输入目录
+        String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
+        String cssFilename = "sprite_item.css";
+
+        SpriteInfo spriteInfo = new SpriteInfo();
+        spriteInfo.setInputDir(inputDir);
+        spriteInfo.setOutputDir(outputDir);
+        spriteInfo.setSpriteFilename(spriteFilename);
+        spriteInfo.setCssFilename(cssFilename);
+        spriteInfo.setCosFileType("webp");
+
+        SpriteCreateUtil.spriteCreate(spriteInfo);
+    }
 
 
 
@@ -81,13 +104,13 @@ public class spriteTest {
         String inputDir = "C:\\WebStormProject\\ak-resources\\image\\avatar\\";     // 图片输入目录
         String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         // 获取当前日期
-        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
 
         // 定义格式化方式
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
         // 格式化为字符串
-        String todayStr = today.format(formatter);
+        String todayStr = now.format(formatter);
         String spriteFilename = "avatar"+todayStr+".png";
         String cssFilename = "sprite_avatar.css";
 
