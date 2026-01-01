@@ -87,7 +87,7 @@ public class TaskService {
     /**
      * 统计干员练度数据
      */
-    @Scheduled(cron = "0 0/30 * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void statisticsProgressionOperatorData() {
         operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2();
     }

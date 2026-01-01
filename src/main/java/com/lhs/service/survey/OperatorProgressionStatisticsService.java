@@ -86,7 +86,7 @@ public class OperatorProgressionStatisticsService {
 
         for (int i = 0; i < 100; i++) {
 
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 1000,1000);
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 1000, 1000);
 
             if (operatorProgressionDataList.isEmpty()) {
                 break;
@@ -174,6 +174,11 @@ public class OperatorProgressionStatisticsService {
         LambdaUpdateWrapper<OperatorProgressionStatisticalResult> queryWrapper = new LambdaUpdateWrapper<>();
         queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.code());
         List<OperatorProgressionStatisticalResult> list = operatorProgressionStatisticalResultMapper.selectList(queryWrapper);
+        if (list.isEmpty()) {
+            queryWrapper.clear();
+            queryWrapper.orderByDesc(OperatorProgressionStatisticalResult::getCreateTime).last("limit 1");
+            list = operatorProgressionStatisticalResultMapper.selectList(queryWrapper);
+        }
         OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = list.get(0);
 
         List<OperatorProgressionStatisticalResultDTO> progressionStatisticalResultDTOList = JsonMapper.parseJSONArray(operatorProgressionStatisticalResult.getStatisticalResult(), new TypeReference<>() {

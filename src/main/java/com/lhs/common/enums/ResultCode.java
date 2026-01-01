@@ -23,6 +23,7 @@ public enum ResultCode {
 
 	START_TIME_CANNOT_BE_GREATER_THAN_END_TIME(10019,"开始时间不能大于结束时间"),
 	DATE_RANGE_TOO_LARGE(10020,"日期范围过大"),
+	EMAIL_IS_ERROR(10021,"邮件格式错误"),
 
 
 	/* 用户错误：20001-29999*/

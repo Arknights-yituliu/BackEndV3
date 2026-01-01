@@ -366,7 +366,7 @@ public class UserServiceImpl implements UserService {
 
         if (userInfo.getEmail() != null && userInfo.getEmail().contains("@")) {
             userInfoVO.setHasEmail(true);
-        }else {
+        } else {
             userInfoVO.setEmail("未绑定");
         }
 
@@ -507,6 +507,8 @@ public class UserServiceImpl implements UserService {
 
         String email = emailRequestDto.getEmail();
 
+        validateEmail(email);
+
         //设置查询构造器条件
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
@@ -529,7 +531,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    private void seedEmail(String emailAddress){
+    private void seedEmail(String emailAddress) {
         Integer code = email163Service.createVerificationCode(emailAddress, 9999);
         String text = "本次的验证码是：" + code + ",验证码有效时间5分钟";
 
@@ -544,15 +546,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto) {
         UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        if(userInfoVO.getHasEmail()){
-            seedEmail(userInfoVO.getEmail());
-        }else {
-            seedEmail(emailRequestDto.getEmail());
-        }
+        validateEmail(userInfoVO.getEmail());
+        seedEmail(userInfoVO.getEmail());
+
     }
 
     @Override
-    public String checkVerificationCode(HttpServletRequest httpServletRequest,String verificationCode) {
+    public String checkVerificationCode(HttpServletRequest httpServletRequest, String verificationCode) {
         UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
         if (!checkParamsValidity(verificationCode)) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
@@ -571,12 +571,15 @@ public class UserServiceImpl implements UserService {
     public void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
         UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
         String email = updateUserDataDto.getEmail();
-        if( userInfoVO.getHasEmail()){
+        validateEmail(email);
+        if (userInfoVO.getHasEmail()) {
             LogUtils.info("更新绑定邮箱 {} 用户有邮箱，需要验证");
-            email163Service.compareVerificationCode(updateUserDataDto.getCred(),userInfoVO.getUid().toString());
+            email163Service.compareVerificationCode(updateUserDataDto.getCred(), userInfoVO.getUid().toString());
         }
 
-        email163Service.compareVerificationCode(updateUserDataDto.getVerificationCode(),email);
+
+        email163Service.compareVerificationCode(updateUserDataDto.getVerificationCode(), email);
+
 
         //设置查询构造器条件
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -584,7 +587,7 @@ public class UserServiceImpl implements UserService {
         //查询是否有绑定这个邮箱的用户
         UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
 
-        if(userInfoByEmail!=null){
+        if (userInfoByEmail != null) {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
@@ -605,7 +608,6 @@ public class UserServiceImpl implements UserService {
         UserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
 
 
-
         if ("passWord".equals(action)) {
             return updatePassWord(userInfo, updateUserDataDto);
         }
@@ -621,7 +623,6 @@ public class UserServiceImpl implements UserService {
         throw new ServiceException(ResultCode.PARAM_IS_INVALID);
 
     }
-
 
 
     /**
@@ -641,23 +642,22 @@ public class UserServiceImpl implements UserService {
         newPassWord = AES.encrypt(newPassWord, ConfigUtil.Secret);
         //用户状态
         Integer status = userInfo.getStatus();
-        if (userInfo.getPassword() != null && userInfo.getPassword().length() > 5) {//替换旧密码
+        //检验旧密码
+        if (userInfo.getPassword() != null && userInfo.getPassword().length() > 5) {
             //旧密码
             String oldPassWord = updateUserDataDto.getOldPassWord();
             //加密旧密码
             oldPassWord = AES.encrypt(oldPassWord, ConfigUtil.Secret);
             //检查旧密码是否正确
-            if (userInfo.getPassword().equals(oldPassWord)) {
-                //更新旧密码为新密码
-                userInfo.setPassword(newPassWord);
-            } else {
+            if (!userInfo.getPassword().equals(oldPassWord)) {
                 throw new ServiceException(ResultCode.USER_PASSWORD_ERROR);
             }
-        } else { //设置新密码
-            //向用户信息写入密码和状态
-            userInfo.setPassword(newPassWord);
         }
 
+        UserInfo newUserInfo = new UserInfo();
+        newUserInfo.setId(userInfo.getId());
+        newUserInfo.setPassword(newPassWord);
+        userInfoMapper.updateById(newUserInfo);
 
 
         UserInfoVO userInfoVO = new UserInfoVO();
@@ -723,20 +723,19 @@ public class UserServiceImpl implements UserService {
         List<UserInfo> userInfoList = userInfoMapper.selectList(null);
         String dayText = TimeUtil.getDayText();
 
-        tencentCloudService.backupCOS(JsonMapper.toJSONString(userInfoList),"/mysql/user/"+dayText+"/user_info.json");
+        tencentCloudService.backupCOS(JsonMapper.toJSONString(userInfoList), "/mysql/user/" + dayText + "/user_info.json");
     }
-
 
 
     @Override
     public void backupUserExternalAccountBinding() {
         String dayText = TimeUtil.getDayText();
         List<UserExternalAccountBinding> list1 = userExternalAccountBindingMapper.selectList(null);
-        tencentCloudService.backupCOS(JsonMapper.toJSONString(list1),"/mysql/user/"+dayText+"/user_external_account_binding.json");
+        tencentCloudService.backupCOS(JsonMapper.toJSONString(list1), "/mysql/user/" + dayText + "/user_external_account_binding.json");
 //        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","userExternalAccountBinding.json",JsonMapper.toJSONString(list1));
 
         List<AkPlayerBindInfo> list2 = akPlayerBindInfoMapper.selectList(null);
-        tencentCloudService.backupCOS(JsonMapper.toJSONString(list2),"/mysql/user/"+dayText+"/ak_player_bind_info.json");
+        tencentCloudService.backupCOS(JsonMapper.toJSONString(list2), "/mysql/user/" + dayText + "/ak_player_bind_info.json");
 //        FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","akPlayerBindInfo.json",JsonMapper.toJSONString(list2));
     }
 
@@ -1014,6 +1013,22 @@ public class UserServiceImpl implements UserService {
         return AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
     }
 
+
+    /**
+     * 验证邮箱格式是否正确
+     *
+     * @param email 邮箱地址
+     */
+    private static void validateEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new ServiceException(ResultCode.EMAIL_IS_ERROR);
+        }
+        // 邮箱格式正则表达式
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        if (!email.matches(emailRegex)) {
+            throw new ServiceException(ResultCode.EMAIL_IS_ERROR);
+        }
+    }
 
     /**
      * 检查用户名是否为中文，英文，数字
