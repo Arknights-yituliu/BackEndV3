@@ -674,12 +674,12 @@ public class UserServiceImpl implements UserService {
      * @return 用户新信息
      */
     private UserInfoVO updateUserName(UserInfo userInfo, UpdateUserDataDTO updateUserDataDto) {
-        String userName = updateUserDataDto.getUserName();
+        String newUserName = updateUserDataDto.getUserName();
         //检查用户名格式
-        checkUserName(userName);
+        checkUserName(newUserName);
         //查询更新的用户名是否有同名的
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_name", userName);
+        queryWrapper.eq("user_name", newUserName);
         if (userInfoMapper.selectOne(queryWrapper) != null) {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
@@ -687,8 +687,13 @@ public class UserServiceImpl implements UserService {
         //通过判断用户是否绑定了邮箱或设置了密码，用来区分v2版本注册的用户
         if (userInfo.getEmail() != null || userInfo.getPassword() != null) {
             //用户信息写入新用户名
-            userInfo.setUserName(userName);
+            userInfo.setUserName(newUserName);
             //备份用户信息
+
+            UserInfo newUserInfo = new UserInfo();
+            newUserInfo.setId(userInfo.getId());
+            newUserInfo.setUserName(newUserName);
+            userInfoMapper.updateById(newUserInfo);
 
         } else {
             throw new ServiceException(ResultCode.NOT_SET_PASSWORD_OR_BIND_EMAIL);
@@ -701,10 +706,14 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserInfoVO updateUserAvatar(UserInfo userInfo, UpdateUserDataDTO updateUserDataDto) {
-        userInfo.setAvatar(updateUserDataDto.getAvatar());
+
+        UserInfo newUserInfo = new UserInfo();
+        newUserInfo.setId(userInfo.getId());
+        newUserInfo.setAvatar(updateUserDataDto.getAvatar());
+        userInfoMapper.updateById(newUserInfo);
+
         UserInfoVO response = new UserInfoVO();
         response.setAvatar(userInfo.getAvatar());
-
         return response;
     }
 
