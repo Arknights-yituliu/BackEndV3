@@ -16,6 +16,8 @@ public class OperatorProgressionStatisticalResultDTO {
     private Map<Integer, Integer> modY;
     private Map<Integer, Integer> modD;
 
+    private Map<Integer, Integer> modB;
+
     {
         sampleSize = 0;
         own = 0;
@@ -27,6 +29,7 @@ public class OperatorProgressionStatisticalResultDTO {
         modX = new HashMap<>();
         modY = new HashMap<>();
         modD = new HashMap<>();
+        modB = new HashMap<>();
     }
 
     public String getCharId() {
@@ -116,6 +119,14 @@ public class OperatorProgressionStatisticalResultDTO {
         this.modD = modD;
     }
 
+    public Map<Integer, Integer> getModB() {
+        return modB;
+    }
+
+    public void setModB(Map<Integer, Integer> modB) {
+        this.modB = modB;
+    }
+
     public void increaseOwn() {
         this.own++;
     }
@@ -157,5 +168,8 @@ public class OperatorProgressionStatisticalResultDTO {
         this.modA.merge(modA, 1, Integer::sum);
     }
 
+    public void mergeModB(Integer modB) {
+        this.modB.merge(modB, 1, Integer::sum);
+    }
 
 }

@@ -134,6 +134,7 @@ public class OperatorProgressionStatisticsService {
                     operatorProgressionStatisticalResultDTO.mergeSkill2(progressionDataDTO.getSkill2());
                     operatorProgressionStatisticalResultDTO.mergeSkill3(progressionDataDTO.getSkill3());
                     operatorProgressionStatisticalResultDTO.mergeModA(progressionDataDTO.getModA());
+                    operatorProgressionStatisticalResultDTO.mergeModB(progressionDataDTO.getModB());
                     operatorProgressionStatisticalResultDTO.mergeModX(progressionDataDTO.getModX());
                     operatorProgressionStatisticalResultDTO.mergeModY(progressionDataDTO.getModY());
                     operatorProgressionStatisticalResultDTO.mergeModD(progressionDataDTO.getModD());
