@@ -169,7 +169,28 @@ public class OperatorProgressionStatisticalResultDTO {
     }
 
     public void mergeModB(Integer modB) {
-        this.modB.merge(modB, 1, Integer::sum);
+        this.modB.merge(keyDefaultValue(modB,0), 1, Integer::sum);
     }
 
+    private Integer keyDefaultValue(Integer key,Integer defaultValue){
+        return  key==null?defaultValue:key;
+    }
+
+    @Override
+    public String toString() {
+        return "OperatorProgressionStatisticalResultDTO{" +
+                "charId='" + charId + '\'' +
+                ", own=" + own +
+                ", sampleSize=" + sampleSize +
+                ", elite=" + elite +
+                ", skill1=" + skill1 +
+                ", skill2=" + skill2 +
+                ", skill3=" + skill3 +
+                ", modA=" + modA +
+                ", modX=" + modX +
+                ", modY=" + modY +
+                ", modD=" + modD +
+                ", modB=" + modB +
+                '}';
+    }
 }

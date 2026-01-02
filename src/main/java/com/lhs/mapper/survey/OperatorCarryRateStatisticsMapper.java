@@ -13,7 +13,6 @@ public interface OperatorCarryRateStatisticsMapper extends BaseMapper<OperatorCa
 
     List<QuestionnaireResultDTO> getOldData();
 
-    Integer insertBatchOperatorCarryRate(@Param("list")List<OperatorCarryRate> operatorCarryRateList);
 
 
 }

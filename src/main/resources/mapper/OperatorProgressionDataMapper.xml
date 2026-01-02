@@ -4,7 +4,7 @@
 <mapper namespace="com.lhs.mapper.survey.OperatorProgressionDataMapper">
 
 
-    <!--  批量插入干员练度信息表-->
+
   <select id="getOperatorProgressionData" resultType="com.lhs.entity.po.survey.OperatorProgressionData">
       SELECT *
       FROM operator_progression_data

@@ -87,20 +87,17 @@ public class TaskService {
     /**
      * 统计干员练度数据
      */
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0 */3 * * ?")
     public void statisticsProgressionOperatorData() {
-        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2();
+        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
     }
 
-    @Scheduled(cron = "0 23 * * * ?")
+     @Scheduled(cron = "0 0 */3 * * ?")
     public void archivedOperatorProgressionResult() {
         operatorProgressionStatisticsService.archivedOperatorProgressionResult();
     }
 
-    @Scheduled(cron = "0 0 0/1 * * ?")
-    public void deleteOperatorProgressionResultExpireData() {
-        operatorProgressionStatisticsService.deleteExpireData();
-    }
+  
 
     @Scheduled(cron = "0 0/1 * * * ?")
     public void statisticsTodayOperatorCarryRateTask() {

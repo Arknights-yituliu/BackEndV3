@@ -44,7 +44,7 @@ public class SurveyOperatorController {
     @Operation(summary ="手动统计")
     @GetMapping("/survey/statistic")
     public Result<Object> statistic() {
-        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2();
+        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
         return Result.success();
     }
 
