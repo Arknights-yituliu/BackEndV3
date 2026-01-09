@@ -33,7 +33,7 @@ public class SpriteCreateUtil {
         String spriteFilename = spriteInfo.getSpriteFilename();
         String cssFilename = spriteInfo.getCssFilename();
 
-        String cosLink = "https://cos.yituliu.cn/sprite/"+spriteFilename.replace("png",spriteInfo.getCosFileType());
+        String cosLink = "https://cos.yituliu.cn/arknights/sprite/"+spriteFilename.replace("png",spriteInfo.getCosFileType());
 
 
         try {

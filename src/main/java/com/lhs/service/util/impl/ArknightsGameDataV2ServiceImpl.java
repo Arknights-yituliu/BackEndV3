@@ -298,6 +298,7 @@ public class ArknightsGameDataV2ServiceImpl implements ArknightsGameDataV2Servic
         tempMap.put("uniEquipIcon", equipData.get("uniEquipIcon").asText());
         tempMap.put("typeIcon", equipData.get("typeIcon").asText().toLowerCase());
         tempMap.put("uniEquipName", equipData.get("uniEquipName").asText());
+        tempMap.put("uniEquipGetTime", equipData.get("uniEquipGetTime").asText());
         tempMap.put("itemCost", parseItemCost(equipData.get("itemCost")));
 
         return tempMap;
