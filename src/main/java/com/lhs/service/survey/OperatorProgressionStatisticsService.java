@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.enums.RecordType;
+import com.lhs.common.enums.ResultCode;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
@@ -50,7 +52,8 @@ public class OperatorProgressionStatisticsService {
     }
 
 
-    public void statisticsOperatorProgressionDataV2() {
+    public void statisticsOperatorProgressionDataV2(Boolean archived) {
+        LogUtils.info("干员练度数据统计任务开始执行");
         HashMap<String, Date> operatorUpdateTime = new HashMap<>();
         // 定义格式化器
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
@@ -69,14 +72,6 @@ public class OperatorProgressionStatisticsService {
         HashMap<String, Integer> sampleSizeMap = new HashMap<>();
 
 
-        Date date = new Date();
-        LambdaUpdateWrapper<OperatorProgressionStatisticalResult> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.set(OperatorProgressionStatisticalResult::getRecordType, RecordType.EXPIRE.code())
-                .eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.code())
-                .lt(OperatorProgressionStatisticalResult::getCreateTime, date);
-        operatorProgressionStatisticalResultMapper.update(null, updateWrapper);
-
-
         //干员练度统计数据统计结果
         Map<String, OperatorProgressionStatisticalResultDTO> collect = new HashMap<>();
 
@@ -86,7 +81,7 @@ public class OperatorProgressionStatisticsService {
 
         for (int i = 0; i < 100; i++) {
 
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 1000,1000);
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 1000, 1000);
 
             if (operatorProgressionDataList.isEmpty()) {
                 break;
@@ -114,7 +109,6 @@ public class OperatorProgressionStatisticsService {
 
                 //循环每个账号的干员练度
                 for (OperatorProgressionDataDTO progressionDataDTO : dataDTOList) {
-
                     //先判断统计结果是否有这个干员
                     OperatorProgressionStatisticalResultDTO operatorProgressionStatisticalResultDTO = collect.get(progressionDataDTO.getCharId());
                     //没有的话先创建一个对象
@@ -134,6 +128,7 @@ public class OperatorProgressionStatisticsService {
                     operatorProgressionStatisticalResultDTO.mergeSkill2(progressionDataDTO.getSkill2());
                     operatorProgressionStatisticalResultDTO.mergeSkill3(progressionDataDTO.getSkill3());
                     operatorProgressionStatisticalResultDTO.mergeModA(progressionDataDTO.getModA());
+                    operatorProgressionStatisticalResultDTO.mergeModB(progressionDataDTO.getModB());
                     operatorProgressionStatisticalResultDTO.mergeModX(progressionDataDTO.getModX());
                     operatorProgressionStatisticalResultDTO.mergeModY(progressionDataDTO.getModY());
                     operatorProgressionStatisticalResultDTO.mergeModD(progressionDataDTO.getModD());
@@ -141,22 +136,33 @@ public class OperatorProgressionStatisticsService {
                 }
             }
 
+            LogUtils.info("当前批次数据startIndex：" + i * 1000);
         }
 
         List<OperatorProgressionStatisticalResultDTO> list = new ArrayList<>();
         for (OperatorProgressionStatisticalResultDTO dto : collect.values()) {
             Integer i = sampleSizeMap.get(dto.getCharId());
+
             dto.setSampleSize(i == null ? count : i);
             list.add(dto);
         }
+
+
+        LambdaQueryWrapper<OperatorProgressionStatisticalResult> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OperatorProgressionStatisticalResult::getId, 20260101);
+        boolean exists = operatorProgressionStatisticalResultMapper.exists(queryWrapper);
         OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = new OperatorProgressionStatisticalResult();
         operatorProgressionStatisticalResult.setSampleSize(count);
-        operatorProgressionStatisticalResult.setId(idGenerator.nextId());
+        operatorProgressionStatisticalResult.setId(20260101L);
         operatorProgressionStatisticalResult.setRecordType(RecordType.DISPLAY.code());
         operatorProgressionStatisticalResult.setCreateTime(new Date());
         String jsonString = JsonMapper.toJSONString(list);
         operatorProgressionStatisticalResult.setStatisticalResult(jsonString);
-        operatorProgressionStatisticalResultMapper.insert(operatorProgressionStatisticalResult);
+        if (exists) {
+            operatorProgressionStatisticalResultMapper.updateById(operatorProgressionStatisticalResult);
+        } else {
+            operatorProgressionStatisticalResultMapper.insert(operatorProgressionStatisticalResult);
+        }
 
         LogUtils.info("本次统计干员练度的抽样人数为：" + count + "人次");
 
@@ -171,12 +177,14 @@ public class OperatorProgressionStatisticsService {
     @RedisCacheable(key = "Survey:OperatorProgressionStatistics", timeout = 1200)
     public OperatorProgressionStatisticalResultVOV2 getOperatorProgressionStatisticalResultV2() {
         LambdaUpdateWrapper<OperatorProgressionStatisticalResult> queryWrapper = new LambdaUpdateWrapper<>();
-        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.DISPLAY.code());
-        List<OperatorProgressionStatisticalResult> list = operatorProgressionStatisticalResultMapper.selectList(queryWrapper);
-        OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = list.get(0);
-
-        List<OperatorProgressionStatisticalResultDTO> progressionStatisticalResultDTOList = JsonMapper.parseJSONArray(operatorProgressionStatisticalResult.getStatisticalResult(), new TypeReference<>() {
-        });
+        queryWrapper.eq(OperatorProgressionStatisticalResult::getId, 20260101);
+        OperatorProgressionStatisticalResult operatorProgressionStatisticalResult = operatorProgressionStatisticalResultMapper.selectOne(queryWrapper);
+        if(operatorProgressionStatisticalResult == null){
+            throw new ServiceException(ResultCode.DATA_NONE);
+        }
+        List<OperatorProgressionStatisticalResultDTO> progressionStatisticalResultDTOList = JsonMapper
+                .parseJSONArray(operatorProgressionStatisticalResult.getStatisticalResult(), new TypeReference<>() {
+                });
 
         OperatorProgressionStatisticalResultVOV2 operatorProgressionStatisticalResultVOV2 = new OperatorProgressionStatisticalResultVOV2();
         operatorProgressionStatisticalResultVOV2.setSampleSize(operatorProgressionStatisticalResult.getSampleSize());
@@ -227,13 +235,7 @@ public class OperatorProgressionStatisticsService {
 
     }
 
-    public void deleteExpireData() {
-        LambdaQueryWrapper<OperatorProgressionStatisticalResult> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OperatorProgressionStatisticalResult::getRecordType, RecordType.EXPIRE.code());
-        int delete = operatorProgressionStatisticalResultMapper.delete(queryWrapper);
-        LogUtils.info("本次清理了" + delete + "条过期干员携带率统计数据");
-    }
-
+   
 
     public void backup() {
 

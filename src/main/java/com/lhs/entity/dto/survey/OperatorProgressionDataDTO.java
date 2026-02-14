@@ -31,6 +31,8 @@ public class OperatorProgressionDataDTO {
 
     private Integer modA;
 
+    private Integer modB;
+
     public String getCharId() {
         return charId;
     }
@@ -141,6 +143,14 @@ public class OperatorProgressionDataDTO {
 
     public void setModA(Integer modA) {
         this.modA = modA;
+    }
+
+    public Integer getModB() {
+        return modB;
+    }
+
+    public void setModB(Integer modB) {
+        this.modB = modB;
     }
 
 

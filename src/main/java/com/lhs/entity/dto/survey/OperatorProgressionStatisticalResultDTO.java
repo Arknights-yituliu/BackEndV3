@@ -16,6 +16,8 @@ public class OperatorProgressionStatisticalResultDTO {
     private Map<Integer, Integer> modY;
     private Map<Integer, Integer> modD;
 
+    private Map<Integer, Integer> modB;
+
     {
         sampleSize = 0;
         own = 0;
@@ -27,6 +29,7 @@ public class OperatorProgressionStatisticalResultDTO {
         modX = new HashMap<>();
         modY = new HashMap<>();
         modD = new HashMap<>();
+        modB = new HashMap<>();
     }
 
     public String getCharId() {
@@ -116,6 +119,14 @@ public class OperatorProgressionStatisticalResultDTO {
         this.modD = modD;
     }
 
+    public Map<Integer, Integer> getModB() {
+        return modB;
+    }
+
+    public void setModB(Map<Integer, Integer> modB) {
+        this.modB = modB;
+    }
+
     public void increaseOwn() {
         this.own++;
     }
@@ -157,5 +168,29 @@ public class OperatorProgressionStatisticalResultDTO {
         this.modA.merge(modA, 1, Integer::sum);
     }
 
+    public void mergeModB(Integer modB) {
+        this.modB.merge(keyDefaultValue(modB,0), 1, Integer::sum);
+    }
 
+    private Integer keyDefaultValue(Integer key,Integer defaultValue){
+        return  key==null?defaultValue:key;
+    }
+
+    @Override
+    public String toString() {
+        return "OperatorProgressionStatisticalResultDTO{" +
+                "charId='" + charId + '\'' +
+                ", own=" + own +
+                ", sampleSize=" + sampleSize +
+                ", elite=" + elite +
+                ", skill1=" + skill1 +
+                ", skill2=" + skill2 +
+                ", skill3=" + skill3 +
+                ", modA=" + modA +
+                ", modX=" + modX +
+                ", modY=" + modY +
+                ", modD=" + modD +
+                ", modB=" + modB +
+                '}';
+    }
 }

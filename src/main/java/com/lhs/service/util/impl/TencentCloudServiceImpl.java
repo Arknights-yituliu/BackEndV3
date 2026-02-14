@@ -50,11 +50,19 @@ public class TencentCloudServiceImpl implements TencentCloudService {
 
     @Override
     public void uploadCOS(String text, String bucketPath) {
-        try {
-            File file = convertJsonStringToFile(text);
-            uploadCOS(file,bucketPath);
+        COSClient cosClient = createCOSClient();
+        String bucketName = StaticBucket;
+
+        // 将JSON字符串转换为输入流
+        try (InputStream inputStream = new ByteArrayInputStream(text.getBytes())) {
+            ObjectMetadata objectMetadata = new ObjectMetadata();
+            objectMetadata.setContentLength(text.getBytes().length);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, inputStream, objectMetadata);
+            cosClient.putObject(putObjectRequest);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            cosClient.shutdown();
         }
     }
 
@@ -92,11 +100,19 @@ public class TencentCloudServiceImpl implements TencentCloudService {
 
     @Override
     public void backupCOS(String text, String bucketPath) {
-        try {
-            File file = convertJsonStringToFile(text);
-            backupCOS(file,bucketPath);
+        COSClient cosClient = createCOSClient();
+        String bucketName = BackupBucket;
+
+        // 将JSON字符串转换为输入流
+        try (InputStream inputStream = new ByteArrayInputStream(text.getBytes())) {
+            ObjectMetadata objectMetadata = new ObjectMetadata();
+            objectMetadata.setContentLength(text.getBytes().length);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, inputStream, objectMetadata);
+            cosClient.putObject(putObjectRequest);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            cosClient.shutdown();
         }
     }
 
