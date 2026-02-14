@@ -15,12 +15,12 @@ public class ArknightsGameDataV2ServiceImpl implements ArknightsGameDataV2Servic
     @Override
     public void getOperatorInfoSimpleTableV2(GameDataFormatFilePath gameDataFormatFilePath) {
         //干员信息
-        String character_tableText = FileUtil.read(gameDataFormatFilePath.getArknightsGameDataPath() + "excel/character_table.json");
+        String character_tableText = FileUtil.read(gameDataFormatFilePath.getArknightsGameResourcePath() + "excel/character_table.json");
         JsonNode characterTable = JsonMapper.parseJSONObject(character_tableText);
         Iterator<Map.Entry<String, JsonNode>> characterTableFields = characterTable.fields();
 
         //生变干员信息
-        String char_patch_tableText = FileUtil.read(gameDataFormatFilePath.getArknightsGameDataPath() + "excel/char_patch_table.json");
+        String char_patch_tableText = FileUtil.read(gameDataFormatFilePath.getArknightsGameResourcePath() + "excel/char_patch_table.json");
         JsonNode charPatchTable = JsonMapper.parseJSONObject(char_patch_tableText);
         JsonNode patchChars = charPatchTable.get("patchChars");
 
@@ -29,8 +29,8 @@ public class ArknightsGameDataV2ServiceImpl implements ArknightsGameDataV2Servic
 
         Map<String, Object> operatorInfoMap = new HashMap<>();
 
-        Map<String, Map<String, String>> skillNameAndIcon = getSkillNameAndIcon(gameDataFormatFilePath.getArknightsGameDataPath());
-        Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap(gameDataFormatFilePath.getArknightsGameDataPath());
+        Map<String, Map<String, String>> skillNameAndIcon = getSkillNameAndIcon(gameDataFormatFilePath.getArknightsGameResourcePath());
+        Map<String, List<Map<String, Object>>> equipInfoMap = getEquipInfoMap(gameDataFormatFilePath.getArknightsGameResourcePath());
 
 
         while (characterTableFields.hasNext()) {
@@ -298,6 +298,7 @@ public class ArknightsGameDataV2ServiceImpl implements ArknightsGameDataV2Servic
         tempMap.put("uniEquipIcon", equipData.get("uniEquipIcon").asText());
         tempMap.put("typeIcon", equipData.get("typeIcon").asText().toLowerCase());
         tempMap.put("uniEquipName", equipData.get("uniEquipName").asText());
+        tempMap.put("uniEquipGetTime", equipData.get("uniEquipGetTime").asText());
         tempMap.put("itemCost", parseItemCost(equipData.get("itemCost")));
 
         return tempMap;
