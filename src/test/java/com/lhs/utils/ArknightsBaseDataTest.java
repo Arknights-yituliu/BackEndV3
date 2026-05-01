@@ -32,16 +32,6 @@ public class ArknightsBaseDataTest {
 
 
 
-    @Test
-    public void getOperatorInfoSimpleTable() {
-        GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
-        gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
-        arknightsGameDataService.getOperatorInfoSimpleTable(gameDataFormatFilePath);
-        arknightsGameDataService.getBuildingTable(gameDataFormatFilePath);
-    }
 
 
     @Test
