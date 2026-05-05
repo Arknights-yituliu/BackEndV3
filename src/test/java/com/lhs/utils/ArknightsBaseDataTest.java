@@ -19,10 +19,10 @@ public class ArknightsBaseDataTest {
     @Test
     public void getArkGameDataSimple() {
         GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/VCProject/ArknightsGameResource/gamedata/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/VCProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/VCProject/ak-resources/image/avatar/");
-        gameDataFormatFilePath.setJsonOutputPath("C:/VCProject/frontend-v2-plus/");
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
         arknightsGameDataV2Service.getOperatorInfoSimpleTableV2(gameDataFormatFilePath);
 //
 
@@ -32,25 +32,20 @@ public class ArknightsBaseDataTest {
 
 
 
-    @Test
-    public void getOperatorInfoSimpleTable() {
-        GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
-        gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
-        arknightsGameDataService.getOperatorInfoSimpleTable(gameDataFormatFilePath);
-        arknightsGameDataService.getBuildingTable(gameDataFormatFilePath);
-    }
 
 
     @Test
     public void getOperatorInfoSimpleTableByGameResource() {
         GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/VCProject/ArknightsGameResource/gamedata/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/VCProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/VCProject/ak-resources/image/avatar/");
-        gameDataFormatFilePath.setJsonOutputPath("C:/VCProject/frontend-v2-plus/");
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
+        arknightsGameDataV2Service.getOperatorInfoSimpleTableV2(gameDataFormatFilePath);
         arknightsGameDataService.getOperatorInfoSimpleTableByGameResource(gameDataFormatFilePath);
         arknightsGameDataService.getBuildingTableByGameResource(gameDataFormatFilePath);
     }
@@ -59,10 +54,10 @@ public class ArknightsBaseDataTest {
     @Test
     public void getAvatar() {
         GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/VCProject/ArknightsGameResource/gamedata/");
-        gameDataFormatFilePath.setArknightsGameResourceAvatarPath("C:/VCProject/ArknightsGameResource/avatar/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/VCProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/VCProject/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/WebStormProject/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameResourceAvatarPath("C:/WebStormProject/ArknightsGameResource/avatar/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/WebStormProject/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/WebStormProject/ak-resources/image/avatar/");
         arknightsGameDataService.getAvatar(gameDataFormatFilePath);
     }
 
