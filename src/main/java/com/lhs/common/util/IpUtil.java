@@ -1,13 +1,8 @@
 package com.lhs.common.util;
-
-
-
 import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
-
-import java.util.Random;
 
 public class IpUtil {
     public static String getIpAddress(HttpServletRequest request) {
@@ -35,9 +30,6 @@ public class IpUtil {
                 ip = ipArray[0];
             }
         }
-
-
-
         return ip;
     }
 }

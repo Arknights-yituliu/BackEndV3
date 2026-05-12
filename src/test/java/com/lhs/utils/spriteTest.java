@@ -33,7 +33,7 @@ public class spriteTest {
         // 格式化为字符串
         String todayStr = today.format(formatter);
         String spriteFilename = "avatar"+todayStr+".png";
-        String inputDir = "C:\\VCProject\\ak-resources\\image\\avatar\\";     // 图片输入目录
+        String inputDir = "C:\\VCProject\\ak-resources\\image\\original\\avatar\\";     // 图片输入目录
         String outputDir = "C:\\VCProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         String cssFilename = "sprite_avatar.css";
 
@@ -49,7 +49,7 @@ public class spriteTest {
 
 
     @Test
-    void spriteGeneratorTest2() {
+    void skillSpriteGeneratorTest2() {
         // 定义格式化方式
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         // 获取当前日期
@@ -82,7 +82,7 @@ public class spriteTest {
         // 格式化为字符串
         String todayStr = now.format(formatter);
         String spriteFilename = "item"+todayStr+".png";
-        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\items\\";     // 图片输入目录
+        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\original\\items\\";     // 图片输入目录
         String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         String cssFilename = "sprite_item.css";
 
@@ -99,9 +99,9 @@ public class spriteTest {
 
 
     @Test
-    void spriteGenerator() {
+    void avatarSpriteGenerator() {
 
-        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\avatar\\";     // 图片输入目录
+        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\original\\avatar\\";     // 图片输入目录
         String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         // 获取当前日期
         LocalDateTime now = LocalDateTime.now();
