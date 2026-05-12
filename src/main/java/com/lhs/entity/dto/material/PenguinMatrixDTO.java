@@ -10,8 +10,8 @@ public class PenguinMatrixDTO {
 //    企鹅物流数据
     private String stageId;  //关卡id
     private String itemId; //物品id
-    private Integer quantity;  //物品掉落次数
-    private Integer times;  //关卡刷取次数
+    private Long quantity;  //物品掉落次数
+    private Long times;  //关卡刷取次数
     private Long start;
     private Long end;
 }

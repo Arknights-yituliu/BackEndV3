@@ -20,7 +20,7 @@ public class StageResultVOV2 {
     private Double leT3Efficiency;
     private Double leT2Efficiency;
     private Double stageEfficiency;
-    private Integer sampleSize;
+    private Long sampleSize;
     private Double sampleConfidence;
     private String zoneName;
     private Integer stageColor;

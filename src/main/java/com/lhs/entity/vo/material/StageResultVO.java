@@ -29,7 +29,7 @@ public class StageResultVO {
     private String stageType;
     private Integer apCost;
     private Double sampleConfidence;
-    private Integer sampleSize;
+    private Long sampleSize;
     private Double spm;
     private String itemType;
     private Double knockRating;

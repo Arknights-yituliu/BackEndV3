@@ -21,7 +21,7 @@ public class StageResultDetail {
     private Double result;
     private Double ratio;
     private Integer ratioRank;
-    private Integer sampleSize;
+    private Long sampleSize;
     private Double sampleConfidence;
     private Date endTime;
     private String version;

@@ -12,7 +12,7 @@ public class DropDetailVO {
     private Double result;
     private Double ratio;
     private Integer ratioRank;
-    private Integer sampleSize;
+    private Long sampleSize;
     private Double sampleConfidence;
 
     public void copyByStageResultDetail(StageResultDetail stageResultDetail){

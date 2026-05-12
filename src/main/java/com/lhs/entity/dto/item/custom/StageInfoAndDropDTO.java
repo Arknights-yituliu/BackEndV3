@@ -4,8 +4,8 @@ public class StageInfoAndDropDTO {
 
     private String stageId;
     private String itemId;
-    private Integer quantity;
-    private Integer times;
+    private Long quantity;
+    private Long times;
     private Long start;
     private Long end;
     private String stageCode;
@@ -18,7 +18,7 @@ public class StageInfoAndDropDTO {
     public StageInfoAndDropDTO() {
     }
 
-    public StageInfoAndDropDTO(String stageId, String itemId, Integer quantity, Integer times, Long start, Long end, String stageCode, Integer apCost, Double spm, String stageType, String zoneName, String zoneId) {
+    public StageInfoAndDropDTO(String stageId, String itemId, Long quantity, Long times, Long start, Long end, String stageCode, Integer apCost, Double spm, String stageType, String zoneName, String zoneId) {
         this.stageId = stageId;
         this.itemId = itemId;
         this.quantity = quantity;
@@ -49,19 +49,19 @@ public class StageInfoAndDropDTO {
         this.itemId = itemId;
     }
 
-    public Integer getQuantity() {
+    public Long getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Integer quantity) {
+    public void setQuantity(Long quantity) {
         this.quantity = quantity;
     }
 
-    public Integer getTimes() {
+    public Long getTimes() {
         return times;
     }
 
-    public void setTimes(Integer times) {
+    public void setTimes(Long times) {
         this.times = times;
     }
 

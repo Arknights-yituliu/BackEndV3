@@ -67,8 +67,8 @@ public class StageEfficiencyService {
             StageEfficiency stageEfficiency = new StageEfficiency();
             for(PenguinMatrixDTO stageDrop :stageDropList){
                 String itemId = stageDrop.getItemId();
-                Integer quantity = stageDrop.getQuantity();
-                Integer times = stageDrop.getTimes();
+                long quantity = stageDrop.getQuantity();
+                long times = stageDrop.getTimes();
 
             }
         }

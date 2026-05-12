@@ -359,8 +359,8 @@ public class CustomItemV1ServiceImpl {
 
             for (PenguinMatrixDTO penguinMatrixDTO : dropList) {
                 String itemId = penguinMatrixDTO.getItemId();
-                Integer quantity = penguinMatrixDTO.getQuantity();
-                Integer times = penguinMatrixDTO.getTimes();
+                long quantity = penguinMatrixDTO.getQuantity();
+                long times = penguinMatrixDTO.getTimes();
                 if (!itemInfoMap.containsKey(itemId)) {
                     continue;
                 }

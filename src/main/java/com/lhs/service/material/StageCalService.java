@@ -466,7 +466,7 @@ public class StageCalService {
 
 
 
-    private Double sampleConfidence(Integer penguinDataTimes, Double apCost, Double itemValue, Double probability, List<QuantileTable> quantileTables) {
+    private Double sampleConfidence(Long penguinDataTimes, Double apCost, Double itemValue, Double probability, List<QuantileTable> quantileTables) {
         Double quantileValue = 0.03 * apCost / itemValue / Math.sqrt(1 * probability * (1 - probability) / (penguinDataTimes - 1));
         if (quantileValue >= 3.09023 || Double.isNaN(quantileValue)) return 99.9;
         List<QuantileTable> collect = quantileTables.stream()

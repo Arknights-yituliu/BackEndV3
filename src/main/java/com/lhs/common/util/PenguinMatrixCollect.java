@@ -62,8 +62,8 @@ public class PenguinMatrixCollect {
 
             PenguinMatrixDTO drop = new PenguinMatrixDTO();
             drop.setStageId(stageId);
-            drop.setTimes(0);
-            drop.setQuantity(0);
+            drop.setTimes(0L);
+            drop.setQuantity(0L);
             drop.setItemId(itemId);
             drop.setEnd(end);
             drop.setStart(start);
@@ -71,8 +71,8 @@ public class PenguinMatrixCollect {
 
             PenguinMatrixDTO lmdDrop = new PenguinMatrixDTO();
             lmdDrop.setStageId(stageId);
-            lmdDrop.setTimes(1);
-            lmdDrop.setQuantity(21 * 12);
+            lmdDrop.setTimes(1L);
+            lmdDrop.setQuantity(21L * 12);
             lmdDrop.setItemId("4001");
             lmdDrop.setEnd(end);
             lmdDrop.setStart(start);
@@ -80,8 +80,8 @@ public class PenguinMatrixCollect {
 
             PenguinMatrixDTO storeUnlimitedExchangeDrop = new PenguinMatrixDTO();
             lmdDrop.setStageId(stageId);
-            lmdDrop.setTimes(1);
-            lmdDrop.setQuantity(21 * 20);
+            lmdDrop.setTimes(1L);
+            lmdDrop.setQuantity(21L * 20);
             lmdDrop.setItemId("4001");
             lmdDrop.setEnd(end);
             lmdDrop.setStart(start);
@@ -196,8 +196,8 @@ public class PenguinMatrixCollect {
 
                 PenguinMatrixDTO lmdDrop = new PenguinMatrixDTO();
                 lmdDrop.setStageId(stageId);
-                lmdDrop.setTimes(1);
-                lmdDrop.setQuantity(21 * 12);
+                lmdDrop.setTimes(1L);
+                lmdDrop.setQuantity(21L * 12);
                 lmdDrop.setItemId("4001");
                 lmdDrop.setEnd(element.getEnd());
                 lmdDrop.setStart(element.getStart());
@@ -206,8 +206,8 @@ public class PenguinMatrixCollect {
                 if("ACT".equals(stageType)||"ACT_REP".equals(stageType)){
                     PenguinMatrixDTO storeUnlimitedExchangeDrop = new PenguinMatrixDTO();
                     lmdDrop.setStageId(stageId);
-                    lmdDrop.setTimes(1);
-                    lmdDrop.setQuantity(21 * 20);
+                    lmdDrop.setTimes(1L);
+                    lmdDrop.setQuantity(21L * 20);
                     lmdDrop.setItemId("4001");
                     lmdDrop.setEnd(element.getEnd());
                     lmdDrop.setStart(element.getStart());
@@ -338,8 +338,8 @@ public class PenguinMatrixCollect {
         PenguinMatrixDTO stageDropLMD = new PenguinMatrixDTO();
         stageDropLMD.setStageId(stageId);
         stageDropLMD.setItemId("4001");
-        stageDropLMD.setQuantity((int) (12 * apCost));
-        stageDropLMD.setTimes(1);
+        stageDropLMD.setQuantity((long) (12 * apCost));
+        stageDropLMD.setTimes(1L);
         stageDropList.add(stageDropLMD);
 
 
@@ -348,8 +348,8 @@ public class PenguinMatrixCollect {
             PenguinMatrixDTO stageDropStore = new PenguinMatrixDTO();
             stageDropStore.setStageId(stageId);
             stageDropStore.setItemId("4001");
-            stageDropStore.setQuantity((int) (20 * apCost));
-            stageDropStore.setTimes(1);
+            stageDropStore.setQuantity((long) (20 * apCost));
+            stageDropStore.setTimes(1L);
             stageDropList.add(stageDropStore);
         }
     }

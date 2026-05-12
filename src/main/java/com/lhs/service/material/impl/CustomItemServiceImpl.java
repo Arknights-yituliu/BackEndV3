@@ -75,12 +75,12 @@ public class CustomItemServiceImpl implements CustomItemService {
         itemValueMap.put("AP_GAMEPLAY", 1.0);
         itemValueMap.put("EXP", 0.0);
 
-        Map<Integer, Double> workshopByproductExpectedValue = Map.of(
+        Map<Integer, Double> workshopByproductExpectedValue = new HashMap<>(Map.of(
                 1, 3.0,
                 2, 9.0,
                 3, 27.0,
                 4, 81.0
-        );
+        ));
 
         List<CustomItemDTO> customItem = itemValueConfigDTO.getCustomItem();
         Map<String, Double> customItemValueMap = customItem.stream().collect(Collectors.toMap(CustomItemDTO::getItemId, CustomItemDTO::getItemValue));
@@ -208,15 +208,17 @@ public class CustomItemServiceImpl implements CustomItemService {
         if (itemValue4004 == Double.POSITIVE_INFINITY) {
             itemValue7001 = Double.POSITIVE_INFINITY;
         } else {
-            JsonNode recruitmentPermitPricingStrategy = recruitmentPermitPricing.get(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
-            Iterator<Map.Entry<String, JsonNode>> fields = recruitmentPermitPricingStrategy.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> next = fields.next();
-                JsonNode strategy = next.getValue();
-                String rarity = next.getKey();
-                itemValue7001 += operatorRecruitmentRates.get(rarity).asDouble() *
-                        (strategy.get("4005").asDouble() * itemValue4005 + strategy.get("4004").asDouble() * itemValue4004);
-            }
+//            System.out.println(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
+//            JsonNode recruitmentPermitPricingStrategy = recruitmentPermitPricing.get(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
+//            System.out.println(recruitmentPermitPricingStrategy);
+//            Iterator<Map.Entry<String, JsonNode>> fields = recruitmentPermitPricingStrategy.fields();
+//            while (fields.hasNext()) {
+//                Map.Entry<String, JsonNode> next = fields.next();
+//                JsonNode strategy = next.getValue();
+//                String rarity = next.getKey();
+//                itemValue7001 += operatorRecruitmentRates.get(rarity).asDouble() *
+//                        (strategy.get("4005").asDouble() * itemValue4005 + strategy.get("4004").asDouble() * itemValue4004);
+//            }
         }
 
         // 加急许可价值 */
@@ -763,9 +765,11 @@ public class CustomItemServiceImpl implements CustomItemService {
             // 物品系列的id和名称
             String seriesId = itemSeriesInfo.getSeriesId();
 
+//            System.out.println("当前计算的材料系列："+itemSeriesInfo.getSeriesName());
+
             // 该系列材料的最高作战效率
             MaxStageEfficiencyInfo currentMax = maxStageEfficiencyMap.get(seriesId);
-            double currentMaxStageEfficiency = currentMax.getStageEfficiency();
+            double currentMaxStageEfficiency = currentMax==null?0:currentMax.getStageEfficiency();
 
             if (stageEfficiency > currentMaxStageEfficiency) {
                 // 如果当前作战效率大于该系列材料的最高效率，则更新最高效率
@@ -824,7 +828,7 @@ public class CustomItemServiceImpl implements CustomItemService {
         return true;
     }
 
-    @RedisCacheable(key = "Json:Item_Series_Info")
+//    @RedisCacheable(key = "Json:Item_Series_Info")
     private Map<String, ItemSeriesInfo> getItemSeriesInfoByItemId() {
         JsonNode itemSeriesInfoNode = JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "item_series_info.json"));
         Map<String, ItemSeriesInfo> itemSeriesInfoByItemId = new HashMap<>();
@@ -925,11 +929,11 @@ public class CustomItemServiceImpl implements CustomItemService {
     }
 
 
-    @RedisCacheable(key = "Json:Penguin_Matrix")
-
+//    @RedisCacheable(key = "Json:Penguin_Matrix")
     private Map<String, List<StageInfoAndDropDTO>> getStageInfoAndDropCollect(ItemValueConfigDTO itemValueConfigDTO) {
         String penguinMatrixText = FileUtil.read(ConfigUtil.Penguin + "penguin.json");
         String matrixText = JsonMapper.parseJSONObject(penguinMatrixText).get("matrix").toPrettyString();
+//
         List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<>() {
         });
 
@@ -949,6 +953,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             stageBlcklistSet = itemValueConfigDTO.getStageBlacklist();
         }
 
+
         Map<String, PenguinMatrixDTO> toughStageMap = penguinMatrixDTOList.stream()
                 .filter(item -> item.getStageId().contains("tough"))
                 .collect(Collectors
@@ -960,8 +965,8 @@ public class CustomItemServiceImpl implements CustomItemService {
 
             String stageId = penguinMatrixDTO.getStageId();
             String itemId = penguinMatrixDTO.getItemId();
-            Integer quantity = penguinMatrixDTO.getQuantity();
-            Integer times = penguinMatrixDTO.getTimes();
+            long quantity = penguinMatrixDTO.getQuantity();
+            long times = penguinMatrixDTO.getTimes();
             Long start = penguinMatrixDTO.getStart();
             Long end = penguinMatrixDTO.getEnd();
 
@@ -1065,8 +1070,8 @@ public class CustomItemServiceImpl implements CustomItemService {
         stageInfoAndDropDTO.setStageType(dto.getStageType());
         stageInfoAndDropDTO.setStart(dto.getStart());
         stageInfoAndDropDTO.setEnd(dto.getEnd());
-        stageInfoAndDropDTO.setQuantity(dto.getApCost() * LMDPerAp);
-        stageInfoAndDropDTO.setTimes(1);
+        stageInfoAndDropDTO.setQuantity((long)dto.getApCost() * LMDPerAp);
+        stageInfoAndDropDTO.setTimes(1L);
         stageInfoAndDropDTO.setItemId("4001");
 
         return stageInfoAndDropDTO;
@@ -1078,7 +1083,7 @@ public class CustomItemServiceImpl implements CustomItemService {
         checkNotNull(configDTO.getStageWhitelist());
 
         checkNotNull(configDTO.getRecruitmentPermitPricingStrategy());
-        checkNotNull(configDTO.getRecruitmentPermitValue());
+        // checkNotNull(configDTO.getRecruitmentPermitValue());
 
         checkNotNull(configDTO.getCustomItem());
         checkNotNull(configDTO.getWorkshopStrategy());
@@ -1095,8 +1100,8 @@ public class CustomItemServiceImpl implements CustomItemService {
         checkConfig(configDTO.getLmdPricingStrategy(), configDTO.getLmdCoefficient());
         checkConfig(configDTO.getExpPricingStrategy(), configDTO.getExpCoefficient());
         checkConfig(configDTO.getModUnlockTokenPricingStrategy(), configDTO.getModUnlockTokenValue());
-        checkConfig(configDTO.getRecruitmentPermitPricingStrategy(), configDTO.getRecruitmentPermitValue());
-        checkConfig(configDTO.getFurniturePartPricingStrategy(), configDTO.getFurniturePartValue());
+        // checkConfig(configDTO.getRecruitmentPermitPricingStrategy(), configDTO.getRecruitmentPermitValue());
+        // checkConfig(configDTO.getFurniturePartPricingStrategy(), configDTO.getFurniturePartValue());
 
         WorkshopStrategyDTO workshopStrategy = configDTO.getWorkshopStrategy();
 
@@ -1146,12 +1151,12 @@ public class CustomItemServiceImpl implements CustomItemService {
     }
 
 
-    @RedisCacheable(key = "Json:Recruitment_Table")
+    // @RedisCacheable(key = "Json:Recruitment_Table")
     private JsonNode getRecruitmentTable() {
         return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "recruitment_table.json"));
     }
 
-    @RedisCacheable(key = "Json:Item_Info")
+    // @RedisCacheable(key = "Json:Item_Info")
     private JsonNode getItemInfo() {
         return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "itemInfo.json"));
     }
