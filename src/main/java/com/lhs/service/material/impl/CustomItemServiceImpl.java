@@ -2,7 +2,6 @@ package com.lhs.service.material.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.enums.StageType;
@@ -101,7 +100,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             }
         }
 
-        Map<String, List<StageInfoAndDropDTO>> stageInfoAndDropCollect = getStageInfoAndDropCollect(itemValueConfigDTO);
+        Map<String, List<StageDropAndInfoDTO>> stageInfoAndDropCollect = getStageInfoAndDropCollect(itemValueConfigDTO);
 
         Map<String, StageEfficiencyAndMainItem> stageEfficiencyAndMainItemMap = new HashMap<>();
 
@@ -664,15 +663,15 @@ public class CustomItemServiceImpl implements CustomItemService {
 
 
     private void calculateStageDropExpectedValue(Map<String, StageEfficiencyAndMainItem> stageEfficiencyAndMainItemMap,
-                                                 Map<String, List<StageInfoAndDropDTO>> stageInfoAndDropCollect,
+                                                 Map<String, List<StageDropAndInfoDTO>> stageInfoAndDropCollect,
                                                  Map<String, Double> itemValueMap) {
 
         stageEfficiencyAndMainItemMap.clear();
 
         // 循环关卡的物品掉落集合，每个集合是根据关卡id分组的
-        for (Map.Entry<String, List<StageInfoAndDropDTO>> entry : stageInfoAndDropCollect.entrySet()) {
+        for (Map.Entry<String, List<StageDropAndInfoDTO>> entry : stageInfoAndDropCollect.entrySet()) {
             String stageId = entry.getKey();
-            List<StageInfoAndDropDTO> dropList = entry.getValue();
+            List<StageDropAndInfoDTO> dropList = entry.getValue();
 
             if (dropList.isEmpty()) {
                 continue;
@@ -691,7 +690,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             double maxValue = Double.NEGATIVE_INFINITY;
 
             // 循环关卡的物品掉落集合
-            for (StageInfoAndDropDTO drop : dropList) {
+            for (StageDropAndInfoDTO drop : dropList) {
                 // 获取物品id，掉落次数，样本数
                 String itemId = drop.getItemId();
                 double quantity = drop.getQuantity();
@@ -930,7 +929,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
 
 //    @RedisCacheable(key = "Json:Penguin_Matrix")
-    private Map<String, List<StageInfoAndDropDTO>> getStageInfoAndDropCollect(ItemValueConfigDTO itemValueConfigDTO) {
+    private Map<String, List<StageDropAndInfoDTO>> getStageInfoAndDropCollect(ItemValueConfigDTO itemValueConfigDTO) {
         String penguinMatrixText = FileUtil.read(ConfigUtil.Penguin + "penguin.json");
         String matrixText = JsonMapper.parseJSONObject(penguinMatrixText).get("matrix").toPrettyString();
 //
@@ -939,7 +938,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
         String ytlStageDataText = FileUtil.read(ConfigUtil.DataFilePath + "ytl_stage_info.json");
 
-        Map<String, StageInfoAndDropDTO> ytlStageDataMap = JsonMapper.parseJSONArray(ytlStageDataText, new TypeReference<>() {
+        Map<String, StageDropAndInfoDTO> ytlStageDataMap = JsonMapper.parseJSONArray(ytlStageDataText, new TypeReference<>() {
         });
 
 
@@ -959,7 +958,7 @@ public class CustomItemServiceImpl implements CustomItemService {
                 .collect(Collectors
                         .toMap(item -> item.getStageId().replace("tough", "main") + "—" + item.getItemId(), item -> item));
 
-        Map<String, List<StageInfoAndDropDTO>> stageInfoAndDropCollect = new HashMap<>();
+        Map<String, List<StageDropAndInfoDTO>> stageInfoAndDropCollect = new HashMap<>();
 
         for (PenguinMatrixDTO penguinMatrixDTO : penguinMatrixDTOList) {
 
@@ -1008,73 +1007,74 @@ public class CustomItemServiceImpl implements CustomItemService {
             String zoneId = stageInfo.getZoneId();
             String stageCode = stageInfo.getStageCode();
             if (StageType.ACT.equals(stageType) && apCost == 21) {
-                StageInfoAndDropDTO stageInfoAndDropDTOByItemId = ytlStageDataMap.get(itemId);
-                if (stageInfoAndDropDTOByItemId != null) {
-                    stageInfoAndDropDTOByItemId.setQuantity(stageInfoAndDropDTOByItemId.getQuantity() + quantity);
-                    stageInfoAndDropDTOByItemId.setTimes(stageInfoAndDropDTOByItemId.getTimes() + times);
+                StageDropAndInfoDTO stageDropAndInfoDTOByItemId = ytlStageDataMap.get(itemId);
+                if (stageDropAndInfoDTOByItemId != null) {
+                    stageDropAndInfoDTOByItemId.setQuantity(stageDropAndInfoDTOByItemId.getQuantity() + quantity);
+                    stageDropAndInfoDTOByItemId.setTimes(stageDropAndInfoDTOByItemId.getTimes() + times);
                 }
             }
 
-            StageInfoAndDropDTO stageInfoAndDropDTO = new StageInfoAndDropDTO();
-            stageInfoAndDropDTO.setStageId(stageId);
-            stageInfoAndDropDTO.setStageCode(stageCode);
-            stageInfoAndDropDTO.setItemId(itemId);
-            stageInfoAndDropDTO.setQuantity(quantity);
-            stageInfoAndDropDTO.setTimes(times);
-            stageInfoAndDropDTO.setStart(start);
-            stageInfoAndDropDTO.setEnd(end);
-            stageInfoAndDropDTO.setStageType(stageType);
-            stageInfoAndDropDTO.setZoneName(zoneName);
-            stageInfoAndDropDTO.setZoneId(zoneId);
-            stageInfoAndDropDTO.setApCost(apCost);
-            stageInfoAndDropDTO.setSpm(spm);
+            StageDropAndInfoDTO stageDropAndInfoDTO = new StageDropAndInfoDTO();
+            stageDropAndInfoDTO.setStageId(stageId);
+            stageDropAndInfoDTO.setStageCode(stageCode);
+            stageDropAndInfoDTO.setItemId(itemId);
+            stageDropAndInfoDTO.setQuantity(quantity);
+            stageDropAndInfoDTO.setTimes(times);
+            stageDropAndInfoDTO.setStart(start);
+            stageDropAndInfoDTO.setEnd(end);
+            stageDropAndInfoDTO.setStageType(stageType);
+            stageDropAndInfoDTO.setZoneName(zoneName);
+            stageDropAndInfoDTO.setZoneId(zoneId);
+            stageDropAndInfoDTO.setApCost(apCost);
+            stageDropAndInfoDTO.setSpm(spm);
 
 
             if (!stageInfoAndDropCollect.containsKey(stageId)) {
-                List<StageInfoAndDropDTO> stageInfoAndDropDTOList = new ArrayList<>();
-                StageInfoAndDropDTO stageInfoAndLMDDrop = getStageInfoAndLMDDrop(stageInfoAndDropDTO, 12);
-                stageInfoAndDropDTOList.add(stageInfoAndLMDDrop);
+                List<StageDropAndInfoDTO> stageDropAndInfoDTOList = new ArrayList<>();
+                StageDropAndInfoDTO stageInfoAndLMDDrop = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 12);
+                stageDropAndInfoDTOList.add(stageInfoAndLMDDrop);
                 if (StageType.ACT.equals(stageType) || StageType.ACT_REP.equals(stageType)) {
-                    StageInfoAndDropDTO activityShopLMDExchange = getStageInfoAndLMDDrop(stageInfoAndDropDTO, 20);
-                    stageInfoAndDropDTOList.add(activityShopLMDExchange);
+                    StageDropAndInfoDTO activityShopLMDExchange = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 20);
+                    stageDropAndInfoDTOList.add(activityShopLMDExchange);
                 }
-                stageInfoAndDropCollect.put(stageId, stageInfoAndDropDTOList);
+                stageInfoAndDropCollect.put(stageId, stageDropAndInfoDTOList);
             }
 
-            stageInfoAndDropCollect.get(stageId).add(stageInfoAndDropDTO);
+            stageInfoAndDropCollect.get(stageId).add(stageDropAndInfoDTO);
         }
 
         if (itemValueConfigDTO.getUseActivityAverageStage()) {
-            for (StageInfoAndDropDTO stageInfoAndDropDTO : ytlStageDataMap.values()) {
-                StageInfoAndDropDTO stageInfoAndLMDDrop = getStageInfoAndLMDDrop(stageInfoAndDropDTO, 12);
-                StageInfoAndDropDTO activityShopLMDExchange = getStageInfoAndLMDDrop(stageInfoAndDropDTO, 20);
-                List<StageInfoAndDropDTO> stageInfoAndDropDTOList = new ArrayList<>();
-                stageInfoAndDropDTOList.add(stageInfoAndDropDTO);
-                stageInfoAndDropDTOList.add(stageInfoAndLMDDrop);
-                stageInfoAndDropDTOList.add(activityShopLMDExchange);
-                stageInfoAndDropCollect.put(stageInfoAndDropDTO.getStageId(), stageInfoAndDropDTOList);
+            for (StageDropAndInfoDTO stageDropAndInfoDTO : ytlStageDataMap.values()) {
+                StageDropAndInfoDTO stageInfoAndLMDDrop = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 12);
+                StageDropAndInfoDTO activityShopLMDExchange = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 20);
+                List<StageDropAndInfoDTO> stageDropAndInfoDTOList = new ArrayList<>();
+                stageDropAndInfoDTOList.add(stageDropAndInfoDTO);
+                stageDropAndInfoDTOList.add(stageInfoAndLMDDrop);
+                stageDropAndInfoDTOList.add(activityShopLMDExchange);
+                stageInfoAndDropCollect.put(stageDropAndInfoDTO.getStageId(), stageDropAndInfoDTOList);
             }
         }
 
         return stageInfoAndDropCollect;
     }
 
-    private StageInfoAndDropDTO getStageInfoAndLMDDrop(StageInfoAndDropDTO dto, Integer LMDPerAp) {
-        StageInfoAndDropDTO stageInfoAndDropDTO = new StageInfoAndDropDTO();
-        stageInfoAndDropDTO.setStageId(dto.getStageId());
-        stageInfoAndDropDTO.setStageCode(dto.getStageCode());
-        stageInfoAndDropDTO.setZoneName(dto.getZoneName());
-        stageInfoAndDropDTO.setZoneId(dto.getZoneId());
-        stageInfoAndDropDTO.setApCost(dto.getApCost());
-        stageInfoAndDropDTO.setSpm(dto.getSpm());
-        stageInfoAndDropDTO.setStageType(dto.getStageType());
-        stageInfoAndDropDTO.setStart(dto.getStart());
-        stageInfoAndDropDTO.setEnd(dto.getEnd());
-        stageInfoAndDropDTO.setQuantity((long)dto.getApCost() * LMDPerAp);
-        stageInfoAndDropDTO.setTimes(1L);
-        stageInfoAndDropDTO.setItemId("4001");
+    private StageDropAndInfoDTO getStageInfoAndLMDDrop(StageDropAndInfoDTO dto, Integer LMDPerAp) {
+        StageDropAndInfoDTO stageDropAndInfoDTO = new StageDropAndInfoDTO();
+        stageDropAndInfoDTO.setStageId(dto.getStageId());
+        stageDropAndInfoDTO.setStageCode(dto.getStageCode());
+        stageDropAndInfoDTO.setZoneName(dto.getZoneName());
+        stageDropAndInfoDTO.setZoneId(dto.getZoneId());
+        stageDropAndInfoDTO.setApCost(dto.getApCost());
+        stageDropAndInfoDTO.setSpm(dto.getSpm());
+        stageDropAndInfoDTO.setUnlimitedItem(dto.getUnlimitedItem());
+        stageDropAndInfoDTO.setStageType(dto.getStageType());
+        stageDropAndInfoDTO.setStart(dto.getStart());
+        stageDropAndInfoDTO.setEnd(dto.getEnd());
+        stageDropAndInfoDTO.setQuantity((long)dto.getApCost() * LMDPerAp);
+        stageDropAndInfoDTO.setTimes(1L);
+        stageDropAndInfoDTO.setItemId("4001");
 
-        return stageInfoAndDropDTO;
+        return stageDropAndInfoDTO;
     }
 
     private void checkItemValueConfig(ItemValueConfigDTO configDTO) {

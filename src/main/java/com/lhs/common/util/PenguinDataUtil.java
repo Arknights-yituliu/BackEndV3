@@ -1,5 +1,6 @@
 package com.lhs.common.util;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +9,8 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.entity.dto.item.custom.ItemValueConfigDTO;
-import com.lhs.entity.dto.item.custom.StageInfoAndDropDTO;
+import com.lhs.entity.dto.item.custom.OtherItemDropDTO;
+import com.lhs.entity.dto.item.custom.StageDropAndInfoDTO;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
 import com.lhs.entity.po.material.Stage;
 import com.lhs.service.material.StageService;
@@ -21,9 +23,9 @@ public class PenguinDataUtil {
         this.stageService = stageService;
     }
 
-    public Map<String, List<StageInfoAndDropDTO>> getStageDropCollect(ItemValueConfigDTO itemValueConfigDTO) {
+    public Map<String, List<StageDropAndInfoDTO>> getStageDropCollect(ItemValueConfigDTO itemValueConfigDTO) {
 
-        Map<String, List<StageInfoAndDropDTO>> stageDropCollect = new HashMap<>();
+        Map<String, List<StageDropAndInfoDTO>> stageDropCollect = new HashMap<>();
         String penguinMatrixText = FileUtil.read(ConfigUtil.Penguin + "penguin.json");
         String matrixText = JsonMapper.parseJSONObject(penguinMatrixText).get("matrix").toPrettyString();
 
@@ -33,7 +35,7 @@ public class PenguinDataUtil {
 
         String ytlStageDataText = FileUtil.read(ConfigUtil.DataFilePath + "ytl_stage_info.json");
 
-        Map<String, StageInfoAndDropDTO> ytlStageDataGroupByItemId = JsonMapper.parseJSONArray(ytlStageDataText,
+        Map<String, StageDropAndInfoDTO> ytlStageDataGroupByItemId = JsonMapper.parseJSONArray(ytlStageDataText,
                 new TypeReference<>() {
                 });
 
@@ -114,9 +116,95 @@ public class PenguinDataUtil {
             String stageType = stageInfo.getStageType();
             String zoneName = stageInfo.getZoneName();
             String zoneId = stageInfo.getZoneId();
+
+            // 活动关卡21理智的，与一图流无限池数据合并
+            if ("ACT".equals(stageType) && apCost == 21 && ytlStageDataGroupByItemId.containsKey(itemId)) {
+                StageDropAndInfoDTO ytlData = ytlStageDataGroupByItemId.get(itemId);
+                ytlData.setQuantity(ytlData.getQuantity() + quantity);
+                ytlData.setTimes(ytlData.getTimes() + times);
+            }
+
+            StageDropAndInfoDTO mergeItem = new StageDropAndInfoDTO();
+            mergeItem.setStageId(stageId);
+            mergeItem.setItemId(itemId);
+            mergeItem.setQuantity(quantity);
+            mergeItem.setTimes(times);
+            mergeItem.setStart(stageInfo.getStartTime() != null ? stageInfo.getStartTime().getTime() : null);
+            mergeItem.setEnd(stageInfo.getEndTime() != null ? stageInfo.getEndTime().getTime() : null);
+            mergeItem.setStageCode(stageCode);
+            mergeItem.setApCost(apCost);
+            mergeItem.setSpm(spm);
+            mergeItem.setStageType(stageType);
+            mergeItem.setZoneName(zoneName);
+            mergeItem.setZoneId(zoneId);
+            mergeItem.setUnlimitedItem(false);
+
+            OtherItemDropDTO otherItemDropDTO = new OtherItemDropDTO();
+            otherItemDropDTO.setItemId("4001");
+            otherItemDropDTO.setQuantity(12L);
+            otherItemDropDTO.setPrice(1.0);
+            
+            //关卡本身常规的龙门币掉落
+            StageDropAndInfoDTO standardLMDDrop = createDropTemplate(stageInfo, otherItemDropDTO);
+
+            // 将合并后的关卡掉落按关卡ID分组存入集合
+            if (stageDropCollect.containsKey(stageId)) {
+                stageDropCollect.get(stageId).add(mergeItem);
+            } else {
+                List<StageDropAndInfoDTO> dropList = new ArrayList<>();
+                dropList.add(mergeItem);
+                dropList.add(standardLMDDrop);
+                stageDropCollect.put(stageId, dropList);
+            }
+
         }
 
-        return null;
+        // 遍历一图流模拟数据，将有效的模拟关卡存入关卡掉落集合
+        for (Map.Entry<String, StageDropAndInfoDTO> entry : ytlStageDataGroupByItemId.entrySet()) {
+            String itemId = entry.getKey();
+            StageDropAndInfoDTO dropInfo = entry.getValue();
+            if (dropInfo.getTimes() > 0) {
+                OtherItemDropDTO lmdItem = new OtherItemDropDTO();
+                lmdItem.setItemId("4001");
+                lmdItem.setPrice(1.0);
+                lmdItem.setQuantity(12L);
+
+                StageDropAndInfoDTO lmdDrop = createDropTemplate(stageInfoMap.get(dropInfo.getStageId()), lmdItem);
+
+                List<StageDropAndInfoDTO> dropList = new ArrayList<>();
+                dropList.add(dropInfo);
+                dropList.add(lmdDrop);
+                stageDropCollect.put(dropInfo.getStageId(), dropList);
+            }
+        }
+
+        return stageDropCollect;
 
     }
+
+    /**
+     * 根据关卡信息和无限池商品创建关卡掉落模板
+     * @param stageInfo 关卡信息
+     * @param shopRedemptionItem 无限池商品信息
+     * @return 关卡掉落与信息DTO
+     */
+    public static StageDropAndInfoDTO createDropTemplate(Stage stageInfo, OtherItemDropDTO shopRedemptionItem) {
+        StageDropAndInfoDTO dto = new StageDropAndInfoDTO();
+        dto.setStageId(stageInfo.getStageId());
+        dto.setItemId(shopRedemptionItem.getItemId());
+        dto.setQuantity((long) (stageInfo.getApCost() / shopRedemptionItem.getPrice()
+                * shopRedemptionItem.getQuantity() * 1000));
+        dto.setTimes(1000L);
+        dto.setStart(stageInfo.getStartTime() != null ? stageInfo.getStartTime().getTime() : null);
+        dto.setEnd(stageInfo.getEndTime() != null ? stageInfo.getEndTime().getTime() : null);
+        dto.setStageCode(stageInfo.getStageCode());
+        dto.setApCost(stageInfo.getApCost());
+        dto.setSpm(stageInfo.getSpm());
+        dto.setUnlimitedItem(true);
+        dto.setStageType(stageInfo.getStageType());
+        dto.setZoneName(stageInfo.getZoneName());
+        dto.setZoneId(stageInfo.getZoneId());
+        return dto;
+    }
+
 }

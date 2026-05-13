@@ -1,6 +1,6 @@
 package com.lhs.entity.dto.item.custom;
 
-public class StageInfoAndDropDTO {
+public class StageDropAndInfoDTO {
 
     private String stageId;
     private String itemId;
@@ -14,11 +14,12 @@ public class StageInfoAndDropDTO {
     private String stageType;
     private String zoneName;
     private String zoneId;
+    private Boolean unlimitedItem;
 
-    public StageInfoAndDropDTO() {
+    public StageDropAndInfoDTO() {
     }
 
-    public StageInfoAndDropDTO(String stageId, String itemId, Long quantity, Long times, Long start, Long end, String stageCode, Integer apCost, Double spm, String stageType, String zoneName, String zoneId) {
+    public StageDropAndInfoDTO(String stageId, String itemId, Long quantity, Long times, Long start, Long end, String stageCode, Integer apCost, Double spm, String stageType, String zoneName, String zoneId, Boolean unlimitedItem) {
         this.stageId = stageId;
         this.itemId = itemId;
         this.quantity = quantity;
@@ -31,6 +32,7 @@ public class StageInfoAndDropDTO {
         this.stageType = stageType;
         this.zoneName = zoneName;
         this.zoneId = zoneId;
+        this.unlimitedItem = unlimitedItem;
     }
 
     public String getStageId() {
@@ -111,6 +113,14 @@ public class StageInfoAndDropDTO {
 
     public void setStageType(String stageType) {
         this.stageType = stageType;
+    }
+
+    public Boolean getUnlimitedItem() {
+        return unlimitedItem;
+    }
+
+    public void setUnlimitedItem(Boolean unlimitedItem) {
+        this.unlimitedItem = unlimitedItem;
     }
 
     public String getZoneName() {
