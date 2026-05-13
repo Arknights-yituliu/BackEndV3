@@ -783,7 +783,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             MaxStageEfficiencyInfo maxStageEfficiencyInfo = entry.getValue();
             String stageId = maxStageEfficiencyInfo.getStageId();
             double stageEfficiency = maxStageEfficiencyInfo.getStageEfficiency();
-
+         
             // 获取该系列蓝材料的物品 ID，蓝材料物品 ID 就是系列 ID
 
 
@@ -792,7 +792,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             if (itemValueT3 == null) {
                 continue;
             }
-
+             System.out.println("蓝材料推荐关卡："+stageId);
             // 更新蓝材料的价值
             if (stageEfficiency != Double.NEGATIVE_INFINITY && stageEfficiency != 0) {
                 itemValueMap.put(itemIdT3, itemValueT3 / stageEfficiency);

@@ -41,7 +41,7 @@ public class StageService {
     }
 
 
-    @RedisCacheable(key = "StageInfoMap",timeout = 43200)
+    // @RedisCacheable(key = "StageInfoMap",timeout = 43200)
     public Map<String, Stage> getStageInfoMap(){
         List<Stage> stageList = stageMapper.selectList(null);
 

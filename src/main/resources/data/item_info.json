@@ -7,7 +7,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 1,
-    "groupId": 10100,
+    "groupId": 1,
     "type": "精英材料"
   },
   {
@@ -18,7 +18,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 1,
-    "groupId": 10101,
+    "groupId": 1,
     "type": "精英材料"
   },
   {
@@ -29,7 +29,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 1,
-    "groupId": 10102,
+    "groupId": 1,
     "type": "精英材料"
   },
   {
@@ -40,7 +40,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 1,
-    "groupId": 10103,
+    "groupId": 1,
     "type": "精英材料"
   },
   {
@@ -51,7 +51,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 1,
-    "groupId": 10104,
+    "groupId": 1,
     "type": "精英材料"
   },
   {
@@ -62,7 +62,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 1,
-    "groupId": 10105,
+    "groupId": 1,
     "type": "精英材料"
   },
   {
@@ -71,9 +71,31 @@
     "itemValue": 87.85767936470859,
     "itemValueAp": 87.85767936470859,
     "rarity": 4,
-    "weight": 0.05677290836653386,
+    "weight": 0.05116696588868941,
     "cardNum": 2,
-    "groupId": 10200,
+    "groupId": 2,
+    "type": "精英材料"
+  },
+  {
+    "itemId": "31104",
+    "itemName": "液化醚吸聚体",
+    "itemValue": 87.85767936470859,
+    "itemValueAp": 87.85767936470859,
+    "rarity": 4,
+    "weight": 0.05116696588868941,
+    "cardNum": 2,
+    "groupId": 2,
+    "type": "精英材料"
+  },
+  {
+    "itemId": "31114",
+    "itemName": "聚能动力单元",
+    "itemValue": 87.85767936470859,
+    "itemValueAp": 87.85767936470859,
+    "rarity": 4,
+    "weight": 0.04757630161579892,
+    "cardNum": 2,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -82,9 +104,9 @@
     "itemValue": 109.7106549172543,
     "itemValueAp": 109.7106549172543,
     "rarity": 4,
-    "weight": 0.046812749003984064,
+    "weight": 0.0421903052064632,
     "cardNum": 2,
-    "groupId": 10201,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -93,9 +115,9 @@
     "itemValue": 101.58779341229437,
     "itemValueAp": 101.58779341229437,
     "rarity": 4,
-    "weight": 0.049800796812749,
+    "weight": 0.04488330341113106,
     "cardNum": 2,
-    "groupId": 10202,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -104,9 +126,9 @@
     "itemValue": 75.8751729890223,
     "itemValueAp": 75.8751729890223,
     "rarity": 4,
-    "weight": 0.046812749003984064,
+    "weight": 0.0421903052064632,
     "cardNum": 2,
-    "groupId": 10203,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -115,9 +137,9 @@
     "itemValue": 99.34258259712878,
     "itemValueAp": 99.34258259712878,
     "rarity": 4,
-    "weight": 0.0348605577689243,
+    "weight": 0.03141831238779174,
     "cardNum": 2,
-    "groupId": 10204,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -126,9 +148,9 @@
     "itemValue": 95.62383270655818,
     "itemValueAp": 95.62383270655818,
     "rarity": 4,
-    "weight": 0.046812749003984064,
+    "weight": 0.0421903052064632,
     "cardNum": 2,
-    "groupId": 10205,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -137,9 +159,9 @@
     "itemValue": 91.95929519513199,
     "itemValueAp": 91.95929519513199,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10206,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -148,9 +170,9 @@
     "itemValue": 92.09264485162042,
     "itemValueAp": 92.09264485162042,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10207,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -159,9 +181,9 @@
     "itemValue": 70.0866504764509,
     "itemValueAp": 70.0866504764509,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10208,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -170,9 +192,9 @@
     "itemValue": 91.26657229411573,
     "itemValueAp": 91.26657229411573,
     "rarity": 4,
-    "weight": 0.046812749003984064,
+    "weight": 0.0421903052064632,
     "cardNum": 2,
-    "groupId": 10209,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -181,9 +203,9 @@
     "itemValue": 90.40196349330616,
     "itemValueAp": 90.40196349330616,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10210,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -192,9 +214,9 @@
     "itemValue": 81.71949525310876,
     "itemValueAp": 81.71949525310876,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10211,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -203,9 +225,9 @@
     "itemValue": 76.79025909345242,
     "itemValueAp": 76.79025909345242,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10212,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -214,9 +236,9 @@
     "itemValue": 82.60558775677849,
     "itemValueAp": 82.60558775677849,
     "rarity": 4,
-    "weight": 0.05677290836653386,
+    "weight": 0.05116696588868941,
     "cardNum": 2,
-    "groupId": 10213,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -225,9 +247,9 @@
     "itemValue": 79.43963453692749,
     "itemValueAp": 79.43963453692749,
     "rarity": 4,
-    "weight": 0.060756972111553786,
+    "weight": 0.05475763016157989,
     "cardNum": 2,
-    "groupId": 10214,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -236,9 +258,9 @@
     "itemValue": 24.57598105717402,
     "itemValueAp": 24.57598105717402,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10215,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -247,9 +269,9 @@
     "itemValue": 70.14268929582799,
     "itemValueAp": 70.14268929582799,
     "rarity": 4,
-    "weight": 0.052788844621513946,
+    "weight": 0.04757630161579892,
     "cardNum": 2,
-    "groupId": 10216,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -258,9 +280,9 @@
     "itemValue": 65.0444599208187,
     "itemValueAp": 65.0444599208187,
     "rarity": 4,
-    "weight": 0.07071713147410359,
+    "weight": 0.06373429084380611,
     "cardNum": 2,
-    "groupId": 10217,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -269,9 +291,9 @@
     "itemValue": 57.73931188722172,
     "itemValueAp": 57.73931188722172,
     "rarity": 4,
-    "weight": 0.060756972111553786,
+    "weight": 0.05475763016157989,
     "cardNum": 2,
-    "groupId": 10218,
+    "groupId": 2,
     "type": "精英材料"
   },
   {
@@ -280,9 +302,9 @@
     "itemValue": 38.27698937311449,
     "itemValueAp": 38.27698937311449,
     "rarity": 3,
-    "weight": 0.03894080996884735,
+    "weight": 0.03566333808844508,
     "cardNum": 3,
-    "groupId": 10300,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -291,9 +313,31 @@
     "itemValue": 31.061417533868774,
     "itemValueAp": 31.061417533868774,
     "rarity": 3,
-    "weight": 0.048286604361370715,
+    "weight": 0.0442225392296719,
     "cardNum": 3,
-    "groupId": 10301,
+    "groupId": 3,
+    "type": "精英材料"
+  },
+  {
+    "itemId": "31103",
+    "itemName": "液化高能气体",
+    "itemValue": 34.1677,
+    "itemValueAp": 34.1677,
+    "rarity": 3,
+    "weight": 0.039942938659058486,
+    "cardNum": 3,
+    "groupId": 3,
+    "type": "精英材料"
+  },
+  {
+    "itemId": "31113",
+    "itemName": "电极单元",
+    "itemValue": 31.054,
+    "itemValueAp": 31.054,
+    "rarity": 3,
+    "weight": 0.0442225392296719,
+    "cardNum": 3,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -302,9 +346,9 @@
     "itemValue": 37.14401141506801,
     "itemValueAp": 37.14401141506801,
     "rarity": 3,
-    "weight": 0.03894080996884735,
+    "weight": 0.03566333808844508,
     "cardNum": 3,
-    "groupId": 10302,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -313,9 +357,9 @@
     "itemValue": 37.42004775468339,
     "itemValueAp": 37.42004775468339,
     "rarity": 3,
-    "weight": 0.03894080996884735,
+    "weight": 0.03566333808844508,
     "cardNum": 3,
-    "groupId": 10303,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -324,9 +368,9 @@
     "itemValue": 34.1285920069206,
     "itemValueAp": 34.1285920069206,
     "rarity": 3,
-    "weight": 0.04361370716510903,
+    "weight": 0.039942938659058486,
     "cardNum": 3,
-    "groupId": 10304,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -335,9 +379,9 @@
     "itemValue": 33.014976061674176,
     "itemValueAp": 33.014976061674176,
     "rarity": 3,
-    "weight": 0.04361370716510903,
+    "weight": 0.039942938659058486,
     "cardNum": 3,
-    "groupId": 10305,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -346,9 +390,9 @@
     "itemValue": 31.59272923291632,
     "itemValueAp": 31.59272923291632,
     "rarity": 3,
-    "weight": 0.048286604361370715,
+    "weight": 0.0442225392296719,
     "cardNum": 3,
-    "groupId": 10306,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -357,9 +401,9 @@
     "itemValue": 23.761854001020826,
     "itemValueAp": 23.761854001020826,
     "rarity": 3,
-    "weight": 0.048286604361370715,
+    "weight": 0.0442225392296719,
     "cardNum": 3,
-    "groupId": 10307,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -368,9 +412,9 @@
     "itemValue": 30.719098605252555,
     "itemValueAp": 30.719098605252555,
     "rarity": 3,
-    "weight": 0.048286604361370715,
+    "weight": 0.0442225392296719,
     "cardNum": 3,
-    "groupId": 10308,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -379,9 +423,9 @@
     "itemValue": 31.071327440162108,
     "itemValueAp": 31.071327440162108,
     "rarity": 3,
-    "weight": 0.048286604361370715,
+    "weight": 0.0442225392296719,
     "cardNum": 3,
-    "groupId": 10309,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -390,9 +434,9 @@
     "itemValue": 2.16,
     "itemValueAp": 2.16,
     "rarity": 3,
-    "weight": 0.056074766355140186,
+    "weight": 0.05135520684736091,
     "cardNum": 3,
-    "groupId": 10310,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -401,9 +445,9 @@
     "itemValue": 27.59795005792826,
     "itemValueAp": 27.59795005792826,
     "rarity": 3,
-    "weight": 0.056074766355140186,
+    "weight": 0.05135520684736091,
     "cardNum": 3,
-    "groupId": 10311,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -412,9 +456,9 @@
     "itemValue": 27.055332747446116,
     "itemValueAp": 27.055332747446116,
     "rarity": 3,
-    "weight": 0.056074766355140186,
+    "weight": 0.05135520684736091,
     "cardNum": 3,
-    "groupId": 10312,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -423,9 +467,9 @@
     "itemValue": 1.8,
     "itemValueAp": 1.8,
     "rarity": 3,
-    "weight": 0.06542056074766354,
+    "weight": 0.05991440798858773,
     "cardNum": 3,
-    "groupId": 10313,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -434,9 +478,9 @@
     "itemValue": 25.497991819204884,
     "itemValueAp": 25.497991819204884,
     "rarity": 3,
-    "weight": 0.056074766355140186,
+    "weight": 0.05135520684736091,
     "cardNum": 3,
-    "groupId": 10314,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -445,9 +489,9 @@
     "itemValue": 22.28875697265037,
     "itemValueAp": 22.28875697265037,
     "rarity": 3,
-    "weight": 0.06542056074766354,
+    "weight": 0.05991440798858773,
     "cardNum": 3,
-    "groupId": 10315,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -456,9 +500,9 @@
     "itemValue": 22.352050856721778,
     "itemValueAp": 22.352050856721778,
     "rarity": 3,
-    "weight": 0.06542056074766354,
+    "weight": 0.05991440798858773,
     "cardNum": 3,
-    "groupId": 10316,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -467,9 +511,9 @@
     "itemValue": 19.44112786100652,
     "itemValueAp": 19.44112786100652,
     "rarity": 3,
-    "weight": 0.056074766355140186,
+    "weight": 0.05135520684736091,
     "cardNum": 3,
-    "groupId": 10317,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -478,9 +522,9 @@
     "itemValue": 17.21930861268357,
     "itemValueAp": 17.21930861268357,
     "rarity": 3,
-    "weight": 0.0778816199376947,
+    "weight": 0.07132667617689016,
     "cardNum": 3,
-    "groupId": 10318,
+    "groupId": 3,
     "type": "精英材料"
   },
   {
@@ -491,7 +535,7 @@
     "rarity": 2,
     "weight": 0.105,
     "cardNum": 4,
-    "groupId": 10400,
+    "groupId": 4,
     "type": "精英材料"
   },
   {
@@ -502,7 +546,7 @@
     "rarity": 2,
     "weight": 0.14,
     "cardNum": 4,
-    "groupId": 10401,
+    "groupId": 4,
     "type": "精英材料"
   },
   {
@@ -513,7 +557,7 @@
     "rarity": 2,
     "weight": 0.14,
     "cardNum": 4,
-    "groupId": 10402,
+    "groupId": 4,
     "type": "精英材料"
   },
   {
@@ -524,7 +568,7 @@
     "rarity": 2,
     "weight": 0.175,
     "cardNum": 4,
-    "groupId": 10403,
+    "groupId": 4,
     "type": "精英材料"
   },
   {
@@ -535,7 +579,7 @@
     "rarity": 2,
     "weight": 0.175,
     "cardNum": 4,
-    "groupId": 10404,
+    "groupId": 4,
     "type": "精英材料"
   },
   {
@@ -546,7 +590,7 @@
     "rarity": 2,
     "weight": 0.263,
     "cardNum": 4,
-    "groupId": 10405,
+    "groupId": 4,
     "type": "精英材料"
   },
   {
@@ -557,7 +601,7 @@
     "rarity": 1,
     "weight": 0.105,
     "cardNum": 5,
-    "groupId": 10500,
+    "groupId": 5,
     "type": "精英材料"
   },
   {
@@ -568,7 +612,7 @@
     "rarity": 1,
     "weight": 0.14,
     "cardNum": 5,
-    "groupId": 10501,
+    "groupId": 5,
     "type": "精英材料"
   },
   {
@@ -579,7 +623,7 @@
     "rarity": 1,
     "weight": 0.14,
     "cardNum": 5,
-    "groupId": 10502,
+    "groupId": 5,
     "type": "精英材料"
   },
   {
@@ -590,7 +634,7 @@
     "rarity": 1,
     "weight": 0.175,
     "cardNum": 5,
-    "groupId": 10503,
+    "groupId": 5,
     "type": "精英材料"
   },
   {
@@ -601,7 +645,7 @@
     "rarity": 1,
     "weight": 0.175,
     "cardNum": 5,
-    "groupId": 10504,
+    "groupId": 5,
     "type": "精英材料"
   },
   {
@@ -612,7 +656,7 @@
     "rarity": 1,
     "weight": 0.263,
     "cardNum": 5,
-    "groupId": 10505,
+    "groupId": 5,
     "type": "精英材料"
   },
   {
@@ -623,7 +667,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10600,
+    "groupId": 6,
     "type": "作战记录"
   },
   {
@@ -634,7 +678,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10601,
+    "groupId": 6,
     "type": "作战记录"
   },
   {
@@ -645,7 +689,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10602,
+    "groupId": 6,
     "type": "作战记录"
   },
   {
@@ -656,7 +700,7 @@
     "rarity": 2,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10603,
+    "groupId": 6,
     "type": "作战记录"
   },
   {
@@ -667,7 +711,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10604,
+    "groupId": 6,
     "type": "龙门币"
   },
   {
@@ -678,7 +722,7 @@
     "rarity": 2,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10605,
+    "groupId": 6,
     "type": "技能书"
   },
   {
@@ -689,7 +733,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10606,
+    "groupId": 6,
     "type": "技能书"
   },
   {
@@ -700,7 +744,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10607,
+    "groupId": 6,
     "type": "技能书"
   },
   {
@@ -711,7 +755,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 6,
-    "groupId": 10608,
+    "groupId": 6,
     "type": ""
   },
   {
@@ -722,7 +766,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10700,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -733,7 +777,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10701,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -744,7 +788,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10702,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -755,7 +799,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10703,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -766,7 +810,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10704,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -777,7 +821,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10705,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -788,7 +832,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10706,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -799,7 +843,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 7,
-    "groupId": 10707,
+    "groupId": 7,
     "type": "芯片"
   },
   {
@@ -810,7 +854,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10800,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -821,7 +865,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10801,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -832,7 +876,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10802,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -843,7 +887,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10803,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -854,7 +898,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10804,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -865,7 +909,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10805,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -876,7 +920,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10806,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -887,7 +931,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 8,
-    "groupId": 10807,
+    "groupId": 8,
     "type": "芯片"
   },
   {
@@ -898,7 +942,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10900,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -909,7 +953,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10901,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -920,7 +964,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10902,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -931,7 +975,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10903,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -942,7 +986,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10904,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -953,7 +997,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10905,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -964,7 +1008,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10906,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -975,7 +1019,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 9,
-    "groupId": 10907,
+    "groupId": 9,
     "type": "芯片"
   },
   {
@@ -986,7 +1030,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 10,
-    "groupId": 11000,
+    "groupId": 10,
     "type": "抽卡道具"
   },
   {
@@ -997,7 +1041,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 10,
-    "groupId": 11001,
+    "groupId": 10,
     "type": "抽卡道具"
   },
   {
@@ -1008,7 +1052,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 10,
-    "groupId": 11002,
+    "groupId": 10,
     "type": "抽卡道具"
   },
   {
@@ -1019,7 +1063,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 10,
-    "groupId": 11003,
+    "groupId": 10,
     "type": "抽卡道具"
   },
   {
@@ -1030,7 +1074,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 10,
-    "groupId": 11004,
+    "groupId": 10,
     "type": "抽卡道具"
   },
   {
@@ -1041,7 +1085,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 10,
-    "groupId": 11005,
+    "groupId": 10,
     "type": "抽卡道具"
   },
   {
@@ -1052,7 +1096,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 11,
-    "groupId": 11200,
+    "groupId": 11,
     "type": "抽卡道具"
   },
   {
@@ -1063,7 +1107,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 11,
-    "groupId": 11207,
+    "groupId": 11,
     "type": ""
   },
   {
@@ -1074,7 +1118,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 11,
-    "groupId": 11208,
+    "groupId": 11,
     "type": ""
   },
   {
@@ -1085,7 +1129,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 11,
-    "groupId": 11208,
+    "groupId": 11,
     "type": ""
   },
   {
@@ -1096,7 +1140,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 11,
-    "groupId": 11209,
+    "groupId": 11,
     "type": ""
   },
   {
@@ -1107,7 +1151,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 11,
-    "groupId": 11210,
+    "groupId": 11,
     "type": ""
   },
   {
@@ -1118,7 +1162,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 11,
-    "groupId": 11211,
+    "groupId": 11,
     "type": ""
   },
   {
@@ -1129,7 +1173,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 12,
-    "groupId": 11300,
+    "groupId": 12,
     "type": ""
   },
   {
@@ -1140,7 +1184,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 12,
-    "groupId": 11201,
+    "groupId": 12,
     "type": ""
   },
   {
@@ -1151,7 +1195,7 @@
     "rarity": 2,
     "weight": 0,
     "cardNum": 12,
-    "groupId": 11202,
+    "groupId": 12,
     "type": ""
   },
   {
@@ -1162,7 +1206,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 12,
-    "groupId": 11203,
+    "groupId": 12,
     "type": ""
   },
   {
@@ -1173,7 +1217,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 12,
-    "groupId": 11204,
+    "groupId": 12,
     "type": ""
   },
   {
@@ -1184,7 +1228,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 12,
-    "groupId": 11205,
+    "groupId": 12,
     "type": ""
   },
   {
@@ -1195,7 +1239,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 12,
-    "groupId": 11206,
+    "groupId": 12,
     "type": ""
   },
   {
@@ -1206,7 +1250,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90000,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1217,7 +1261,7 @@
     "rarity": 2,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90001,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1228,7 +1272,7 @@
     "rarity": 1,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90002,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1239,7 +1283,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90003,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1250,7 +1294,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90004,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1261,7 +1305,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90005,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1272,7 +1316,7 @@
     "rarity": 1,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90006,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1283,7 +1327,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90007,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1294,7 +1338,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90008,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1305,7 +1349,7 @@
     "rarity": 1,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90009,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1316,7 +1360,7 @@
     "rarity": 2,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90010,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1327,7 +1371,7 @@
     "rarity": 3,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90011,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1338,7 +1382,7 @@
     "rarity": 4,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90012,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1349,7 +1393,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90013,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1360,7 +1404,7 @@
     "rarity": 5,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90014,
+    "groupId": 100,
     "type": ""
   },
   {
@@ -1371,7 +1415,7 @@
     "rarity": 1,
     "weight": 0,
     "cardNum": 100,
-    "groupId": 90015,
+    "groupId": 100,
     "type": ""
   }
 ]
