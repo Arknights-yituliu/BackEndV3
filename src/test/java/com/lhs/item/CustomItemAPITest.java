@@ -3,18 +3,22 @@ package com.lhs.item;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.lhs.BackEndApplication;
+import com.lhs.common.util.PenguinDataUtil;
 import com.lhs.entity.dto.item.custom.ChipPreferenceDTO;
 import com.lhs.entity.dto.item.custom.CustomItemDTO;
 import com.lhs.entity.dto.item.custom.ItemInfoDTO;
 import com.lhs.entity.dto.item.custom.ItemValueConfigDTO;
+import com.lhs.entity.dto.item.custom.StageDropAndInfoDTO;
 import com.lhs.entity.dto.item.custom.WorkshopItemDTO;
 import com.lhs.entity.dto.item.custom.WorkshopStrategyDTO;
 import com.lhs.service.material.CustomItemService;
+import com.lhs.service.material.PenguinDataService;
 
 import jakarta.annotation.Resource;
 
@@ -26,6 +30,8 @@ public class CustomItemAPITest {
 
     @Resource
     private CustomItemService customItemService;
+    @Resource
+    private PenguinDataService penguinDataServiceService;
 
     /**
      * 测试 getCustomItemList 方法
@@ -37,6 +43,15 @@ public class CustomItemAPITest {
         for(ItemInfoDTO item : itemList) {
             System.out.println(item.getItemValue());
         }
+       
+    }
+
+
+    @Test
+    void getStageCollect() {
+         ItemValueConfigDTO config = buildDefaultConfig();
+         Map<String, List<StageDropAndInfoDTO>> stageDropCollect = penguinDataServiceService.getStageDropCollect(config);
+         System.out.println(stageDropCollect);
        
     }
 
