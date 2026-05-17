@@ -51,7 +51,14 @@ public class CustomItemAPITest {
     void getStageCollect() {
          ItemValueConfigDTO config = buildDefaultConfig();
          Map<String, List<StageDropAndInfoDTO>> stageDropCollect = penguinDataServiceService.getStageDropCollect(config);
-         System.out.println(stageDropCollect);
+         for(String stage : stageDropCollect.keySet()) {
+            System.out.println(stage);
+            List<StageDropAndInfoDTO> stageList = stageDropCollect.get(stage);
+            for(StageDropAndInfoDTO stageItem : stageList) {
+                System.out.println(stageItem);
+            }
+         }
+        
        
     }
 
