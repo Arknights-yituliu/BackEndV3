@@ -2,7 +2,6 @@ package com.lhs.service.material;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.StageType;
 import com.lhs.common.util.*;
@@ -219,7 +218,7 @@ public class StageService {
             stage.setSpm(spm);
             stage.setMinClearTime(minClearTime);
 
-            LogUtils.info("本次拉取更新的关卡是："+stageId);
+            Logger.info("本次拉取更新的关卡是："+stageId);
             stageMapper.insert(stage);
         }
 

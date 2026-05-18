@@ -2,7 +2,6 @@ package com.lhs.service.survey.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
@@ -190,7 +189,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     public List<OperatorProgressionDataDTO> listOperatorProgressionData(String token) {
         //查询用户信息
         UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
-        LogUtils.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
+        Logger.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
         //保存的干员数据
         List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = new ArrayList<>();
         //查询当前用户的默认方舟uid的干员数据

@@ -69,7 +69,7 @@ public class StageCalService {
     public void updateStageResultByTaskConfig() {
         String read = FileUtil.read(ConfigUtil.ConfigFilePath + "stage_task_config_v3.json");
         if (read == null) {
-            LogUtils.error("更新关卡配置文件为空");
+            Logger.error("更新关卡配置文件为空");
             return;
         }
 
@@ -81,10 +81,10 @@ public class StageCalService {
             List<Item> itemList = itemService.calculatedItemValue(stageConfigDTO);
             //用新材料价值计算新关卡效率
             StageResultTmpDTO stageResultTmpDTO = calculatedStageEfficiency(itemList, stageConfigDTO);
-            LogUtils.info("关卡效率更新成功，版本号 {} "+stageConfigDTO.getVersionCode());
+            Logger.info("关卡效率更新成功，版本号 {} "+stageConfigDTO.getVersionCode());
             //保存到数据库
             saveResultToDB(stageResultTmpDTO,stageConfigDTO.getVersionCode());
-            LogUtils.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
+            Logger.info("本次更新关卡，经验书系数为" + stageConfigDTO.getExpCoefficient() + "，样本数量为" + stageConfigDTO.getSampleSize());
         }
     }
 
@@ -292,7 +292,7 @@ public class StageCalService {
             itemIterationValue.setVersion(version);
             itemIterationValue.setItemId(itemTypeId);
             iterationValueList.add(itemIterationValue);
-            LogUtils.info(String.format("%-8s", itemName) + "的迭代系数是：" + 1 / iterationValue);
+            Logger.info(String.format("%-8s", itemName) + "的迭代系数是：" + 1 / iterationValue);
         });
 
         return iterationValueList;
@@ -503,9 +503,9 @@ public class StageCalService {
 
         redisTemplate.opsForValue().set("Item:updateTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
 
-        LogUtils.info("本次批量插入关卡掉落详细数据条数：" + stageResultDetailList.size());
+        Logger.info("本次批量插入关卡掉落详细数据条数：" + stageResultDetailList.size());
         stageResultMapper.insertBatch(stageResultList);
-        LogUtils.info("本次批量插入关卡通用掉落数据条数：" + stageResultList.size());
+        Logger.info("本次批量插入关卡通用掉落数据条数：" + stageResultList.size());
     }
 
 }

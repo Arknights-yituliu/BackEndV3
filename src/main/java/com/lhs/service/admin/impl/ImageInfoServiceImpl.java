@@ -2,7 +2,7 @@ package com.lhs.service.admin.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.util.IdGenerator;
-import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.Logger;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.service.admin.ImageInfoService;
@@ -94,7 +94,7 @@ public class ImageInfoServiceImpl implements ImageInfoService {
             if (exist == null) {
                 imageInfoMapper.insert(imageInfo);
             } else {
-                LogUtils.info("文件已存在");
+                Logger.info("文件已存在");
                 imageInfoMapper.updateById(imageInfo);
             }
             tencentCloudService.uploadCOS(multipartFile, bucketPath);

@@ -4,7 +4,7 @@ package com.lhs.service.maa;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.Logger;
 import com.lhs.entity.po.maa.RecruitData;
 import com.lhs.entity.po.maa.RecruitStatistics;
 import com.lhs.mapper.survey.RecruitDataMapper;
@@ -79,7 +79,7 @@ public class RecruitTagUploadService {
         String tableName = getDBTableIndex();
 
         List<RecruitData> recruit_data_DB = recruitDataMapper.selectRecruitDataByCreateTime(tableName, lastTime, date.getTime());
-        LogUtils.info("本次公招统计条数为："+recruit_data_DB.size());
+        Logger.info("本次公招统计条数为："+recruit_data_DB.size());
 
         Map<Integer, List<RecruitData>> collect = recruit_data_DB.stream()
                 .collect(Collectors.groupingBy(RecruitData::getLevel));

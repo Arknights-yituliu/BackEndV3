@@ -1,8 +1,6 @@
 package com.lhs.interceptor;
 
-import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.LogUtils;
-import com.lhs.common.enums.ResultCode;
+import com.lhs.common.util.Logger;
 import com.lhs.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,7 +42,7 @@ public class UserInterceptor implements HandlerInterceptor {
         }
 
         String requestURI = request.getRequestURI();
-        LogUtils.info("一图流用户鉴权{}：");
+        Logger.info("一图流用户鉴权{}：");
         userService.extractToken(request);
 
 

@@ -228,7 +228,7 @@ public class ItemServiceImpl implements ItemService {
 
 
         for (int i = 0; i < 100; i++) {
-            LogUtils.info(stageConfigDTO.getVersionCode() + "第" + (i + 1) + "次迭代材料价值");
+            Logger.info(stageConfigDTO.getVersionCode() + "第" + (i + 1) + "次迭代材料价值");
             //迭代材料价值
             calculatedCustomItemValue(stageConfigDTO, itemList, itemIterationParamDTO, compositeTableDTO);
             //获取迭代参数
@@ -256,7 +256,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         itemIterationParamDTO.getItemIterationValueList().forEach(e -> {
-            LogUtils.info(stageConfigDTO.getVersionCode() + " {} " + e.getItemName() + "-" + e.getStageCode() + "-" + e.getIterationValue());
+            Logger.info(stageConfigDTO.getVersionCode() + " {} " + e.getItemName() + "-" + e.getStageCode() + "-" + e.getIterationValue());
         });
         return itemList;
 
@@ -660,7 +660,7 @@ public class ItemServiceImpl implements ItemService {
             List<Item> list = collect.get(rarity);
             //副产物期望 = 所有材料的期望价值（材料价值 * 材料出率 /100）之和 * 副产物爆率
             double expectValue = list.stream().mapToDouble(item -> item.getItemValueAp() * item.getWeight()).sum() * knockRating;
-            LogUtils.info(rarity + "级材料副产物期望：" + expectValue / knockRating);
+            Logger.info(rarity + "级材料副产物期望：" + expectValue / knockRating);
             WorkShopProducts workShopProducts = new WorkShopProducts();
             workShopProducts.setItemRank("rarity_" + rarity);  //副产物等级
             workShopProducts.setId(time++);

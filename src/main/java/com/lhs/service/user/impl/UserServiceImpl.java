@@ -245,7 +245,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserInfo loginByEmail(LoginDataDTO loginDataDTO, String ipAddress) {
-        LogUtils.info("用户使用邮箱登录");
+        Logger.info("用户使用邮箱登录");
 
         String email = loginDataDTO.getEmail();
         //用户输入的邮件验证码
@@ -278,7 +278,7 @@ public class UserServiceImpl implements UserService {
 
 
     private UserInfo loginByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
-        LogUtils.info("账号密码方式登录：");
+        Logger.info("账号密码方式登录：");
         String userName = loginDataDTO.getUserName();
         String passWord = loginDataDTO.getPassword();
 
@@ -321,7 +321,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfoVO getUserInfoVOByToken(String token) {
 
-        LogUtils.info("要检验的用户token {} " + token);
+        Logger.info("要检验的用户token {} " + token);
         if (!checkParamsValidity(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
@@ -374,7 +374,7 @@ public class UserServiceImpl implements UserService {
             return userInfoVO;
         }
 
-        LogUtils.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
+        Logger.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
 
         userInfoVO.setAkUid(externalAccountBindings.get(0).getAkUid());
 
@@ -390,7 +390,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long getUidByHttpServletRequest(HttpServletRequest httpServletRequest) {
         String header = httpServletRequest.getHeader("Authorization");
-        LogUtils.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + header);
+        Logger.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + header);
         if (header != null && header.startsWith("Authorization") && header.length() > 30) {
             UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
             return userInfoVO.getUid();
@@ -439,7 +439,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String extractToken(HttpServletRequest httpServletRequest) {
         String token = httpServletRequest.getHeader("Authorization");
-        LogUtils.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + token);
+        Logger.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + token);
         if (token != null && token.startsWith("Authorization") && token.length() > 30) {
             return token.replace("Authorization", "");
         }
@@ -450,7 +450,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest) {
         String header = httpServletRequest.getHeader("Authorization");
-        LogUtils.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + header);
+        Logger.info("从{} " + httpServletRequest.getRequestURI() + " {}获取的用户token{} " + header);
         return header != null && header.startsWith("Authorization") && header.length() > 30;
     }
 
@@ -573,7 +573,7 @@ public class UserServiceImpl implements UserService {
         String email = updateUserDataDto.getEmail();
         validateEmail(email);
         if (userInfoVO.getHasEmail()) {
-            LogUtils.info("更新绑定邮箱 {} 用户有邮箱，需要验证");
+            Logger.info("更新绑定邮箱 {} 用户有邮箱，需要验证");
             email163Service.compareVerificationCode(updateUserDataDto.getCred(), userInfoVO.getUid().toString());
         }
 
@@ -808,7 +808,7 @@ public class UserServiceImpl implements UserService {
 
         userExternalAccountBinding.setUpdateTime(timeStamp);
 
-        LogUtils.info("要添加的外部账号绑定信息 {} " + userExternalAccountBinding);
+        Logger.info("要添加的外部账号绑定信息 {} " + userExternalAccountBinding);
         if (existsData == null) {
             userExternalAccountBinding.setId(idGenerator.nextId());
             userExternalAccountBinding.setCreateTime(timeStamp);
@@ -830,7 +830,7 @@ public class UserServiceImpl implements UserService {
         queryWrapper.eq(AkPlayerBindInfo::getAkUid, akPlayerBindInfo.getAkUid());
         AkPlayerBindInfo oldInfo = akPlayerBindInfoMapper.selectOne(queryWrapper);
         akPlayerBindInfo.setUpdateTime(System.currentTimeMillis());
-        LogUtils.info("要添加的明日方舟账号绑定信息，id为" + akPlayerBindInfo);
+        Logger.info("要添加的明日方舟账号绑定信息，id为" + akPlayerBindInfo);
         if (oldInfo == null) {
             akPlayerBindInfo.setId(idGenerator.nextId());
             akPlayerBindInfo.setDeleteFlag(false);
@@ -938,7 +938,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private HashMap<String, String> retrieveAccountByHGToken(LoginDataDTO loginDataDTO) {
-        LogUtils.info("用户使用找回登录");
+        Logger.info("用户使用找回登录");
         String hgToken = loginDataDTO.getHgToken();
         if (!checkParamsValidity(hgToken)) {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID);

@@ -9,12 +9,15 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ItemValueUtil;
 import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.Logger;
 import com.lhs.entity.dto.item.custom.*;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
 import com.lhs.entity.po.material.Stage;
 import com.lhs.service.material.CustomItemService;
 import com.lhs.service.material.PenguinDataService;
 import com.lhs.service.material.StageService;
+
+
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -106,6 +109,51 @@ public class CustomItemServiceImpl implements CustomItemService {
         Map<String, List<StageDropAndInfoDTO>> stageInfoAndDropCollect = penguinDataServiceService
                 .getStageDropCollect(itemValueConfigDTO);
 
+        // 按定价作战集筛选关卡掉落数据
+        Map<String, List<StageDropAndInfoDTO>> stageDropCollectForPricing = new HashMap<>();
+        for (Map.Entry<String, List<StageDropAndInfoDTO>> entry : stageInfoAndDropCollect.entrySet()) {
+            String stageId = entry.getKey();
+            List<StageDropAndInfoDTO> dropList = entry.getValue();
+            if (dropList.isEmpty()) {
+                continue;
+            }
+            StageDropAndInfoDTO firstDrop = dropList.get(0);
+            Integer apCost = firstDrop.getApCost();
+            String stageCode = firstDrop.getStageCode();
+            String stageType = firstDrop.getStageType();
+
+            // // 如果不使用活动作战定价，跳过活动关卡
+            // if (("ACT".equals(stageType) || "ACT_REP".equals(stageType))
+            //         && Boolean.FALSE.equals(itemValueConfigDTO.getUseActivityStage())) {
+            //     continue;
+            // }
+
+            // 如果使用活动平均作战定价且为临时商店虚拟关卡，追加龙门币掉落
+            if ("YTL_VIRTUAL".equals(stageType)
+                    && Boolean.TRUE.equals(itemValueConfigDTO.getUseActivityAverageStageAndUnlimitedItem())) {
+                StageDropAndInfoDTO lmdDrop = new StageDropAndInfoDTO();
+                lmdDrop.setStageId(stageId);
+                lmdDrop.setItemId("4001");
+                lmdDrop.setQuantity(apCost * 1000L * 20);
+                lmdDrop.setTimes(1000L);
+                lmdDrop.setStart(0L);
+                lmdDrop.setEnd(0L);
+                lmdDrop.setStageCode(stageCode);
+                lmdDrop.setApCost(apCost);
+                lmdDrop.setStageType(stageType);
+                lmdDrop.setZoneName("SS平均掉率");
+                lmdDrop.setZoneId("ytl_virtual");
+                dropList.add(lmdDrop);
+            }
+
+            // 如果不使用活动平均作战定价，跳过临时商店虚拟关卡
+            if ("YTL_VIRTUAL".equals(stageType)
+                    && Boolean.FALSE.equals(itemValueConfigDTO.getUseActivityAverageStage())) {
+                continue;
+            }
+            stageDropCollectForPricing.put(stageId, dropList);
+        }
+
         Map<String, StageEfficiencyAndMainItem> stageEfficiencyAndMainItemMap = new HashMap<>();
 
         Map<String, ItemSeriesInfo> itemSeriesInfoByItemId = getItemSeriesInfoByItemId();
@@ -121,7 +169,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             calculateWorkshopByproductExpectedValue(workshopByproductWeightMap, itemValueMap,
                     workshopByproductExpectedValue);
 
-            calculateStageDropExpectedValue(stageEfficiencyAndMainItemMap, stageInfoAndDropCollect, itemValueMap);
+            calculateStageDropExpectedValue(stageEfficiencyAndMainItemMap, stageDropCollectForPricing, itemValueMap);
 
             updateT3EliteMaterialValue(stageEfficiencyAndMainItemMap, maxStageEfficiencyMap, itemValueMap,
                     customItemValueMap, itemSeriesInfoByItemId);
@@ -219,15 +267,15 @@ public class CustomItemServiceImpl implements CustomItemService {
         if (itemValue4004 == Double.POSITIVE_INFINITY) {
             itemValue7001 = Double.POSITIVE_INFINITY;
         } else {
-            System.out.println(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
-            Map<Integer, RecruitmentPricingStrategy> strategyMap = recruitmentPermitPricing
-                    .get(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
-            for (Integer rarity : strategyMap.keySet()) {
-                RecruitmentPricingStrategy strategy = strategyMap.get(rarity);
-                itemValue7001 += operatorRecruitmentRates.get(rarity) *
-                        (strategy.getCert4005() * itemValue4005 +
-                                strategy.getCert4004() * itemValue4004);
-            }
+            // System.out.println(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
+            // Map<Integer, RecruitmentPricingStrategy> strategyMap = recruitmentPermitPricing
+            //         .get(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
+            // for (Integer rarity : strategyMap.keySet()) {
+            //     RecruitmentPricingStrategy strategy = strategyMap.get(rarity);
+            //     itemValue7001 += operatorRecruitmentRates.get(rarity) *
+            //             (strategy.getCert4005() * itemValue4005 +
+            //                     strategy.getCert4004() * itemValue4004);
+            // }
 
         }
 
@@ -808,7 +856,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             if (itemValueT3 == null) {
                 continue;
             }
-            System.out.println("蓝材料推荐关卡：" + stageId);
+            Logger.info("蓝材料推荐关卡：" + stageId);
             // 更新蓝材料的价值
             if (stageEfficiency != Double.NEGATIVE_INFINITY && stageEfficiency != 0) {
                 itemValueMap.put(itemIdT3, itemValueT3 / stageEfficiency);

@@ -7,6 +7,7 @@ public class ItemValueConfigDTO {
     private String source;
     private String version;
     private Boolean useActivityAverageStage;
+    private Boolean useActivityAverageStageAndUnlimitedItem;
     private Integer sampleSize;
     private Set<String> stageBlacklist;
     private Set<String> stageWhitelist;
@@ -33,10 +34,11 @@ public class ItemValueConfigDTO {
     public ItemValueConfigDTO() {
     }
 
-    public ItemValueConfigDTO(String source, String version, Boolean useActivityAverageStage, Integer sampleSize, Set<String> stageBlacklist, Set<String> stageWhitelist, String orundumPricingStrategy, Double orundumValue, String originitePrimePricingStrategy, Double originitePrimeCoefficient, String kernelHeadhuntingPermitPricingStrategy, Double kernelHeadhuntingPermitCoefficient, String lmdPricingStrategy, Double lmdCoefficient, String expPricingStrategy, Double expCoefficient, String modUnlockTokenPricingStrategy, Double modUnlockTokenValue, String recruitmentPermitPricingStrategy, Double recruitmentPermitValue, String furniturePartPricingStrategy, Double furniturePartValue, List<CustomItemDTO> customItem, WorkshopStrategyDTO workshopStrategy, ChipPreferenceDTO chipPreference) {
+    public ItemValueConfigDTO(String source, String version, Boolean useActivityAverageStage, Boolean useActivityAverageStageAndUnlimitedItem, Integer sampleSize, Set<String> stageBlacklist, Set<String> stageWhitelist, String orundumPricingStrategy, Double orundumValue, String originitePrimePricingStrategy, Double originitePrimeCoefficient, String kernelHeadhuntingPermitPricingStrategy, Double kernelHeadhuntingPermitCoefficient, String lmdPricingStrategy, Double lmdCoefficient, String expPricingStrategy, Double expCoefficient, String modUnlockTokenPricingStrategy, Double modUnlockTokenValue, String recruitmentPermitPricingStrategy, Double recruitmentPermitValue, String furniturePartPricingStrategy, Double furniturePartValue, List<CustomItemDTO> customItem, WorkshopStrategyDTO workshopStrategy, ChipPreferenceDTO chipPreference) {
         this.source = source;
         this.version = version;
         this.useActivityAverageStage = useActivityAverageStage;
+        this.useActivityAverageStageAndUnlimitedItem = useActivityAverageStageAndUnlimitedItem;
         this.sampleSize = sampleSize;
         this.stageBlacklist = stageBlacklist;
         this.stageWhitelist = stageWhitelist;
@@ -83,6 +85,14 @@ public class ItemValueConfigDTO {
 
     public void setUseActivityAverageStage(Boolean useActivityAverageStage) {
         this.useActivityAverageStage = useActivityAverageStage;
+    }
+
+    public Boolean getUseActivityAverageStageAndUnlimitedItem() {
+        return useActivityAverageStageAndUnlimitedItem;
+    }
+
+    public void setUseActivityAverageStageAndUnlimitedItem(Boolean useActivityAverageStageAndUnlimitedItem) {
+        this.useActivityAverageStageAndUnlimitedItem = useActivityAverageStageAndUnlimitedItem;
     }
 
     public Integer getSampleSize() {
@@ -269,6 +279,7 @@ public class ItemValueConfigDTO {
                 "source='" + source + '\'' +
                 ", version='" + version + '\'' +
                 ", useActivityAverageStage=" + useActivityAverageStage +
+                ", useActivityAverageStageAndUnlimitedItem=" + useActivityAverageStageAndUnlimitedItem +
                 ", sampleSize=" + sampleSize +
                 ", stageBlacklist=" + stageBlacklist +
                 ", stageWhitelist=" + stageWhitelist +

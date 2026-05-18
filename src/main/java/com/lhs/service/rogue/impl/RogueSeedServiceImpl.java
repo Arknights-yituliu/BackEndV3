@@ -339,7 +339,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         lambdaUpdateWrapper.eq(RogueSeedRating::getDeleteFlag, false);
         List<RogueSeedRatingVO> rogueSeedRatingList = rogueSeedRatingMapper.listRogueSeedRating(0, 50000);
         int size = rogueSeedRatingList.size();
-        LogUtils.info("本次统计的种子评价数量为：" + size);
+        Logger.info("本次统计的种子评价数量为：" + size);
         //将旧的评价统计记录删除
         LambdaUpdateWrapper<RogueSeedRatingStatistics> statisticsLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         statisticsLambdaUpdateWrapper.set(RogueSeedRatingStatistics::getDeleteFlag, true).eq(RogueSeedRatingStatistics::getDeleteFlag, false);
@@ -390,7 +390,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
             redisTemplate.opsForZSet().add("RogueSeedRatingCount", seedId, result.getRatingCount());
         });
 
-        LogUtils.info("种子点赞统计已更新");
+        Logger.info("种子点赞统计已更新");
 
 
         return collect.size();

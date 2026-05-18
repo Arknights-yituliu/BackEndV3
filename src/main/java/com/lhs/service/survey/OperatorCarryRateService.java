@@ -19,7 +19,6 @@ import com.lhs.mapper.survey.OperatorCarryRateMapper;
 import com.lhs.mapper.survey.OperatorCarryRateStatisticsMapper;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
 
-import org.jacoco.agent.rt.RT;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -86,7 +85,7 @@ public class OperatorCarryRateService {
 
         Date date = new Date();
 
-        LogUtils.info("开始统计" + questionnaireType.type() + "问卷");
+        Logger.info("开始统计" + questionnaireType.type() + "问卷");
         LambdaQueryWrapper<OperatorCarryRateStatistics> statisticsQueryWrapper = new LambdaQueryWrapper<>();
         statisticsQueryWrapper.eq(OperatorCarryRateStatistics::getQuestionnaireCode, questionnaireType.code())
                 .ge(OperatorCarryRateStatistics::getStartTime, startTime)
@@ -103,7 +102,7 @@ public class OperatorCarryRateService {
 
         List<QuestionnaireResult> resultList = questionnaireResultMapper.selectList(resultQueryWrapper);
         if (resultList.isEmpty()) {
-            LogUtils.info(questionnaireType.type() + "没有问卷数据");
+            Logger.info(questionnaireType.type() + "没有问卷数据");
             return;
         }
 
@@ -111,7 +110,7 @@ public class OperatorCarryRateService {
         Date dataStartTime = resultList.get(0).getUpdateTime();
         Date dataEndTime = resultList.get(resultList.size() - 1).getUpdateTime();
 
-        LogUtils.info(questionnaireType.type() + "问卷样本量：" + count);
+        Logger.info(questionnaireType.type() + "问卷样本量：" + count);
         HashMap<String, OperatorCarryRateVO> statisticsResult = new HashMap<>();
         for (QuestionnaireResult questionnaireResult : resultList) {
             String questionnaireContent = questionnaireResult.getContent();
@@ -138,7 +137,7 @@ public class OperatorCarryRateService {
                 .lt(OperatorCarryRate::getEndTime, endTime);
 
         int update = operatorCarryRateMapper.update(null, updateWrapper);
-        LogUtils.info("过期了" + update + "条携带率数据");
+        Logger.info("过期了" + update + "条携带率数据");
 
 
         List<OperatorCarryRate> operatorCarryRateList = new ArrayList<>();
@@ -182,11 +181,11 @@ public class OperatorCarryRateService {
 
 
         if (statistics != null) {
-            LogUtils.info("更新了一条携带优先级统计数据");
+            Logger.info("更新了一条携带优先级统计数据");
             operatorCarryRateStatistics.setId(statistics.getId());
             operatorCarryRateStatisticsMapper.updateById(operatorCarryRateStatistics);
         } else {
-            LogUtils.info("新增了一条携带优先级统计数据");
+            Logger.info("新增了一条携带优先级统计数据");
             operatorCarryRateStatisticsMapper.insert(operatorCarryRateStatistics);
         }
     }
@@ -196,7 +195,7 @@ public class OperatorCarryRateService {
         LambdaQueryWrapper<OperatorCarryRate> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(OperatorCarryRate::getRecordType, RecordType.EXPIRE.code());
         int delete = operatorCarryRateMapper.delete(queryWrapper);
-        LogUtils.info("删除了" + delete + "条携带率数据");
+        Logger.info("删除了" + delete + "条携带率数据");
     }
 
 

@@ -58,7 +58,7 @@ public class StageDropUploadService {
         String penguinId = auth[1];
 
         if (penguinId.length() > 50) {
-            LogUtils.info("MAA版本号 {} " + stageDropDTO.getVersion());
+            Logger.info("MAA版本号 {} " + stageDropDTO.getVersion());
             return;
         }
 

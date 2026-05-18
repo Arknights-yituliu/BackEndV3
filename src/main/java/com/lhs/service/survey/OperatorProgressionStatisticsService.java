@@ -11,7 +11,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.Logger;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionStatisticalResultDTO;
 import com.lhs.entity.po.survey.*;
@@ -19,7 +19,6 @@ import com.lhs.entity.po.survey.*;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
 import com.lhs.mapper.survey.OperatorProgressionDataMapper;
 import com.lhs.mapper.survey.OperatorProgressionStatisticalResultMapper;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -53,7 +52,7 @@ public class OperatorProgressionStatisticsService {
 
 
     public void statisticsOperatorProgressionDataV2(Boolean archived) {
-        LogUtils.info("干员练度数据统计任务开始执行");
+        Logger.info("干员练度数据统计任务开始执行");
         HashMap<String, Date> operatorUpdateTime = new HashMap<>();
         // 定义格式化器
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
@@ -136,7 +135,7 @@ public class OperatorProgressionStatisticsService {
                 }
             }
 
-            LogUtils.info("当前批次数据startIndex：" + i * 1000);
+            Logger.info("当前批次数据startIndex：" + i * 1000);
         }
 
         List<OperatorProgressionStatisticalResultDTO> list = new ArrayList<>();
@@ -164,7 +163,7 @@ public class OperatorProgressionStatisticsService {
             operatorProgressionStatisticalResultMapper.insert(operatorProgressionStatisticalResult);
         }
 
-        LogUtils.info("本次统计干员练度的抽样人数为：" + count + "人次");
+        Logger.info("本次统计干员练度的抽样人数为：" + count + "人次");
 
     }
 
@@ -218,7 +217,7 @@ public class OperatorProgressionStatisticsService {
 
         boolean exists = operatorProgressionStatisticalResultMapper.exists(existQueryWrapper);
         if (exists) {
-            LogUtils.info("干员携带率统计结果今日已归档");
+            Logger.info("干员携带率统计结果今日已归档");
             return;
         }
 
@@ -231,7 +230,7 @@ public class OperatorProgressionStatisticsService {
         operatorProgressionStatisticalResult.setId(idGenerator.nextId());
 
         int i = operatorProgressionStatisticalResultMapper.insert(operatorProgressionStatisticalResult);
-        LogUtils.info("干员携带率统计结果归档成功" + i + "条");
+        Logger.info("干员携带率统计结果归档成功" + i + "条");
 
     }
 

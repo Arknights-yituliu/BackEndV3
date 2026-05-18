@@ -35,7 +35,7 @@ public class HttpRequestUtil {
             httpResponse = httpClient.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             if(httpResponse.getStatusLine().getStatusCode() != 200){
-                LogUtils.info(EntityUtils.toString(entity));
+                Logger.info(EntityUtils.toString(entity));
                 return null;
             }
             return EntityUtils.toString(entity);
@@ -87,25 +87,25 @@ public class HttpRequestUtil {
             if(httpResponse.getStatusLine().getStatusCode() != 200){
                 HttpEntity entity = httpResponse.getEntity();
                 String errorMessage = EntityUtils.toString(entity, "UTF-8");
-                LogUtils.error("Http Request Message: " + errorMessage);
+                Logger.error("Http Request Message: " + errorMessage);
             }
             HttpEntity entity = httpResponse.getEntity();
             return EntityUtils.toString(entity);
         } catch (IOException e) {
-            LogUtils.error(e.getMessage());
+            Logger.error(e.getMessage());
         } finally {
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    LogUtils.error(e.getMessage());
+                    Logger.error(e.getMessage());
                 }
             }
             if (null != httpClient) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    LogUtils.error(e.getMessage());
+                    Logger.error(e.getMessage());
                 }
             }
         }

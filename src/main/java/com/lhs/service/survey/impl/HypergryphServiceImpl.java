@@ -214,7 +214,7 @@ public class HypergryphServiceImpl implements HypergryphService {
             String sha256HmacText = sb.toString();
             sign = encryptToMD5(sha256HmacText);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            LogUtils.error(e.getMessage());
+            Logger.error(e.getMessage());
         }
         return sign;
     }

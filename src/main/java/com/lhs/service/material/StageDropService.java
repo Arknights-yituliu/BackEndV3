@@ -8,7 +8,7 @@ import com.lhs.common.enums.TimeGranularity;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.TimeUtil;
 import com.lhs.entity.dto.material.QueryStageDropDTO;
 import com.lhs.entity.dto.material.StageDropTimesStatistics;
@@ -89,7 +89,7 @@ public class StageDropService {
 
     public void stageDropHourlyStatistics(Date startTime, Date endTime, SimpleDateFormat simpleDateFormat) {
 
-        LogUtils.info("{}开始执行关卡掉率统计——时段" + simpleDateFormat.format(startTime) + "-" + simpleDateFormat.format(endTime) + "{}");
+        Logger.info("{}开始执行关卡掉率统计——时段" + simpleDateFormat.format(startTime) + "-" + simpleDateFormat.format(endTime) + "{}");
 
         Date date = new Date();
         Date defaultDate = new Date(1556676000000L);
@@ -104,7 +104,7 @@ public class StageDropService {
         //判断是否有旧日志,如果数量总量和任务日志中的总量相同，认为当前时间的数据已统计完成，不再执行
 
         if (oldTaskLog != null && oldTaskLog.getDataCount().equals(countByDate)) {
-            LogUtils.info("该时段已归档，不再进行统计");
+            Logger.info("该时段已归档，不再进行统计");
             return;
         }
 
@@ -117,7 +117,7 @@ public class StageDropService {
         updateEntity.setRecordCode(RecordType.EXPIRE.code());
         int update = stageDropStatisticsMapper.update(updateEntity, updateWrapper);
         if (update > 0) {
-            LogUtils.info("将" + update + "条旧数据过期");
+            Logger.info("将" + update + "条旧数据过期");
         }
 
         //如果没有执行过当前统计时段和时间粒度的任务或统计未完成，执行下面的逻辑
@@ -136,7 +136,7 @@ public class StageDropService {
 //            System.out.println(taskLog);
             stageDropStatisticsMapper.insertTaskLog(taskLog);
 
-            LogUtils.info("数据总量为空，本次统计任务结束");
+            Logger.info("数据总量为空，本次统计任务结束");
             return;
         }
 
@@ -203,7 +203,7 @@ public class StageDropService {
             }
         }
 
-        LogUtils.info("统计了" + countByDate + "条");
+        Logger.info("统计了" + countByDate + "条");
 
         if (stageDropStatisticsList.isEmpty()) {
             return;
@@ -212,10 +212,10 @@ public class StageDropService {
         if (oldTaskLog != null) {
             taskLog.setId(oldTaskLog.getId());
             Integer i = stageDropStatisticsMapper.updateTaskLog(taskLog);
-            LogUtils.info("更新了统计日志" + taskLog);
+            Logger.info("更新了统计日志" + taskLog);
         } else {
             Integer i = stageDropStatisticsMapper.insertTaskLog(taskLog);
-            LogUtils.info("新增了统计日志" + taskLog);
+            Logger.info("新增了统计日志" + taskLog);
         }
 
 

@@ -1,9 +1,6 @@
 package com.lhs.interceptor;
 
-import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.LogUtils;
-import com.lhs.common.enums.ResultCode;
-import com.lhs.service.admin.AdminService;
+import com.lhs.common.util.Logger;
 import com.lhs.service.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -50,7 +47,7 @@ public class AdminInterceptor implements HandlerInterceptor {
         }
 
         String requestURI = request.getRequestURI();
-        LogUtils.info("一图流用户鉴权{}：");
+        Logger.info("一图流用户鉴权{}：");
         userService.extractToken(request);
 
 

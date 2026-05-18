@@ -1,7 +1,6 @@
 package com.lhs.common.exception;
 
 
-import com.lhs.common.util.LogUtils;
 import com.lhs.common.util.Result;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;

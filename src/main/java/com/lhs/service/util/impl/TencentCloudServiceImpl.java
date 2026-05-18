@@ -2,7 +2,7 @@ package com.lhs.service.util.impl;
 
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.Logger;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.service.util.TencentCloudService;
 import com.qcloud.cos.COSClient;
@@ -235,7 +235,7 @@ public class TencentCloudServiceImpl implements TencentCloudService {
                     file
             );
             cosClient.putObject(putObjectRequest);
-            LogUtils.info(bucketPath + " 上传成功！");
+            Logger.info(bucketPath + " 上传成功！");
         }
 
 
@@ -321,7 +321,7 @@ public class TencentCloudServiceImpl implements TencentCloudService {
         try {
             multipartFile.transferTo(file);
         } catch (IOException exception) {
-            LogUtils.error(exception.getMessage());
+            Logger.error(exception.getMessage());
         }
 
         return file;

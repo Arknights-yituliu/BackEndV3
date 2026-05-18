@@ -2,7 +2,7 @@ package com.lhs.common.annotation;
 
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.LogUtils;
+import com.lhs.common.util.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -41,9 +41,9 @@ public class AnnotationAOP {
     public void takeCountAfter(TakeCount takeCount) {
         long timeCost = (System.currentTimeMillis() - startTime.get());
         if (timeCost < 1000) {
-            LogUtils.info("执行方法：" + takeCount.name() + "  耗时：" + timeCost + "ms");
+            Logger.info("执行方法：" + takeCount.name() + "  耗时：" + timeCost + "ms");
         } else {
-            LogUtils.info("执行方法：" + takeCount.name() + "  耗时：" + (timeCost / 1000) + "s");
+            Logger.info("执行方法：" + takeCount.name() + "  耗时：" + (timeCost / 1000) + "s");
         }
 
         startTime.remove();
