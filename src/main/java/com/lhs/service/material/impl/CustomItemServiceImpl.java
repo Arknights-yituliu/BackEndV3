@@ -67,6 +67,9 @@ public class CustomItemServiceImpl implements CustomItemService {
         Map<String, Double> itemValueMap = new HashMap<>();
 
         for (ItemInfoDTO itemInfoDTO : itemInfoDTOList) {
+            if (itemInfoDTO.getGroupId() >= 100) {
+                continue;
+            }
             String itemId = itemInfoDTO.getItemId();
             if ("精英材料".equals(itemInfoDTO.getType())) {
                 itemValueMap.put(itemId, Math.pow(itemInfoDTO.getRarity(), 3));
@@ -159,6 +162,8 @@ public class CustomItemServiceImpl implements CustomItemService {
 
         Map<String, MaxStageEfficiencyInfo> maxStageEfficiencyMap = new HashMap<>();
 
+        Map<String, ItemInfoDTO> itemInfoMap = getItemInfoMap();
+
         for (int i = 0; i < maxIteration; i++) {
             calculateCommonItemValue(itemValueMap, itemValueConfigDTO, recruitmentPermitPricing,
                     operatorRecruitmentRates);
@@ -172,7 +177,12 @@ public class CustomItemServiceImpl implements CustomItemService {
 
             updateT3EliteMaterialValue(stageEfficiencyAndMainItemMap, maxStageEfficiencyMap, itemValueMap,
                     customItemValueMap, itemSeriesInfoByItemId);
-
+            // for (String itemId : itemValueMap.keySet()) {
+            //     ItemInfoDTO itemInfo = itemInfoMap.get(itemId);
+            //     if (itemInfo != null&&"精英材料".equals(itemInfo.getType())) {
+            //         System.out.println("第"+i+"轮迭代" + itemInfo.getItemName() + " " + itemValueMap.get(itemId));
+            //     }
+            // }
             boolean completion = checkCompletion(tolerance, maxStageEfficiencyMap, itemSeriesInfoByItemId);
             if (completion) {
                 break;
@@ -556,6 +566,9 @@ public class CustomItemServiceImpl implements CustomItemService {
             Map<Integer, Double> workshopByproductExpectedValue,
             JsonNode compositeTable,
             Map<String, Double> customItemValueMap) {
+
+        Map<String, ItemInfoDTO> itemInfoMap = getItemInfoMap();
+
         // 龙门币价值 */
         Double lmdValue = itemValueMap.get("4001");
 
@@ -674,7 +687,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
             // 物品新价值 */
             double newItemValue = 0.0;
-
+       
             if (resolve) { // 白、绿色材料是向下拆解
                 JsonNode target = pathway.get(0); // 拆解路径只有一个物品
                 // 目标材料价值 */
@@ -691,10 +704,14 @@ public class CustomItemServiceImpl implements CustomItemService {
             } else {
                 // 紫、金材料是向上合成
                 for (JsonNode cost : pathway) {
+                
                     // 消耗材料价值 */
-                    Double sourceItemValue = itemValueMap.get(cost.get("itemId").asText());
+                    String sourceItemId = cost.get("itemId").asText();
+                    Double sourceItemValue = itemValueMap.get(sourceItemId);
                     if (sourceItemValue == null)
                         sourceItemValue = 0.0;
+                  
+                 
                     newItemValue += sourceItemValue * cost.get("count").asInt();
                 }
                 // 目标材料价值 = 消耗材料价值之和 + 龙门币 - 副产品
@@ -726,7 +743,7 @@ public class CustomItemServiceImpl implements CustomItemService {
                     expectValue += itemValueMap.get(itemId) * weight;
                 }
             }
-            System.out.println(rarity + "级副产物 " + expectValue);
+            // System.out.println(rarity + "级副产物 " + expectValue);
             // 更新加工站各级物品副产品期望产出
             workshopByproductExpectedValue.put(rarity, expectValue);
         }
@@ -737,7 +754,7 @@ public class CustomItemServiceImpl implements CustomItemService {
             Map<String, Double> itemValueMap) {
 
         stageEfficiencyAndMainItemMap.clear();
-
+        Map<String, ItemInfoDTO> itemInfoMap = getItemInfoMap();
         // 循环关卡的物品掉落集合，每个集合是根据关卡id分组的
         for (Map.Entry<String, List<StageDropAndInfoDTO>> entry : stageInfoAndDropCollect.entrySet()) {
             String stageId = entry.getKey();
@@ -779,7 +796,14 @@ public class CustomItemServiceImpl implements CustomItemService {
 
                 // 计算单项物品期望产出价值
                 double expectedOutput = knockRating * itemValue;
-
+                // if ("main_12-15".equals(stageId)) {
+                //       System.out.println("化合关  " + itemInfoMap.get(itemId).getItemName() + "掉率" + knockRating + "价值价值" + itemValue);
+                //     System.out.println("化合关  单项产出" + expectedOutput);
+                // }
+                // if ("main_14-15".equals(stageId)) {
+                //       System.out.println("糖组关  " + itemInfoMap.get(itemId).getItemName() + "掉率" + knockRating + "价值价值" + itemValue);
+                //     System.out.println("糖组关  单项产出" + expectedOutput);
+                // }
                 // 比较单项物品最大产出，最大的为主产物
                 if (expectedOutput > maxValue) {
                     mainItemId = itemId;
@@ -814,13 +838,8 @@ public class CustomItemServiceImpl implements CustomItemService {
             Map<String, Double> customItemValueMap,
             Map<String, ItemSeriesInfo> itemSeriesInfoByItemId) {
         Map<String, Stage> stageInfoMap = stageService.getStageInfoMap();
-        String itemInfoText = FileUtil.read(ConfigUtil.DataFilePath + "item_info.json");
-        List<ItemInfoDTO> itemInfoDTOList = JsonMapper.parseJSONArray(itemInfoText, new TypeReference<>() {
-        });
-
-        Map<String, ItemInfoDTO> itemInfoMap = itemInfoDTOList.stream()
-                .collect(Collectors.toMap(ItemInfoDTO::getItemId, item -> item));
-
+        Map<String, ItemInfoDTO> itemInfoMap = getItemInfoMap();
+        maxStageEfficiencyMap.clear();
         // 遍历所有作战
         for (Map.Entry<String, StageEfficiencyAndMainItem> entry : stageEfficiencyAndMainItemMap.entrySet()) {
             String stageId = entry.getKey();
@@ -865,14 +884,14 @@ public class CustomItemServiceImpl implements CustomItemService {
             if (itemValueT3 == null) {
                 continue;
             }
-            System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "未迭代前价值" + itemValueT3);
-            System.out.println(itemInfoMap.get(itemIdT3).getItemName() +"关卡效率" + stageEfficiency);
+            // System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "未迭代前价值" + itemValueT3);
+            // System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "关卡效率" + stageEfficiency);
             Logger.info(itemInfoMap.get(itemIdT3).getItemName() + "——推荐关卡：" + stageInfoMap.get(stageId).getStageCode());
             // 更新蓝材料的价值
             if (stageEfficiency != Double.NEGATIVE_INFINITY && stageEfficiency != 0) {
                 itemValueMap.put(itemIdT3, itemValueT3 / stageEfficiency);
             }
-            System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "迭代后价值" + itemValueMap.get(itemIdT3));
+            // System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "迭代后价值" + itemValueMap.get(itemIdT3));
         }
 
         // 将自定义精英材料价值写入物品价值映射
@@ -1094,8 +1113,14 @@ public class CustomItemServiceImpl implements CustomItemService {
     }
 
     // @RedisCacheable(key = "Json:Item_Info")
-    private JsonNode getItemInfo() {
-        return JsonMapper.parseJSONObject(FileUtil.read(ConfigUtil.DataFilePath + "itemInfo.json"));
+    private Map<String, ItemInfoDTO> getItemInfoMap() {
+        String itemInfoText = FileUtil.read(ConfigUtil.DataFilePath + "item_info.json");
+        List<ItemInfoDTO> itemInfoDTOList = JsonMapper.parseJSONArray(itemInfoText, new TypeReference<>() {
+        });
+
+        Map<String, ItemInfoDTO> itemInfoMap = itemInfoDTOList.stream()
+                .collect(Collectors.toMap(ItemInfoDTO::getItemId, item -> item));
+        return itemInfoMap;
     }
 
 }
