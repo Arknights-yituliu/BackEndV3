@@ -17,7 +17,6 @@ import com.lhs.service.material.CustomItemService;
 import com.lhs.service.material.PenguinDataService;
 import com.lhs.service.material.StageService;
 
-
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,8 +28,8 @@ public class CustomItemServiceImpl implements CustomItemService {
     private final StageService stageService;
     private final PenguinDataService penguinDataServiceService;
 
-    private static final Integer BASE_LMD_VALUE = 36 / 10000;
-    private static final Integer BASE_EXP_VALUE = 36 / 10000;
+    private static final Double BASE_LMD_VALUE = 36.0 / 10000.0;
+    private static final Double BASE_EXP_VALUE = 36.0 / 10000.0;
 
     public CustomItemServiceImpl(StageService stageService, PenguinDataService penguinDataServiceService) {
         this.stageService = stageService;
@@ -70,7 +69,7 @@ public class CustomItemServiceImpl implements CustomItemService {
         for (ItemInfoDTO itemInfoDTO : itemInfoDTOList) {
             String itemId = itemInfoDTO.getItemId();
             if ("精英材料".equals(itemInfoDTO.getType())) {
-                itemValueMap.put(itemId, itemInfoDTO.getRarity() * 3.0);
+                itemValueMap.put(itemId, Math.pow(itemInfoDTO.getRarity(), 3));
             } else {
                 itemValueMap.put(itemId, 0.0);
             }
@@ -101,6 +100,7 @@ public class CustomItemServiceImpl implements CustomItemService {
                 int rarity = itemInfoDTO.getRarity();
                 // 物品ID
                 String itemId = itemInfoDTO.getItemId();
+
                 // 将物品权重根据稀有度进行分类存入map
                 workshopByproductWeightMap.computeIfAbsent(rarity, k -> new HashMap<>()).put(itemId, weight);
             }
@@ -122,11 +122,10 @@ public class CustomItemServiceImpl implements CustomItemService {
             String stageCode = firstDrop.getStageCode();
             String stageType = firstDrop.getStageType();
 
-            // // 如果不使用活动作战定价，跳过活动关卡
-            // if (("ACT".equals(stageType) || "ACT_REP".equals(stageType))
-            //         && Boolean.FALSE.equals(itemValueConfigDTO.getUseActivityStage())) {
-            //     continue;
-            // }
+            // 如果不使用活动作战定价，跳过活动关卡
+            if ("ACT".equals(stageType) || "ACT_REP".equals(stageType)) {
+                continue;
+            }
 
             // 如果使用活动平均作战定价且为临时商店虚拟关卡，追加龙门币掉落
             if ("YTL_VIRTUAL".equals(stageType)
@@ -205,6 +204,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
         // 龙门币价值 = (36 ÷ 10000) × 龙门币价值系数
         double itemValue4001 = itemValueConfigDTO.getLmdCoefficient() * BASE_LMD_VALUE;
+
         itemValueMap.put("4001", itemValue4001);
         // EXP 价值 = (36 ÷ 10000) × EXP 价值系数
         double itemValueEXP = itemValueConfigDTO.getExpCoefficient() * BASE_EXP_VALUE;
@@ -268,13 +268,14 @@ public class CustomItemServiceImpl implements CustomItemService {
             itemValue7001 = Double.POSITIVE_INFINITY;
         } else {
             // System.out.println(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
-            // Map<Integer, RecruitmentPricingStrategy> strategyMap = recruitmentPermitPricing
-            //         .get(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
+            // Map<Integer, RecruitmentPricingStrategy> strategyMap =
+            // recruitmentPermitPricing
+            // .get(itemValueConfigDTO.getRecruitmentPermitPricingStrategy());
             // for (Integer rarity : strategyMap.keySet()) {
-            //     RecruitmentPricingStrategy strategy = strategyMap.get(rarity);
-            //     itemValue7001 += operatorRecruitmentRates.get(rarity) *
-            //             (strategy.getCert4005() * itemValue4005 +
-            //                     strategy.getCert4004() * itemValue4004);
+            // RecruitmentPricingStrategy strategy = strategyMap.get(rarity);
+            // itemValue7001 += operatorRecruitmentRates.get(rarity) *
+            // (strategy.getCert4005() * itemValue4005 +
+            // strategy.getCert4004() * itemValue4004);
             // }
 
         }
@@ -390,6 +391,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
         // 更新物品价值
         itemValueMap.put("EXP", itemValueEXP);
+
         itemValueMap.put("4003", itemValue4003);
         itemValueMap.put("4002", itemValue4002);
         itemValueMap.put("7003", itemValue7003);
@@ -581,7 +583,6 @@ public class CustomItemServiceImpl implements CustomItemService {
         double causalityValue = ((1 - byproductRate) * t3workShopProductsValue - (300 - lmdCost) * lmdValue)
                 / (9.0 / 10.0 * 36);
 
-                
         // 更新因果价值
         itemValueMap.put("causality", causalityValue);
 
@@ -725,6 +726,7 @@ public class CustomItemServiceImpl implements CustomItemService {
                     expectValue += itemValueMap.get(itemId) * weight;
                 }
             }
+            System.out.println(rarity + "级副产物 " + expectValue);
             // 更新加工站各级物品副产品期望产出
             workshopByproductExpectedValue.put(rarity, expectValue);
         }
@@ -811,6 +813,13 @@ public class CustomItemServiceImpl implements CustomItemService {
             Map<String, Double> itemValueMap,
             Map<String, Double> customItemValueMap,
             Map<String, ItemSeriesInfo> itemSeriesInfoByItemId) {
+        Map<String, Stage> stageInfoMap = stageService.getStageInfoMap();
+        String itemInfoText = FileUtil.read(ConfigUtil.DataFilePath + "item_info.json");
+        List<ItemInfoDTO> itemInfoDTOList = JsonMapper.parseJSONArray(itemInfoText, new TypeReference<>() {
+        });
+
+        Map<String, ItemInfoDTO> itemInfoMap = itemInfoDTOList.stream()
+                .collect(Collectors.toMap(ItemInfoDTO::getItemId, item -> item));
 
         // 遍历所有作战
         for (Map.Entry<String, StageEfficiencyAndMainItem> entry : stageEfficiencyAndMainItemMap.entrySet()) {
@@ -838,7 +847,7 @@ public class CustomItemServiceImpl implements CustomItemService {
 
             if (stageEfficiency > currentMaxStageEfficiency) {
                 // 如果当前作战效率大于该系列材料的最高效率，则更新最高效率
-                maxStageEfficiencyMap.put(seriesId, new MaxStageEfficiencyInfo(stageId, stageEfficiency));
+                maxStageEfficiencyMap.put(seriesId, new MaxStageEfficiencyInfo(stageId, "", stageEfficiency));
             }
         }
 
@@ -856,11 +865,14 @@ public class CustomItemServiceImpl implements CustomItemService {
             if (itemValueT3 == null) {
                 continue;
             }
-            Logger.info("蓝材料推荐关卡：" + stageId);
+            System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "未迭代前价值" + itemValueT3);
+            System.out.println(itemInfoMap.get(itemIdT3).getItemName() +"关卡效率" + stageEfficiency);
+            Logger.info(itemInfoMap.get(itemIdT3).getItemName() + "——推荐关卡：" + stageInfoMap.get(stageId).getStageCode());
             // 更新蓝材料的价值
             if (stageEfficiency != Double.NEGATIVE_INFINITY && stageEfficiency != 0) {
                 itemValueMap.put(itemIdT3, itemValueT3 / stageEfficiency);
             }
+            System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "迭代后价值" + itemValueMap.get(itemIdT3));
         }
 
         // 将自定义精英材料价值写入物品价值映射
@@ -967,13 +979,15 @@ public class CustomItemServiceImpl implements CustomItemService {
 
     private class MaxStageEfficiencyInfo {
         private String stageId;
+        private String stageCode;
         private double stageEfficiency;
 
         public MaxStageEfficiencyInfo() {
         }
 
-        public MaxStageEfficiencyInfo(String stageId, double stageEfficiency) {
+        public MaxStageEfficiencyInfo(String stageId, String stageCode, double stageEfficiency) {
             this.stageId = stageId;
+            this.stageCode = stageCode;
             this.stageEfficiency = stageEfficiency;
         }
 
@@ -981,8 +995,16 @@ public class CustomItemServiceImpl implements CustomItemService {
             this.stageId = stageId;
         }
 
+        public void setStageCode(String stageCode) {
+            this.stageCode = stageCode;
+        }
+
         public void setStageEfficiency(double stageEfficiency) {
             this.stageEfficiency = stageEfficiency;
+        }
+
+        public String getStageCode() {
+            return stageCode;
         }
 
         public String getStageId() {
@@ -992,153 +1014,6 @@ public class CustomItemServiceImpl implements CustomItemService {
         public double getStageEfficiency() {
             return stageEfficiency;
         }
-    }
-
-    // @RedisCacheable(key = "Json:Penguin_Matrix")
-    private Map<String, List<StageDropAndInfoDTO>> getStageInfoAndDropCollect(ItemValueConfigDTO itemValueConfigDTO) {
-        String penguinMatrixText = FileUtil.read(ConfigUtil.Penguin + "penguin.json");
-        String matrixText = JsonMapper.parseJSONObject(penguinMatrixText).get("matrix").toPrettyString();
-        //
-        List<PenguinMatrixDTO> penguinMatrixDTOList = JsonMapper.parseJSONArray(matrixText, new TypeReference<>() {
-        });
-
-        String ytlStageDataText = FileUtil.read(ConfigUtil.DataFilePath + "ytl_stage_info.json");
-
-        Map<String, StageDropAndInfoDTO> ytlStageDataMap = JsonMapper.parseJSONArray(ytlStageDataText,
-                new TypeReference<>() {
-                });
-
-        Map<String, Stage> stageInfoMap = stageService.getStageInfoMap();
-
-        int sampleSize = itemValueConfigDTO.getSampleSize();
-
-        Set<String> stageBlcklistSet = new HashSet<>();
-        if (itemValueConfigDTO.getStageBlacklist() != null) {
-            stageBlcklistSet = itemValueConfigDTO.getStageBlacklist();
-        }
-
-        Map<String, PenguinMatrixDTO> toughStageMap = penguinMatrixDTOList.stream()
-                .filter(item -> item.getStageId().contains("tough"))
-                .collect(Collectors
-                        .toMap(item -> item.getStageId().replace("tough", "main") + "—" + item.getItemId(),
-                                item -> item));
-
-        Map<String, List<StageDropAndInfoDTO>> stageInfoAndDropCollect = new HashMap<>();
-
-        for (PenguinMatrixDTO penguinMatrixDTO : penguinMatrixDTOList) {
-
-            String stageId = penguinMatrixDTO.getStageId();
-            String itemId = penguinMatrixDTO.getItemId();
-            long quantity = penguinMatrixDTO.getQuantity();
-            long times = penguinMatrixDTO.getTimes();
-            Long start = penguinMatrixDTO.getStart();
-            Long end = penguinMatrixDTO.getEnd();
-
-            if (stageBlcklistSet.contains(stageId)) {
-                continue;
-            }
-
-            if ((stageId.contains("main_14") && end != null) || stageId.contains("tough")) {
-                continue;
-            }
-
-            if (times < sampleSize) {
-                continue;
-            }
-
-            Stage stageInfo = stageInfoMap.get(stageId);
-
-            if (stageInfo == null) {
-                continue;
-            }
-
-            // 标准关卡的关卡id和物品id的合并id
-            String main14StageDropMergeKey = stageId + "—" + itemId;
-
-            // 通过标准关卡的关卡id和物品id的合并id获取对应的磨难关卡数据
-            PenguinMatrixDTO toughStage = toughStageMap.get(main14StageDropMergeKey);
-
-            // 如果没有对应的磨难关卡跳过
-            if (toughStage != null) {
-                quantity += toughStage.getQuantity();
-                times += toughStage.getTimes();
-
-            }
-
-            String stageType = stageInfo.getStageType();
-            Integer apCost = stageInfo.getApCost();
-            Double spm = stageInfo.getSpm();
-            String zoneName = stageInfo.getZoneName();
-            String zoneId = stageInfo.getZoneId();
-            String stageCode = stageInfo.getStageCode();
-            if (StageType.ACT.equals(stageType) && apCost == 21) {
-                StageDropAndInfoDTO stageDropAndInfoDTOByItemId = ytlStageDataMap.get(itemId);
-                if (stageDropAndInfoDTOByItemId != null) {
-                    stageDropAndInfoDTOByItemId.setQuantity(stageDropAndInfoDTOByItemId.getQuantity() + quantity);
-                    stageDropAndInfoDTOByItemId.setTimes(stageDropAndInfoDTOByItemId.getTimes() + times);
-                }
-            }
-
-            StageDropAndInfoDTO stageDropAndInfoDTO = new StageDropAndInfoDTO();
-            stageDropAndInfoDTO.setStageId(stageId);
-            stageDropAndInfoDTO.setStageCode(stageCode);
-            stageDropAndInfoDTO.setItemId(itemId);
-            stageDropAndInfoDTO.setQuantity(quantity);
-            stageDropAndInfoDTO.setTimes(times);
-            stageDropAndInfoDTO.setStart(start);
-            stageDropAndInfoDTO.setEnd(end);
-            stageDropAndInfoDTO.setStageType(stageType);
-            stageDropAndInfoDTO.setZoneName(zoneName);
-            stageDropAndInfoDTO.setZoneId(zoneId);
-            stageDropAndInfoDTO.setApCost(apCost);
-            stageDropAndInfoDTO.setSpm(spm);
-
-            if (!stageInfoAndDropCollect.containsKey(stageId)) {
-                List<StageDropAndInfoDTO> stageDropAndInfoDTOList = new ArrayList<>();
-                StageDropAndInfoDTO stageInfoAndLMDDrop = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 12);
-                stageDropAndInfoDTOList.add(stageInfoAndLMDDrop);
-                if (StageType.ACT.equals(stageType) || StageType.ACT_REP.equals(stageType)) {
-                    StageDropAndInfoDTO activityShopLMDExchange = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 20);
-                    stageDropAndInfoDTOList.add(activityShopLMDExchange);
-                }
-                stageInfoAndDropCollect.put(stageId, stageDropAndInfoDTOList);
-            }
-
-            stageInfoAndDropCollect.get(stageId).add(stageDropAndInfoDTO);
-        }
-
-        if (itemValueConfigDTO.getUseActivityAverageStage()) {
-            for (StageDropAndInfoDTO stageDropAndInfoDTO : ytlStageDataMap.values()) {
-                StageDropAndInfoDTO stageInfoAndLMDDrop = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 12);
-                StageDropAndInfoDTO activityShopLMDExchange = getStageInfoAndLMDDrop(stageDropAndInfoDTO, 20);
-                List<StageDropAndInfoDTO> stageDropAndInfoDTOList = new ArrayList<>();
-                stageDropAndInfoDTOList.add(stageDropAndInfoDTO);
-                stageDropAndInfoDTOList.add(stageInfoAndLMDDrop);
-                stageDropAndInfoDTOList.add(activityShopLMDExchange);
-                stageInfoAndDropCollect.put(stageDropAndInfoDTO.getStageId(), stageDropAndInfoDTOList);
-            }
-        }
-
-        return stageInfoAndDropCollect;
-    }
-
-    private StageDropAndInfoDTO getStageInfoAndLMDDrop(StageDropAndInfoDTO dto, Integer LMDPerAp) {
-        StageDropAndInfoDTO stageDropAndInfoDTO = new StageDropAndInfoDTO();
-        stageDropAndInfoDTO.setStageId(dto.getStageId());
-        stageDropAndInfoDTO.setStageCode(dto.getStageCode());
-        stageDropAndInfoDTO.setZoneName(dto.getZoneName());
-        stageDropAndInfoDTO.setZoneId(dto.getZoneId());
-        stageDropAndInfoDTO.setApCost(dto.getApCost());
-        stageDropAndInfoDTO.setSpm(dto.getSpm());
-        stageDropAndInfoDTO.setUnlimitedItem(dto.getUnlimitedItem());
-        stageDropAndInfoDTO.setStageType(dto.getStageType());
-        stageDropAndInfoDTO.setStart(dto.getStart());
-        stageDropAndInfoDTO.setEnd(dto.getEnd());
-        stageDropAndInfoDTO.setQuantity((long) dto.getApCost() * LMDPerAp);
-        stageDropAndInfoDTO.setTimes(1L);
-        stageDropAndInfoDTO.setItemId("4001");
-
-        return stageDropAndInfoDTO;
     }
 
     private void checkItemValueConfig(ItemValueConfigDTO configDTO) {
