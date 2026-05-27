@@ -14,7 +14,7 @@ import com.lhs.entity.dto.material.QueryStageDropDTO;
 import com.lhs.entity.dto.material.StageDropTimesStatistics;
 import com.lhs.entity.dto.material.StageDropDetailDTO;
 import com.lhs.entity.po.material.StageDrop;
-import com.lhs.entity.po.material.StageDropStatisticalTaskLog;
+import com.lhs.entity.po.material.StageDropStatisticsTaskLog;
 import com.lhs.entity.vo.material.StageDropStatisticsVO;
 import com.lhs.mapper.material.StageDropMapper;
 import com.lhs.mapper.material.StageDropStatisticsMapper;
@@ -96,7 +96,7 @@ public class StageDropService {
         int HOUR = TimeGranularity.HOUR.code();
 
         //先查询是否已经执行过当前统计时段和时间粒度的任务
-        StageDropStatisticalTaskLog oldTaskLog = stageDropStatisticsMapper.getTaskLog(HOUR, startTime, endTime);
+        StageDropStatisticsTaskLog oldTaskLog = stageDropStatisticsMapper.getTaskLog(HOUR, startTime, endTime);
 
         //查询当前统计时段的数据总量
         Integer countByDate = stageDropMapper.countByDate(startTime, endTime);
@@ -123,7 +123,7 @@ public class StageDropService {
         //如果没有执行过当前统计时段和时间粒度的任务或统计未完成，执行下面的逻辑
 
         //新建一个任务执行日志
-        StageDropStatisticalTaskLog taskLog = new StageDropStatisticalTaskLog();
+        StageDropStatisticsTaskLog taskLog = new StageDropStatisticsTaskLog();
         taskLog.setId(idGenerator.nextId());
         taskLog.setCreateTime(date);
         taskLog.setTimeGranularity(HOUR);

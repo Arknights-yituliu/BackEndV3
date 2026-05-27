@@ -24,19 +24,7 @@
           AND create_time &lt; #{end}
     </select>
 
-    <select id="countFromTableByDate" resultType="Integer">
-        SELECT COUNT(*)
-        FROM ${tableName}
-        WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
-    </select>
-
-    <select id="selectFromTableListByDate" resultType="com.lhs.entity.po.material.StageDrop">
-        SELECT *
-        FROM ${tableName}
-        WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
-    </select>
+   
 
     <insert id="insertBatch">
         INSERT INTO stage_drop
@@ -58,6 +46,23 @@
         </foreach>
     </insert>
 
+
+
+ <select id="countFromTableByDate" resultType="Integer">
+        SELECT COUNT(*)
+        FROM ${tableName}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+          AND server = 'CN'
+    </select>
+
+    <select id="selectFromTableListByDate" resultType="com.lhs.entity.po.material.StageDrop">
+        SELECT *
+        FROM ${tableName}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+          AND server = 'CN'
+    </select>
 
 
 </mapper>

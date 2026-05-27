@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
 
 @TableName
-public class StageDropStatisticalTaskLog {
+public class StageDropStatisticsTaskLog {
 
     @TableId
     private Long id;

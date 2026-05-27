@@ -20,17 +20,60 @@ public class DropTest  {
     @Test
     public void testStageDropStatistics() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH");
-        Date start = sdf.parse("2026-01-01 00");
+        Date start = sdf.parse("2026-02-22 00");
         long oneHour = 1000 * 60 * 60;
         Date end = new Date(start.getTime() + oneHour);
 
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 10000; i++) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(start);
             int month = cal.get(Calendar.MONTH) + 1;
             int year = cal.get(Calendar.YEAR);
 //            String tableName = "stage_drop_" + year + "_" + month;
-            String tableName = "stage_drop_20260102_20260221";
+            String tableName = "stage_drop_20251130_20260221";
+            stageDropStatisticsService.stageDropHourlyStatistics(start, end, tableName);
+            start = new Date(start.getTime() + oneHour);
+            end = new Date(end.getTime() + oneHour);
+        }
+    }
+
+    @Test
+    public void testStageDropStatistics2() throws Exception {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH");
+        Date start = sdf.parse("2026-02-22 00");
+        long oneHour = 1000 * 60 * 60;
+        Date end = new Date(start.getTime() + oneHour);
+
+        for (int i = 0; i < 10000; i++) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(start);
+            int month = cal.get(Calendar.MONTH) + 1;
+            int year = cal.get(Calendar.YEAR);
+//            String tableName = "stage_drop_" + year + "_" + month;
+            String tableName = "stage_drop_20260222_20260328";
+            stageDropStatisticsService.stageDropHourlyStatistics(start, end, tableName);
+            start = new Date(start.getTime() + oneHour);
+            end = new Date(end.getTime() + oneHour);
+        }
+    }
+
+    @Test
+    public void testStageDropStatistics3() throws Exception {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH");
+        Date start = sdf.parse("2026-02-22 00");
+        long oneHour = 1000 * 60 * 60;
+        Date end = new Date(start.getTime() + oneHour);
+
+        for (int i = 0; i < 10000; i++) {
+            if(start.compareTo(sdf.parse("2026-04-01 19")) > 0){
+                break;
+            }
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(start);
+            int month = cal.get(Calendar.MONTH) + 1;
+            int year = cal.get(Calendar.YEAR);
+//            String tableName = "stage_drop_" + year + "_" + month;
+            String tableName = "stage_drop_20260222_20260328";
             stageDropStatisticsService.stageDropHourlyStatistics(start, end, tableName);
             start = new Date(start.getTime() + oneHour);
             end = new Date(end.getTime() + oneHour);
