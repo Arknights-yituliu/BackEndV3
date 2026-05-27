@@ -24,6 +24,20 @@
           AND create_time &lt; #{end}
     </select>
 
+    <select id="countFromTableByDate" resultType="Integer">
+        SELECT COUNT(*)
+        FROM ${tableName}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+    </select>
+
+    <select id="selectFromTableListByDate" resultType="com.lhs.entity.po.material.StageDrop">
+        SELECT *
+        FROM ${tableName}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+    </select>
+
     <insert id="insertBatch">
         INSERT INTO stage_drop
         (id, stage_id, drops, times, server, source, create_time, uid, version)

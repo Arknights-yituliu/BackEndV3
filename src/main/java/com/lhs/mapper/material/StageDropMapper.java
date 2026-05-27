@@ -24,9 +24,11 @@ public interface StageDropMapper extends BaseMapper<StageDrop> {
 
     List<StageDrop> listOldStageDropByDate(@Param("tableName") String tableName, @Param("start") Date start, @Param("end") Date end);
 
+    //根据日期查询掉落记录数量，tableName参数拼接的表名，例如：stage_drop_2026_1
+    Integer countFromTableByDate(@Param("tableName") String tableName,@Param("start") Date start, @Param("end") Date end );
 
-
-
+    //根据日期查询掉落记录，tableName参数拼接的表名，例如：stage_drop_2026_1
+    List<StageDrop> selectFromTableListByDate(@Param("tableName") String tableName,@Param("start") Date start, @Param("end") Date end);
 
 
 
