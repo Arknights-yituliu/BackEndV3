@@ -26,18 +26,17 @@ public class ItemControllerV4 {
     private final PackInfoService packInfoService;
     private final StageCalService stageCalService;
     private final StageResultService stageResultService;
-    private final StageDropService stageDropService;
+
 
     public ItemControllerV4(ItemService itemService, StageService stageService, StoreService storeService,
                             StageResultService stageResultService,
-                            PackInfoService packInfoService, StageCalService stageCalService, StageDropService stageDropService) {
+                            PackInfoService packInfoService, StageCalService stageCalService) {
         this.itemService = itemService;
         this.stageService = stageService;
         this.storeService = storeService;
         this.stageResultService = stageResultService;
         this.packInfoService = packInfoService;
         this.stageCalService = stageCalService;
-        this.stageDropService = stageDropService;
     }
 
     @Operation(summary = "手动更新")
@@ -47,12 +46,7 @@ public class ItemControllerV4 {
         return Result.success();
     }
 
-    @Operation(summary = "关卡掉落")
-    @PostMapping("/stage/drop")
-    public Result<List<StageDropStatisticsVO>> getStageDropByStageId(@RequestBody QueryStageDropDTO queryStageDropDTO) {
 
-        return Result.success(stageDropService.getStageDropByStageId(queryStageDropDTO));
-    }
 
     @Operation(summary = "检查当前材料价值表是否需要更新")
     @GetMapping("/check/item/value")

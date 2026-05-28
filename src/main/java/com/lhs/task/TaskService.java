@@ -24,7 +24,7 @@ public class TaskService {
 
     private final QuestionnaireService questionnaireService;
 
-    private final StageDropService stageDropService;
+
 
     private final OperatorDataService operatorDataService;
 
@@ -36,7 +36,7 @@ public class TaskService {
             OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             RecruitTagUploadService recruitTagUploadService,
             OperatorCarryRateService operatorCarryRateService,
-            QuestionnaireService questionnaireService, StageDropService stageDropService,
+            QuestionnaireService questionnaireService,
             OperatorDataService operatorDataService,
             UserService userService) {
         this.stageCalService = stageCalService;
@@ -45,7 +45,6 @@ public class TaskService {
         this.recruitTagUploadService = recruitTagUploadService;
         this.operatorCarryRateService = operatorCarryRateService;
         this.questionnaireService = questionnaireService;
-        this.stageDropService = stageDropService;
         this.operatorDataService = operatorDataService;
         this.userService = userService;
     }
@@ -115,13 +114,7 @@ public class TaskService {
     }
 
 
-    /**
-     * 每小时的19、39、59分执行一次
-     */
-    @Scheduled(cron = "0 19,39,59 * * * ?")
-    public void stageDropHourlyStatistics() {
-        stageDropService.stageDropHourlyStatistics();
-    }
+
 
     /**
      * 备份用户数据

@@ -20,7 +20,7 @@ public class DropTest  {
     @Test
     public void testStageDropStatistics() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH");
-        Date start = sdf.parse("2026-02-22 00");
+        Date start = sdf.parse("2026-02-21 00");
         long oneHour = 1000 * 60 * 60;
         Date end = new Date(start.getTime() + oneHour);
 
@@ -29,8 +29,8 @@ public class DropTest  {
             cal.setTime(start);
             int month = cal.get(Calendar.MONTH) + 1;
             int year = cal.get(Calendar.YEAR);
-//            String tableName = "stage_drop_" + year + "_" + month;
-            String tableName = "stage_drop_20251130_20260221";
+           String tableName = String.format("stage_drop_%d_%02d", year, month);
+            // String tableName = "stage_drop_20251130_20260221";
             stageDropStatisticsService.stageDropHourlyStatistics(start, end, tableName);
             start = new Date(start.getTime() + oneHour);
             end = new Date(end.getTime() + oneHour);
