@@ -114,7 +114,7 @@ public class DropStatisticsTest {
     @Test
     public void testSelect() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
+        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         String itemUpdateJsonText = FileUtil.read(ConfigUtil.DataFilePath + "item_update.json");
         JsonNode itemUpdateTime = JsonMapper.parseJSONObject(itemUpdateJsonText);
         Map<String, Date> itemUpdateMap = new HashMap<>();
@@ -188,6 +188,17 @@ public class DropStatisticsTest {
             }
             start = end;
         }
+        System.out.println(stageHourTimes.size());
+        System.out.println(quantityCollectMap.size());
+
+        // 将 stageHourTimes 按 stageId 预分组，避免结果组装时 O(items * hours) 全量遍历
+        Map<String, List<Map.Entry<String, StageDropTimesDTO>>> stageHourGroup = new HashMap<>();
+        for (Map.Entry<String, StageDropTimesDTO> hourEntry : stageHourTimes.entrySet()) {
+            String key = hourEntry.getKey();
+            int dotIdx = key.indexOf('.');
+            String stageId = key.substring(0, dotIdx);
+            stageHourGroup.computeIfAbsent(stageId, k -> new ArrayList<>()).add(hourEntry);
+        }
 
         // 结果组装：times 从 stageHourTimes 中按材料时间窗统一获取
         List<StageDropStatisticsResultVO> result = new ArrayList<>();
@@ -197,16 +208,19 @@ public class DropStatisticsTest {
             String itemId = count.getItemId();
             Date updateTime = itemUpdateMap.get(itemId);
 
-            // 从 stageHourTimes 中累加该材料有效时间窗内的 times
+            // 直接从预分组中获取该关卡的小时数据，只遍历该关卡的 hours
             long effectiveTimes = 0L;
-            for (Map.Entry<String,StageDropTimesDTO> hourEntry : stageHourTimes.entrySet()) {
-                String key = hourEntry.getKey();
-                if (!key.startsWith(stageId + ".")) {
-                    continue;
-                }
-                Long hourTimestamp = Long.parseLong(key.substring(stageId.length() + 1));
-                if (updateTime == null || hourTimestamp >= updateTime.getTime()) {
-                    effectiveTimes += hourEntry.getValue().getTimes();
+            List<Map.Entry<String, StageDropTimesDTO>> stageHours = stageHourGroup.get(stageId);
+            if (stageHours != null) {
+                for (Map.Entry<String, StageDropTimesDTO> hourEntry : stageHours) {
+                    String key = hourEntry.getKey();
+                    long hourTimestamp = Long.parseLong(key.substring(key.indexOf('.') + 1));
+                    if (updateTime == null || hourTimestamp >= updateTime.getTime()) {
+                        if(stageId.equals("tough_14-11")&&itemId.equals("31113")){
+                            System.out.println(sdf2.format(new Date(hourTimestamp)) + "  "+hourEntry.getValue().getTimes() );
+                        }
+                        effectiveTimes += hourEntry.getValue().getTimes();
+                    }
                 }
             }
 
@@ -246,7 +260,8 @@ public class DropStatisticsTest {
                         + "，start：" + sdf.format(new Date(item.getStart()))
                         + "，end：" + sdf.format(new Date(item.getEnd()))
                         + "，quantity：" + item.getQuantity()
-                        + "，times：" + item.getTimes());
+                        + "，times：" + item.getTimes()
+                        + "，掉率：" + item.getQuantity()*100.0/item.getTimes());
             }
         }
     }
