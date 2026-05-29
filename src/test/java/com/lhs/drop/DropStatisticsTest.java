@@ -1,19 +1,21 @@
 package com.lhs.drop;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 
+import com.lhs.entity.dto.drop.StageDropTimesDTO;
 import org.checkerframework.checker.units.qual.s;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.lhs.common.enums.TimeGranularity;
 import com.lhs.entity.dto.drop.StageDropQuantityDTO;
-import com.lhs.entity.dto.drop.StageDropTimesDTO;
 import com.lhs.entity.po.material.StageDropStatistics;
+import com.lhs.entity.vo.drop.StageDropStatisticsResultVO;
 import com.lhs.mapper.material.StageDropStatisticsMapper;
 import com.lhs.service.material.StageDropStatisticsService;
 
@@ -112,7 +114,8 @@ public class DropStatisticsTest {
     @Test
     public void testSelect() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        String itemUpdateJsonText = FileUtil.read(ConfigUtil.DataFilePath + "item_update");
+
+        String itemUpdateJsonText = FileUtil.read(ConfigUtil.DataFilePath + "item_update.json");
         JsonNode itemUpdateTime = JsonMapper.parseJSONObject(itemUpdateJsonText);
         Map<String, Date> itemUpdateMap = new HashMap<>();
         for (JsonNode jsonNode : itemUpdateTime) {
@@ -126,63 +129,125 @@ public class DropStatisticsTest {
         cal.setTime(start);
         Date now = new Date();
 
+        // 收集每个关卡在每个小时的执行次数
+        // key: stageId + "_" + 小时时间戳, value: 该小时该关卡的最大times
+        Map<String, StageDropTimesDTO> stageHourTimes = new HashMap<>();
+
+        // 按 stageId + itemId 聚合数量和时间范围
         Map<String, StageDropQuantityDTO> quantityCollectMap = new HashMap<>();
-        Map<String, StageDropTimesDTO> timesCollectMap = new HashMap<>();
-        List<StageDropStatistics> list;
 
         while (start.before(now)) {
             cal.setTime(start);
             cal.add(Calendar.MONTH, 1);
             Date end = cal.getTime();
 
-            list = stageDropStatisticsMapper.selectListByDate(
+            List<StageDropStatistics> list = stageDropStatisticsMapper.selectListByDate(
                     TimeGranularity.HOUR.code(), start, end);
             System.out.println(sdf.format(start) + " ~ " + sdf.format(end) + " 数据量: " + list.size());
+
             for (StageDropStatistics item : list) {
+                String stageId = item.getStageId();
+                Long hourTimestamp = item.getStartTime().getTime();
+
+                // 收集该时段该关卡的times（取最大值，同一关卡同一时段可能有多条材料记录）
+                String stageTimeKey = stageId + "." + hourTimestamp;
+
+                if(!stageHourTimes.containsKey(stageTimeKey)){
+                    stageHourTimes.put(stageTimeKey,new StageDropTimesDTO(stageId, item.getItemId(), 0L));
+                }
+                StageDropTimesDTO stageDropTimesDTO = stageHourTimes.get(stageTimeKey);
+                if(stageDropTimesDTO.getTimes()<item.getTimes()){
+                    stageDropTimesDTO.setTimes(item.getTimes());
+                }
+
+
+                // 材料上架时间过滤：上架时间之前不统计
                 String itemId = item.getItemId();
                 Date updateTime = itemUpdateMap.get(itemId);
-                if (updateTime != null) {
-                    if(updateTime.before(start)){
-                        continue;
-                    }
+                if (updateTime != null && hourTimestamp < updateTime.getTime()) {
+                    continue;
                 }
-                String key = item.getStageId() + "_" + item.getItemId();
-                StageDropQuantityDTO quantityCount = quantityCollectMap.getOrDefault(key,
-                        new StageDropQuantityDTO(item.getStageId(), item.getItemId(), start, end, 0L));
-                quantityCount.addQuantity(item.getQuantity());
-                if(quantityCount.getStart().after(start)){
-                    quantityCount.setStart(start);
-                }
-                if(quantityCount.getEnd().before(end)){
-                    quantityCount.setEnd(end);
-                }
-                StageDropTimesDTO timesCount = timesCollectMap.getOrDefault(key,
-                        new StageDropTimesDTO(item.getStageId(), item.getItemId(), 0L));
-                timesCount.addTimes(item.getTimes());
-                timesCollectMap.put(key, timesCount);
 
-                quantityCollectMap.put(key, quantityCount);
-                timesCollectMap.put(key, timesCount);
+                // 按 stageId + itemId 聚合 quantity
+                String key = stageId + "_" + itemId;
+                StageDropQuantityDTO quantityCount = quantityCollectMap.get(key);
+                if (quantityCount == null) {
+                    quantityCount = new StageDropQuantityDTO(stageId, itemId,
+                            item.getStartTime(), item.getEndTime(), 0L);
+                    quantityCollectMap.put(key, quantityCount);
+                }
+                quantityCount.addQuantity(item.getQuantity());
+
+                // 追踪该材料的时间范围（精确到小时）
+                if (quantityCount.getStart().getTime() > hourTimestamp) {
+                    quantityCount.setStart(new Date(hourTimestamp));
+                }
+                if (quantityCount.getEnd().getTime() < item.getEndTime().getTime()) {
+                    quantityCount.setEnd(item.getEndTime());
+                }
             }
             start = end;
         }
 
-        List<StageDropStatistics> result = new ArrayList<>();
+        // 结果组装：times 从 stageHourTimes 中按材料时间窗统一获取
+        List<StageDropStatisticsResultVO> result = new ArrayList<>();
         for (Map.Entry<String, StageDropQuantityDTO> entry : quantityCollectMap.entrySet()) {
-            String key = entry.getKey();
             StageDropQuantityDTO count = entry.getValue();
-            StageDropTimesDTO timesCount = timesCollectMap.get(key);
+            String stageId = count.getStageId();
+            String itemId = count.getItemId();
+            Date updateTime = itemUpdateMap.get(itemId);
 
-            StageDropStatistics item = new StageDropStatistics();
-            item.setStageId(count.getStageId());
-            item.setItemId(count.getItemId());
+            // 从 stageHourTimes 中累加该材料有效时间窗内的 times
+            long effectiveTimes = 0L;
+            for (Map.Entry<String,StageDropTimesDTO> hourEntry : stageHourTimes.entrySet()) {
+                String key = hourEntry.getKey();
+                if (!key.startsWith(stageId + ".")) {
+                    continue;
+                }
+                Long hourTimestamp = Long.parseLong(key.substring(stageId.length() + 1));
+                if (updateTime == null || hourTimestamp >= updateTime.getTime()) {
+                    effectiveTimes += hourEntry.getValue().getTimes();
+                }
+            }
+
+            StageDropStatisticsResultVO item = new StageDropStatisticsResultVO();
+            item.setStageId(stageId);
+            item.setItemId(itemId);
             item.setQuantity(count.getQuantity());
-
+            item.setTimes(effectiveTimes);
+            item.setStart(count.getStart().getTime());
+            item.setEnd(count.getEnd().getTime());
             result.add(item);
         }
 
-        FileUtil.saveJsonFile("C:\\Users\\admin\\Desktop\\import\\", "stage_drop.json",
+        FileUtil.saveJsonFile("D:\\stageDrop\\export\\", "stage_drop.json",
                 JsonMapper.toJSONString(result));
+    }
 
+    @Test
+    void getStageDropByStageId() {
+        String read = FileUtil.read("D:\\stageDrop\\export\\stage_drop.json");
+        List<StageDropStatisticsResultVO> list = JsonMapper.parseObject(read, new TypeReference<>() {
+        });
+
+        String itemInfoText = FileUtil.read(ConfigUtil.DataFilePath + "item_info.json");
+        List<JsonNode> itemInfoList = JsonMapper.parseObject(itemInfoText, new TypeReference<>() {
+        });
+        Map<String, String> itemNameMap = new HashMap<>();
+        for (JsonNode node : itemInfoList) {
+            itemNameMap.put(node.get("itemId").asText(), node.get("itemName").asText());
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        for (StageDropStatisticsResultVO item : list) {
+            if (item.getStageId().equals("tough_14-11")) {
+                Logger.info(item.getItemId() + "材料名：" + itemNameMap.get(item.getItemId())
+                        + "，start：" + sdf.format(new Date(item.getStart()))
+                        + "，end：" + sdf.format(new Date(item.getEnd()))
+                        + "，quantity：" + item.getQuantity()
+                        + "，times：" + item.getTimes());
+            }
+        }
     }
 }

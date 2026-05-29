@@ -107,7 +107,7 @@ public class StageDropStatisticsService {
                         dropTimesHashMap.put(stageId, 0L); // 初始化
                     }
 
-                    dropTimesHashMap.put(stageId, dropTimesHashMap.get(stageId) + times); // get + 计算 + put
+                    dropTimesHashMap.put(collectKey, dropTimesHashMap.get(collectKey) + times); // get + 计算 + put
                     stageDropQuantityDTO.addQuantity(quantity);
 
                 }
