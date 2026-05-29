@@ -7,7 +7,7 @@ import com.lhs.common.enums.TimeGranularity;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
-import com.lhs.entity.dto.drop.StageDropCount;
+import com.lhs.entity.dto.drop.StageDropQuantityDTO;
 import com.lhs.entity.dto.material.StageDropDetailDTO;
 import com.lhs.entity.po.material.StageDrop;
 import com.lhs.entity.po.material.StageDropStatisticsTaskLog;
@@ -33,7 +33,7 @@ public class StageDropStatisticsService {
     private final IdGenerator idGenerator;
 
     public StageDropStatisticsService(StageDropMapper stageDropMapper,
-                                      StageDropStatisticsMapper stageDropStatisticsMapper) {
+            StageDropStatisticsMapper stageDropStatisticsMapper) {
         this.stageDropMapper = stageDropMapper;
         this.stageDropStatisticsMapper = stageDropStatisticsMapper;
         this.idGenerator = new IdGenerator(1L);
@@ -50,7 +50,6 @@ public class StageDropStatisticsService {
         Logger.info("开始执行关卡掉率统计——表名：" + tableName + "——时段" + simpleDateFormat.format(startTime) + "-"
                 + simpleDateFormat.format(endTime));
 
-
         // 查询当前统计时段的数据总量
         Integer countByDate = stageDropMapper.countFromTableByDate(tableName, startTime, endTime);
 
@@ -62,7 +61,6 @@ public class StageDropStatisticsService {
 
         // 如果没有执行过当前统计时段和时间粒度的任务或统计未完成，执行下面的逻辑
         Date date = new Date();
-
 
         LambdaUpdateWrapper<StageDropStatistics> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(StageDropStatistics::getTimeGranularity, TimeGranularity.HOUR.code())
@@ -76,18 +74,18 @@ public class StageDropStatisticsService {
             Logger.info("将" + update + "条旧数据过期");
         }
 
-
         // 查询当前时段的数据
         List<StageDrop> stageDropList = stageDropMapper.selectFromTableListByDate(tableName, startTime, endTime);
 
         Date firstDateCreateTime = stageDropList.get(0).getCreateTime();
         Date lastDateCreateTime = stageDropList.get(countByDate - 1).getCreateTime();
 
+        Map<String, StageDropQuantityDTO> dropQuantityMap = new HashMap<>();
+        Map<String, Long> dropTimesHashMap = new HashMap<>();
 
-        Map<String, StageDropCount> dropCollectHashMap = new HashMap<>();
         for (StageDrop stageDrop : stageDropList) {
             String stageId = stageDrop.getStageId();
-            Integer times = stageDrop.getTimes();
+            long times = stageDrop.getTimes().longValue();
 
             String drops = stageDrop.getDrops();
             if (drops != null && drops.length() > 5) {
@@ -96,27 +94,34 @@ public class StageDropStatisticsService {
                         });
                 for (StageDropDetailDTO stageDropDetailDTO : stageDropDetailDTOList) {
                     String itemId = stageDropDetailDTO.getItemId();
-                    Integer quantity = stageDropDetailDTO.getQuantity();
+                    long quantity = stageDropDetailDTO.getQuantity().longValue();
                     String collectKey = stageId + "_" + itemId;
-                    StageDropCount stageDropCount = dropCollectHashMap.get(collectKey);
-                    if (stageDropCount == null) {
-                        stageDropCount = new StageDropCount(stageId, itemId, 0, 0);
-                        dropCollectHashMap.put(collectKey, stageDropCount);
+                    StageDropQuantityDTO stageDropQuantityDTO = dropQuantityMap.get(collectKey);
+
+                    if (stageDropQuantityDTO == null) {
+                        stageDropQuantityDTO = new StageDropQuantityDTO(stageId, itemId, firstDateCreateTime, lastDateCreateTime, 0L);
+                        dropQuantityMap.put(collectKey, stageDropQuantityDTO);
                     }
-                    stageDropCount.addQuantity(quantity);
-                    stageDropCount.addTimes(times);
+
+                    if (dropTimesHashMap.get(stageId) == null) { // 判空
+                        dropTimesHashMap.put(stageId, 0L); // 初始化
+                    }
+
+                    dropTimesHashMap.put(stageId, dropTimesHashMap.get(stageId) + times); // get + 计算 + put
+                    stageDropQuantityDTO.addQuantity(quantity);
+
                 }
             }
         }
 
         List<StageDropStatistics> stageDropStatisticsList = new ArrayList<>();
-        for (StageDropCount stageDropCount : dropCollectHashMap.values()) {
+        for (StageDropQuantityDTO stageDropQuantityDTO : dropQuantityMap.values()) {
             StageDropStatistics stageDropStatistics = new StageDropStatistics();
             stageDropStatistics.setId(idGenerator.nextId());
-            stageDropStatistics.setStageId(stageDropCount.getStageId());
-            stageDropStatistics.setItemId(stageDropCount.getItemId());
-            stageDropStatistics.setTimes(stageDropCount.getTimes());
-            stageDropStatistics.setQuantity(stageDropCount.getQuantity());
+            stageDropStatistics.setStageId(stageDropQuantityDTO.getStageId());
+            stageDropStatistics.setItemId(stageDropQuantityDTO.getItemId());
+            stageDropStatistics.setTimes(dropTimesHashMap.get(stageDropQuantityDTO.getStageId()));
+            stageDropStatistics.setQuantity(stageDropQuantityDTO.getQuantity());
             stageDropStatistics.setStartTime(firstDateCreateTime);
             stageDropStatistics.setEndTime(lastDateCreateTime);
             stageDropStatistics.setTimeGranularity(TimeGranularity.HOUR.code());
@@ -133,7 +138,8 @@ public class StageDropStatisticsService {
         }
 
         // 先查询是否已经执行过当前统计时段和时间粒度的任务
-        StageDropStatisticsTaskLog oldTaskLog = stageDropStatisticsMapper.getTaskLog(TimeGranularity.HOUR.code(), startTime, endTime);
+        StageDropStatisticsTaskLog oldTaskLog = stageDropStatisticsMapper.getTaskLogByTimeGranularityAndDate(TimeGranularity.HOUR.code(),
+                startTime, endTime);
 
         // 新建一个任务执行日志
         StageDropStatisticsTaskLog taskLog = new StageDropStatisticsTaskLog();

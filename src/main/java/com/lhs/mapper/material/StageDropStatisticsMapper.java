@@ -10,17 +10,17 @@ import java.util.List;
 
 public interface StageDropStatisticsMapper extends BaseMapper<StageDropStatistics> {
 
-    Integer insertTaskLog(@Param("log") StageDropStatisticsTaskLog stageDropStatisticsTaskLog);
+    void insertTaskLog(@Param("log") StageDropStatisticsTaskLog stageDropStatisticsTaskLog);
 
-    Integer updateTaskLog(@Param("log") StageDropStatisticsTaskLog stageDropStatisticsTaskLog);
+    void updateTaskLog(@Param("log") StageDropStatisticsTaskLog stageDropStatisticsTaskLog);
 
-    StageDropStatisticsTaskLog getTaskLog(@Param("timeGranularity") Integer timeGranularity,
-                                          @Param("start") Date start, @Param("end") Date end);
+    StageDropStatisticsTaskLog getTaskLogByTimeGranularityAndDate(@Param("timeGranularity") Integer timeGranularity,
+                                                                  @Param("start") Date start, @Param("end") Date end);
 
     Integer insertBatch(@Param("list") List<StageDropStatistics> stageDropList);
 
-    List<StageDropStatistics>  listByDate(@Param("timeGranularity") Integer timeGranularity,
-                                                             @Param("start") Date start, @Param("end") Date end);
+    List<StageDropStatistics> selectListByDate(@Param("timeGranularity") Integer timeGranularity,
+                                               @Param("start") Date start, @Param("end") Date end);
 
 
     List<StageDropStatistics> listByStageId(@Param("stageId") String stageId, @Param("timeGranularity") Integer timeGranularity,

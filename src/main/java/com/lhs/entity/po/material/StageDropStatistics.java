@@ -10,8 +10,8 @@ public class StageDropStatistics {
     private Long id;
     private String stageId;
     private String itemId;
-    private Integer times;
-    private Integer quantity;
+    private Long times;
+    private Long quantity;
     private Date endTime;
     private Date startTime;
     private Integer timeGranularity;
@@ -44,19 +44,19 @@ public class StageDropStatistics {
         this.itemId = itemId;
     }
 
-    public Integer getTimes() {
+    public Long getTimes() {
         return times;
     }
 
-    public void setTimes(Integer times) {
+    public void setTimes(Long times) {
         this.times = times;
     }
 
-    public Integer getQuantity() {
+    public Long getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Integer quantity) {
+    public void setQuantity(Long quantity) {
         this.quantity = quantity;
     }
 
@@ -92,11 +92,11 @@ public class StageDropStatistics {
         this.createTime = createTime;
     }
 
-    public void addTimes(Integer times){
+    public void addTimes(Long times){
         this.times+=times;
     }
 
-    public void addQuantity(Integer quantity){
+    public void addQuantity(Long quantity){
         this.quantity+=quantity;
     }
 
