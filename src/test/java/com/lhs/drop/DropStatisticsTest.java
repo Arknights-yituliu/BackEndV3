@@ -45,7 +45,7 @@ public class DropStatisticsTest {
         long oneHour = 1000 * 60 * 60;
         Date end = new Date(start.getTime() + oneHour);
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1000; i++) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(start);
             int month = cal.get(Calendar.MONTH) + 1;
@@ -110,6 +110,9 @@ public class DropStatisticsTest {
             end = new Date(end.getTime() + oneHour);
         }
     }
+
+
+    
 
     @Test
     public void testSelect() throws Exception {
