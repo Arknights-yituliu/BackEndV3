@@ -25,4 +25,7 @@ public interface StageDropStatisticsMapper extends BaseMapper<StageDropStatistic
 
     List<StageDropStatistics> listByStageId(@Param("stageId") String stageId, @Param("timeGranularity") Integer timeGranularity,
                                                                @Param("start") Date start, @Param("end") Date end);
+
+    Integer expireByTimeRange(@Param("recordCode") Integer recordCode, @Param("timeGranularity") Integer timeGranularity,
+                              @Param("start") Date start, @Param("end") Date end);
 }

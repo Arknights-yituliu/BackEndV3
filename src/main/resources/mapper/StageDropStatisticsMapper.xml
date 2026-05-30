@@ -39,6 +39,14 @@
         </foreach>
     </insert>
 
+    <update id="expireByTimeRange">
+        UPDATE stage_drop_statistics
+        SET record_code = #{recordCode}
+        WHERE time_granularity = #{timeGranularity}
+          AND start_time &gt;= #{start}
+          AND end_time &lt;= #{end}
+    </update>
+
     <select id="selectListByDate" resultType="com.lhs.entity.po.material.StageDropStatistics">
         SELECT *
         FROM stage_drop_statistics

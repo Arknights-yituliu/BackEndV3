@@ -185,7 +185,7 @@ public class DropStatisticsTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
         for (StageDropStatisticsResultVO item : list) {
-            if (item.getStageId().equals("main_17-11")) {
+            if (item.getStageId().equals("act43side_06")) {
                 Logger.info(item.getItemId() + "材料名：" + itemNameMap.get(item.getItemId())
                         + "，start：" + sdf.format(new Date(item.getStart()))
                         + "，end：" + sdf.format(new Date(item.getEnd()))

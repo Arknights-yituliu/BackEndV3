@@ -3,28 +3,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhs.mapper.material.StageDropMapper">
 
-    <select id="countByDate" resultType="Integer">
-        SELECT COUNT(*)
-        FROM stage_drop
-        WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
-    </select>
-
-    <select id="listStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
-        SELECT *
-        FROM stage_drop
-        WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
-    </select>
 
     <select id="listOldStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
         SELECT *
         FROM ${tableName}
         WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
+        AND create_time &lt; #{end}
     </select>
 
-   
 
     <insert id="insertBatch">
         INSERT INTO stage_drop
@@ -47,23 +33,38 @@
     </insert>
 
 
-
- <select id="countByDate" resultType="Integer">
+    <select id="countByDate" resultType="Integer">
         SELECT COUNT(*)
         FROM ${tableName}
         WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
-          AND server = 'CN'
+        AND create_time &lt; #{end}
+        AND server = 'CN'
+    </select>
+
+    <select id="selectListByStageId" resultType="com.lhs.entity.po.material.StageDrop">
+        SELECT *
+        FROM ${tableName}
+        WHERE stage_id = #{stageId}
+        AND server = 'CN'
     </select>
 
     
+
 
     <select id="selectListByDate" resultType="com.lhs.entity.po.material.StageDrop">
         SELECT *
         FROM ${tableName}
         WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
-          AND server = 'CN'
+        AND create_time &lt; #{end}
+        AND server = 'CN'
+    </select>
+
+    <select id="selectTimeRange" resultType="com.lhs.entity.dto.drop.StageDropTimeRangeDTO">
+        SELECT MIN(create_time) AS firstTime, MAX(create_time) AS lastTime, COUNT(*) AS cnt
+        FROM ${tableName}
+        WHERE create_time &gt;= #{start}
+        AND create_time &lt; #{end}
+        AND server = 'CN'
     </select>
 
     <!-- SQL-1：按 stageId 聚合时段内的总 times（不需要 JSON 解析，直接 SUM） -->
@@ -71,35 +72,35 @@
         SELECT stage_id AS stageId, SUM(times) AS times
         FROM ${tableName}
         WHERE create_time &gt;= #{start}
-          AND create_time &lt; #{end}
-          AND server = 'CN'
+        AND create_time &lt; #{end}
+        AND server = 'CN'
         GROUP BY stage_id
     </select>
 
     <!-- SQL-2：按 stageId + itemId 聚合掉落数量（JSON_TABLE 在 DB 内展开 drops 数组） -->
     <select id="selectDropStatsByDate" resultType="com.lhs.entity.dto.drop.StageDropQuantityCountRawDTO">
         SELECT
-            t.stage_id AS stageId,
-            t.item_id AS itemId,
-            SUM(t.item_quantity) AS quantity,
-            SUM(t.times) AS times
+        t.stage_id AS stageId,
+        t.item_id AS itemId,
+        SUM(t.item_quantity) AS quantity,
+        SUM(t.times) AS times
         FROM (
-            SELECT
-                sd.stage_id,
-                jt.item_id,
-                jt.item_quantity,
-                sd.times
-            FROM ${tableName} sd
-            JOIN JSON_TABLE(
-                sd.drops,
-                '$[*]' COLUMNS(
-                    item_id VARCHAR(50) PATH '$.itemId',
-                    item_quantity BIGINT PATH '$.quantity'
-                )
-            ) AS jt
-            WHERE sd.create_time &gt;= #{start}
-              AND sd.create_time &lt; #{end}
-              AND sd.server = 'CN'
+        SELECT
+        sd.stage_id,
+        jt.item_id,
+        jt.item_quantity,
+        sd.times
+        FROM ${tableName} sd
+        JOIN JSON_TABLE(
+        sd.drops,
+        '$[*]' COLUMNS(
+        item_id VARCHAR(50) PATH '$.itemId',
+        item_quantity BIGINT PATH '$.quantity'
+        )
+        ) AS jt
+        WHERE sd.create_time &gt;= #{start}
+        AND sd.create_time &lt; #{end}
+        AND sd.server = 'CN'
         ) t
         GROUP BY t.stage_id, t.item_id
     </select>

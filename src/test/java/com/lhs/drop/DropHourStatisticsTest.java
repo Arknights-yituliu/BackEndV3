@@ -16,7 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 @SpringBootTest
-public class DropStatisticsTest2 {
+public class DropHourStatisticsTest {
 
     @Resource
     private StageDropStatisticsService stageDropStatisticsService;
@@ -81,17 +81,17 @@ public class DropStatisticsTest2 {
 
     @Test
     public void stageDropStatistics202512() throws Exception {
-        stageDropStatisticsByDate("2025-12-01 00");
+        stageDropStatisticsByDate("2025-12-19 00");
     }
 
     @Test
     public void stageDropStatistics202601() throws Exception {
-        stageDropStatisticsByDate("2026-01-01 00");
+        stageDropStatisticsByDate("2026-01-19 00");
     }
 
     @Test
     public void stageDropStatistics202602() throws Exception {
-        stageDropStatisticsByDate("2026-02-01 00");
+        stageDropStatisticsByDate("2026-02-20 00");
     }
 
     @Test
@@ -131,7 +131,7 @@ public class DropStatisticsTest2 {
             int year = cal.get(Calendar.YEAR);
             String tableName = String.format("stage_drop_%d_%02d", year, month);
             // String tableName = "stage_drop_20251130_20260221";
-            stageDropStatisticsService.stageDropHourlyStatistics(start, end, tableName);
+            stageDropStatisticsService.stageDropHourlyStatisticsV2(start, end, tableName);
             start = new Date(start.getTime() + oneHour);
             end = new Date(end.getTime() + oneHour);
         }
