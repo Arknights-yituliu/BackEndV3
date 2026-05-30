@@ -41,7 +41,7 @@ public class CustomItemAPITest {
         ItemValueConfigDTO config = buildDefaultConfig();
         List<ItemInfoDTO> itemList = customItemService.getCustomItemList(config);
         for(ItemInfoDTO item : itemList) {
-            System.out.println( item.getItemValue());
+            System.out.println(item.getItemName()+"  "+ item.getItemValue());
         }
        
     }

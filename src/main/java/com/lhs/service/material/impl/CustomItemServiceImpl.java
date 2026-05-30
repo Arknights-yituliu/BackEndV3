@@ -36,10 +36,7 @@ public class CustomItemServiceImpl implements CustomItemService {
         this.penguinDataServiceService = penguinDataServiceService;
     }
 
-    @Override
-    public void customItemValueCalculation() {
 
-    }
 
     @Override
     public List<ItemInfoDTO> getCustomItemList(ItemValueConfigDTO itemValueConfigDTO) {

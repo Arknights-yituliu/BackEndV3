@@ -9,7 +9,7 @@ import java.util.List;
 public interface CustomItemService {
 
 
-    void customItemValueCalculation();
+
 
 
 
