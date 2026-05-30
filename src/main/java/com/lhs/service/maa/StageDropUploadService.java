@@ -1,10 +1,9 @@
 package com.lhs.service.maa;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.util.*;
 
-import com.lhs.entity.dto.material.StageDropDTO;
-import com.lhs.entity.dto.material.StageDropDetailDTO;
+import com.lhs.entity.dto.drop.StageDropDTO;
+import com.lhs.entity.dto.drop.StageDropDetailDTO;
 import com.lhs.entity.po.material.StageDrop;
 
 import com.lhs.mapper.material.StageDropMapper;
@@ -104,7 +103,12 @@ public class StageDropUploadService {
             stageDrop.setDrops("[]");
         }
 
-        stageDropMapper.insert(stageDrop);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        String tableName = String.format("stage_drop_%d_%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
+
+       
+        stageDropMapper.insertByTable(tableName, stageDrop);
     }
 
 

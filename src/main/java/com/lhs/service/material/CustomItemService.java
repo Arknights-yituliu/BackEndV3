@@ -1,8 +1,8 @@
 package com.lhs.service.material;
 
 
-import com.lhs.entity.dto.item.custom.ItemInfoDTO;
-import com.lhs.entity.dto.item.custom.ItemValueConfigDTO;
+import com.lhs.entity.dto.material.ItemInfoDTO;
+import com.lhs.entity.dto.material.ItemValueConfigDTO;
 
 import java.util.List;
 

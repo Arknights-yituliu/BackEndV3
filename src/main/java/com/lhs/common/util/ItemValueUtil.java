@@ -3,7 +3,7 @@ package com.lhs.common.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.lhs.entity.dto.item.custom.RecruitmentPricingStrategy;
+import com.lhs.entity.dto.material.RecruitmentPricingStrategy;
 
 /**
  * 招募定价工具类，数据写死在类中，无需读取 JSON

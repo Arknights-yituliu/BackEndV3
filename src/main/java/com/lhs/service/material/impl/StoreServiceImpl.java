@@ -9,7 +9,6 @@ import com.lhs.entity.po.material.*;
 import com.lhs.entity.vo.material.*;
 import com.lhs.mapper.admin.ImageInfoMapper;
 import com.lhs.mapper.material.*;
-import com.lhs.service.material.ItemService;
 import com.lhs.service.material.StoreService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ public class StoreServiceImpl implements StoreService {
 
     private final StoreActMapper storeActMapper;
 
-    private final ItemService itemService;
+
 
 
 
@@ -38,12 +37,12 @@ public class StoreServiceImpl implements StoreService {
 
     public StoreServiceImpl(
                             StoreActMapper storeActMapper,
-                            ItemService itemService,
+
 
                             RedisTemplate<String, Object> redisTemplate,
                             ImageInfoMapper imageInfoMapper) {
         this.storeActMapper = storeActMapper;
-        this.itemService = itemService;
+
         this.redisTemplate = redisTemplate;
         this.imageInfoMapper = imageInfoMapper;
         this.idGenerator = new IdGenerator(1L);

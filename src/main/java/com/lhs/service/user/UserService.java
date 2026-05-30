@@ -1,6 +1,5 @@
 package com.lhs.service.user;
 
-import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.dto.user.*;
 import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
@@ -108,12 +107,7 @@ public interface UserService {
      */
     UserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest);
 
-    /**
-     * 获取用户的各种自定义配置
-     * @param request 请求体
-     * @return 用户配置
-     */
-    StageConfigDTO getUserStageConfig(HttpServletRequest request);
+
 
     /**
      * 更新用户的各种自定义配置

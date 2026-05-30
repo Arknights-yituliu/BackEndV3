@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class TaskService {
 
 
-    private final StageCalService stageCalService;
+
     private final StageService stageService;
     private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
     private final RecruitTagUploadService recruitTagUploadService;
@@ -31,7 +31,7 @@ public class TaskService {
     private final UserService userService;
 
     public TaskService(
-            StageCalService stageCalService,
+
             StageService stageService,
             OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             RecruitTagUploadService recruitTagUploadService,
@@ -39,7 +39,7 @@ public class TaskService {
             QuestionnaireService questionnaireService,
             OperatorDataService operatorDataService,
             UserService userService) {
-        this.stageCalService = stageCalService;
+
         this.stageService = stageService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.recruitTagUploadService = recruitTagUploadService;
@@ -75,13 +75,6 @@ public class TaskService {
         stageService.getPenguinStagesDropData();
     }
 
-    /**
-     * 根据关卡配置更新关卡计算结果
-     */
-    @Scheduled(cron = "0 0/19 * * * ?")
-    public void updateStageResult() {
-        stageCalService.updateStageResultByTaskConfig();
-    }
 
     /**
      * 统计干员练度数据

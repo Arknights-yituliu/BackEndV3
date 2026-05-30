@@ -2,9 +2,7 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.material.PackInfoDTO;
-import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.po.admin.LogInfo;
-import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
@@ -128,24 +126,12 @@ public class AdminController {
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
     public Result<List<PackInfoVO>> getPackList(){
-        StageConfigDTO stageConfigDTO = new StageConfigDTO();
-        return Result.success(packInfoService.listAllPackInfo(stageConfigDTO));
+     
+        return Result.success(packInfoService.listAllPackInfo());
     }
 
 
-    @Operation(summary = "更新礼包材料表")
-    @PostMapping("/admin/item/update")
-    public Result<ItemCustom> saveOrUpdatePackItem(HttpServletRequest httpServletRequest,@RequestBody ItemCustom newItemCustom){
-        ItemCustom itemCustom = packInfoService.saveOrUpdateCustomItem(newItemCustom);
-        return Result.success(itemCustom);
-    }
-
-    @Operation(summary = "删除礼包材料")
-    @GetMapping("/admin/item/delete")
-    public Result<String> deletePackItem(HttpServletRequest httpServletRequest,@RequestParam String id){
-
-        return Result.success(packInfoService.deletePackItemById(id));
-    }
+   
 
 
 
@@ -187,10 +173,5 @@ public class AdminController {
         return Result.success(imageInfoService.saveImageFiles(files,path));
     }
 
-    @Operation(summary = "获取礼包自定义材料表")
-    @GetMapping("/store/pack/item/list")
-    public Result<List<ItemCustom>> getItemList() {
-        List<ItemCustom> itemCustomList = packInfoService.listCustomItem();
-        return Result.success(itemCustomList);
-    }
+   
 }

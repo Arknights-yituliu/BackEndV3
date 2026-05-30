@@ -7,7 +7,6 @@ import com.lhs.common.enums.StageType;
 import com.lhs.common.util.*;
 import com.lhs.entity.po.material.Stage;
 
-import com.lhs.entity.vo.material.ZoneTableVO;
 import com.lhs.mapper.material.StageMapper;
 
 import com.lhs.service.util.TencentCloudService;
@@ -40,7 +39,7 @@ public class StageService {
     }
 
 
-    // @RedisCacheable(key = "StageInfoMap",timeout = 43200)
+
     public Map<String, Stage> getStageInfoMap(){
         List<Stage> stageList = stageMapper.selectList(null);
 
@@ -77,55 +76,7 @@ public class StageService {
     }
 
 
-    public Map<String, List<Stage>> getStageMapGroupByZone() {
-        QueryWrapper<Stage> stageNewQueryWrapper = new QueryWrapper<>();
-        stageNewQueryWrapper.notLike("stage_id", "tough")
-                .orderByDesc("stage_id");
-        List<Stage> stageList = stageMapper.selectList(stageNewQueryWrapper);
-        return stageList.stream().collect(Collectors.groupingBy(Stage::getZoneName));
-    }
 
-    public Map<String, List<ZoneTableVO>> getZoneTable() {
-
-        List<Stage> stageList = stageMapper.selectList(new QueryWrapper<Stage>().notLike("stage_id", "tough"));
-        Map<String, List<Stage>> stageListMap = stageList.stream().collect(Collectors.groupingBy(Stage::getZoneId));
-
-        List<ZoneTableVO> zoneTableVOList = new ArrayList<>();
-        for (String zoneId : stageListMap.keySet()) {
-            ZoneTableVO zoneTableVo = new ZoneTableVO();
-            zoneTableVo.setZoneId(zoneId);
-            List<Stage> stageListByZone = stageListMap.get(zoneId);
-            Stage stage = stageListByZone.get(0);
-            zoneTableVo.setZoneName(stage.getZoneName());
-            zoneTableVo.setStageType(stage.getStageType());
-            zoneTableVo.setStageList(stageListByZone);
-            zoneTableVo.setEndTime(stage.getEndTime());
-            zoneTableVOList.add(zoneTableVo);
-        }
-
-
-        Map<String, List<ZoneTableVO>> zoneMap = zoneTableVOList.stream().collect(Collectors.groupingBy(ZoneTableVO::getStageType));
-        zoneMap.forEach((k,v)->v.sort(Comparator.comparing(ZoneTableVO::getEndTime).reversed()));
-
-        return zoneMap;
-    }
-
-
-
-    public HashMap<Object, Object> updateStageList(List<Stage> stageList) {
-
-        int affectedRows = 0;
-        for (Stage stage : stageList) {
-            QueryWrapper<Stage> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("stage_id", stage.getStageId());
-            int update = stageMapper.update(stage, queryWrapper);
-            affectedRows += update;
-        }
-
-        HashMap<Object, Object> hashMap = new HashMap<>();
-        hashMap.put("affectedRows", affectedRows);
-        return hashMap;
-    }
 
 
     public void savePenguinData() {

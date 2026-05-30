@@ -4,14 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
-import com.lhs.common.enums.StageType;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.FileUtil;
 import com.lhs.common.util.ItemValueUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
-import com.lhs.entity.dto.item.custom.*;
-import com.lhs.entity.dto.material.PenguinMatrixDTO;
+import com.lhs.entity.dto.material.*;
 import com.lhs.entity.po.material.Stage;
 import com.lhs.service.material.CustomItemService;
 import com.lhs.service.material.PenguinDataService;
@@ -36,6 +34,98 @@ public class CustomItemServiceImpl implements CustomItemService {
         this.penguinDataServiceService = penguinDataServiceService;
     }
 
+    /**
+     * 为未填写的属性填充默认值
+     */
+    private void fillDefaultConfig(ItemValueConfigDTO config) {
+        if (config.getSource() == null) {
+            config.setSource("penguin");
+        }
+        if (config.getVersion() == null) {
+            config.setVersion("v1.0");
+        }
+        if (config.getUseActivityAverageStage() == null) {
+            config.setUseActivityAverageStage(false);
+        }
+        if (config.getSampleSize() == null) {
+            config.setSampleSize(300);
+        }
+        if (config.getStageBlacklist() == null) {
+            config.setStageBlacklist(Collections.emptySet());
+        }
+        if (config.getStageWhitelist() == null) {
+            config.setStageWhitelist(Collections.emptySet());
+        }
+        if (config.getOrundumPricingStrategy() == null) {
+            config.setOrundumPricingStrategy("ORUNDUM_PRICING_ORIGINITE_PRIME");
+        }
+        if (config.getOrundumValue() == null) {
+            config.setOrundumValue(3.0 / 4);
+        }
+        if (config.getOriginitePrimePricingStrategy() == null) {
+            config.setOriginitePrimePricingStrategy("ORIGINITE_PRIME_PRICING_ORUNDUM");
+        }
+        if (config.getOriginitePrimeCoefficient() == null) {
+            config.setOriginitePrimeCoefficient(180.0);
+        }
+        if (config.getKernelHeadhuntingPermitPricingStrategy() == null) {
+            config.setKernelHeadhuntingPermitPricingStrategy("KERNEL_HEADHUNTING_PERMIT_PRICING_DISTINCTION_CERTIFICATE");
+        }
+        if (config.getKernelHeadhuntingPermitCoefficient() == null) {
+            config.setKernelHeadhuntingPermitCoefficient(216.0 / 258);
+        }
+        if (config.getLmdPricingStrategy() == null) {
+            config.setLmdPricingStrategy("LMD_PRICING_CE-6");
+        }
+        if (config.getLmdCoefficient() == null) {
+            config.setLmdCoefficient(1.0);
+        }
+        if (config.getExpPricingStrategy() == null) {
+            config.setExpPricingStrategy("EXP_PRICING_BASE_LVL_3_TRADING_POST");
+        }
+        if (config.getExpCoefficient() == null) {
+            config.setExpCoefficient(145.0 / 229);
+        }
+        if (config.getModUnlockTokenPricingStrategy() == null) {
+            config.setModUnlockTokenPricingStrategy("MOD_UNLOCK_TOKEN_PRICING_PURCHASE_CERTIFICATE");
+        }
+        if (config.getModUnlockTokenValue() == null) {
+            config.setModUnlockTokenValue(120.0 * 30 / 21);
+        }
+        if (config.getRecruitmentPermitPricingStrategy() == null) {
+            config.setRecruitmentPermitPricingStrategy("RECRUITMENT_PERMIT_PRICING_3_4");
+        }
+        if (config.getFurniturePartPricingStrategy() == null) {
+            config.setFurniturePartPricingStrategy("FURNITURE_PART_PRICING_ZERO");
+        }
+        if (config.getFurniturePartValue() == null) {
+            config.setFurniturePartValue(0.0);
+        }
+        if (config.getCustomItem() == null) {
+            config.setCustomItem(Arrays.asList(
+                    new CustomItemDTO("30073", 1.8),
+                    new CustomItemDTO("30083", 2.16),
+                    new CustomItemDTO("30093", 2.52),
+                    new CustomItemDTO("30103", 2.88)
+            ));
+        }
+        if (config.getWorkshopStrategy() == null) {
+            config.setWorkshopStrategy(new WorkshopStrategyDTO(
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 1.0),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 1.0),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 1.0),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 1.0),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 0.8),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 0.8),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_NINE_COLORED_DEER_OBTAIN", null),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 0.8),
+                    new WorkshopItemDTO("WORKSHOP_STRATEGY_COMMON", 0.8)
+            ));
+        }
+        if (config.getChipPreference() == null) {
+            config.setChipPreference(new ChipPreferenceDTO("BALANCED", "BALANCED", "BALANCED", "BALANCED"));
+        }
+    }
 
 
     @Override
@@ -44,6 +134,7 @@ public class CustomItemServiceImpl implements CustomItemService {
         double tolerance = 0.000001;
         int maxIteration = 10;
 
+        fillDefaultConfig(itemValueConfigDTO);
         checkItemValueConfig(itemValueConfigDTO);
 
         JsonNode recruitmentTableJson = JsonMapper
@@ -1031,6 +1122,8 @@ public class CustomItemServiceImpl implements CustomItemService {
             return stageEfficiency;
         }
     }
+
+    
 
     private void checkItemValueConfig(ItemValueConfigDTO configDTO) {
         checkNotNull(configDTO.getUseActivityAverageStage());

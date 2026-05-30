@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.item.custom;
+package com.lhs.entity.dto.material;
 
 public class ChipPreferenceDTO {
     private String TANK_MEDIC;

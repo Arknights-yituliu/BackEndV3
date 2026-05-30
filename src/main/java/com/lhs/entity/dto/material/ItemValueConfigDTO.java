@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.item.custom;
+package com.lhs.entity.dto.material;
 
 import java.util.List;
 import java.util.Set;

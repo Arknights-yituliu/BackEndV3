@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.material;
+package com.lhs.entity.dto.drop;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.lhs.entity.dto.item.custom;
+package com.lhs.entity.dto.material;
 
 /**
  * 单个稀有度公开招募的凭证定价策略

@@ -9,7 +9,6 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
-import com.lhs.entity.dto.item.StageConfigDTO;
 import com.lhs.entity.dto.user.*;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
@@ -859,19 +858,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Override
-    public StageConfigDTO getUserStageConfig(HttpServletRequest request) {
-        String uid = request.getHeader("uid");
-        UserConfig userConfig = userConfigMapper.selectById(uid);
-        if (userConfig == null) {
-            return new StageConfigDTO();
-        }
-        String config = userConfig.getConfig();
-        UserConfigDTO userConfigDTO = JsonMapper.parseObject(config, new TypeReference<>() {
-        });
 
-        return userConfigDTO.getStageConfig();
-    }
 
 
     @Override

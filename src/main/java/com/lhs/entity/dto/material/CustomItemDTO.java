@@ -1,10 +1,16 @@
-package com.lhs.entity.dto.item;
+package com.lhs.entity.dto.material;
 
 public class CustomItemDTO {
-
     private String itemId;
-
     private Double itemValue;
+
+    public CustomItemDTO() {
+    }
+
+    public CustomItemDTO(String itemId, Double itemValue) {
+        this.itemId = itemId;
+        this.itemValue = itemValue;
+    }
 
     public String getItemId() {
         return itemId;
@@ -20,13 +26,5 @@ public class CustomItemDTO {
 
     public void setItemValue(Double itemValue) {
         this.itemValue = itemValue;
-    }
-
-    @Override
-    public String toString() {
-        return "ItemCustomValue{" +
-                "itemName='" + itemId + '\'' +
-                ", itemValue='" + itemValue + '\'' +
-                '}';
     }
 }

@@ -3,6 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lhs.mapper.material.StageDropMapper">
 
+   
+
 
     <select id="listOldStageDropByDate" resultType="com.lhs.entity.po.material.StageDrop">
         SELECT *
@@ -12,15 +14,7 @@
     </select>
 
 
-    <insert id="insertBatch">
-        INSERT INTO stage_drop
-        (id, stage_id, drops, times, server, source, create_time, uid, version)
-        VALUES
-        <foreach collection="list" item="item" separator=",">
-            (#{item.id},#{item.stageId},#{item.drops},#{item.times},
-            #{item.server},#{item.source},#{item.createTime},#{item.uid},#{item.version})
-        </foreach>
-    </insert>
+    
 
     <insert id="insertBatchByTable">
         INSERT INTO ${table}
@@ -30,6 +24,14 @@
             (#{item.id},#{item.stageId},#{item.drops},#{item.times},
             #{item.server},#{item.source},#{item.createTime},#{item.uid},#{item.version})
         </foreach>
+    </insert>
+
+    <insert id="insertByTable">
+        INSERT INTO ${table}
+        (id, stage_id, drops, times, server, source, create_time, uid, version)
+        VALUES
+        (#{item.id},#{item.stageId},#{item.drops},#{item.times},
+        #{item.server},#{item.source},#{item.createTime},#{item.uid},#{item.version})
     </insert>
 
 
