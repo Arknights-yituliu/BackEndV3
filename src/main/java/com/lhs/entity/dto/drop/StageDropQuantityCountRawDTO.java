@@ -1,16 +1,18 @@
 package com.lhs.entity.dto.drop;
 
-public class StageDropTimesDTO {
+public class StageDropQuantityCountRawDTO {
     private String stageId;
     private String itemId;
+    private Long quantity;
     private Long times;
 
-    public StageDropTimesDTO() {
+    public StageDropQuantityCountRawDTO() {
     }
 
-    public StageDropTimesDTO(String stageId, String itemId, Long times) {   
+    public StageDropQuantityCountRawDTO(String stageId, String itemId, Long quantity, Long times) {
         this.stageId = stageId;
         this.itemId = itemId;
+        this.quantity = quantity;
         this.times = times;
     }
 
@@ -30,16 +32,19 @@ public class StageDropTimesDTO {
         this.itemId = itemId;
     }
 
+    public Long getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Long quantity) {
+        this.quantity = quantity;
+    }
+
     public Long getTimes() {
         return times;
     }
 
     public void setTimes(Long times) {
         this.times = times;
-    }
-
-    public void addTimes(Long times) {
-        this.times += times;
-
     }
 }

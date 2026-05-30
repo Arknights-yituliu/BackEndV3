@@ -1,14 +1,7 @@
 package com.lhs.drop;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.config.ConfigUtil;
-import com.lhs.common.util.FileUtil;
-import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 
-import com.lhs.entity.dto.drop.StageDropTimesDTO;
-import org.checkerframework.checker.units.qual.s;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -19,12 +12,8 @@ import com.lhs.service.material.StageDropStatisticsService;
 import jakarta.annotation.Resource;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @SpringBootTest
 public class DropStatisticsTest2 {

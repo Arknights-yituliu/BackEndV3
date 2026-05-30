@@ -8,7 +8,9 @@ import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 
-import com.lhs.entity.dto.drop.StageDropQuantityDTO;
+import com.lhs.entity.dto.drop.StageDropQuantityCountDTO;
+import com.lhs.entity.dto.drop.StageDropQuantityCountRawDTO;
+import com.lhs.entity.dto.drop.StageDropTimesCountRawDTO;
 import com.lhs.entity.dto.material.StageDropDetailDTO;
 import com.lhs.entity.po.material.StageDrop;
 import com.lhs.entity.po.material.StageDropStatisticsTaskLog;
@@ -37,7 +39,7 @@ public class StageDropStatisticsService {
             StageDropStatisticsMapper stageDropStatisticsMapper) {
         this.stageDropMapper = stageDropMapper;
         this.stageDropStatisticsMapper = stageDropStatisticsMapper;
-        this.idGenerator = new IdGenerator(1L);
+        this.idGenerator = new IdGenerator(3L);
 
     }
 
@@ -52,7 +54,7 @@ public class StageDropStatisticsService {
                 + simpleDateFormat.format(endTime));
 
         // 查询当前统计时段的数据总量
-        Integer countByDate = stageDropMapper.countFromTableByDate(tableName, startTime, endTime);
+        Integer countByDate = stageDropMapper.countByDate(tableName, startTime, endTime);
 
         // 如果数据总量为空，直接结束任务
         if (countByDate == 0) {
@@ -76,12 +78,12 @@ public class StageDropStatisticsService {
         }
 
         // 查询当前时段的数据
-        List<StageDrop> stageDropList = stageDropMapper.selectFromTableListByDate(tableName, startTime, endTime);
+        List<StageDrop> stageDropList = stageDropMapper.selectListByDate(tableName, startTime, endTime);
 
         Date firstDateCreateTime = stageDropList.get(0).getCreateTime();
         Date lastDateCreateTime = stageDropList.get(countByDate - 1).getCreateTime();
 
-        Map<String, StageDropQuantityDTO> dropQuantityMap = new HashMap<>();
+        Map<String, StageDropQuantityCountDTO> dropQuantityMap = new HashMap<>();
         Map<String, Long> dropTimesHashMap = new HashMap<>();
 
         for (StageDrop stageDrop : stageDropList) {
@@ -102,28 +104,28 @@ public class StageDropStatisticsService {
                     String itemId = stageDropDetailDTO.getItemId();
                     long quantity = stageDropDetailDTO.getQuantity().longValue();
                     String collectKey = stageId + "_" + itemId;
-                    StageDropQuantityDTO stageDropQuantityDTO = dropQuantityMap.get(collectKey);
+                    StageDropQuantityCountDTO stageDropQuantityCountDTO = dropQuantityMap.get(collectKey);
 
-                    if (stageDropQuantityDTO == null) {
-                        stageDropQuantityDTO = new StageDropQuantityDTO(stageId, itemId, firstDateCreateTime,
+                    if (stageDropQuantityCountDTO == null) {
+                        stageDropQuantityCountDTO = new StageDropQuantityCountDTO(stageId, itemId, firstDateCreateTime,
                                 lastDateCreateTime, 0L);
-                        dropQuantityMap.put(collectKey, stageDropQuantityDTO);
+                        dropQuantityMap.put(collectKey, stageDropQuantityCountDTO);
                     }
 
-                    stageDropQuantityDTO.addQuantity(quantity);
+                    stageDropQuantityCountDTO.addQuantity(quantity);
 
                 }
             }
         }
 
         List<StageDropStatistics> stageDropStatisticsList = new ArrayList<>();
-        for (StageDropQuantityDTO stageDropQuantityDTO : dropQuantityMap.values()) {
+        for (StageDropQuantityCountDTO stageDropQuantityCountDTO : dropQuantityMap.values()) {
             StageDropStatistics stageDropStatistics = new StageDropStatistics();
             stageDropStatistics.setId(idGenerator.nextId());
-            stageDropStatistics.setStageId(stageDropQuantityDTO.getStageId());
-            stageDropStatistics.setItemId(stageDropQuantityDTO.getItemId());
-            stageDropStatistics.setTimes(dropTimesHashMap.get(stageDropQuantityDTO.getStageId()));
-            stageDropStatistics.setQuantity(stageDropQuantityDTO.getQuantity());
+            stageDropStatistics.setStageId(stageDropQuantityCountDTO.getStageId());
+            stageDropStatistics.setItemId(stageDropQuantityCountDTO.getItemId());
+            stageDropStatistics.setTimes(dropTimesHashMap.get(stageDropQuantityCountDTO.getStageId()));
+            stageDropStatistics.setQuantity(stageDropQuantityCountDTO.getQuantity());
             stageDropStatistics.setStartTime(firstDateCreateTime);
             stageDropStatistics.setEndTime(lastDateCreateTime);
             stageDropStatistics.setTimeGranularity(TimeGranularity.HOUR.code());
@@ -166,5 +168,112 @@ public class StageDropStatisticsService {
         Integer i1 = stageDropStatisticsMapper.insertBatch(stageDropStatisticsList);
         Logger.info("新增了" + i1 + "条统计结果");
     }
+
+    /**
+     * 每小时关卡掉落统计入口
+     */
+    public void stageDropHourlyStatisticsV2(Date startTime, Date endTime, String tableName) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Logger.info("开始执行关卡掉率统计——表名：" + tableName + "——时段" + simpleDateFormat.format(startTime) + "-"
+                + simpleDateFormat.format(endTime));
+
+        // 查询当前统计时段的数据总量
+        Integer countByDate = stageDropMapper.countByDate(tableName, startTime, endTime);
+
+        // 如果数据总量为空，直接结束任务
+        if (countByDate == 0) {
+            Logger.info("当前时间段数据为空，本次统计任务结束");
+            return;
+        }
+
+        // 如果没有执行过当前统计时段和时间粒度的任务或统计未完成，执行下面的逻辑
+        Date date = new Date();
+
+        LambdaUpdateWrapper<StageDropStatistics> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(StageDropStatistics::getTimeGranularity, TimeGranularity.HOUR.code())
+                .ge(StageDropStatistics::getStartTime, startTime)
+                .le(StageDropStatistics::getEndTime, endTime);
+
+        StageDropStatistics updateEntity = new StageDropStatistics();
+        updateEntity.setRecordCode(RecordType.EXPIRE.code());
+        int update = stageDropStatisticsMapper.update(updateEntity, updateWrapper);
+        if (update > 0) {
+            Logger.info("将" + update + "条旧数据过期");
+        }
+
+        // 查询当前时段的时间边界
+        List<StageDrop> stageDropList = stageDropMapper.selectListByDate(tableName, startTime, endTime);
+
+        Date firstDateCreateTime = stageDropList.get(0).getCreateTime();
+        Date lastDateCreateTime = stageDropList.get(countByDate - 1).getCreateTime();
+
+        // SQL-1：按 stageId 聚合时段内总 times
+        List<StageDropTimesCountRawDTO> stageTimesList = stageDropMapper.selectStageTimesByDate(tableName, startTime, endTime);
+        Map<String, Long> dropTimesHashMap = new HashMap<>();
+        for (StageDropTimesCountRawDTO dto : stageTimesList) {
+            dropTimesHashMap.put(dto.getStageId(), dto.getTimes());
+        }
+
+        // SQL-2：按 stageId + itemId 聚合掉落数量（JSON_TABLE 在 DB 内展开）
+        List<StageDropQuantityCountRawDTO> dropStatsList = stageDropMapper.selectDropStatsByDate(tableName, startTime, endTime);
+        Map<String, StageDropQuantityCountDTO> dropQuantityMap = new HashMap<>();
+        for (StageDropQuantityCountRawDTO dto : dropStatsList) {
+            String collectKey = dto.getStageId() + "_" + dto.getItemId();
+            StageDropQuantityCountDTO dto2 = new StageDropQuantityCountDTO(
+                    dto.getStageId(), dto.getItemId(), firstDateCreateTime, lastDateCreateTime, dto.getQuantity());
+            dropQuantityMap.put(collectKey, dto2);
+        }
+
+        List<StageDropStatistics> stageDropStatisticsList = new ArrayList<>();
+        for (StageDropQuantityCountDTO stageDropQuantityCountDTO : dropQuantityMap.values()) {
+            StageDropStatistics stageDropStatistics = new StageDropStatistics();
+            stageDropStatistics.setId(idGenerator.nextId());
+            stageDropStatistics.setStageId(stageDropQuantityCountDTO.getStageId());
+            stageDropStatistics.setItemId(stageDropQuantityCountDTO.getItemId());
+            stageDropStatistics.setTimes(dropTimesHashMap.get(stageDropQuantityCountDTO.getStageId()));
+            stageDropStatistics.setQuantity(stageDropQuantityCountDTO.getQuantity());
+            stageDropStatistics.setStartTime(firstDateCreateTime);
+            stageDropStatistics.setEndTime(lastDateCreateTime);
+            stageDropStatistics.setTimeGranularity(TimeGranularity.HOUR.code());
+            stageDropStatistics.setCreateTime(date);
+            stageDropStatistics.setRecordCode(RecordType.ARCHIVED.code());
+            stageDropStatisticsList.add(stageDropStatistics);
+        }
+
+        Logger.info("统计了" + countByDate + "条");
+
+        if (stageDropStatisticsList.isEmpty()) {
+            Logger.info("统计结果为空");
+            return;
+        }
+
+        // 先查询是否已经执行过当前统计时段和时间粒度的任务
+        StageDropStatisticsTaskLog oldTaskLog = stageDropStatisticsMapper.getTaskLogByTimeGranularityAndDate(
+                TimeGranularity.HOUR.code(),
+                startTime, endTime);
+
+        // 新建一个任务执行日志
+        StageDropStatisticsTaskLog taskLog = new StageDropStatisticsTaskLog();
+        taskLog.setId(idGenerator.nextId());
+        taskLog.setCreateTime(date);
+        taskLog.setTimeGranularity(TimeGranularity.HOUR.code());
+        // 补充任务日志中的数据，第一条数据的开始时间，最后一条数据的结束时间，数据总量
+        taskLog.setStartTime(firstDateCreateTime);
+        taskLog.setEndTime(lastDateCreateTime);
+        taskLog.setDataCount(countByDate);
+
+        if (oldTaskLog != null) {
+            taskLog.setId(oldTaskLog.getId());
+            stageDropStatisticsMapper.updateTaskLog(taskLog);
+            Logger.info("更新了统计日志");
+        } else {
+            stageDropStatisticsMapper.insertTaskLog(taskLog);
+            Logger.info("新增了统计日志");
+        }
+
+        Integer i1 = stageDropStatisticsMapper.insertBatch(stageDropStatisticsList);
+        Logger.info("新增了" + i1 + "条统计结果");
+    }
+
 
 }

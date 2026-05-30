@@ -2,7 +2,7 @@ package com.lhs.entity.dto.drop;
 
 import java.util.Date;
 
-public class StageDropQuantityDTO {
+public class StageDropQuantityCountDTO {
     private String stageId;
     private String itemId;
     private Date start;
@@ -10,10 +10,10 @@ public class StageDropQuantityDTO {
 
     private Long quantity;
 
-    public StageDropQuantityDTO() {
+    public StageDropQuantityCountDTO() {
     }
 
-    public StageDropQuantityDTO(String stageId, String itemId, Date start, Date end, Long quantity) {
+    public StageDropQuantityCountDTO(String stageId, String itemId, Date start, Date end, Long quantity) {
         this.stageId = stageId;
         this.itemId = itemId;
         this.start = start;

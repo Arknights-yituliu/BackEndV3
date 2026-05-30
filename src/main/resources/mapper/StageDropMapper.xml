@@ -48,7 +48,7 @@
 
 
 
- <select id="countFromTableByDate" resultType="Integer">
+ <select id="countByDate" resultType="Integer">
         SELECT COUNT(*)
         FROM ${tableName}
         WHERE create_time &gt;= #{start}
@@ -56,7 +56,9 @@
           AND server = 'CN'
     </select>
 
-    <select id="selectFromTableListByDate" resultType="com.lhs.entity.po.material.StageDrop">
+    
+
+    <select id="selectListByDate" resultType="com.lhs.entity.po.material.StageDrop">
         SELECT *
         FROM ${tableName}
         WHERE create_time &gt;= #{start}
@@ -64,5 +66,42 @@
           AND server = 'CN'
     </select>
 
+    <!-- SQL-1：按 stageId 聚合时段内的总 times（不需要 JSON 解析，直接 SUM） -->
+    <select id="selectStageTimesByDate" resultType="com.lhs.entity.dto.drop.StageDropTimesCountRawDTO">
+        SELECT stage_id AS stageId, SUM(times) AS times
+        FROM ${tableName}
+        WHERE create_time &gt;= #{start}
+          AND create_time &lt; #{end}
+          AND server = 'CN'
+        GROUP BY stage_id
+    </select>
+
+    <!-- SQL-2：按 stageId + itemId 聚合掉落数量（JSON_TABLE 在 DB 内展开 drops 数组） -->
+    <select id="selectDropStatsByDate" resultType="com.lhs.entity.dto.drop.StageDropQuantityCountRawDTO">
+        SELECT
+            t.stage_id AS stageId,
+            t.item_id AS itemId,
+            SUM(t.item_quantity) AS quantity,
+            SUM(t.times) AS times
+        FROM (
+            SELECT
+                sd.stage_id,
+                jt.item_id,
+                jt.item_quantity,
+                sd.times
+            FROM ${tableName} sd
+            JOIN JSON_TABLE(
+                sd.drops,
+                '$[*]' COLUMNS(
+                    item_id VARCHAR(50) PATH '$.itemId',
+                    item_quantity BIGINT PATH '$.quantity'
+                )
+            ) AS jt
+            WHERE sd.create_time &gt;= #{start}
+              AND sd.create_time &lt; #{end}
+              AND sd.server = 'CN'
+        ) t
+        GROUP BY t.stage_id, t.item_id
+    </select>
 
 </mapper>

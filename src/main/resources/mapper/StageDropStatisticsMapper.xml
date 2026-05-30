@@ -31,11 +31,11 @@
 
     <insert id="insertBatch">
         INSERT INTO stage_drop_statistics
-        (id, stage_id, item_id, times, quantity,start_time, end_time, time_granularity, create_time)
+        (id, stage_id, item_id, times, quantity, start_time, end_time, time_granularity, create_time, record_code)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.id},#{item.stageId},#{item.itemId},#{item.times},
-            #{item.quantity},#{item.startTime},#{item.endTime},#{item.timeGranularity},#{item.createTime})
+            #{item.quantity},#{item.startTime},#{item.endTime},#{item.timeGranularity},#{item.createTime},#{item.recordCode})
         </foreach>
     </insert>
 
