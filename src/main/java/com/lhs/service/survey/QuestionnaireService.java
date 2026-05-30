@@ -102,7 +102,7 @@ public class QuestionnaireService {
     public void backup() {
         String dayText = TimeUtil.getDayText();
         List<QuestionnaireResult> questionnaireResults;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             LambdaQueryWrapper<QuestionnaireResult> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.last("limit " + i * 1000 + ",1000");
             questionnaireResults = questionnaireResultMapper.selectList(queryWrapper);

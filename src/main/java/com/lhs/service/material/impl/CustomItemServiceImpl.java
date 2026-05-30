@@ -972,9 +972,8 @@ public class CustomItemServiceImpl implements CustomItemService {
             if (itemValueT3 == null) {
                 continue;
             }
-            // System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "未迭代前价值" + itemValueT3);
-            // System.out.println(itemInfoMap.get(itemIdT3).getItemName() + "关卡效率" + stageEfficiency);
-            Logger.info(itemInfoMap.get(itemIdT3).getItemName() + "——推荐关卡：" + stageInfoMap.get(stageId).getStageCode());
+
+//            Logger.info(itemInfoMap.get(itemIdT3).getItemName() + "——推荐关卡：" + stageInfoMap.get(stageId).getStageCode());
             // 更新蓝材料的价值
             if (stageEfficiency != Double.NEGATIVE_INFINITY && stageEfficiency != 0) {
                 itemValueMap.put(itemIdT3, itemValueT3 / stageEfficiency);

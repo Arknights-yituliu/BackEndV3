@@ -220,7 +220,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                 break;
             }
             tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),"/mysql/operatorProgressionData/"+dayText+"/"+i+".json");
-//            FileUtil.saveJsonFile(ConfigUtil.Backup+"operatorProgressionData/"+dayText+"/","operatorProgressionData"+i+".json",JsonMapper.toJSONString(operatorProgressionDataList));
         }
     }
 

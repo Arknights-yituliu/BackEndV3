@@ -41,57 +41,57 @@ public class DropHourStatisticsTest {
 
     @Test
     public void stageDropStatistics202504() throws Exception {
-        stageDropStatisticsByDate("2025-04-01 00");
+        stageDropStatisticsByDate("2024-04-01 00");
     }
 
     @Test
     public void stageDropStatistics202505() throws Exception {
-        stageDropStatisticsByDate("2025-05-01 00");
+        stageDropStatisticsByDate("2024-05-01 00");
     }
 
     @Test
     public void stageDropStatistics202506() throws Exception {
-        stageDropStatisticsByDate("2025-06-01 00");
+        stageDropStatisticsByDate("2024-06-01 00");
     }
 
     @Test
     public void stageDropStatistics202507() throws Exception {
-        stageDropStatisticsByDate("2025-07-01 00");
+        stageDropStatisticsByDate("2024-07-01 00");
     }
 
     @Test
     public void stageDropStatistics202508() throws Exception {
-        stageDropStatisticsByDate("2025-08-01 00");
+        stageDropStatisticsByDate("2024-08-01 00");
     }
 
     @Test
     public void stageDropStatistics202509() throws Exception {
-        stageDropStatisticsByDate("2025-09-01 00");
+        stageDropStatisticsByDate("2024-09-01 00");
     }
 
     @Test
     public void stageDropStatistics202510() throws Exception {
-        stageDropStatisticsByDate("2025-10-01 00");
+        stageDropStatisticsByDate("2024-10-01 00");
     }
 
     @Test
     public void stageDropStatistics202511() throws Exception {
-        stageDropStatisticsByDate("2025-11-01 00");
+        stageDropStatisticsByDate("2024-11-01 00");
     }
 
     @Test
     public void stageDropStatistics202512() throws Exception {
-        stageDropStatisticsByDate("2025-12-19 00");
+        stageDropStatisticsByDate("2024-12-01 00");
     }
 
     @Test
     public void stageDropStatistics202601() throws Exception {
-        stageDropStatisticsByDate("2026-01-19 00");
+        stageDropStatisticsByDate("2026-01-01 00");
     }
 
     @Test
     public void stageDropStatistics202602() throws Exception {
-        stageDropStatisticsByDate("2026-02-20 00");
+        stageDropStatisticsByDate("2026-02-01 00");
     }
 
     @Test

@@ -1,10 +1,10 @@
 package com.lhs.item;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.aliyun.oss.common.utils.HttpUtil;
+import com.lhs.common.util.HttpRequestUtil;
+import com.lhs.common.util.JsonMapper;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +49,12 @@ public class CustomItemAPITest {
             System.out.println(item.getItemName()+"  "+ item.getItemValue());
         }
        
+    }
+
+    @Test
+    void API(){
+        String post = HttpRequestUtil.post("https://backend.yituliu.cn/item/v7/value", new HashMap<>(), JsonMapper.toJSONString(new ItemValueConfigDTO()));
+        System.out.println(post);
     }
 
 
