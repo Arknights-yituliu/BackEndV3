@@ -22,15 +22,7 @@
         WHERE record_id = #{recordId}
     </update>
 
-    <update id="expireByTimeRange">
-        UPDATE stage_drop_statistics
-        SET record_code = #{recordCode}
-        WHERE time_granularity = #{timeGranularity}
-          AND start_time &gt;= #{start}
-          AND end_time &lt;= #{end}
-    </update>
 
-  
 
     <select id="selectListByDate" resultType="com.lhs.entity.po.material.StageDropStatistics">
         SELECT *
@@ -40,11 +32,6 @@
     </select>
 
 
-  <update id="appendRecordIdByDate"> 
-    UPDATE stage_drop_statistics
-    SET record_id = #{recordId}
-    WHERE time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND end_time &lt;= #{end}
-  </update>
 
 
 </mapper>

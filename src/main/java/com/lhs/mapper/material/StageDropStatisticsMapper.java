@@ -20,7 +20,7 @@ public interface StageDropStatisticsMapper extends BaseMapper<StageDropStatistic
     List<StageDropStatisticsTaskLog> listTaskLogByTimeGranularityAndDate(@Param("timeGranularity") Integer timeGranularity,
                                                                           @Param("start") Date start, @Param("end") Date end);
 
-    Integer deleteTaskLogById(@Param("id") Long id);
+    void deleteTaskLogById(@Param("id") Long id);
 
     Integer insertBatch(@Param("list") List<StageDropStatistics> stageDropList);
 
@@ -30,9 +30,5 @@ public interface StageDropStatisticsMapper extends BaseMapper<StageDropStatistic
 
     Integer expireByRecordId(@Param("recordId") Long recordId, @Param("recordCode") Integer recordCode);
     
-    Integer expireByTimeRange(@Param("recordCode") Integer recordCode, @Param("timeGranularity") Integer timeGranularity,
-                              @Param("start") Date start, @Param("end") Date end);
 
-    Integer appendRecordIdByDate(@Param("recordId") Long recordId, @Param("timeGranularity") Integer timeGranularity,
-                                 @Param("start") Date start, @Param("end") Date end);
 }
