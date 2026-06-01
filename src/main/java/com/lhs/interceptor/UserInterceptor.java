@@ -5,7 +5,6 @@ import com.lhs.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -14,11 +13,10 @@ import org.springframework.web.servlet.ModelAndView;
 public class UserInterceptor implements HandlerInterceptor {
 
 
-    private final RedisTemplate<String, Object> redisTemplate;
+   
     private final UserService userService;
 
-    public UserInterceptor(RedisTemplate<String, Object> redisTemplate, UserService userService) {
-        this.redisTemplate = redisTemplate;
+    public UserInterceptor(UserService userService) {
         this.userService = userService;
     }
 
@@ -41,7 +39,7 @@ public class UserInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        String requestURI = request.getRequestURI();
+    
         Logger.info("一图流用户鉴权{}：");
         userService.extractToken(request);
 

@@ -1,9 +1,7 @@
 package com.lhs.entity.dto.material;
 
 
-import com.lhs.entity.po.material.PackInfo;
 import com.lhs.entity.vo.material.PackContentVO;
-import lombok.Data;
 
 import java.util.List;
 

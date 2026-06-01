@@ -1,6 +1,5 @@
 package com.lhs.interceptor;
 
-import com.lhs.service.admin.AdminService;
 import com.lhs.service.user.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -41,7 +40,7 @@ public class WebConfig implements WebMvcConfigurer {
 //                .excludePathPatterns(); //放行
 
 
-        registry.addInterceptor(new UserInterceptor(redisTemplate,userService))
+        registry.addInterceptor(new UserInterceptor(userService))
                 .addPathPatterns("/auth/**"); //拦截
 //                .excludePathPatterns(); //放行
 
