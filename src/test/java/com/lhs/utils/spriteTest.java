@@ -3,7 +3,6 @@ package com.lhs.utils;
 import com.lhs.common.util.SpriteCreateUtil;
 import com.lhs.entity.dto.util.SpriteInfo;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -20,12 +19,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class spriteTest {
     @Test
-    void spriteGeneratorTest() {
+    void spriteGeneratorAvatarTest() {
         // 定义格式化方式
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         // 获取当前日期
@@ -71,38 +69,13 @@ public class spriteTest {
         SpriteCreateUtil.spriteCreate(spriteInfo);
     }
 
-    @Test
-    void ItemSpriteGeneratorTest() {
-        // 获取当前日期
-        LocalDateTime now = LocalDateTime.now();
-
-        // 定义格式化方式
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
-
-        // 格式化为字符串
-        String todayStr = now.format(formatter);
-        String spriteFilename = "item"+todayStr+".png";
-        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\original\\items\\";     // 图片输入目录
-        String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
-        String cssFilename = "sprite_item.css";
-
-        SpriteInfo spriteInfo = new SpriteInfo();
-        spriteInfo.setInputDir(inputDir);
-        spriteInfo.setOutputDir(outputDir);
-        spriteInfo.setSpriteFilename(spriteFilename);
-        spriteInfo.setCssFilename(cssFilename);
-        spriteInfo.setCosFileType("webp");
-
-        SpriteCreateUtil.spriteCreate(spriteInfo);
-    }
-
 
 
     @Test
     void avatarSpriteGenerator() {
 
-        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\original\\avatar\\";     // 图片输入目录
-        String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
+        String inputDir = "C:\\VCProject\\ak-resources\\image\\original\\avatar\\";     // 图片输入目录
+        String outputDir = "C:\\VCProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         // 获取当前日期
         LocalDateTime now = LocalDateTime.now();
 
@@ -259,6 +232,34 @@ public class spriteTest {
     private static String trimExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
         return (dotIndex == -1) ? filename : filename.substring(0, dotIndex);
+    }
+
+
+
+
+    @Test
+    void ItemSpriteGeneratorTest() {
+        // 获取当前日期
+        LocalDateTime now = LocalDateTime.now();
+
+        // 定义格式化方式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+
+        // 格式化为字符串
+        String todayStr = now.format(formatter);
+        String spriteFilename = "item"+todayStr+".png";
+        String inputDir = "C:\\WebStormProject\\ak-resources\\image\\original\\items\\";     // 图片输入目录
+        String outputDir = "C:\\WebStormProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
+        String cssFilename = "sprite_item.css";
+
+        SpriteInfo spriteInfo = new SpriteInfo();
+        spriteInfo.setInputDir(inputDir);
+        spriteInfo.setOutputDir(outputDir);
+        spriteInfo.setSpriteFilename(spriteFilename);
+        spriteInfo.setCssFilename(cssFilename);
+        spriteInfo.setCosFileType("webp");
+
+        SpriteCreateUtil.spriteCreate(spriteInfo);
     }
 
 }
