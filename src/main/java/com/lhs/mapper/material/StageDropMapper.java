@@ -17,31 +17,6 @@ import java.util.regex.Pattern;
 @Repository
 public interface StageDropMapper extends BaseMapper<StageDrop> {
 
-    /**
-     * 动态表名允许的格式：stage_drop_ 开头，后跟数字和下划线
-     * 例如：stage_drop_2025_01
-     */
-    Pattern TABLE_NAME_PATTERN = Pattern.compile("^stage_drop_\\d{4}_\\d{2}$");
-
-    /**
-     * 校验动态表名，防止 SQL 注入
-     *
-     * @param tableName 动态表名
-     * @throws IllegalArgumentException 表名不合法时抛出
-     */
-    default void validateTableName(String tableName) {
-        if (tableName == null || tableName.isEmpty()) {
-            throw new IllegalArgumentException("表名不能为空");
-        }
-        if (!TABLE_NAME_PATTERN.matcher(tableName).matches()) {
-            throw new IllegalArgumentException(
-                    "表名格式不合法，仅允许 stage_drop_YYYY_MM 格式，实际值: " + tableName);
-        }
-    }
-
-
-
-
     void insertBatchByTable(@Param("table") String table, @Param("list") List<StageDrop> stageDropList);
 
     /**
@@ -68,5 +43,43 @@ public interface StageDropMapper extends BaseMapper<StageDrop> {
 
     // SQL-2：按 stageId + itemId 聚合掉落数量（JSON_TABLE）
     List<StageDropQuantityCountRawDTO> selectDropStatsByDate(@Param("tableName") String tableName, @Param("start") Date start, @Param("end") Date end);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * 动态表名允许的格式：stage_drop_ 开头，后跟数字和下划线
+     * 例如：stage_drop_2025_01
+     */
+    Pattern TABLE_NAME_PATTERN = Pattern.compile("^stage_drop_\\d{4}_\\d{2}$");
+
+    /**
+     * 校验动态表名，防止 SQL 注入
+     *
+     * @param tableName 动态表名
+     * @throws IllegalArgumentException 表名不合法时抛出
+     */
+    default void validateTableName(String tableName) {
+        if (tableName == null || tableName.isEmpty()) {
+            throw new IllegalArgumentException("表名不能为空");
+        }
+        if (!TABLE_NAME_PATTERN.matcher(tableName).matches()) {
+            throw new IllegalArgumentException(
+                    "表名格式不合法，仅允许 stage_drop_YYYY_MM 格式，实际值: " + tableName);
+        }
+    }
 
 }

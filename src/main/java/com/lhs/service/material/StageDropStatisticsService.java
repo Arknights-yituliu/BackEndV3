@@ -37,7 +37,7 @@ public class StageDropStatisticsService {
             StageDropStatisticsMapper stageDropStatisticsMapper) {
         this.stageDropMapper = stageDropMapper;
         this.stageDropStatisticsMapper = stageDropStatisticsMapper;
-        this.idGenerator = new IdGenerator(5L);
+        this.idGenerator = new IdGenerator(6L);
 
     }
 
@@ -69,15 +69,20 @@ public class StageDropStatisticsService {
         // long startMillis = System.currentTimeMillis();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        stageDropMapper.validateTableName(tableName);
         Logger.info("开始执行关卡掉率统计——表名：" + tableName + "——时段" + simpleDateFormat.format(startTime) + "-"
                 + simpleDateFormat.format(endTime));
 
         // 查询当前统计时段的数据总量和时间边界（一次轻量查询替代 countByDate + selectListByDate）
         StageDropTimeRangeDTO timeRange = stageDropMapper.selectTimeRange(tableName, startTime, endTime);
-        Integer countByDate = timeRange.getCnt().intValue();
+        int countByDate = timeRange.getCnt().intValue();
 
         // Logger.info("查询时间范围耗时：" + (System.currentTimeMillis() - startMillis) + "ms");
+
+
+        // 先查询是否已经执行过当前统计时段和时间粒度的任务
+        StageDropStatisticsTaskLog oldTaskLog = stageDropStatisticsMapper.getTaskLogByTimeGranularityAndDate(
+                TimeGranularity.HOUR.code(),
+                startTime, endTime);
 
         // 新建一个任务执行日志
         StageDropStatisticsTaskLog taskLog = new StageDropStatisticsTaskLog();
@@ -94,16 +99,14 @@ public class StageDropStatisticsService {
             return;
         }
 
-        // 先查询是否已经执行过当前统计时段和时间粒度的任务
-        StageDropStatisticsTaskLog oldTaskLog = stageDropStatisticsMapper.getTaskLogByTimeGranularityAndDate(
-                TimeGranularity.HOUR.code(),
-                startTime, endTime);
-
-        if (oldTaskLog != null && oldTaskLog.getDataCount() > 0) {
-            int expire = stageDropStatisticsMapper.expireByTimeRange(
-                    RecordType.EXPIRE.code(), TimeGranularity.HOUR.code(), startTime, endTime);
-            if (expire > 0) {
-                Logger.info("将" + expire + "条旧数据过期");
+    
+        if (oldTaskLog != null) {
+            taskLog.setId(oldTaskLog.getId());
+            if (oldTaskLog.getDataCount() > 0) {
+                int rows = stageDropStatisticsMapper.expireByRecordId(taskLog.getId(), RecordType.EXPIRE.code());
+                if (rows > 0) {
+                    Logger.info("过期了" + rows + "条旧数据");
+                }
             }
         }
 
@@ -112,6 +115,10 @@ public class StageDropStatisticsService {
 
         Date firstDateCreateTime = timeRange.getFirstTime();
         Date lastDateCreateTime = timeRange.getLastTime();
+
+        // 更新任务日志中的数据，第一条数据的开始时间，最后一条数据的结束时间，数据总量
+        taskLog.setStartTime(firstDateCreateTime);
+        taskLog.setEndTime(lastDateCreateTime);
 
         // SQL-1：按 stageId 聚合时段内总 times
         List<StageDropTimesCountRawDTO> stageTimesList = stageDropMapper.selectStageTimesByDate(tableName, startTime,
@@ -142,6 +149,7 @@ public class StageDropStatisticsService {
         for (StageDropQuantityCountDTO stageDropQuantityCountDTO : dropQuantityMap.values()) {
             StageDropStatistics stageDropStatistics = new StageDropStatistics();
             stageDropStatistics.setId(idGenerator.nextId());
+            stageDropStatistics.setRecordId(taskLog.getId());
             stageDropStatistics.setStageId(stageDropQuantityCountDTO.getStageId());
             stageDropStatistics.setItemId(stageDropQuantityCountDTO.getItemId());
             stageDropStatistics.setTimes(dropTimesHashMap.get(stageDropQuantityCountDTO.getStageId()));
@@ -156,24 +164,19 @@ public class StageDropStatisticsService {
 
         // Logger.info("拼接统计结果耗时：" + (System.currentTimeMillis() - startMillis) + "ms");
 
-        Logger.info("统计了" + countByDate + "条");
-
-        if (stageDropStatisticsList.isEmpty()) {
-            Logger.info("统计结果为空");
-            return;
-        }
-
-        // 更新任务日志中的数据，第一条数据的开始时间，最后一条数据的结束时间，数据总量
-        taskLog.setStartTime(firstDateCreateTime);
-        taskLog.setEndTime(lastDateCreateTime);
-
         if (oldTaskLog != null) {
-            taskLog.setId(oldTaskLog.getId());
             stageDropStatisticsMapper.updateTaskLog(taskLog);
             Logger.info("更新了统计日志");
         } else {
             stageDropStatisticsMapper.insertTaskLog(taskLog);
             Logger.info("新增了统计日志");
+        }
+
+        Logger.info("统计了" + countByDate + "条");
+
+        if (stageDropStatisticsList.isEmpty()) {
+            Logger.info("统计结果为空");
+            return;
         }
 
         // Logger.info("更新统计日志耗时：" + (System.currentTimeMillis() - startMillis) + "ms");

@@ -16,9 +16,25 @@ public class StageDropStatistics {
     private Date startTime;
     private Integer timeGranularity;
     private Date createTime;
-
+    private Long recordId;
     private Integer recordCode;
 
+    public StageDropStatistics() {
+    }
+
+    public StageDropStatistics(Long id, String stageId, String itemId, Long times, Long quantity, Date endTime, Date startTime, Integer timeGranularity, Date createTime, Long recordId, Integer recordCode) {
+        this.id = id;
+        this.stageId = stageId;
+        this.itemId = itemId;
+        this.times = times;
+        this.quantity = quantity;
+        this.endTime = endTime;
+        this.startTime = startTime;
+        this.timeGranularity = timeGranularity;
+        this.createTime = createTime;
+        this.recordId = recordId;
+        this.recordCode = recordCode;
+    }
 
     public Long getId() {
         return id;
@@ -47,7 +63,7 @@ public class StageDropStatistics {
     public Long getTimes() {
         return times;
     }
-
+ 
     public void setTimes(Long times) {
         this.times = times;
     }
@@ -100,6 +116,14 @@ public class StageDropStatistics {
         this.quantity+=quantity;
     }
 
+    public Long getRecordId() {
+        return recordId;
+    }
+
+    public void setRecordId(Long recordId) {
+        this.recordId = recordId;
+    }
+
     public Integer getRecordCode() {
         return recordCode;
     }
@@ -119,6 +143,8 @@ public class StageDropStatistics {
                 ", statisticalPeriod=" + endTime +
                 ", timeGranularity=" + timeGranularity +
                 ", createTime=" + createTime +
+                ", recordId=" + recordId +
+                ", recordCode=" + recordCode +
                 '}';
     }
 }

@@ -40,7 +40,7 @@ public class DropMigrationTest {
             // break;
             // }
 
-            List<StageDrop> list = stageDropMapper.listOldStageDropByDate("stage_drop_20260328_20260512", start, end);
+            List<StageDrop> list = stageDropMapper.listOldStageDropByDate("stage_drop_20260512_20260529", start, end);
 
             Logger.info("查询日期：" + sdf.format(start) + "至" + sdf.format(end) + "，数量：" + list.size());
 

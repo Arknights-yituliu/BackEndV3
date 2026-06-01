@@ -4,40 +4,23 @@
 <mapper namespace="com.lhs.mapper.material.StageDropStatisticsMapper">
 
 
-    <select id="getTaskLogByTimeGranularityAndDate" resultType="com.lhs.entity.po.material.StageDropStatisticsTaskLog">
-        SELECT *
-        FROM stage_drop_statistics_task_log
-        WHERE time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND end_time &lt;= #{end}
-    </select>
-
-    <insert id="insertTaskLog">
-        INSERT INTO stage_drop_statistics_task_log
-            (id, time_granularity, data_count, create_time, start_time, end_time)
-        VALUES (#{log.id}, #{log.timeGranularity}, #{log.dataCount}, #{log.createTime}, #{log.startTime}, #{log.endTime})
-
-    </insert>
-
-    <update id="updateTaskLog">
-        UPDATE stage_drop_statistics_task_log
-        SET
-            time_granularity = #{log.timeGranularity},
-            data_count = #{log.dataCount},
-            create_time = #{log.createTime},
-            start_time = #{log.startTime},
-            end_time = #{log.endTime}
-        WHERE id = #{log.id}
-
-    </update>
+   
 
     <insert id="insertBatch">
         INSERT INTO stage_drop_statistics
-        (id, stage_id, item_id, times, quantity, start_time, end_time, time_granularity, create_time, record_code)
+        (id, stage_id, item_id, times, quantity, start_time, end_time, time_granularity, create_time, record_id, record_code)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.id},#{item.stageId},#{item.itemId},#{item.times},
-            #{item.quantity},#{item.startTime},#{item.endTime},#{item.timeGranularity},#{item.createTime},#{item.recordCode})
+            #{item.quantity},#{item.startTime},#{item.endTime},#{item.timeGranularity},#{item.createTime},#{item.recordId},#{item.recordCode})
         </foreach>
     </insert>
+
+     <update id="expireByRecordId">
+        UPDATE stage_drop_statistics
+        SET record_code = #{recordCode}
+        WHERE record_id = #{recordId}
+    </update>
 
     <update id="expireByTimeRange">
         UPDATE stage_drop_statistics
@@ -47,6 +30,8 @@
           AND end_time &lt;= #{end}
     </update>
 
+  
+
     <select id="selectListByDate" resultType="com.lhs.entity.po.material.StageDropStatistics">
         SELECT *
         FROM stage_drop_statistics
@@ -54,9 +39,12 @@
         ORDER BY start_time DESC
     </select>
 
-    <select id="listByStageId" resultType="com.lhs.entity.po.material.StageDropStatistics">
-        SELECT *
-        FROM stage_drop_statistics
-        WHERE stage_id = #{stageId} AND time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND start_time &lt;= #{end}
-    </select>
+
+  <update id="appendRecordIdByDate"> 
+    UPDATE stage_drop_statistics
+    SET record_id = #{recordId}
+    WHERE time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND end_time &lt;= #{end}
+  </update>
+
+
 </mapper>

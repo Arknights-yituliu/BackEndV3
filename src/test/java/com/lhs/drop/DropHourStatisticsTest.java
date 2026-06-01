@@ -26,7 +26,7 @@ public class DropHourStatisticsTest {
 
     @Test
     public void stageDropStatistics202501() throws Exception {
-        stageDropStatisticsByDate("2025-01-01 00");
+        stageDropStatisticsByDate("2025-01-29 00");
     }
 
     @Test
@@ -41,47 +41,47 @@ public class DropHourStatisticsTest {
 
     @Test
     public void stageDropStatistics202504() throws Exception {
-        stageDropStatisticsByDate("2024-04-01 00");
+        stageDropStatisticsByDate("2025-04-01 00");
     }
 
     @Test
     public void stageDropStatistics202505() throws Exception {
-        stageDropStatisticsByDate("2024-05-01 00");
+        stageDropStatisticsByDate("2025-05-01 00");
     }
 
     @Test
     public void stageDropStatistics202506() throws Exception {
-        stageDropStatisticsByDate("2024-06-01 00");
+        stageDropStatisticsByDate("2025-06-01 00");
     }
 
     @Test
     public void stageDropStatistics202507() throws Exception {
-        stageDropStatisticsByDate("2024-07-01 00");
+        stageDropStatisticsByDate("2025-07-01 00");
     }
 
     @Test
     public void stageDropStatistics202508() throws Exception {
-        stageDropStatisticsByDate("2024-08-01 00");
+        stageDropStatisticsByDate("2025-08-01 00");
     }
 
     @Test
     public void stageDropStatistics202509() throws Exception {
-        stageDropStatisticsByDate("2024-09-01 00");
+        stageDropStatisticsByDate("2025-09-01 00");
     }
 
     @Test
     public void stageDropStatistics202510() throws Exception {
-        stageDropStatisticsByDate("2024-10-01 00");
+        stageDropStatisticsByDate("2025-10-01 00");
     }
 
     @Test
     public void stageDropStatistics202511() throws Exception {
-        stageDropStatisticsByDate("2024-11-01 00");
+        stageDropStatisticsByDate("2025-11-01 00");
     }
 
     @Test
     public void stageDropStatistics202512() throws Exception {
-        stageDropStatisticsByDate("2024-12-01 00");
+        stageDropStatisticsByDate("2025-12-01 00");
     }
 
     @Test
@@ -108,6 +108,9 @@ public class DropHourStatisticsTest {
     public void stageDropStatistics202605() throws Exception {
         stageDropStatisticsByDate("2026-05-01 00");
     }
+
+
+
 
 
     private void stageDropStatisticsByDate(String startDate) throws Exception {

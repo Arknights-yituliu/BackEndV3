@@ -53,7 +53,9 @@ public class CustomItemAPITest {
 
     @Test
     void API(){
-        String post = HttpRequestUtil.post("https://backend.yituliu.cn/item/v7/value", new HashMap<>(), JsonMapper.toJSONString(new ItemValueConfigDTO()));
+        HashMap<String, Object> objectObjectHashMap = new HashMap<>();
+        objectObjectHashMap.put("sampleSize",300);
+        String post = HttpRequestUtil.post("https://backend.yituliu.cn/item/v7/value", new HashMap<>(), JsonMapper.toJSONString(objectObjectHashMap));
         System.out.println(post);
     }
 
