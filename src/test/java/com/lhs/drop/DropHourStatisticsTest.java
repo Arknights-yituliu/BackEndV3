@@ -25,8 +25,53 @@ public class DropHourStatisticsTest {
     private StageDropStatisticsMapper stageDropStatisticsMapper;
 
     @Test
+    public void stageDropStatistics202404() throws Exception {
+        stageDropStatisticsByDate("2024-04-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202405() throws Exception {
+        stageDropStatisticsByDate("2024-05-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202406() throws Exception {
+        stageDropStatisticsByDate("2024-06-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202407() throws Exception {
+        stageDropStatisticsByDate("2024-07-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202408() throws Exception {
+        stageDropStatisticsByDate("2024-08-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202409() throws Exception {
+        stageDropStatisticsByDate("2024-09-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202410() throws Exception {
+        stageDropStatisticsByDate("2024-10-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202411() throws Exception {
+        stageDropStatisticsByDate("2024-11-01 00");
+    }
+
+    @Test
+    public void stageDropStatistics202412() throws Exception {
+        stageDropStatisticsByDate("2024-12-01 00");
+    }
+
+    @Test
     public void stageDropStatistics202501() throws Exception {
-        stageDropStatisticsByDate("2025-01-29 00");
+        stageDropStatisticsByDate("2025-01-01 00");
     }
 
     @Test

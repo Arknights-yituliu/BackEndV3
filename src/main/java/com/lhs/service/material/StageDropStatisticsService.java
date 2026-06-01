@@ -37,7 +37,7 @@ public class StageDropStatisticsService {
             StageDropStatisticsMapper stageDropStatisticsMapper) {
         this.stageDropMapper = stageDropMapper;
         this.stageDropStatisticsMapper = stageDropStatisticsMapper;
-        this.idGenerator = new IdGenerator(6L);
+        this.idGenerator = new IdGenerator(2L);
 
     }
 
