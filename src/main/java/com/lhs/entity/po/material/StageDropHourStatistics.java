@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.util.Date;
 
-@TableName("stage_drop_statistics")
-public class StageDropStatistics {
+@TableName("stage_drop_hour_statistics")
+public class StageDropHourStatistics {
 
     private Long id;
     private String stageId;
@@ -19,10 +19,10 @@ public class StageDropStatistics {
     private Long recordId;
     private Integer recordCode;
 
-    public StageDropStatistics() {
+    public StageDropHourStatistics() {
     }
 
-    public StageDropStatistics(Long id, String stageId, String itemId, Long times, Long quantity, Date endTime, Date startTime, Integer timeGranularity, Date createTime, Long recordId, Integer recordCode) {
+    public StageDropHourStatistics(Long id, String stageId, String itemId, Long times, Long quantity, Date endTime, Date startTime, Integer timeGranularity, Date createTime, Long recordId, Integer recordCode) {
         this.id = id;
         this.stageId = stageId;
         this.itemId = itemId;
@@ -134,7 +134,7 @@ public class StageDropStatistics {
 
     @Override
     public String toString() {
-        return "StageDropStatistics{" +
+        return "StageDropHourStatistics{" +
                 "id=" + id +
                 ", stageId='" + stageId + '\'' +
                 ", itemId='" + itemId + '\'' +

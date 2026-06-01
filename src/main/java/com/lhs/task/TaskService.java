@@ -26,7 +26,7 @@ public class TaskService {
 
     private final UserService userService;
 
-    private final StageDropStatisticsService stageDropStatisticsService;
+    private final StageDropHourStatisticsService stageDropHourStatisticsService;
 
     public TaskService(
 
@@ -37,8 +37,8 @@ public class TaskService {
             QuestionnaireService questionnaireService,
             OperatorDataService operatorDataService,
             UserService userService,
-            StageDropStatisticsService stageDropStatisticsService) {
-        this.stageDropStatisticsService = stageDropStatisticsService;   
+            StageDropHourStatisticsService stageDropHourStatisticsService) {
+        this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
 
         this.stageService = stageService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
@@ -84,7 +84,7 @@ public class TaskService {
      */
     @Scheduled(cron = "0 15 * * * ?")
     public void statisticsLastHour() {
-        stageDropStatisticsService.statisticsLastHour();
+        stageDropHourStatisticsService.statisticsLastHour();
     }
 
     /**

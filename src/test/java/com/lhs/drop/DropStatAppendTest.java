@@ -3,7 +3,7 @@ package com.lhs.drop;
 import com.lhs.common.enums.TimeGranularity;
 import com.lhs.common.util.Logger;
 import com.lhs.entity.po.material.StageDropStatisticsTaskLog;
-import com.lhs.mapper.material.StageDropStatisticsMapper;
+import com.lhs.mapper.material.StageDropHourStatisticsMapper;
 
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import java.util.List;
 public class DropStatAppendTest {
 
     @Resource
-    private StageDropStatisticsMapper stageDropStatisticsMapper;
+    private StageDropHourStatisticsMapper stageDropHourStatisticsMapper;
 
     @Test
     public void test202501() throws Exception {
@@ -136,7 +136,7 @@ public class DropStatAppendTest {
             
             Logger.info("开始处理时段：" + sdf.format(start) + " 至 " + sdf.format(end));
             // 查询该时间段的所有log（可能有多条重复）
-            List<StageDropStatisticsTaskLog> taskLogs = stageDropStatisticsMapper
+            List<StageDropStatisticsTaskLog> taskLogs = stageDropHourStatisticsMapper
                     .listTaskLogByTimeGranularityAndDate(TimeGranularity.HOUR.code(), start, end);
 
             if (taskLogs.isEmpty()) {
@@ -184,7 +184,7 @@ public class DropStatAppendTest {
         // 批量执行重复log的删除
         if (!duplicateIds.isEmpty()) {
             for (Long id : duplicateIds) {
-                stageDropStatisticsMapper.deleteTaskLogById(id);
+                stageDropHourStatisticsMapper.deleteTaskLogById(id);
             }
         }
 

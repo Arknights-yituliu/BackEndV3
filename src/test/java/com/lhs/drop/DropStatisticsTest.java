@@ -13,10 +13,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.lhs.common.enums.TimeGranularity;
 import com.lhs.entity.dto.drop.StageDropQuantityCountDTO;
-import com.lhs.entity.po.material.StageDropStatistics;
+import com.lhs.entity.po.material.StageDropHourStatistics;
 import com.lhs.entity.vo.drop.StageDropStatisticsResultVO;
-import com.lhs.mapper.material.StageDropStatisticsMapper;
-import com.lhs.service.material.StageDropStatisticsService;
+import com.lhs.mapper.material.StageDropHourStatisticsMapper;
+import com.lhs.service.material.StageDropHourStatisticsService;
 
 import jakarta.annotation.Resource;
 
@@ -32,10 +32,10 @@ import java.util.Map;
 public class DropStatisticsTest {
 
     @Resource
-    private StageDropStatisticsService stageDropStatisticsService;
+    private StageDropHourStatisticsService stageDropHourStatisticsService;
 
     @Resource
-    private StageDropStatisticsMapper stageDropStatisticsMapper;
+    private StageDropHourStatisticsMapper stageDropHourStatisticsMapper;
 
 
 
@@ -71,11 +71,11 @@ public class DropStatisticsTest {
             cal.add(Calendar.MONTH, 1);
             Date end = cal.getTime();
 
-            List<StageDropStatistics> list = stageDropStatisticsMapper.selectListByDate(
+            List<StageDropHourStatistics> list = stageDropHourStatisticsMapper.selectListByDate(
                     TimeGranularity.HOUR.code(), start, end);
             System.out.println(sdf.format(start) + " ~ " + sdf.format(end) + " 数据量: " + list.size());
 
-            for (StageDropStatistics item : list) {
+            for (StageDropHourStatistics item : list) {
                 String stageId = item.getStageId();
                 Long hourTimestamp = item.getStartTime().getTime();
 

@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 
-import com.lhs.mapper.material.StageDropStatisticsMapper;
-import com.lhs.service.material.StageDropStatisticsService;
+import com.lhs.mapper.material.StageDropHourStatisticsMapper;
+import com.lhs.service.material.StageDropHourStatisticsService;
 
 import jakarta.annotation.Resource;
 
@@ -19,10 +19,10 @@ import java.util.Date;
 public class DropHourStatisticsTest {
 
     @Resource
-    private StageDropStatisticsService stageDropStatisticsService;
+    private StageDropHourStatisticsService stageDropHourStatisticsService;
 
     @Resource
-    private StageDropStatisticsMapper stageDropStatisticsMapper;
+    private StageDropHourStatisticsMapper stageDropHourStatisticsMapper;
 
     @Test
     public void stageDropStatistics202404() throws Exception {
@@ -179,7 +179,7 @@ public class DropHourStatisticsTest {
             int year = cal.get(Calendar.YEAR);
             String tableName = String.format("stage_drop_%d_%02d", year, month);
             // String tableName = "stage_drop_20251130_20260221";
-            stageDropStatisticsService.stageDropHourlyStatisticsV2(start, end, tableName);
+            stageDropHourStatisticsService.stageDropHourlyStatisticsV2(start, end, tableName);
             start = new Date(start.getTime() + oneHour);
             end = new Date(end.getTime() + oneHour);
         }

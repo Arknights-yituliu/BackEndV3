@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.lhs.mapper.material.StageDropStatisticsMapper">
+<mapper namespace="com.lhs.mapper.material.StageDropHourStatisticsMapper">
 
 
    
 
     <insert id="insertBatch">
-        INSERT INTO stage_drop_statistics
+        INSERT INTO stage_drop_hour_statistics
         (id, stage_id, item_id, times, quantity, start_time, end_time, time_granularity, create_time, record_id, record_code)
         VALUES
         <foreach collection="list" item="item" separator=",">
@@ -16,17 +16,17 @@
         </foreach>
     </insert>
 
-     <update id="expireByRecordId">
-        UPDATE stage_drop_statistics
+     <update id="expireHourStatisticsByRecordId">
+        UPDATE stage_drop_hour_statistics
         SET record_code = #{recordCode}
         WHERE record_id = #{recordId}
     </update>
 
 
 
-    <select id="selectListByDate" resultType="com.lhs.entity.po.material.StageDropStatistics">
+    <select id="selectListByDate" resultType="com.lhs.entity.po.material.StageDropHourStatistics">
         SELECT *
-        FROM stage_drop_statistics
+        FROM stage_drop_hour_statistics
         WHERE time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND end_time &lt;= #{end}
         ORDER BY start_time DESC
     </select>
