@@ -17,18 +17,18 @@ public interface StageDropHourStatisticsMapper extends BaseMapper<StageDropHourS
     StageDropStatisticsTaskLog getTaskLogByTimeGranularityAndDate(@Param("timeGranularity") Integer timeGranularity,
                                                                   @Param("start") Date start, @Param("end") Date end);
 
-    List<StageDropStatisticsTaskLog> listTaskLogByTimeGranularityAndDate(@Param("timeGranularity") Integer timeGranularity,
-                                                                          @Param("start") Date start, @Param("end") Date end);
-
-    void deleteTaskLogById(@Param("id") Long id);
-
     Integer insertBatch(@Param("list") List<StageDropHourStatistics> stageDropList);
 
     List<StageDropHourStatistics> selectListByDate(@Param("timeGranularity") Integer timeGranularity,
                                                    @Param("start") Date start, @Param("end") Date end);
 
-
     Integer expireHourStatisticsByRecordId(@Param("recordId") Long recordId, @Param("recordCode") Integer recordCode);
-    
 
+
+
+
+    List<StageDropStatisticsTaskLog> listTaskLogByTimeGranularityAndDate(@Param("timeGranularity") Integer timeGranularity,
+                                                                         @Param("start") Date start, @Param("end") Date end);
+
+    void deleteTaskLogById(@Param("id") Long id);
 }

@@ -10,17 +10,6 @@
         WHERE time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND end_time &lt;= #{end}
     </select>
 
-    <select id="listTaskLogByTimeGranularityAndDate" resultType="com.lhs.entity.po.material.StageDropStatisticsTaskLog">
-        SELECT *
-        FROM stage_drop_statistics_task_log
-        WHERE time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND end_time &lt;= #{end}
-        ORDER BY id ASC
-    </select>
-
-    <delete id="deleteTaskLogById">
-        DELETE FROM stage_drop_statistics_task_log WHERE id = #{id}
-    </delete>
-
     <insert id="insertTaskLog">
         INSERT INTO stage_drop_statistics_task_log
             (id, time_granularity, data_count, create_time, start_time, end_time)
@@ -44,6 +33,21 @@
             end_time = #{log.endTime}
         WHERE id = #{log.id}
     </update>
+
+
+
+
+
+    <select id="listTaskLogByTimeGranularityAndDate" resultType="com.lhs.entity.po.material.StageDropStatisticsTaskLog">
+        SELECT *
+        FROM stage_drop_statistics_task_log
+        WHERE time_granularity = #{timeGranularity} AND start_time &gt;= #{start} AND end_time &lt;= #{end}
+        ORDER BY id ASC
+    </select>
+
+    <delete id="deleteTaskLogById">
+        DELETE FROM stage_drop_statistics_task_log WHERE id = #{id}
+    </delete>
 
    
 </mapper>

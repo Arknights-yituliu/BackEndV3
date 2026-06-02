@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 @Service
 public class StageDropHourStatisticsService {
@@ -51,7 +52,7 @@ public class StageDropHourStatisticsService {
         long oneHour = 60 * 60 * 1000L;
         Date startTime = new Date(endTime.getTime() - oneHour);
 
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
         cal.setTime(startTime);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH) + 1;

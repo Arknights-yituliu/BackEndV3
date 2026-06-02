@@ -146,9 +146,7 @@ public class DropStatisticsTest {
                     String key = hourEntry.getKey();
                     long hourTimestamp = Long.parseLong(key.substring(key.indexOf('.') + 1));
                     if (updateTime == null || hourTimestamp >= updateTime.getTime()) {
-                        if(stageId.equals("tough_14-11")&&itemId.equals("31113")){
-                            System.out.println(sdf2.format(new Date(hourTimestamp)) + "  "+hourEntry.getValue().getTimes() );
-                        }
+
                         effectiveTimes += hourEntry.getValue().getTimes();
                     }
                 }
