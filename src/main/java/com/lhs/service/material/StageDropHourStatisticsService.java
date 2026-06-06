@@ -135,6 +135,10 @@ public class StageDropHourStatisticsService {
                 endTime);
         Map<String, StageDropQuantityCountDTO> dropQuantityMap = new HashMap<>();
         for (StageDropQuantityCountRawDTO dto : dropStatsList) {
+            // drops字段为[]的记录LEFT JOIN后itemId为NULL，跳过
+            if (dto.getItemId() == null) {
+                continue;
+            }
             String collectKey = dto.getStageId() + "_" + dto.getItemId();
             StageDropQuantityCountDTO dto2 = new StageDropQuantityCountDTO(
                     dto.getStageId(), dto.getItemId(), startTime, endTime, dto.getQuantity());

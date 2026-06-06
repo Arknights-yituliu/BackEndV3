@@ -87,13 +87,13 @@
         jt.item_quantity,
         sd.times
         FROM ${tableName} sd
-        JOIN JSON_TABLE(
+        LEFT JOIN JSON_TABLE(
         sd.drops,
         '$[*]' COLUMNS(
         item_id VARCHAR(50) PATH '$.itemId',
         item_quantity BIGINT PATH '$.quantity'
         )
-        ) AS jt
+        ) AS jt ON TRUE
         WHERE sd.create_time &gt;= #{start}
         AND sd.create_time &lt; #{end}
         AND sd.server = 'CN'
