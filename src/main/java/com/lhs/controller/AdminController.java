@@ -173,5 +173,11 @@ public class AdminController {
         return Result.success(imageInfoService.saveImageFiles(files,path));
     }
 
+    @Operation(summary = "批量迁移旧AES加密密码为bcrypt哈希")
+    @GetMapping("/admin/password/migrate-to-bcrypt")
+    public Result<Map<String, Object>> migratePasswordsToBcrypt() {
+        return Result.success(adminService.migratePasswordsToBcrypt());
+    }
+
    
 }

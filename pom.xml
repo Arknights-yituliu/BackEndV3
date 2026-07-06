@@ -59,6 +59,12 @@
             <version>8.3.0</version>
         </dependency>
 
+<!-- bcrypt 密码哈希 -->
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-crypto</artifactId>
+    <version>6.4.5</version>
+</dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -70,7 +76,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
+            <version>2.14.0</version>
         </dependency>
 
 

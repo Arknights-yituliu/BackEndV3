@@ -6,13 +6,17 @@ import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.Logger;
+import com.lhs.common.util.PasswordUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.admin.Admin;
+import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.mapper.admin.AdminMapper;
 import com.lhs.mapper.admin.PageVisitsMapper;
 import com.lhs.mapper.admin.VisitsMapper;
+import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.admin.AdminService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.Email163Service;
@@ -41,18 +45,22 @@ public class AdminServiceImpl implements AdminService {
 
     private final Email163Service email163Service;
 
+    private final UserInfoMapper userInfoMapper;
+
     public AdminServiceImpl(RedisTemplate<String, Object> redisTemplate,
                             AdminMapper adminMapper,
                             VisitsMapper visitsMapper,
                             PageVisitsMapper pageVisitsMapper,
                             UserService userService,
-                            Email163Service email163Service) {
+                            Email163Service email163Service,
+                            UserInfoMapper userInfoMapper) {
         this.redisTemplate = redisTemplate;
         this.adminMapper = adminMapper;
         this.visitsMapper = visitsMapper;
         this.pageVisitsMapper = pageVisitsMapper;
         this.userService = userService;
         this.email163Service = email163Service;
+        this.userInfoMapper = userInfoMapper;
     }
 
 
@@ -199,6 +207,51 @@ public class AdminServiceImpl implements AdminService {
             throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
         }
         return id;
+    }
+
+    @Override
+    public Map<String, Object> migratePasswordsToBcrypt() {
+        Map<String, Object> result = new HashMap<>();
+        long start = System.currentTimeMillis();
+
+        // 查询所有旧格式密码的用户
+        List<UserInfo> legacyUsers = userInfoMapper.selectLegacyPasswordUsers();
+        int total = legacyUsers.size();
+        result.put("total", total);
+
+        if (total == 0) {
+            result.put("message", "没有需要迁移的旧格式密码");
+            return result;
+        }
+
+        int success = 0;
+        int fail = 0;
+        List<Long> failedUids = new ArrayList<>();
+
+        for (UserInfo user : legacyUsers) {
+            try {
+                // 解密旧 AES 密文，得到明文密码
+                String plainPassword = AES.decrypt(user.getPassword(), ConfigUtil.Secret);
+                // bcrypt 哈希
+                String bcryptHash = PasswordUtil.hash(plainPassword);
+                // 更新
+                user.setPassword(bcryptHash);
+                userInfoMapper.updateById(user);
+                success++;
+            } catch (Exception e) {
+                fail++;
+                failedUids.add(user.getId());
+                Logger.error("密码迁移失败，uid={}，原因={}", user.getId(), e.getMessage());
+            }
+        }
+
+        result.put("success", success);
+        result.put("fail", fail);
+        result.put("failedUids", failedUids);
+        result.put("costMs", System.currentTimeMillis() - start);
+        Logger.info("密码迁移完成：总数={}，成功={}，失败={}", total, success, fail);
+
+        return result;
     }
 
 }

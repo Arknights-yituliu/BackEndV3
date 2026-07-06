@@ -44,7 +44,7 @@ public interface UserService {
      *
      * @param emailRequestDto 邮件请求数据
      */
-    void sendVerificationCode(EmailRequestDTO emailRequestDto);
+    void sendVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto);
 
     /**
      * 发送更新邮箱的验证码
@@ -152,6 +152,8 @@ public interface UserService {
      * @param akPlayerBindInfoDTO 第三方账号的信息
      */
     void saveExternalAccountBindingInfoAndAKPlayerBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
+
+   
 
 
 
