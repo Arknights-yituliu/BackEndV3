@@ -10,14 +10,11 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
 import com.lhs.entity.dto.user.*;
-import com.lhs.entity.dto.util.EmailFormDTO;
-import com.lhs.entity.po.user.AkPlayerBindInfo;
 import com.lhs.entity.po.user.UserConfig;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.AkPlayerBindingListVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.mapper.user.AkPlayerBindInfoMapper;
 import com.lhs.mapper.user.UserConfigMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
@@ -46,31 +43,38 @@ public class UserServiceImpl implements UserService {
 
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
-    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
-
     private final UserConfigMapper userConfigMapper;
 
     public UserServiceImpl(UserInfoMapper userInfoMapper,
             RedisTemplate<String, String> redisTemplate,
             Email163Service email163Service,
-
-            TencentCloudService tencentCloudService, HypergryphService HypergryphService,
+            TencentCloudService tencentCloudService,
+            HypergryphService HypergryphService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
-            AkPlayerBindInfoMapper akPlayerBindInfoMapper, UserConfigMapper userConfigMapper) {
+            UserConfigMapper userConfigMapper) {
         this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
         this.email163Service = email163Service;
         this.tencentCloudService = tencentCloudService;
-
         this.HypergryphService = HypergryphService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
-        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
         this.userConfigMapper = userConfigMapper;
         idGenerator = new IdGenerator(1L);
     }
 
     @Override
     public HashMap<String, Object> registerV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO) {
+        // IP 频率限制：同一 IP 300 秒内最多注册 5 次
+        String ip = httpServletRequest.getRemoteAddr();
+        String ipKey = "rate_limit:register:ip:" + ip;
+        Integer count = Integer.parseInt(
+                redisTemplate.opsForValue().get(ipKey) != null ? redisTemplate.opsForValue().get(ipKey) : "0");
+        if (count >= 5) {
+            throw new ServiceException(ResultCode.REGISTER_TOO_MANY_TIMES);
+        }
+        redisTemplate.opsForValue().increment(ipKey);
+        redisTemplate.expire(ipKey, 300, TimeUnit.SECONDS);
+
         // 账号类型
         String accountType = loginDataDTO.getAccountType();
         // 账号类型不能为空或未知
@@ -206,6 +210,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public HashMap<String, Object> loginV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO) {
+
+        // IP 频率限制：同一 IP 60 秒内最多登录 10 次，防止暴力破解
+        String ip = httpServletRequest.getRemoteAddr();
+        String ipKey = "rate_limit:login:ip:" + ip;
+        Integer count = Integer.parseInt(
+                redisTemplate.opsForValue().get(ipKey) != null ? redisTemplate.opsForValue().get(ipKey) : "0");
+        if (count >= 10) {
+            throw new ServiceException(ResultCode.EXCESSIVE_IP_ACCESS_TIMES);
+        }
+        redisTemplate.opsForValue().increment(ipKey);
+        redisTemplate.expire(ipKey, 60, TimeUnit.SECONDS);
 
         // 账号类型
         String accountType = loginDataDTO.getAccountType();
@@ -468,153 +483,7 @@ public class UserServiceImpl implements UserService {
         return userInfo;
     }
 
-    /**
-     * 解密用户凭证
-     *
-     * @param token 用户凭证
-     * @return 一图流id
-     */
-    private Long decryptToken(String token) {
-        long id = 114L;
-
-        try {
-            String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
-            String idText = decrypt.split("\\.")[1];
-            id = Long.parseLong(idText);
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
-        }
-        return id;
-    }
-
-    @Override
-    public void sendVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto) {
-        String email = emailRequestDto.getEmail();
-        String mailUsage = emailRequestDto.getMailUsage();
-
-        // IP 频率限制：同一 IP 60 秒内最多 1 次
-        String ip = httpServletRequest.getRemoteAddr();
-        String ipKey = "rate_limit:verification_code:ip:" + ip;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(ipKey))) {
-            throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
-        }
-        redisTemplate.opsForValue().set(ipKey, "1", 60, TimeUnit.SECONDS);
-
-        // 邮箱频率限制：同一邮箱 5 分钟内最多 1 次
-        String emailKey = "rate_limit:verification_code:email:" + email;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(emailKey))) {
-            throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
-        }
-        redisTemplate.opsForValue().set(emailKey, "1", 300, TimeUnit.SECONDS);
-
-        validateEmail(email);
-
-        // 设置查询构造器条件
-        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserInfo::getEmail, email);
-        // 查询是否有绑定这个邮箱的用户
-        UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
-
-        if ("register".equals(mailUsage)) {
-            if (userInfoByEmail != null) {
-                throw new ServiceException(ResultCode.USER_IS_EXIST);
-            }
-        }
-
-        if ("login".equals(mailUsage)) {
-            if (userInfoByEmail == null) {
-                throw new ServiceException(ResultCode.USER_NOT_EXIST);
-            }
-        }
-
-        seedEmail(email);
-
-    }
-
-    private void seedEmail(String emailAddress) {
-        Integer code = email163Service.createVerificationCode(emailAddress, 9999);
-        String text = "本次的验证码是：" + code + ",验证码有效时间5分钟";
-
-        EmailFormDTO emailFormDTO = new EmailFormDTO();
-        emailFormDTO.setFrom("ark_yituliu@163.com");
-        emailFormDTO.setTo(emailAddress);
-        emailFormDTO.setSubject("【一图流】验证码");
-        emailFormDTO.setText(text);
-        email163Service.sendSimpleEmail(emailFormDTO);
-    }
-
-    @Override
-    public void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest,
-            EmailRequestDTO emailRequestDto) {
-        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        String email = userInfoVO.getEmail();
-
-        // IP 频率限制：同一 IP 60 秒内最多 1 次
-        String ip = httpServletRequest.getRemoteAddr();
-        String ipKey = "rate_limit:verification_code:ip:" + ip;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(ipKey))) {
-            throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
-        }
-        redisTemplate.opsForValue().set(ipKey, "1", 60, TimeUnit.SECONDS);
-
-        // 邮箱频率限制：同一邮箱 5 分钟内最多 1 次
-        String emailKey = "rate_limit:verification_code:email:" + email;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(emailKey))) {
-            throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
-        }
-        redisTemplate.opsForValue().set(emailKey, "1", 300, TimeUnit.SECONDS);
-
-        validateEmail(email);
-        seedEmail(email);
-
-    }
-
-    @Override
-    public String checkVerificationCode(HttpServletRequest httpServletRequest, String verificationCode) {
-        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        if (!checkParamsValidity(verificationCode)) {
-            throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
-        }
-
-        String email = userInfoVO.getEmail();
-        // 检查验证码
-        email163Service.compareVerificationCode(verificationCode, email);
-
-        Integer code = email163Service.createVerificationCode(userInfoVO.getUid().toString(), 9999);
-
-        return String.valueOf(code);
-    }
-
-    @Override
-    public void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
-        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        String email = updateUserDataDto.getEmail();
-        validateEmail(email);
-        if (userInfoVO.getHasEmail()) {
-            Logger.info("更新绑定邮箱 {} 用户有邮箱，需要验证");
-            email163Service.compareVerificationCode(updateUserDataDto.getCred(), userInfoVO.getUid().toString());
-        }
-
-        email163Service.compareVerificationCode(updateUserDataDto.getVerificationCode(), email);
-
-        // 设置查询构造器条件
-        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserInfo::getEmail, email);
-        // 查询是否有绑定这个邮箱的用户
-        UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
-
-        if (userInfoByEmail != null) {
-            throw new ServiceException(ResultCode.USER_IS_EXIST);
-        }
-
-        UserInfo userInfo = new UserInfo();
-        userInfo.setEmail(email);
-        userInfo.setId(userInfoVO.getUid());
-        userInfo.setUpdateTime(new Date());
-        userInfoMapper.updateById(userInfo);
-    }
+   
 
     @Override
     public UserInfoVO updateUserData(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
@@ -665,10 +534,7 @@ public class UserServiceImpl implements UserService {
             if (!PasswordUtil.matches(oldPassWord, userInfo.getPassword())) {
                 throw new ServiceException(ResultCode.USER_PASSWORD_ERROR);
             }
-            // 如果旧密码是 AES 格式，本次顺便升级
-            if (PasswordUtil.isLegacyAES(userInfo.getPassword())) {
-                // newPassWord 已经是 bcrypt，直接写入即可
-            }
+
         }
 
         UserInfo newUserInfo = new UserInfo();
@@ -743,20 +609,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void backupUserExternalAccountBinding() {
-        String dayText = TimeUtil.getDayText();
-        List<UserExternalAccountBinding> list1 = userExternalAccountBindingMapper.selectList(null);
-        tencentCloudService.backupCOS(JsonMapper.toJSONString(list1),
-                "/mysql/user/" + dayText + "/user_external_account_binding.json");
-        // FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","userExternalAccountBinding.json",JsonMapper.toJSONString(list1));
-
-        List<AkPlayerBindInfo> list2 = akPlayerBindInfoMapper.selectList(null);
-        tencentCloudService.backupCOS(JsonMapper.toJSONString(list2),
-                "/mysql/user/" + dayText + "/ak_player_bind_info.json");
-        // FileUtil.saveJsonFile(ConfigUtil.Backup+"user/"+dayText+"/","akPlayerBindInfo.json",JsonMapper.toJSONString(list2));
-    }
-
-    @Override
     public HashMap<String, String> retrieveAccount(LoginDataDTO loginDataDTO) {
         String accountType = loginDataDTO.getAccountType();
         if (!checkParamsValidity(accountType)) {
@@ -800,7 +652,7 @@ public class UserServiceImpl implements UserService {
         }
         checkPassWord(newPassword);
 
-        newPassword = AES.encrypt(newPassword, ConfigUtil.Secret);
+        newPassword = PasswordUtil.hash(newPassword);
 
         userInfo.setPassword(newPassword);
 
@@ -810,90 +662,6 @@ public class UserServiceImpl implements UserService {
         result.put("token", token);
 
         return result;
-
-    }
-
-    private void saveUserExternalAccountBinding(UserExternalAccountBinding userExternalAccountBinding) {
-
-        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserExternalAccountBinding::getAkUid, userExternalAccountBinding.getAkUid())
-                .eq(UserExternalAccountBinding::getUid, userExternalAccountBinding.getUid());
-        UserExternalAccountBinding existsData = userExternalAccountBindingMapper.selectOne(queryWrapper);
-        long timeStamp = System.currentTimeMillis();
-
-        userExternalAccountBinding.setUpdateTime(timeStamp);
-
-        Logger.info("要添加的外部账号绑定信息 {} " + userExternalAccountBinding);
-        if (existsData == null) {
-            userExternalAccountBinding.setId(idGenerator.nextId());
-            userExternalAccountBinding.setCreateTime(timeStamp);
-            userExternalAccountBinding.setDeleteFlag(false);
-            userExternalAccountBindingMapper.insert(userExternalAccountBinding);
-
-        } else {
-            userExternalAccountBinding.setId(existsData.getId());
-            userExternalAccountBinding.setCreateTime(existsData.getCreateTime());
-            userExternalAccountBindingMapper.updateById(userExternalAccountBinding);
-        }
-
-    }
-
-    private void saveAkPlayerBindInfo(AkPlayerBindInfo akPlayerBindInfo) {
-
-        LambdaQueryWrapper<AkPlayerBindInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AkPlayerBindInfo::getAkUid, akPlayerBindInfo.getAkUid());
-        AkPlayerBindInfo oldInfo = akPlayerBindInfoMapper.selectOne(queryWrapper);
-        akPlayerBindInfo.setUpdateTime(System.currentTimeMillis());
-        Logger.info("要添加的明日方舟账号绑定信息，id为" + akPlayerBindInfo);
-        if (oldInfo == null) {
-            akPlayerBindInfo.setId(idGenerator.nextId());
-            akPlayerBindInfo.setDeleteFlag(false);
-            akPlayerBindInfoMapper.insert(akPlayerBindInfo);
-        } else {
-            akPlayerBindInfo.setId(oldInfo.getId());
-            akPlayerBindInfoMapper.updateById(akPlayerBindInfo);
-        }
-
-    }
-
-    @Override
-    public void saveExternalAccountBindingInfoAndAKPlayerBindInfo(UserInfoVO userInfoVO,
-            AkPlayerBindInfoDTO akPlayerBindInfoDTO) {
-        UserExternalAccountBinding userExternalAccountBinding = new UserExternalAccountBinding();
-        userExternalAccountBinding.setId(idGenerator.nextId());
-
-        userExternalAccountBinding.setUid(userInfoVO.getUid());
-        userExternalAccountBinding.setAkUid(akPlayerBindInfoDTO.getAkUid());
-
-        saveUserExternalAccountBinding(userExternalAccountBinding);
-
-        AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
-        akPlayerBindInfo.copyByAkPlayerBindInfoDTO(akPlayerBindInfoDTO);
-        saveAkPlayerBindInfo(akPlayerBindInfo);
-
-    }
-
-    @Override
-    public void updateUserConfig(HttpServletRequest httpServletRequest, UserConfigDTO userConfigDTO) {
-        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        Long uid = userInfoVO.getUid();
-        UserConfig userConfig = userConfigMapper.selectById(uid);
-        Date date = new Date();
-        if (userConfig == null) {
-            userConfig = new UserConfig();
-            String configText = JsonMapper.toJSONString(userConfigDTO);
-            userConfig.setConfig(configText);
-            userConfig.setUid(uid);
-            userConfig.setCreateTime(date);
-            userConfig.setUpdateTime(date);
-            userConfigMapper.insert(userConfig);
-        } else {
-            String newConfig = JsonMapper.toJSONString(userConfigDTO);
-            userConfig.setUid(uid);
-            userConfig.setConfig(newConfig);
-            userConfig.setUpdateTime(date);
-            userConfigMapper.updateById(userConfig);
-        }
 
     }
 
@@ -993,6 +761,24 @@ public class UserServiceImpl implements UserService {
         result.put("tmpToken", tmpToken);
         result.put("userName", userInfo.getUserName());
         return result;
+    }
+
+
+     /**
+     * 解密用户凭证
+     *
+     * @param token 用户凭证
+     * @return 一图流id
+     */
+    private Long decryptToken(String token) {
+        try {
+            String decrypt = AES.decrypt(token.replaceAll(" ", "+"), ConfigUtil.Secret);
+            String idText = decrypt.split("\\.")[1];
+            return Long.parseLong(idText);
+        } catch (Exception e) {
+            Logger.error("Token解密失败", e);
+            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
+        }
     }
 
     private String tokenGenerator(UserInfo userInfo) {

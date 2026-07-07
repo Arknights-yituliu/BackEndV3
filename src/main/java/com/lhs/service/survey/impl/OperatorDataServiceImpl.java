@@ -14,6 +14,7 @@ import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.OperatorProgressionDataMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
+import com.lhs.service.user.BindService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +32,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final UserService userService;
+    private final BindService bindService;
 
     private final IdGenerator idGenerator;
 
@@ -42,9 +44,10 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final TencentCloudService tencentCloudService;
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-                                   UserService userService, OperatorProgressionDataMapper operatorProgressionDataMapper, WarehouseInfoService warehouseInfoService, TencentCloudService tencentCloudService) {
+                                   UserService userService, BindService bindService, OperatorProgressionDataMapper operatorProgressionDataMapper, WarehouseInfoService warehouseInfoService, TencentCloudService tencentCloudService) {
         this.redisTemplate = redisTemplate;
         this.userService = userService;
+        this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
         this.warehouseInfoService = warehouseInfoService;
         this.tencentCloudService = tencentCloudService;
@@ -72,7 +75,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         akPlayerBindInfoDTO.setAkUid(akUid);
         akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
         akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
-        userService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfo, akPlayerBindInfoDTO);
+        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfo, akPlayerBindInfoDTO);
         userInfo.setAkUid(akUid);
 
         return saveOperatorData(akUid, operatorDataList);

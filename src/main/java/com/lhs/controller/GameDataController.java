@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @Tag(name ="干员练度调查")
 
-public class SurveyOperatorController {
+public class GameDataController {
     private final OperatorDataService operatorDataService;
     private final ArknightsGameDataService arknightsGameDataService;
 
@@ -29,7 +29,7 @@ public class SurveyOperatorController {
 
     private final WarehouseInfoService warehouseInfoService;
 
-    public SurveyOperatorController(OperatorDataService operatorDataService,
+    public GameDataController(OperatorDataService operatorDataService,
                                     ArknightsGameDataService arknightsGameDataService,
                                     OperatorProgressionStatisticsService operatorProgressionStatisticsService,
                                     HypergryphService HypergryphService, WarehouseInfoService warehouseInfoService) {

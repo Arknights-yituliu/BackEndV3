@@ -7,6 +7,7 @@ import com.lhs.service.survey.OperatorProgressionStatisticsService;
 import com.lhs.service.material.*;
 
 import com.lhs.service.survey.QuestionnaireService;
+import com.lhs.service.user.BindService;
 import com.lhs.service.user.UserService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class TaskService {
     private final OperatorDataService operatorDataService;
 
     private final UserService userService;
+    private final BindService bindService;
 
     private final StageDropHourStatisticsService stageDropHourStatisticsService;
 
@@ -37,6 +39,7 @@ public class TaskService {
             QuestionnaireService questionnaireService,
             OperatorDataService operatorDataService,
             UserService userService,
+            BindService bindService,
             StageDropHourStatisticsService stageDropHourStatisticsService) {
         this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
 
@@ -47,6 +50,7 @@ public class TaskService {
         this.questionnaireService = questionnaireService;
         this.operatorDataService = operatorDataService;
         this.userService = userService;
+        this.bindService = bindService;
     }
 
     // 每天执行一次的任务
@@ -57,7 +61,7 @@ public class TaskService {
     @Scheduled(cron = "0 31 4 * * ?")
     public void backupUserInfo() {
         userService.backupUserInfo();
-        userService.backupUserExternalAccountBinding();
+        bindService.backupUserExternalAccountBinding();
     }
 
     /**

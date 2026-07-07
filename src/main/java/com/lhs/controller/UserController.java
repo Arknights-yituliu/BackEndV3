@@ -4,8 +4,8 @@ import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.EmailRequestDTO;
 import com.lhs.entity.dto.user.LoginDataDTO;
 import com.lhs.entity.dto.user.UpdateUserDataDTO;
-import com.lhs.entity.dto.user.UserConfigDTO;
 import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.service.user.BindService;
 import com.lhs.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,9 +19,11 @@ import java.util.HashMap;
 public class UserController {
 
     private final UserService userService;
+    private final BindService bindService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, BindService bindService) {
         this.userService = userService;
+        this.bindService = bindService;
     }
 
     @Operation(summary = "调查站用户注册")
@@ -40,6 +42,8 @@ public class UserController {
         return Result.success(response);
     }
 
+     
+
     @Operation(summary = "根据token检查用户登录状态吗，返回用户信息")
     @GetMapping("/user/info")
     public Result<UserInfoVO> getUserInfo(@RequestParam String token) {
@@ -57,7 +61,7 @@ public class UserController {
     @Operation(summary ="发送邮件验证码")
     @PostMapping("/user/verificationCode")
     public Result<Object> sendVerificationCode(HttpServletRequest httpServletRequest, @RequestBody EmailRequestDTO emailRequestDto) {
-        userService.sendVerificationCode(httpServletRequest, emailRequestDto);
+        bindService.sendVerificationCode(httpServletRequest, emailRequestDto);
         return Result.success();
     }
 
@@ -65,7 +69,7 @@ public class UserController {
     @PostMapping("/auth/user/update-email/verificationCode")
     public Result<Object> sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest,
             @RequestBody EmailRequestDTO emailRequestDto) {
-        userService.sendUpdateEmailVerificationCode(httpServletRequest, emailRequestDto);
+        bindService.sendUpdateEmailVerificationCode(httpServletRequest, emailRequestDto);
         return Result.success();
     }
 
@@ -73,14 +77,14 @@ public class UserController {
     @GetMapping("/auth/user/check/verificationCode")
     public Result<Object> checkVerificationCode(HttpServletRequest httpServletRequest,
             @RequestParam("verificationCode") String verificationCode) {
-        return Result.success(userService.checkVerificationCode(httpServletRequest, verificationCode));
+        return Result.success(bindService.checkVerificationCode(httpServletRequest, verificationCode));
     }
 
     @Operation(summary = "绑定邮箱")
     @PostMapping("/auth/user/bind-email")
     public Result<Object> bindEmail(HttpServletRequest httpServletRequest,
             @RequestBody UpdateUserDataDTO updateUserDataDto) {
-        userService.bindEmail(httpServletRequest, updateUserDataDto);
+        bindService.bindEmail(httpServletRequest, updateUserDataDto);
         return Result.success();
     }
 
@@ -104,5 +108,8 @@ public class UserController {
             @RequestBody LoginDataDTO loginDataDTO) {
         return Result.success(userService.resetPassword(httpServletRequest, loginDataDTO));
     }
+
+
+
 
 }

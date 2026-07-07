@@ -8,6 +8,7 @@ import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.WarehouseInfoMapper;
 import com.lhs.mapper.survey.service.WarehouseInfoMapperService;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
+import com.lhs.service.user.BindService;
 import com.lhs.service.user.UserService;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class WarehouseInfoService {
 
     private final WarehouseInfoMapperService warehouseInfoMapperService;
     private final UserService userService;
+    private final BindService bindService;
 
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
     private final IdGenerator idGenerator;
@@ -31,11 +33,13 @@ public class WarehouseInfoService {
     public WarehouseInfoService(WarehouseInfoMapper warehouseInfoMapper,
                                 WarehouseInfoMapperService warehouseInfoMapperService,
                                 UserService userService,
+                                BindService bindService,
                                 AkPlayerBindInfoMapper akPlayerBindInfoMapper,
                                 HypergryphService hypergryphService) {
         this.warehouseInfoMapper = warehouseInfoMapper;
         this.warehouseInfoMapperService = warehouseInfoMapperService;
         this.userService = userService;
+        this.bindService = bindService;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
 
         this.hypergryphService = hypergryphService;
@@ -62,7 +66,7 @@ public class WarehouseInfoService {
         AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
         akPlayerBindInfoDTO.setAkUid(akUid);
         akPlayerBindInfoDTO.setWarehouseInfoId(lastDataId);
-        userService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfoByToken,akPlayerBindInfoDTO);
+        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfoByToken,akPlayerBindInfoDTO);
 
         //当前导入时间的时间戳
         long timeStamp = System.currentTimeMillis();

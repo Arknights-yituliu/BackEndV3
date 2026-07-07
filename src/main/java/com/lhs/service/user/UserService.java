@@ -1,6 +1,7 @@
 package com.lhs.service.user;
 
-import com.lhs.entity.dto.user.*;
+import com.lhs.entity.dto.user.LoginDataDTO;
+import com.lhs.entity.dto.user.UpdateUserDataDTO;
 import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 public interface UserService {
-
 
     /**
      * 用户注册
@@ -28,45 +28,22 @@ public interface UserService {
      */
     HashMap<String, Object> loginV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO);
 
-
-
+    /**
+     * 从请求中提取token
+     *
+     * @param request HTTP请求对象
+     * @return token
+     */
     String extractToken(HttpServletRequest request);
 
     /**
      * 检查用户登录状态
+     *
      * @param httpServletRequest HTTP请求对象
      * @return 是否登录
      */
     Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest);
 
-    /**
-     * 发送邮件验证码
-     *
-     * @param emailRequestDto 邮件请求数据
-     */
-    void sendVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto);
-
-    /**
-     * 发送更新邮箱的验证码
-     * @param httpServletRequest HTTP请求对象
-     * @param emailRequestDto 邮箱请求信息
-     */
-    void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest, EmailRequestDTO emailRequestDto);
-
-    /**
-     * 检查验证码
-     * @param httpServletRequest HTTP请求对象
-     * @param verificationCode 验证码
-     * @return 成功消息
-     */
-    String checkVerificationCode(HttpServletRequest httpServletRequest,String verificationCode);
-
-    /**
-     * 绑定邮箱
-     * @param httpServletRequest HTTP请求对象
-     * @param updateUserDataDto 用户信息
-     */
-    void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto);
     /**
      * 通过token获取用户信息
      *
@@ -107,26 +84,19 @@ public interface UserService {
      */
     UserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest);
 
-
-
-    /**
-     * 更新用户的各种自定义配置
-     * @param httpServletRequest HTTP请求对象
-     * @param userConfigDTO 请求体
-     */
-    void updateUserConfig(HttpServletRequest httpServletRequest,UserConfigDTO userConfigDTO);
-
     /**
      * 更新用户信息
+     *
      * @param httpServletRequest HTTP请求对象
-     * @param updateUserDataDto 要更新的内容
+     * @param updateUserDataDto  要更新的内容
      * @return 用户信息
      */
-    UserInfoVO updateUserData(HttpServletRequest httpServletRequest,UpdateUserDataDTO updateUserDataDto);
+    UserInfoVO updateUserData(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto);
 
+    /**
+     * 备份用户信息到腾讯云COS
+     */
     void backupUserInfo();
-
-    void backupUserExternalAccountBinding();
 
     /**
      * 找回账号
@@ -138,23 +108,10 @@ public interface UserService {
 
     /**
      * 重设密码
+     *
      * @param httpServletRequest HTTP请求对象
-     * @param loginDataDTO 找回所需的内容
+     * @param loginDataDTO       找回所需的内容
      * @return 用户凭证
      */
-    HashMap<String, String> resetPassword(HttpServletRequest httpServletRequest,LoginDataDTO loginDataDTO);
-
-    /**
-     * 这个方法将会保存两个信息：
-     * 1.一图流用户的唯一标识与第三方账号的唯一标识的对应关系
-     * 2.第三方账号的信息
-     * @param userInfoVO 一图流用户信息
-     * @param akPlayerBindInfoDTO 第三方账号的信息
-     */
-    void saveExternalAccountBindingInfoAndAKPlayerBindInfo(UserInfoVO userInfoVO, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
-
-   
-
-
-
+    HashMap<String, String> resetPassword(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO);
 }
