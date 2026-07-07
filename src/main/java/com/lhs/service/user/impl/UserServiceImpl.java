@@ -13,9 +13,11 @@ import com.lhs.entity.dto.user.*;
 import com.lhs.entity.po.user.UserConfig;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.po.user.UserInfo;
+import com.lhs.entity.po.user.TokenRecord;
 import com.lhs.entity.vo.survey.AkPlayerBindingListVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.user.UserConfigMapper;
+import com.lhs.mapper.user.TokenRecordMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.survey.HypergryphService;
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
     private final UserConfigMapper userConfigMapper;
+    private final TokenRecordMapper tokenRecordMapper;
 
     public UserServiceImpl(UserInfoMapper userInfoMapper,
             RedisTemplate<String, String> redisTemplate,
@@ -51,7 +54,8 @@ public class UserServiceImpl implements UserService {
             TencentCloudService tencentCloudService,
             HypergryphService HypergryphService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
-            UserConfigMapper userConfigMapper) {
+            UserConfigMapper userConfigMapper,
+            TokenRecordMapper tokenRecordMapper) {
         this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
         this.tencentCloudEmailService = tencentCloudEmailService;
@@ -59,6 +63,7 @@ public class UserServiceImpl implements UserService {
         this.HypergryphService = HypergryphService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.userConfigMapper = userConfigMapper;
+        this.tokenRecordMapper = tokenRecordMapper;
         idGenerator = new IdGenerator(1L);
     }
 
@@ -474,6 +479,15 @@ public class UserServiceImpl implements UserService {
             Logger.info("token走旧格式解密路径，已同步写入Redis");
             yituliuId = decryptToken(token);
             redisTemplate.opsForValue().set("loginToken:" + token, yituliuId.toString(), 30, TimeUnit.DAYS);
+            // 同时补写数据库记录
+            TokenRecord record = new TokenRecord();
+            record.setId(idGenerator.nextId());
+            record.setUid(yituliuId);
+            record.setToken(token);
+            record.setType("login");
+            record.setRemark("旧token迁移");
+            record.setCreateTime(new Date());
+            tokenRecordMapper.insert(record);
         }
 
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
@@ -762,6 +776,8 @@ public class UserServiceImpl implements UserService {
     public void logout(HttpServletRequest httpServletRequest) {
         String token = extractToken(httpServletRequest);
         redisTemplate.delete("loginToken:" + token);
+        // 删除数据库中的token记录
+        tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>().eq(TokenRecord::getToken, token));
         Logger.info("用户token已登出撤销");
     }
 
@@ -808,6 +824,15 @@ public class UserServiceImpl implements UserService {
 
         // 将token存入Redis，支持登出撤销，30天过期
         redisTemplate.opsForValue().set("loginToken:" + token, id.toString(), 30, TimeUnit.DAYS);
+
+        // 将token写入数据库记录
+        TokenRecord record = new TokenRecord();
+        record.setId(idGenerator.nextId());
+        record.setUid(id);
+        record.setToken(token);
+        record.setType("login");
+        record.setCreateTime(new Date());
+        tokenRecordMapper.insert(record);
 
         return token;
     }

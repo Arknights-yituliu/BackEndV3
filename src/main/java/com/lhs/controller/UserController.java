@@ -122,7 +122,7 @@ public class UserController {
     @PostMapping("/user/open-api/token")
     public Result<HashMap<String, Object>> generateOpenApiToken(HttpServletRequest httpServletRequest,
             @RequestBody OpenApiTokenRequestDTO request) {
-        String token = openApiService.generateOpenApiToken(httpServletRequest, request.getScope());
+        String token = openApiService.generateOpenApiToken(httpServletRequest, request.getScope(), request.getRemark());
         HashMap<String, Object> result = new HashMap<>();
         result.put("token", token);
         result.put("scope", request.getScope());
@@ -143,10 +143,17 @@ public class UserController {
     }
 
     @Operation(summary = "删除第三方API Token")
-    @DeleteMapping("/auth/user/open-api/token")
-    public Result<Object> deleteOpenApiToken(HttpServletRequest httpServletRequest) {
-        openApiService.deleteOpenApiToken(httpServletRequest);
+    @PostMapping("/auth/user/open-api/token/delete")
+    public Result<Object> deleteOpenApiToken(HttpServletRequest httpServletRequest,
+            @RequestBody Map<String, String> body) {
+        openApiService.deleteOpenApiToken(httpServletRequest, body.get("token"));
         return Result.success();
+    }
+
+    @Operation(summary = "获取当前用户所有第三方API Token")
+    @GetMapping("/auth/user/open-api/tokens")
+    public Result<List<Map<String, Object>>> listOpenApiTokens(HttpServletRequest httpServletRequest) {
+        return Result.success(openApiService.listUserTokens(httpServletRequest));
     }
 
 }

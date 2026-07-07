@@ -14,4 +14,9 @@ public class OpenApiTokenRequestDTO {
      * 权限 code 数组，如 [10001] 或 [10001, 10002]
      */
     private List<Integer> scope;
+
+    /**
+     * 备注
+     */
+    private String remark;
 }

@@ -2,17 +2,24 @@ package com.lhs.service.user.impl;
 
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
+import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.entity.dto.user.OpenApiTokenDataDTO;
+import com.lhs.entity.po.user.TokenRecord;
 import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.mapper.user.TokenRecordMapper;
 import com.lhs.service.user.OpenApiService;
 import com.lhs.service.user.UserService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,16 +33,30 @@ public class OpenApiServiceImpl implements OpenApiService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final UserService userService;
+    private final TokenRecordMapper tokenRecordMapper;
+    private final IdGenerator idGenerator;
 
-    public OpenApiServiceImpl(RedisTemplate<String, String> redisTemplate, UserService userService) {
+    public OpenApiServiceImpl(RedisTemplate<String, String> redisTemplate, UserService userService,
+                              TokenRecordMapper tokenRecordMapper) {
         this.redisTemplate = redisTemplate;
         this.userService = userService;
+        this.tokenRecordMapper = tokenRecordMapper;
+        this.idGenerator = new IdGenerator(1L);
     }
 
     @Override
-    public String generateOpenApiToken(HttpServletRequest httpServletRequest, List<Integer> scopeCodes) {
+    public String generateOpenApiToken(HttpServletRequest httpServletRequest, List<Integer> scopeCodes, String remark) {
         UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         Long uid = userInfoVO.getUid();
+
+        // 检查token数量是否已达上限（最多5个）
+        Long tokenCount = tokenRecordMapper.selectCount(
+                new LambdaQueryWrapper<TokenRecord>()
+                        .eq(TokenRecord::getUid, uid)
+                        .eq(TokenRecord::getType, "open-api"));
+        if (tokenCount >= 5) {
+            throw new ServiceException(ResultCode.OPEN_API_TOKEN_COUNT_EXCEEDED);
+        }
 
         // 使用UUID生成唯一token
         String token = UUID.randomUUID().toString().replace("-", "");
@@ -46,6 +67,17 @@ public class OpenApiServiceImpl implements OpenApiService {
         tokenData.put("scope", scopeCodes);
 
         redisTemplate.opsForValue().set("open-api-token:" + token, JsonMapper.toJSONString(tokenData), 30, TimeUnit.DAYS);
+
+        // 将token写入数据库记录
+        TokenRecord record = new TokenRecord();
+        record.setId(idGenerator.nextId());
+        record.setUid(uid);
+        record.setToken(token);
+        record.setType("open-api");
+        record.setScope(JsonMapper.toJSONString(scopeCodes));
+        record.setRemark(remark);
+        record.setCreateTime(new Date());
+        tokenRecordMapper.insert(record);
 
         Logger.info("为用户 {} 生成了 scope={} 的第三方API token", uid, scopeCodes);
         return token;
@@ -77,13 +109,36 @@ public class OpenApiServiceImpl implements OpenApiService {
     }
 
     @Override
-    public void deleteOpenApiToken(HttpServletRequest httpServletRequest) {
+    public void deleteOpenApiToken(HttpServletRequest httpServletRequest, String token) {
         UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token != null && token.startsWith("Authorization") && token.length() > 30) {
-            token = token.replace("Authorization", "");
-        }
         redisTemplate.delete("open-api-token:" + token);
+        // 删除数据库中的token记录
+        tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>()
+                .eq(TokenRecord::getToken, token));
         Logger.info("用户 {} (uid={}) 删除了第三方API token", userInfoVO.getUserName(), userInfoVO.getUid());
+    }
+
+    @Override
+    public List<Map<String, Object>> listUserTokens(HttpServletRequest httpServletRequest) {
+        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        Long uid = userInfoVO.getUid();
+
+        // 从数据库查询该用户所有open-api类型的token
+        List<TokenRecord> records = tokenRecordMapper.selectList(
+                new LambdaQueryWrapper<TokenRecord>()
+                        .eq(TokenRecord::getUid, uid)
+                        .eq(TokenRecord::getType, "open-api")
+                        .orderByDesc(TokenRecord::getCreateTime));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (TokenRecord record : records) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("token", record.getToken());
+            item.put("scope", record.getScope());
+            item.put("remark", record.getRemark());
+            item.put("createTime", record.getCreateTime());
+            result.add(item);
+        }
+        return result;
     }
 }
