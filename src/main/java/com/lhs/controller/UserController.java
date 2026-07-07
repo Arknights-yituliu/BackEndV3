@@ -109,7 +109,39 @@ public class UserController {
         return Result.success(userService.resetPassword(httpServletRequest, loginDataDTO));
     }
 
+    @Operation(summary = "生成第三方只读API Token，仅能获取干员练度信息")
+    @PostMapping("/user/open-api/token/read")
+    public Result<HashMap<String, String>> generateReadOnlyApiToken(HttpServletRequest httpServletRequest) {
+        String token = userService.generateOpenApiToken(httpServletRequest, "read");
+        HashMap<String, String> result = new HashMap<>();
+        result.put("token", token);
+        result.put("scope", "read");
+        return Result.success(result);
+    }
 
+    @Operation(summary = "生成第三方读写API Token，可上传和获取干员练度信息")
+    @PostMapping("/user/open-api/token/write")
+    public Result<HashMap<String, String>> generateReadWriteApiToken(HttpServletRequest httpServletRequest) {
+        String token = userService.generateOpenApiToken(httpServletRequest, "write");
+        HashMap<String, String> result = new HashMap<>();
+        result.put("token", token);
+        result.put("scope", "write");
+        return Result.success(result);
+    }
 
+    @Operation(summary = "用户登出，使当前登录token失效")
+    @PostMapping("/auth/user/logout")
+    public Result<Object> logout(HttpServletRequest httpServletRequest) {
+        userService.logout(httpServletRequest);
+        return Result.success();
+    }
+
+    @Operation(summary = "删除第三方API Token（需传入scope：read或write）")
+    @DeleteMapping("/auth/user/open-api/token")
+    public Result<Object> deleteOpenApiToken(HttpServletRequest httpServletRequest,
+            @RequestParam String scope) {
+        userService.deleteOpenApiToken(httpServletRequest, scope);
+        return Result.success();
+    }
 
 }

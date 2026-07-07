@@ -6,7 +6,6 @@ import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
 import com.lhs.service.survey.*;
-
 import com.lhs.service.util.ArknightsGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,7 +31,8 @@ public class GameDataController {
     public GameDataController(OperatorDataService operatorDataService,
                                     ArknightsGameDataService arknightsGameDataService,
                                     OperatorProgressionStatisticsService operatorProgressionStatisticsService,
-                                    HypergryphService HypergryphService, WarehouseInfoService warehouseInfoService) {
+                                    HypergryphService HypergryphService,
+                                    WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
         this.arknightsGameDataService = arknightsGameDataService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
@@ -94,11 +94,17 @@ public class GameDataController {
         return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());
     }
 
+    @Operation(summary = "第三方API上传干员练度数据（需要write权限token）")
+    @PostMapping("/open-api/operator/upload")
+    public Result<Map<String, Object>> openApiUploadOperatorData(HttpServletRequest httpServletRequest,
+            @RequestBody PlayerInfoDTO playerInfoDTO) {
+        return Result.success(operatorDataService.openApiUploadOperatorData(httpServletRequest, playerInfoDTO));
+    }
 
-
-
-
-
-
+    @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
+    @GetMapping("/open-api/operator/info")
+    public Result<List<OperatorProgressionDataDTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+        return Result.success(operatorDataService.openApiGetOperatorData(httpServletRequest));
+    }
 
 }

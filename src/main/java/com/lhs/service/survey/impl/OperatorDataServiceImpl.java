@@ -10,8 +10,10 @@ import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.po.survey.*;
 
+import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.OperatorProgressionDataMapper;
+import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.BindService;
@@ -42,15 +44,21 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
 
     private final TencentCloudService tencentCloudService;
+    private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-                                   UserService userService, BindService bindService, OperatorProgressionDataMapper operatorProgressionDataMapper, WarehouseInfoService warehouseInfoService, TencentCloudService tencentCloudService) {
+                                   UserService userService, BindService bindService,
+                                   OperatorProgressionDataMapper operatorProgressionDataMapper,
+                                   WarehouseInfoService warehouseInfoService,
+                                   TencentCloudService tencentCloudService,
+                                   UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
         this.redisTemplate = redisTemplate;
         this.userService = userService;
         this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
         this.warehouseInfoService = warehouseInfoService;
         this.tencentCloudService = tencentCloudService;
+        this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -226,6 +234,64 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         }
     }
 
+    @Override
+    public Map<String, Object> saveOpenApiOperatorData(Long uid, PlayerInfoDTO playerInfoDTO) {
+        String akUid = playerInfoDTO.getUid();
+        List<OperatorProgressionDataDTO> operatorDataList = playerInfoDTO.getOperatorDataList();
 
+        // 保存用户与方舟uid的绑定关系
+        AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
+        akPlayerBindInfoDTO.setAkNickName(playerInfoDTO.getNickName());
+        akPlayerBindInfoDTO.setAkUid(akUid);
+        akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
+        akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
+
+        UserInfoVO userInfoVO = new UserInfoVO();
+        userInfoVO.setUid(uid);
+        userInfoVO.setAkUid(akUid);
+        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfoVO, akPlayerBindInfoDTO);
+
+        return saveOperatorData(akUid, operatorDataList);
+    }
+
+    @Override
+    public List<OperatorProgressionDataDTO> getOperatorDataByUid(Long uid) {
+        // 查询用户绑定的方舟uid
+        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserExternalAccountBinding::getUid, uid)
+                .orderByDesc(UserExternalAccountBinding::getUpdateTime);
+        List<UserExternalAccountBinding> bindings = userExternalAccountBindingMapper.selectList(queryWrapper);
+
+        if (bindings.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        String akUid = bindings.get(0).getAkUid();
+
+        // 查询干员数据
+        LambdaQueryWrapper<OperatorProgressionData> dataQueryWrapper = new LambdaQueryWrapper<>();
+        dataQueryWrapper.eq(OperatorProgressionData::getAkUid, akUid);
+        OperatorProgressionData operatorProgressionData = operatorProgressionDataMapper.selectOne(dataQueryWrapper);
+
+        if (operatorProgressionData == null) {
+            return new ArrayList<>();
+        }
+
+        return JsonMapper.parseJSONArray(operatorProgressionData.getOperatorProgression(), new TypeReference<>() {});
+    }
+
+    @Override
+    public Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO) {
+        String token = httpServletRequest.getHeader("Authorization");
+        Long uid = userService.validateOpenApiToken(token, "write");
+        return saveOpenApiOperatorData(uid, playerInfoDTO);
+    }
+
+    @Override
+    public List<OperatorProgressionDataDTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+        String token = httpServletRequest.getHeader("Authorization");
+        Long uid = userService.validateOpenApiToken(token, "read");
+        return getOperatorDataByUid(uid);
+    }
 
 }

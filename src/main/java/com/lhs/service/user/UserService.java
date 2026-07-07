@@ -114,4 +114,37 @@ public interface UserService {
      * @return 用户凭证
      */
     HashMap<String, String> resetPassword(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO);
+
+    /**
+     * 生成第三方API访问token（读/写权限），token存储在Redis中，30天过期
+     *
+     * @param httpServletRequest HTTP请求对象
+     * @param scope              token权限范围：read-只读，write-读写
+     * @return API访问token
+     */
+    String generateOpenApiToken(HttpServletRequest httpServletRequest, String scope);
+
+    /**
+     * 校验第三方API token并返回用户uid
+     *
+     * @param token         API token
+     * @param requiredScope 需要的权限：read-只读，write-读写（write权限token可执行read操作）
+     * @return 用户uid
+     */
+    Long validateOpenApiToken(String token, String requiredScope);
+
+    /**
+     * 用户登出，删除Redis中的登录token
+     *
+     * @param httpServletRequest HTTP请求对象
+     */
+    void logout(HttpServletRequest httpServletRequest);
+
+    /**
+     * 删除第三方API token
+     *
+     * @param httpServletRequest HTTP请求对象
+     * @param scope              权限范围：read 或 write
+     */
+    void deleteOpenApiToken(HttpServletRequest httpServletRequest, String scope);
 }

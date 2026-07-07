@@ -315,6 +315,8 @@ public class UserServiceImpl implements UserService {
         if (!PasswordUtil.matches(passWord, userInfo.getPassword())) {
             throw new ServiceException(ResultCode.USER_PASSWORD_ERROR);
         }
+
+        
         // 旧 AES 密码自动升级为 bcrypt
         if (PasswordUtil.isLegacyAES(userInfo.getPassword())) {
             userInfo.setPassword(PasswordUtil.hash(passWord));
@@ -358,14 +360,7 @@ public class UserServiceImpl implements UserService {
         List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
                 .selectList(queryWrapper);
 
-        // 根据uid查询是否有自定义配置
-        UserConfig userConfig = userConfigMapper.selectById(userInfo.getId());
-        // 不为空则为VO写入配置
-        if (userConfig != null) {
-            Map<String, Object> map = JsonMapper.parseObject(userConfig.getConfig(), new TypeReference<>() {
-            });
-            userInfoVO.setConfig(map);
-        }
+       
 
         if (userInfo.getPassword() != null && userInfo.getPassword().length() > 10) {
             userInfoVO.setHasPassword(true);
@@ -478,6 +473,12 @@ public class UserServiceImpl implements UserService {
         }
         if (userInfo.getStatus() < 0) {
             throw new ServiceException(ResultCode.USER_FORBIDDEN);
+        }
+
+        // 检查token是否已被登出撤销（兼容旧token：Redis中无记录时放行）
+        String storedToken = redisTemplate.opsForValue().get("loginToken:" + yituliuId);
+        if (storedToken != null && !storedToken.equals(token)) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 
         return userInfo;
@@ -751,6 +752,74 @@ public class UserServiceImpl implements UserService {
         return createTemporaryCertificate(userInfo);
     }
 
+
+       @Override
+    public String generateOpenApiToken(HttpServletRequest httpServletRequest, String scope) {
+        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+        Long uid = userInfoVO.getUid();
+
+        // 使用UUID生成唯一token
+        String token = java.util.UUID.randomUUID().toString().replace("-", "");
+
+        if ("write".equals(scope)) {
+            redisTemplate.opsForValue().set("openApiWriteToken:" + token, uid.toString(), 30, TimeUnit.DAYS);
+        } else {
+            redisTemplate.opsForValue().set("openApiReadToken:" + token, uid.toString(), 30, TimeUnit.DAYS);
+        }
+
+        Logger.info("为用户 {} 生成了 {} 权限的第三方API token", uid, scope);
+        return token;
+    }
+
+    @Override
+    public Long validateOpenApiToken(String token, String requiredScope) {
+        if (!checkParamsValidity(token)) {
+            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
+        }
+
+        // write权限token可执行read操作，优先查write key
+        if ("write".equals(requiredScope)) {
+            String uid = redisTemplate.opsForValue().get("openApiWriteToken:" + token);
+            if (uid != null) {
+                return Long.parseLong(uid);
+            }
+            throw new ServiceException(ResultCode.USER_INSUFFICIENT_PERMISSIONS);
+        }
+
+        // read操作：先查write key（write权限兼容read），再查read key
+        String uid = redisTemplate.opsForValue().get("openApiWriteToken:" + token);
+        if (uid == null) {
+            uid = redisTemplate.opsForValue().get("openApiReadToken:" + token);
+        }
+        if (uid == null) {
+            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
+        }
+        return Long.parseLong(uid);
+    }
+
+    @Override
+    public void logout(HttpServletRequest httpServletRequest) {
+        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+        redisTemplate.delete("loginToken:" + userInfoVO.getUid());
+        Logger.info("用户 {} (uid={}) 已登出", userInfoVO.getUserName(), userInfoVO.getUid());
+    }
+
+    @Override
+    public void deleteOpenApiToken(HttpServletRequest httpServletRequest, String scope) {
+        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
+        String token = httpServletRequest.getHeader("Authorization");
+        if (token != null && token.startsWith("Authorization") && token.length() > 30) {
+            token = token.replace("Authorization", "");
+        }
+
+        if ("write".equals(scope)) {
+            redisTemplate.delete("openApiWriteToken:" + token);
+        } else {
+            redisTemplate.delete("openApiReadToken:" + token);
+        }
+        Logger.info("用户 {} (uid={}) 删除了 {} 权限的第三方API token", userInfoVO.getUserName(), userInfoVO.getUid(), scope);
+    }
+
     private HashMap<String, String> createTemporaryCertificate(UserInfo userInfo) {
         String tmpToken = userInfo.getUserName() + userInfo.getId() + System.currentTimeMillis();
 
@@ -788,10 +857,14 @@ public class UserServiceImpl implements UserService {
         Long id = userInfo.getId();
         hashMap.put("userName", userName.replace(".", "·"));
         hashMap.put("id", userInfo.getId());
-        hashMap.put("ip", userInfo.getIp());
         String header = JsonMapper.toJSONString(hashMap);
         long timeStamp = System.currentTimeMillis();
-        return AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
+        String token = AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
+
+        // 将token存入Redis，支持登出撤销，30天过期
+        redisTemplate.opsForValue().set("loginToken:" + id, token, 30, TimeUnit.DAYS);
+
+        return token;
     }
 
     /**
@@ -887,5 +960,7 @@ public class UserServiceImpl implements UserService {
 
         return true;
     }
+
+ 
 
 }
