@@ -59,12 +59,12 @@
             <version>8.3.0</version>
         </dependency>
 
-<!-- bcrypt 密码哈希 -->
-<dependency>
-    <groupId>org.springframework.security</groupId>
-    <artifactId>spring-security-crypto</artifactId>
-    <version>6.4.5</version>
-</dependency>
+        <!-- bcrypt 密码哈希 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+            <version>6.4.5</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -119,6 +119,13 @@
             <version>3.1.1069</version>
         </dependency>
 
+        <!-- 腾讯云邮件推送 SES SDK -->
+        <dependency>
+            <groupId>com.tencentcloudapi</groupId>
+            <artifactId>tencentcloud-sdk-java-ses</artifactId>
+            <version>3.1.1498</version>  <!-- 建议前往 Maven 仓库获取最新版本 -->
+        </dependency>
+
         <!-- 其他依赖 -->
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
         <dependency>
@@ -143,7 +150,6 @@
             <artifactId>jsoup</artifactId>
             <version>1.15.4</version>
         </dependency>
-
 
 
     </dependencies>

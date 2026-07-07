@@ -20,7 +20,7 @@ import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.survey.HypergryphService;
 import com.lhs.service.user.UserService;
-import com.lhs.service.util.Email163Service;
+import com.lhs.service.util.TencentCloudEmailService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    private final Email163Service email163Service;
+    private final TencentCloudEmailService tencentCloudEmailService;
     private final TencentCloudService tencentCloudService;
     private final IdGenerator idGenerator;
     private final HypergryphService HypergryphService;
@@ -47,14 +47,14 @@ public class UserServiceImpl implements UserService {
 
     public UserServiceImpl(UserInfoMapper userInfoMapper,
             RedisTemplate<String, String> redisTemplate,
-            Email163Service email163Service,
+            TencentCloudEmailService tencentCloudEmailService,
             TencentCloudService tencentCloudService,
             HypergryphService HypergryphService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
             UserConfigMapper userConfigMapper) {
         this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
-        this.email163Service = email163Service;
+        this.tencentCloudEmailService = tencentCloudEmailService;
         this.tencentCloudService = tencentCloudService;
         this.HypergryphService = HypergryphService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
         userInfoNew.setDeleteFlag(false);
 
         if (checkParamsValidity(email)) {
-            email163Service.compareVerificationCode(loginDataDTO.getVerificationCode(), email);
+            tencentCloudEmailService.compareVerificationCode(loginDataDTO.getVerificationCode(), email);
             LambdaQueryWrapper<UserInfo> emailQueryWrapper = new LambdaQueryWrapper<>();
             emailQueryWrapper.eq(UserInfo::getEmail, email);
             UserInfo userInfoByEmail = userInfoMapper.selectOne(emailQueryWrapper);
@@ -189,7 +189,7 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
         // 检查验证码
-        email163Service.compareVerificationCode(verificationCode, email);
+        tencentCloudEmailService.compareVerificationCode(verificationCode, email);
         // 给用户设置初始昵称
         String userName = "博士" + idGenerator.nextId();
         UserInfo userInfoNew = new UserInfo();
@@ -268,7 +268,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 检查验证码
-        email163Service.compareVerificationCode(verificationCode, email);
+        tencentCloudEmailService.compareVerificationCode(verificationCode, email);
 
         // 设置查询构造器条件
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -462,7 +462,19 @@ public class UserServiceImpl implements UserService {
 
         token = token.replace("Authorization", "");
 
-        Long yituliuId = decryptToken(token);
+        // 优先从Redis新格式获取uid（key: loginToken:{token}）
+        String uidStr = redisTemplate.opsForValue().get("loginToken:" + token);
+        Long yituliuId;
+
+        if (uidStr != null) {
+            // 新格式命中，直接获取uid
+            yituliuId = Long.parseLong(uidStr);
+        } else {
+            // 旧token未写入Redis，解密获取uid，同时写入新格式完成迁移
+            Logger.info("token走旧格式解密路径，已同步写入Redis");
+            yituliuId = decryptToken(token);
+            redisTemplate.opsForValue().set("loginToken:" + token, yituliuId.toString(), 30, TimeUnit.DAYS);
+        }
 
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("id", yituliuId);
@@ -473,12 +485,6 @@ public class UserServiceImpl implements UserService {
         }
         if (userInfo.getStatus() < 0) {
             throw new ServiceException(ResultCode.USER_FORBIDDEN);
-        }
-
-        // 检查token是否已被登出撤销（兼容旧token：Redis中无记录时放行）
-        String storedToken = redisTemplate.opsForValue().get("loginToken:" + yituliuId);
-        if (storedToken != null && !storedToken.equals(token)) {
-            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
 
         return userInfo;
@@ -678,7 +684,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 检查验证码
-        email163Service.compareVerificationCode(verificationCode, email);
+        tencentCloudEmailService.compareVerificationCode(verificationCode, email);
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
@@ -752,72 +758,11 @@ public class UserServiceImpl implements UserService {
         return createTemporaryCertificate(userInfo);
     }
 
-
-       @Override
-    public String generateOpenApiToken(HttpServletRequest httpServletRequest, String scope) {
-        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        Long uid = userInfoVO.getUid();
-
-        // 使用UUID生成唯一token
-        String token = java.util.UUID.randomUUID().toString().replace("-", "");
-
-        if ("write".equals(scope)) {
-            redisTemplate.opsForValue().set("openApiWriteToken:" + token, uid.toString(), 30, TimeUnit.DAYS);
-        } else {
-            redisTemplate.opsForValue().set("openApiReadToken:" + token, uid.toString(), 30, TimeUnit.DAYS);
-        }
-
-        Logger.info("为用户 {} 生成了 {} 权限的第三方API token", uid, scope);
-        return token;
-    }
-
-    @Override
-    public Long validateOpenApiToken(String token, String requiredScope) {
-        if (!checkParamsValidity(token)) {
-            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
-        }
-
-        // write权限token可执行read操作，优先查write key
-        if ("write".equals(requiredScope)) {
-            String uid = redisTemplate.opsForValue().get("openApiWriteToken:" + token);
-            if (uid != null) {
-                return Long.parseLong(uid);
-            }
-            throw new ServiceException(ResultCode.USER_INSUFFICIENT_PERMISSIONS);
-        }
-
-        // read操作：先查write key（write权限兼容read），再查read key
-        String uid = redisTemplate.opsForValue().get("openApiWriteToken:" + token);
-        if (uid == null) {
-            uid = redisTemplate.opsForValue().get("openApiReadToken:" + token);
-        }
-        if (uid == null) {
-            throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
-        }
-        return Long.parseLong(uid);
-    }
-
     @Override
     public void logout(HttpServletRequest httpServletRequest) {
-        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        redisTemplate.delete("loginToken:" + userInfoVO.getUid());
-        Logger.info("用户 {} (uid={}) 已登出", userInfoVO.getUserName(), userInfoVO.getUid());
-    }
-
-    @Override
-    public void deleteOpenApiToken(HttpServletRequest httpServletRequest, String scope) {
-        UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token != null && token.startsWith("Authorization") && token.length() > 30) {
-            token = token.replace("Authorization", "");
-        }
-
-        if ("write".equals(scope)) {
-            redisTemplate.delete("openApiWriteToken:" + token);
-        } else {
-            redisTemplate.delete("openApiReadToken:" + token);
-        }
-        Logger.info("用户 {} (uid={}) 删除了 {} 权限的第三方API token", userInfoVO.getUserName(), userInfoVO.getUid(), scope);
+        String token = extractToken(httpServletRequest);
+        redisTemplate.delete("loginToken:" + token);
+        Logger.info("用户token已登出撤销");
     }
 
     private HashMap<String, String> createTemporaryCertificate(UserInfo userInfo) {
@@ -862,7 +807,7 @@ public class UserServiceImpl implements UserService {
         String token = AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
 
         // 将token存入Redis，支持登出撤销，30天过期
-        redisTemplate.opsForValue().set("loginToken:" + id, token, 30, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("loginToken:" + token, id.toString(), 30, TimeUnit.DAYS);
 
         return token;
     }

@@ -3,9 +3,12 @@ package com.lhs.controller;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.EmailRequestDTO;
 import com.lhs.entity.dto.user.LoginDataDTO;
+import com.lhs.entity.dto.user.OpenApiPermission;
+import com.lhs.entity.dto.user.OpenApiTokenRequestDTO;
 import com.lhs.entity.dto.user.UpdateUserDataDTO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.service.user.BindService;
+import com.lhs.service.user.OpenApiService;
 import com.lhs.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,16 +16,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @Tag(name = "一图流用户系统")
 public class UserController {
 
     private final UserService userService;
+    private final OpenApiService openApiService;
     private final BindService bindService;
 
-    public UserController(UserService userService, BindService bindService) {
+    public UserController(UserService userService, OpenApiService openApiService, BindService bindService) {
         this.userService = userService;
+        this.openApiService = openApiService;
         this.bindService = bindService;
     }
 
@@ -42,7 +49,6 @@ public class UserController {
         return Result.success(response);
     }
 
-     
 
     @Operation(summary = "根据token检查用户登录状态吗，返回用户信息")
     @GetMapping("/user/info")
@@ -109,24 +115,24 @@ public class UserController {
         return Result.success(userService.resetPassword(httpServletRequest, loginDataDTO));
     }
 
-    @Operation(summary = "生成第三方只读API Token，仅能获取干员练度信息")
-    @PostMapping("/user/open-api/token/read")
-    public Result<HashMap<String, String>> generateReadOnlyApiToken(HttpServletRequest httpServletRequest) {
-        String token = userService.generateOpenApiToken(httpServletRequest, "read");
-        HashMap<String, String> result = new HashMap<>();
+
+    
+
+    @Operation(summary = "生成第三方API Token，scope参数传入权限code数组，如[10001]")
+    @PostMapping("/user/open-api/token")
+    public Result<HashMap<String, Object>> generateOpenApiToken(HttpServletRequest httpServletRequest,
+            @RequestBody OpenApiTokenRequestDTO request) {
+        String token = openApiService.generateOpenApiToken(httpServletRequest, request.getScope());
+        HashMap<String, Object> result = new HashMap<>();
         result.put("token", token);
-        result.put("scope", "read");
+        result.put("scope", request.getScope());
         return Result.success(result);
     }
 
-    @Operation(summary = "生成第三方读写API Token，可上传和获取干员练度信息")
-    @PostMapping("/user/open-api/token/write")
-    public Result<HashMap<String, String>> generateReadWriteApiToken(HttpServletRequest httpServletRequest) {
-        String token = userService.generateOpenApiToken(httpServletRequest, "write");
-        HashMap<String, String> result = new HashMap<>();
-        result.put("token", token);
-        result.put("scope", "write");
-        return Result.success(result);
+    @Operation(summary = "获取所有可用的 OpenAPI 权限列表")
+    @GetMapping("/user/open-api/permissions")
+    public Result<List<Map<String, Object>>> listPermissions() {
+        return Result.success(OpenApiPermission.listAll());
     }
 
     @Operation(summary = "用户登出，使当前登录token失效")
@@ -136,11 +142,10 @@ public class UserController {
         return Result.success();
     }
 
-    @Operation(summary = "删除第三方API Token（需传入scope：read或write）")
+    @Operation(summary = "删除第三方API Token")
     @DeleteMapping("/auth/user/open-api/token")
-    public Result<Object> deleteOpenApiToken(HttpServletRequest httpServletRequest,
-            @RequestParam String scope) {
-        userService.deleteOpenApiToken(httpServletRequest, scope);
+    public Result<Object> deleteOpenApiToken(HttpServletRequest httpServletRequest) {
+        openApiService.deleteOpenApiToken(httpServletRequest);
         return Result.success();
     }
 

@@ -65,6 +65,14 @@ penguin:
 tencent:
   secretId: 密匙
   secretKey: 签名
+  # 腾讯云邮件推送配置
+  email:
+    # 发件人地址（需在腾讯云邮件推送控制台验证）
+    from-address: 发件人邮箱地址
+    # SDK 地域（如 ap-hongkong / ap-guangzhou）
+    region: ap-hongkong
+    # 邮件模板ID（需在腾讯云控制台创建，模板变量：{{subject}}、{{content}}）
+    template-id: 邮件模板ID
 
 # 森空岛API
 skland:

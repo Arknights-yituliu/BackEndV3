@@ -19,7 +19,7 @@ import com.lhs.mapper.admin.VisitsMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.admin.AdminService;
 import com.lhs.service.user.UserService;
-import com.lhs.service.util.Email163Service;
+import com.lhs.service.util.TencentCloudEmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AdminServiceImpl implements AdminService {
 
+    /** 系统发件邮箱地址 */
+    private static final String SYSTEM_EMAIL = "zrwdns@163.com";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -43,7 +45,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserService userService;
 
-    private final Email163Service email163Service;
+    private final TencentCloudEmailService tencentCloudEmailService;
 
     private final UserInfoMapper userInfoMapper;
 
@@ -52,14 +54,14 @@ public class AdminServiceImpl implements AdminService {
                             VisitsMapper visitsMapper,
                             PageVisitsMapper pageVisitsMapper,
                             UserService userService,
-                            Email163Service email163Service,
+                            TencentCloudEmailService tencentCloudEmailService,
                             UserInfoMapper userInfoMapper) {
         this.redisTemplate = redisTemplate;
         this.adminMapper = adminMapper;
         this.visitsMapper = visitsMapper;
         this.pageVisitsMapper = pageVisitsMapper;
         this.userService = userService;
-        this.email163Service = email163Service;
+        this.tencentCloudEmailService = tencentCloudEmailService;
         this.userInfoMapper = userInfoMapper;
     }
 
@@ -77,11 +79,11 @@ public class AdminServiceImpl implements AdminService {
         String text = "本次登录验证码：" + code;
         String subject = "开发者登录—本次登录验证码：" + code;
         EmailFormDTO emailFormDTO = new EmailFormDTO();
-        emailFormDTO.setFrom("ark_yituliu@163.com");
+        emailFormDTO.setFrom(SYSTEM_EMAIL);
         emailFormDTO.setTo(email);
         emailFormDTO.setSubject(subject);
         emailFormDTO.setText(text);
-        email163Service.sendSimpleEmail(emailFormDTO);
+        tencentCloudEmailService.sendSimpleEmail(emailFormDTO);
     }
 
 

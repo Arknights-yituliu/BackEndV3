@@ -8,6 +8,7 @@ import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
+import com.lhs.entity.dto.user.OpenApiPermission;
 import com.lhs.entity.po.survey.*;
 
 import com.lhs.entity.po.user.UserExternalAccountBinding;
@@ -17,6 +18,7 @@ import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.BindService;
+import com.lhs.service.user.OpenApiService;
 import com.lhs.service.user.UserService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +36,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final UserService userService;
+    private final OpenApiService openApiService;
     private final BindService bindService;
 
     private final IdGenerator idGenerator;
@@ -47,13 +50,14 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-                                   UserService userService, BindService bindService,
+                                   UserService userService, OpenApiService openApiService, BindService bindService,
                                    OperatorProgressionDataMapper operatorProgressionDataMapper,
                                    WarehouseInfoService warehouseInfoService,
                                    TencentCloudService tencentCloudService,
                                    UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
         this.redisTemplate = redisTemplate;
         this.userService = userService;
+        this.openApiService = openApiService;
         this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
         this.warehouseInfoService = warehouseInfoService;
@@ -283,14 +287,14 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     @Override
     public Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO) {
         String token = httpServletRequest.getHeader("Authorization");
-        Long uid = userService.validateOpenApiToken(token, "write");
+        Long uid = openApiService.validateOpenApiToken(token, OpenApiPermission.operatorDataWriteAccess.getCode());
         return saveOpenApiOperatorData(uid, playerInfoDTO);
     }
 
     @Override
     public List<OperatorProgressionDataDTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
         String token = httpServletRequest.getHeader("Authorization");
-        Long uid = userService.validateOpenApiToken(token, "read");
+        Long uid = openApiService.validateOpenApiToken(token, OpenApiPermission.operatorDataReadAccess.getCode());
         return getOperatorDataByUid(uid);
     }
 
