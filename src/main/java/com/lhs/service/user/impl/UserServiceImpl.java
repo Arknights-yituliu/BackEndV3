@@ -3,14 +3,12 @@ package com.lhs.service.user.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.hypergryph.PlayerBinding;
 import com.lhs.entity.dto.user.*;
-import com.lhs.entity.po.user.UserConfig;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.po.user.UserInfo;
 import com.lhs.entity.po.user.TokenRecord;
@@ -70,7 +68,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public HashMap<String, Object> registerV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO) {
         // IP 频率限制：同一 IP 300 秒内最多注册 5 次
-        String ip = httpServletRequest.getRemoteAddr();
+        String ip = IpUtil.getIpAddress(httpServletRequest);
         String ipKey = "rate_limit:register:ip:" + ip;
         Integer count = Integer.parseInt(
                 redisTemplate.opsForValue().get(ipKey) != null ? redisTemplate.opsForValue().get(ipKey) : "0");
@@ -217,7 +215,7 @@ public class UserServiceImpl implements UserService {
     public HashMap<String, Object> loginV3(HttpServletRequest httpServletRequest, LoginDataDTO loginDataDTO) {
 
         // IP 频率限制：同一 IP 60 秒内最多登录 10 次，防止暴力破解
-        String ip = httpServletRequest.getRemoteAddr();
+        String ip = IpUtil.getIpAddress(httpServletRequest);
         String ipKey = "rate_limit:login:ip:" + ip;
         Integer count = Integer.parseInt(
                 redisTemplate.opsForValue().get(ipKey) != null ? redisTemplate.opsForValue().get(ipKey) : "0");
