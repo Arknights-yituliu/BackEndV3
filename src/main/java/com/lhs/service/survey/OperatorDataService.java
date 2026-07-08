@@ -2,6 +2,7 @@ package com.lhs.service.survey;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
+import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -31,23 +32,6 @@ public interface OperatorDataService  {
     void backupOperatorProgressionData();
 
     /**
-     * 第三方API上传干员练度数据
-     *
-     * @param uid           一图流用户uid
-     * @param playerInfoDTO 玩家信息
-     * @return 处理结果
-     */
-    Map<String, Object> saveOpenApiOperatorData(Long uid, PlayerInfoDTO playerInfoDTO);
-
-    /**
-     * 第三方API获取干员练度数据（通过uid查询绑定的方舟uid后获取）
-     *
-     * @param uid 一图流用户uid
-     * @return 干员练度数据列表
-     */
-    List<OperatorProgressionDataDTO> getOperatorDataByUid(Long uid);
-
-    /**
      * 第三方API上传干员练度数据（含token校验）
      *
      * @param httpServletRequest HTTP请求（从Header提取token）
@@ -60,7 +44,7 @@ public interface OperatorDataService  {
      * 第三方API获取干员练度数据（含token校验）
      *
      * @param httpServletRequest HTTP请求（从Header提取token）
-     * @return 干员练度数据列表
+     * @return 干员练度数据列表（含技能和模组详细信息）
      */
-    List<OperatorProgressionDataDTO> openApiGetOperatorData(HttpServletRequest httpServletRequest);
+    List<OperatorProgressionDataV2DTO> openApiGetOperatorData(HttpServletRequest httpServletRequest);
 }

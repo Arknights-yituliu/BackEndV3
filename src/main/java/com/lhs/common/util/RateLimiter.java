@@ -28,8 +28,6 @@ public class RateLimiter {
      */
     public void tryAcquire(String key, int maxRequests, int timeWindowInSeconds, ResultCode resultCode) {
         key = KEY_PREFIX + key;
-        Long currentTime = System.currentTimeMillis();
-
         // 使用原子操作递增计数器，并获取递增后的值
         Long countObj = redisTemplate.opsForValue().increment(key);
         long count = (countObj == null) ? 0 : countObj; // 避免潜在的 NullPointerException

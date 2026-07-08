@@ -1,8 +1,6 @@
 package com.lhs.common.util;
 
 import com.lhs.entity.dto.util.SpriteInfo;
-import com.lhs.service.util.TencentCloudService;
-
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
@@ -17,8 +15,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 
@@ -37,8 +33,6 @@ public class SpriteCreateUtil {
 
 
         try {
-            // 用于存储所有读取的图片
-            List<BufferedImage> images = new ArrayList<>();
             // 用于保存每张图片在雪碧图中的位置和尺寸
             Map<String, Rectangle> imagePositions = new HashMap<>();
 

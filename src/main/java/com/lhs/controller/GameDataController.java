@@ -2,6 +2,7 @@ package com.lhs.controller;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
+import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
@@ -20,8 +21,6 @@ import java.util.Map;
 
 public class GameDataController {
     private final OperatorDataService operatorDataService;
-    private final ArknightsGameDataService arknightsGameDataService;
-
     private final HypergryphService HypergryphService;
 
     private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
@@ -34,7 +33,6 @@ public class GameDataController {
                                     HypergryphService HypergryphService,
                                     WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
-        this.arknightsGameDataService = arknightsGameDataService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.HypergryphService = HypergryphService;
         this.warehouseInfoService = warehouseInfoService;
@@ -103,7 +101,7 @@ public class GameDataController {
 
     @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
     @GetMapping("/open-api/operator/info")
-    public Result<List<OperatorProgressionDataDTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+    public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
         return Result.success(operatorDataService.openApiGetOperatorData(httpServletRequest));
     }
 

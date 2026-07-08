@@ -2,10 +2,13 @@ package com.lhs.service.survey.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
+import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.dto.user.OpenApiPermission;
@@ -43,11 +46,11 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final OperatorProgressionDataMapper operatorProgressionDataMapper;
 
-    private final WarehouseInfoService warehouseInfoService;
-
-
     private final TencentCloudService tencentCloudService;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
+
+    /** Redis中干员角色表缓存的key */
+    private static final String CHARACTER_TABLE_REDIS_KEY = "CharacterTable:2026-07-08 14:20";
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
                                    UserService userService, OpenApiService openApiService, BindService bindService,
@@ -60,10 +63,43 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         this.openApiService = openApiService;
         this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
-        this.warehouseInfoService = warehouseInfoService;
         this.tencentCloudService = tencentCloudService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.idGenerator = new IdGenerator(1L);
+    }
+
+    /**
+     * 获取干员角色表（初次读取时从文件系统加载并缓存到Redis，后续从Redis读取）
+     *
+     * @return 干员角色表，key为charId，value为干员详情JsonNode
+     */
+    private Map<String, JsonNode> getCharacterTable() {
+        // 尝试从Redis获取缓存的JSON字符串
+        Object cached = redisTemplate.opsForValue().get(CHARACTER_TABLE_REDIS_KEY);
+        String jsonText;
+        if (cached != null) {
+            jsonText = cached.toString();
+        } else {
+            // 初次读取，从文件系统加载并缓存到Redis
+            jsonText = FileUtil.read(ConfigUtil.DataFilePath + "character_table_simple.v2.json");
+            if (jsonText == null) {
+                return new HashMap<>();
+            }
+            redisTemplate.opsForValue().set(CHARACTER_TABLE_REDIS_KEY, jsonText);
+            Logger.info("character_table_simple.v2.json 已加载并缓存到Redis");
+        }
+
+        // 解析JSON为Map
+        Map<String, JsonNode> resultMap = new HashMap<>();
+        JsonNode root = JsonMapper.parseJSONObject(jsonText);
+        if (root != null) {
+            Iterator<Map.Entry<String, JsonNode>> fields = root.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                resultMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return resultMap;
     }
 
 
@@ -238,8 +274,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         }
     }
 
-    @Override
-    public Map<String, Object> saveOpenApiOperatorData(Long uid, PlayerInfoDTO playerInfoDTO) {
+    private Map<String, Object> saveOpenApiOperatorData(Long uid, PlayerInfoDTO playerInfoDTO) {
         String akUid = playerInfoDTO.getUid();
         List<OperatorProgressionDataDTO> operatorDataList = playerInfoDTO.getOperatorDataList();
 
@@ -258,8 +293,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return saveOperatorData(akUid, operatorDataList);
     }
 
-    @Override
-    public List<OperatorProgressionDataDTO> getOperatorDataByUid(Long uid) {
+    private List<OperatorProgressionDataDTO> getOperatorDataByUid(Long uid) {
         // 查询用户绑定的方舟uid
         LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserExternalAccountBinding::getUid, uid)
@@ -292,10 +326,132 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
     @Override
-    public List<OperatorProgressionDataDTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+    public List<OperatorProgressionDataV2DTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
         String token = httpServletRequest.getHeader("Authorization");
         Long uid = openApiService.validateOpenApiToken(token, OpenApiPermission.operatorDataReadAccess.getCode());
-        return getOperatorDataByUid(uid);
+        List<OperatorProgressionDataDTO> rawDataList = getOperatorDataByUid(uid);
+
+        // 使用启动时缓存的character_table数据进行转换
+        Map<String, JsonNode> characterTableMap = getCharacterTable();
+        return transformToV2DTO(rawDataList, characterTableMap);
+    }
+
+    /**
+     * 将原始干员练度数据转换为富化后的V2格式
+     *
+     * @param rawDataList 原始干员练度数据
+     * @return 富化后的干员练度数据列表
+     */
+    private List<OperatorProgressionDataV2DTO> transformToV2DTO(
+            List<OperatorProgressionDataDTO> rawDataList,
+            Map<String, JsonNode> characterTableMap) {
+
+        List<OperatorProgressionDataV2DTO> resultList = new ArrayList<>();
+
+        for (OperatorProgressionDataDTO raw : rawDataList) {
+            OperatorProgressionDataV2DTO dto = new OperatorProgressionDataV2DTO();
+            dto.setId(raw.getCharId());
+            dto.setLevel(raw.getLevel());
+            dto.setEvolvePhase(raw.getElite());
+            dto.setMainSkillLevel(raw.getMainSkill());
+            dto.setPotentialRank(raw.getPotential());
+
+            // 从缓存的角色表中获取该干员的技能和模组信息
+            JsonNode charData = characterTableMap.get(raw.getCharId());
+            if (charData != null) {
+                dto.setSkills(buildSkillList(charData, raw));
+                dto.setEquips(buildEquipList(charData, raw));
+            } else {
+                dto.setSkills(new ArrayList<>());
+                dto.setEquips(new ArrayList<>());
+            }
+
+            resultList.add(dto);
+        }
+
+        return resultList;
+    }
+
+    /**
+     * 构建技能列表（skillId + 练度等级），只包含干员实际拥有的技能数量
+     *
+     * @param charData 角色表中缓存的干员JsonNode数据
+     * @param raw      原始练度数据
+     * @return 技能信息列表
+     */
+    private List<OperatorProgressionDataV2DTO.SkillInfo> buildSkillList(
+            JsonNode charData, OperatorProgressionDataDTO raw) {
+
+        List<OperatorProgressionDataV2DTO.SkillInfo> skillList = new ArrayList<>();
+        JsonNode skillsNode = charData.get("skills");
+        if (skillsNode == null || !skillsNode.isArray()) {
+            return skillList;
+        }
+
+        // 将DB中的skill1、skill2、skill3按顺序映射
+        Integer[] skillLevels = {raw.getSkill1(), raw.getSkill2(), raw.getSkill3()};
+
+        for (int i = 0; i < skillsNode.size(); i++) {
+            JsonNode skillNode = skillsNode.get(i);
+            String skillId = skillNode.has("skillId") ? skillNode.get("skillId").asText() : null;
+            Integer level = (i < skillLevels.length && skillLevels[i] != null) ? skillLevels[i] : 0;
+            skillList.add(new OperatorProgressionDataV2DTO.SkillInfo(skillId, level));
+        }
+
+        return skillList;
+    }
+
+    /**
+     * 构建模组列表（模组ID + 类型 + 等级），仅包含角色表中存在的模组分支
+     *
+     * @param charData 角色表中缓存的干员JsonNode数据
+     * @param raw      原始练度数据
+     * @return 模组信息列表
+     */
+    private List<OperatorProgressionDataV2DTO.EquipInfo> buildEquipList(
+            JsonNode charData, OperatorProgressionDataDTO raw) {
+
+        List<OperatorProgressionDataV2DTO.EquipInfo> equipList = new ArrayList<>();
+        JsonNode equipsNode = charData.get("equip");
+        if (equipsNode == null || !equipsNode.isArray()) {
+            return equipList;
+        }
+
+        // 构建typeName2→uniEquipId的映射
+        Map<String, String> typeToEquipId = new LinkedHashMap<>();
+        for (JsonNode equip : equipsNode) {
+            String typeName2 = equip.has("typeName2") ? equip.get("typeName2").asText() : null;
+            String uniEquipId = equip.has("uniEquipId") ? equip.get("uniEquipId").asText() : null;
+            if (typeName2 != null && uniEquipId != null) {
+                typeToEquipId.put(typeName2, uniEquipId);
+            }
+        }
+
+        // 根据DB中的mod值构建模组列表，只包含角色表中存在的模组类型
+        addEquipIfExists(equipList, typeToEquipId, "X", raw.getModX());
+        addEquipIfExists(equipList, typeToEquipId, "Y", raw.getModY());
+        addEquipIfExists(equipList, typeToEquipId, "D", raw.getModD());
+        addEquipIfExists(equipList, typeToEquipId, "A", raw.getModA());
+        addEquipIfExists(equipList, typeToEquipId, "B", raw.getModB());
+
+        return equipList;
+    }
+
+    /**
+     * 如果该模组类型在角色表中存在，则添加到模组列表
+     *
+     * @param equipList     模组列表
+     * @param typeToEquipId 类型→模组ID映射
+     * @param type          模组类型（X/Y/D/A/B）
+     * @param level         模组等级
+     */
+    private void addEquipIfExists(List<OperatorProgressionDataV2DTO.EquipInfo> equipList,
+                                  Map<String, String> typeToEquipId,
+                                  String type, Integer level) {
+        String uniEquipId = typeToEquipId.get(type);
+        if (uniEquipId != null) {
+            equipList.add(new OperatorProgressionDataV2DTO.EquipInfo(uniEquipId, type, level != null ? level : 0));
+        }
     }
 
 }

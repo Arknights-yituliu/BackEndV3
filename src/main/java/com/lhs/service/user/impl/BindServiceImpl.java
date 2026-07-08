@@ -64,7 +64,7 @@ public class BindServiceImpl implements BindService {
         String email = emailRequestDto.getEmail();
         String mailUsage = emailRequestDto.getMailUsage();
 
-        // IP 频率限制：同一 IP 60 秒内最多 1 次
+        // IP 频率限制：同一 IP 30 秒内最多 1 次
         String ip = httpServletRequest.getRemoteAddr();
         String ipKey = "rate_limit:verification_code:ip:" + ip;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(ipKey))) {
@@ -72,7 +72,7 @@ public class BindServiceImpl implements BindService {
         }
         redisTemplate.opsForValue().set(ipKey, "1", 30, TimeUnit.SECONDS);
 
-        // 邮箱频率限制：同一邮箱 5 分钟内最多 1 次
+        // 邮箱频率限制：同一邮箱 30 秒内最多 1 次
         String emailKey = "rate_limit:verification_code:email:" + email;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(emailKey))) {
             throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
@@ -108,20 +108,20 @@ public class BindServiceImpl implements BindService {
         UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         String email = userInfoVO.getEmail();
 
-        // IP 频率限制：同一 IP 60 秒内最多 1 次
+        // IP 频率限制：同一 IP 30 秒内最多 1 次
         String ip = httpServletRequest.getRemoteAddr();
         String ipKey = "rate_limit:verification_code:ip:" + ip;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(ipKey))) {
             throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
         }
-        redisTemplate.opsForValue().set(ipKey, "1", 60, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(ipKey, "1", 30, TimeUnit.SECONDS);
 
-        // 邮箱频率限制：同一邮箱 5 分钟内最多 1 次
+        // 邮箱频率限制：同一邮箱 30 秒内最多 1 次
         String emailKey = "rate_limit:verification_code:email:" + email;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(emailKey))) {
             throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
         }
-        redisTemplate.opsForValue().set(emailKey, "1", 300, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(emailKey, "1", 30, TimeUnit.SECONDS);
 
         validateEmail(email);
         seedEmail(email);
