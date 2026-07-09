@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class BindServiceImpl implements BindService {
 
     /** 系统发件邮箱地址 */
-    private static final String SYSTEM_EMAIL = "zrwdns@163.com";
+    private static final String SYSTEM_EMAIL = "ark_yituliu@163.com";
 
     private final UserService userService;
     private final RedisTemplate<String, String> redisTemplate;
