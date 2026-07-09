@@ -17,7 +17,7 @@ import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.user.BindService;
 import com.lhs.service.user.UserService;
-import com.lhs.service.util.TencentCloudEmailService;
+import com.lhs.service.util.EmailService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,7 +35,7 @@ public class BindServiceImpl implements BindService {
 
     private final UserService userService;
     private final RedisTemplate<String, String> redisTemplate;
-    private final TencentCloudEmailService tencentCloudEmailService;
+    private final EmailService emailService;
     private final UserInfoMapper userInfoMapper;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
@@ -44,14 +44,14 @@ public class BindServiceImpl implements BindService {
 
     public BindServiceImpl(UserService userService,
             RedisTemplate<String, String> redisTemplate,
-            TencentCloudEmailService tencentCloudEmailService,
+            EmailService emailService,
             UserInfoMapper userInfoMapper,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
             AkPlayerBindInfoMapper akPlayerBindInfoMapper,
             TencentCloudService tencentCloudService) {
         this.userService = userService;
         this.redisTemplate = redisTemplate;
-        this.tencentCloudEmailService = tencentCloudEmailService;
+        this.emailService = emailService;
         this.userInfoMapper = userInfoMapper;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
@@ -136,9 +136,9 @@ public class BindServiceImpl implements BindService {
 
         String email = userInfoVO.getEmail();
         // 检查验证码
-        tencentCloudEmailService.compareVerificationCode(verificationCode, email);
+        emailService.compareVerificationCode(verificationCode, email);
 
-        Integer code = tencentCloudEmailService.createVerificationCode(userInfoVO.getUid().toString(), 9999);
+        Integer code = emailService.createVerificationCode(userInfoVO.getUid().toString(), 9999);
 
         return String.valueOf(code);
     }
@@ -150,10 +150,10 @@ public class BindServiceImpl implements BindService {
         validateEmail(email);
         if (userInfoVO.getHasEmail()) {
             Logger.info("更新绑定邮箱 {} 用户有邮箱，需要验证");
-            tencentCloudEmailService.compareVerificationCode(updateUserDataDto.getCred(), userInfoVO.getUid().toString());
+            emailService.compareVerificationCode(updateUserDataDto.getCred(), userInfoVO.getUid().toString());
         }
 
-        tencentCloudEmailService.compareVerificationCode(updateUserDataDto.getVerificationCode(), email);
+        emailService.compareVerificationCode(updateUserDataDto.getVerificationCode(), email);
 
         // 设置查询构造器条件
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -248,15 +248,14 @@ public class BindServiceImpl implements BindService {
      * 发送邮件验证码
      */
     private void seedEmail(String emailAddress) {
-        Integer code = tencentCloudEmailService.createVerificationCode(emailAddress, 9999);
-        String text = "本次的验证码是：" + code + ",验证码有效时间5分钟";
+        Integer code = emailService.createVerificationCode(emailAddress, 9999);
 
         EmailFormDTO emailFormDTO = new EmailFormDTO();
         emailFormDTO.setFrom(SYSTEM_EMAIL);
         emailFormDTO.setTo(emailAddress);
         emailFormDTO.setSubject("【一图流】验证码");
-        emailFormDTO.setText(text);
-        tencentCloudEmailService.sendSimpleEmail(emailFormDTO);
+        emailFormDTO.setText(String.valueOf(code));
+        emailService.sendSimpleEmail(emailFormDTO);
     }
 
     /**

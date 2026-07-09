@@ -20,7 +20,7 @@ import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.survey.HypergryphService;
 import com.lhs.service.user.UserService;
-import com.lhs.service.util.TencentCloudEmailService;
+import com.lhs.service.util.EmailService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    private final TencentCloudEmailService tencentCloudEmailService;
+    private final EmailService emailService;
     private final TencentCloudService tencentCloudService;
     private final IdGenerator idGenerator;
     private final HypergryphService HypergryphService;
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
     public UserServiceImpl(UserInfoMapper userInfoMapper,
             RedisTemplate<String, String> redisTemplate,
-            TencentCloudEmailService tencentCloudEmailService,
+            EmailService emailService,
             TencentCloudService tencentCloudService,
             HypergryphService HypergryphService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
             TokenRecordMapper tokenRecordMapper) {
         this.userInfoMapper = userInfoMapper;
         this.redisTemplate = redisTemplate;
-        this.tencentCloudEmailService = tencentCloudEmailService;
+        this.emailService = emailService;
         this.tencentCloudService = tencentCloudService;
         this.HypergryphService = HypergryphService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
@@ -113,6 +113,7 @@ public class UserServiceImpl implements UserService {
         String passWord = loginDataDTO.getPassword();
         String email = loginDataDTO.getEmail();
 
+        // 非空校验
         if (!checkParamsValidity(userName)) {
             throw new ServiceException(ResultCode.ACCOUNT_IS_BLANK);
         }
@@ -121,11 +122,16 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.PASSWORD_IS_BLANK);
         }
 
+        // 格式校验（放在数据库查重之前，避免无效的DB查询）
+        checkUserName(userName);
+        checkPassWord(passWord);
+
         // 当前时间
         Date date = new Date();
         // 一图流id 当前时间戳加随机4位数字
         long userId = idGenerator.nextId();
 
+        // 检查用户名是否已存在
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getUserName, userName);
         UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
@@ -133,8 +139,6 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
 
-        checkUserName(userName);
-        checkPassWord(passWord);
         // 密码加密
         passWord = PasswordUtil.hash(passWord);
 
@@ -152,13 +156,17 @@ public class UserServiceImpl implements UserService {
         userInfoNew.setDeleteFlag(false);
 
         if (checkParamsValidity(email)) {
-            tencentCloudEmailService.compareVerificationCode(loginDataDTO.getVerificationCode(), email);
+            // 校验邮箱格式
+            validateEmail(email);
+            // 先检查邮箱是否已被注册，避免浪费验证码
             LambdaQueryWrapper<UserInfo> emailQueryWrapper = new LambdaQueryWrapper<>();
             emailQueryWrapper.eq(UserInfo::getEmail, email);
             UserInfo userInfoByEmail = userInfoMapper.selectOne(emailQueryWrapper);
             if (userInfoByEmail != null) {
                 throw new ServiceException(ResultCode.EMAIL_REGISTERED);
             }
+            // 邮箱未被注册，再验证验证码
+            emailService.compareVerificationCode(loginDataDTO.getVerificationCode(), email);
             userInfoNew.setEmail(email);
         }
 
@@ -181,10 +189,14 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.ACCOUNT_IS_BLANK);
         }
 
+        // 校验邮箱格式
+        validateEmail(email);
+
         if (!checkParamsValidity(verificationCode)) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
         }
 
+        // 先检查邮箱是否已被注册，避免浪费验证码
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
         UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
@@ -192,7 +204,7 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.USER_IS_EXIST);
         }
         // 检查验证码
-        tencentCloudEmailService.compareVerificationCode(verificationCode, email);
+        emailService.compareVerificationCode(verificationCode, email);
         // 给用户设置初始昵称
         String userName = "博士" + idGenerator.nextId();
         UserInfo userInfoNew = new UserInfo();
@@ -266,14 +278,14 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.ACCOUNT_IS_BLANK);
         }
 
+        // 校验邮箱格式
+        validateEmail(email);
+
         if (!checkParamsValidity(verificationCode)) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
         }
 
-        // 检查验证码
-        tencentCloudEmailService.compareVerificationCode(verificationCode, email);
-
-        // 设置查询构造器条件
+        // 设置查询构造器条件，先查用户是否存在，避免浪费验证码
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);
 
@@ -282,6 +294,8 @@ public class UserServiceImpl implements UserService {
         if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
+        // 用户存在，再验证验证码
+        emailService.compareVerificationCode(verificationCode, email);
         // 存在直接返回
         return userInfo;
 
@@ -689,6 +703,8 @@ public class UserServiceImpl implements UserService {
         if (!checkParamsValidity(email)) {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID);
         }
+        // 校验邮箱格式
+        validateEmail(email);
         // 用户输入的邮件验证码
         String verificationCode = loginDataDTO.getVerificationCode();
         if (!checkParamsValidity(verificationCode)) {
@@ -696,7 +712,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 检查验证码
-        tencentCloudEmailService.compareVerificationCode(verificationCode, email);
+        emailService.compareVerificationCode(verificationCode, email);
 
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getEmail, email);

@@ -2,23 +2,12 @@ package com.lhs.service.util;
 
 import com.lhs.entity.dto.util.EmailFormDTO;
 
-public interface TencentCloudEmailService {
+public interface EmailService {
 
     /**
-     * 发送简单邮件（使用腾讯云邮件推送 SES）
-     *
-     * @param email 邮件表单（from/to/subject/text）
+     * 发送简单邮件
      */
     void sendSimpleEmail(EmailFormDTO email);
-
-    /**
-     * 发送邮件（直接指定收件人、主题、内容）
-     *
-     * @param toAddress 收件人邮箱地址
-     * @param subject   邮件主题
-     * @param content   邮件正文（支持 HTML）
-     */
-    void sendEmail(String toAddress, String subject, String content);
 
     /**
      * 生成一个验证码并存入 Redis

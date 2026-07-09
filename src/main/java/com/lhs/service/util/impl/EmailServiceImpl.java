@@ -4,7 +4,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
-import com.lhs.service.util.TencentCloudEmailService;
+import com.lhs.service.util.EmailService;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
@@ -15,13 +15,14 @@ import com.tencentcloudapi.ses.v20201002.models.SendEmailResponse;
 import com.tencentcloudapi.ses.v20201002.models.Template;
 
 import jakarta.annotation.Resource;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -29,36 +30,49 @@ import java.util.concurrent.TimeUnit;
  * 腾讯云邮件推送 SES 服务实现
  */
 @Service
-public class TencentCloudEmailServiceImpl implements TencentCloudEmailService {
+public class EmailServiceImpl implements EmailService {
 
     private final String secretId;
     private final String secretKey;
     private final String region;
     private final String fromAddress;
-    private final String templateId;
     private final RedisTemplate<String, Object> redisTemplate;
+
     @Resource
     private JavaMailSender javaMailSender;
 
-    public TencentCloudEmailServiceImpl(
+    public EmailServiceImpl(
             @Value("${tencent.secretId}") String secretId,
             @Value("${tencent.secretKey}") String secretKey,
             @Value("${tencent.email.region}") String region,
             @Value("${tencent.email.from-address}") String fromAddress,
-            @Value("${tencent.email.template-id}") String templateId,
             RedisTemplate<String, Object> redisTemplate) {
         this.secretId = secretId;
         this.secretKey = secretKey;
         this.region = region;
         this.fromAddress = fromAddress;
-        this.templateId = templateId;
         this.redisTemplate = redisTemplate;
     }
 
     @Override
     public void sendSimpleEmail(EmailFormDTO email) {
-        // sendEmail(email.getTo(), email.getSubject(), email.getText());
-         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        // 优先使用163邮箱，单日超过300次后切换腾讯云
+        String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String daily163Key = "email:daily163:" + today;
+        Object count163Obj = redisTemplate.opsForValue().get(daily163Key);
+        int count163 = count163Obj != null ? Integer.parseInt(count163Obj.toString()) : 0;
+
+        if (count163 < 300) {
+            send163Email(email);
+            redisTemplate.opsForValue().increment(daily163Key);
+            redisTemplate.expire(daily163Key, 1, TimeUnit.DAYS);
+        } else {
+            sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
+        }
+    }
+
+    private void send163Email(EmailFormDTO email) {
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
         simpleMailMessage.setFrom(email.getFrom());
         simpleMailMessage.setTo(email.getTo());
         simpleMailMessage.setSubject(email.getSubject());
@@ -66,8 +80,17 @@ public class TencentCloudEmailServiceImpl implements TencentCloudEmailService {
         javaMailSender.send(simpleMailMessage);
     }
 
-    @Override
-    public void sendEmail(String toAddress, String subject, String content) {
+    private void sendTencentCloudEmail(String toAddress, String subject, String content) {
+        // 单日发送上限检查（每日1000封）
+        String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String dailyKey = "email:daily:" + today;
+        Object countObj = redisTemplate.opsForValue().get(dailyKey);
+        int dailyCount = countObj != null ? Integer.parseInt(countObj.toString()) : 0;
+        if (dailyCount >= 1000) {
+            Logger.error("单日邮件发送已达上限1000封");
+            throw new ServiceException(ResultCode.INTERFACE_DAILY_SENDING_LIMIT);
+        }
+
         // 初始化认证对象
         Credential cred = new Credential(secretId, secretKey);
 
@@ -88,9 +111,8 @@ public class TencentCloudEmailServiceImpl implements TencentCloudEmailService {
         req.setDestination(new String[]{toAddress});
         req.setSubject(subject);
 
-        // 构造模板数据，将 subject 和 content 作为模板变量传入
-        // 模板中需定义 {{subject}} 和 {{content}} 两个变量
-        String templateData = buildTemplateData(subject, content);
+        // 构造模板数据，模板变量为 {{code}}
+        String templateData = buildTemplateData(content);
         Template template = new Template();
         template.setTemplateID(53553L);
         template.setTemplateData(templateData);
@@ -99,6 +121,9 @@ public class TencentCloudEmailServiceImpl implements TencentCloudEmailService {
 
         try {
             SendEmailResponse resp = client.SendEmail(req);
+            // 发送成功，递增当日计数器
+            redisTemplate.opsForValue().increment(dailyKey);
+            redisTemplate.expire(dailyKey, 1, TimeUnit.DAYS);
             Logger.info("腾讯云邮件发送成功，MessageId: {}", resp.getMessageId());
         } catch (TencentCloudSDKException e) {
             Logger.error("腾讯云邮件发送失败: {}", e.getMessage());
@@ -107,17 +132,10 @@ public class TencentCloudEmailServiceImpl implements TencentCloudEmailService {
     }
 
     /**
-     * 构建模板数据的 JSON 字符串
-     *
-     * @param subject 邮件主题
-     * @param content 邮件内容
-     * @return JSON 格式的模板数据
+     * 构建模板数据的 JSON 字符串，模板变量为 {{code}}
      */
-    private String buildTemplateData(String subject, String content) {
-        // 对特殊字符进行 JSON 转义
-        String escapedSubject = subject.replace("\\", "\\\\").replace("\"", "\\\"");
-        String escapedContent = content.replace("\\", "\\\\").replace("\"", "\\\"");
-        return "{\"subject\":\"" + escapedSubject + "\",\"content\":\"" + escapedContent + "\"}";
+    private String buildTemplateData(String code) {
+        return "{\"code\":\"" + code.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
     }
 
     @Override

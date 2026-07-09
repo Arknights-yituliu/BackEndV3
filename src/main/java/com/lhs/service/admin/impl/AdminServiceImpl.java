@@ -19,11 +19,9 @@ import com.lhs.mapper.admin.VisitsMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.admin.AdminService;
 import com.lhs.service.user.UserService;
-import com.lhs.service.util.TencentCloudEmailService;
+import com.lhs.service.util.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -45,7 +43,7 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserService userService;
 
-    private final TencentCloudEmailService tencentCloudEmailService;
+    private final EmailService emailService;
 
     private final UserInfoMapper userInfoMapper;
 
@@ -54,14 +52,14 @@ public class AdminServiceImpl implements AdminService {
                             VisitsMapper visitsMapper,
                             PageVisitsMapper pageVisitsMapper,
                             UserService userService,
-                            TencentCloudEmailService tencentCloudEmailService,
+                            EmailService emailService,
                             UserInfoMapper userInfoMapper) {
         this.redisTemplate = redisTemplate;
         this.adminMapper = adminMapper;
         this.visitsMapper = visitsMapper;
         this.pageVisitsMapper = pageVisitsMapper;
         this.userService = userService;
-        this.tencentCloudEmailService = tencentCloudEmailService;
+        this.emailService = emailService;
         this.userInfoMapper = userInfoMapper;
     }
 
@@ -76,14 +74,12 @@ public class AdminServiceImpl implements AdminService {
         int random = new Random().nextInt(999999);
         String code = String.format("%6s", random).replace(" ", "0");
         redisTemplate.opsForValue().set("CODE:" + admin.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
-        String text = "本次登录验证码：" + code;
-        String subject = "开发者登录—本次登录验证码：" + code;
         EmailFormDTO emailFormDTO = new EmailFormDTO();
         emailFormDTO.setFrom(SYSTEM_EMAIL);
         emailFormDTO.setTo(email);
-        emailFormDTO.setSubject(subject);
-        emailFormDTO.setText(text);
-        tencentCloudEmailService.sendSimpleEmail(emailFormDTO);
+        emailFormDTO.setSubject("开发者登录验证码");
+        emailFormDTO.setText(code);
+        emailService.sendSimpleEmail(emailFormDTO);
     }
 
 
