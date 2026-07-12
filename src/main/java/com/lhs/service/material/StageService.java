@@ -90,7 +90,9 @@ public class StageService {
         if (responseAuto == null) return;
         FileUtil.saveJsonFile(ConfigUtil.Penguin, "penguin.json", responseAuto);
 
-        tencentCloudService.uploadCOS(responseAuto,"/stage-drop/matrix.json");
+        tencentCloudService.uploadCOS(responseAuto,"/arknights/stage-drop/matrix.json");
+        tencentCloudService.CDNRefreshDirectory("https://cos.yituliu.cn/arknights/stage-drop/");
+
     }
 
 

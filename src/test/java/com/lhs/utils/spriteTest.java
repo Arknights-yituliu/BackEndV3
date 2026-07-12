@@ -87,7 +87,7 @@ public class spriteTest {
         String spriteFilename = "avatar"+todayStr+".png";
         String cssFilename = "sprite_avatar.css";
 
-        String cosLink = "https://cos.yituliu.cn/sprite/avatar"+todayStr+".webp";
+        String cosLink = "https://cos.yituliu.cn/arknights/sprite/avatar"+todayStr+".webp";
 
 
         try {
