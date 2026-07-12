@@ -201,7 +201,7 @@ public class AccessService {
                             .select(AccessLog::getUrl, AccessLog::getAccessTime)
                             .ge(AccessLog::getAccessTime, startTime)
                             .lt(AccessLog::getAccessTime, endTime)
-                            .last("LIMIT " + offset + "," + BATCH_SIZE)
+                            .last("ORDER BY id LIMIT " + offset + "," + BATCH_SIZE)
             );
 
             if (batch.isEmpty()) {
@@ -272,7 +272,7 @@ public class AccessService {
                             .select(AccessLog::getUrl)
                             .ge(AccessLog::getAccessTime, startTime)
                             .lt(AccessLog::getAccessTime, endTime)
-                            .last("LIMIT " + offset + "," + BATCH_SIZE)
+                            .last("ORDER BY id LIMIT " + offset + "," + BATCH_SIZE)
             );
 
             if (batch.isEmpty()) {
@@ -309,9 +309,6 @@ public class AccessService {
             result.add(new UrlTotalVisitVO("其他", otherCount));
         }
 
-        long total = urlCount.values().stream().mapToLong(Long::longValue).sum();
-        result.add(0, new UrlTotalVisitVO("访问总和", total));
-
         return result;
     }
 
@@ -341,7 +338,7 @@ public class AccessService {
                             .select(AccessLog::getAccessTime)
                             .ge(AccessLog::getAccessTime, startTime)
                             .lt(AccessLog::getAccessTime, endTime)
-                            .last("LIMIT " + offset + "," + BATCH_SIZE)
+                            .last("ORDER BY id LIMIT " + offset + "," + BATCH_SIZE)
             );
 
             if (batch.isEmpty()) {
@@ -391,7 +388,7 @@ public class AccessService {
                             .select(AccessLog::getAccessTime)
                             .ge(AccessLog::getAccessTime, startTime)
                             .lt(AccessLog::getAccessTime, endTime)
-                            .last("LIMIT " + offset + "," + BATCH_SIZE)
+                            .last("ORDER BY id LIMIT " + offset + "," + BATCH_SIZE)
             );
 
             if (batch.isEmpty()) {
