@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class AccessService {
 
     /** 每批查询的记录数 */
-    private static final int BATCH_SIZE = 100_000;
+    private static final int BATCH_SIZE = 50_000;
 
     /** Top URL 数量 */
     private static final int TOP_URL_COUNT = 30;
