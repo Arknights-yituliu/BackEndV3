@@ -137,7 +137,7 @@ public class TaskService {
     /**
      * 保存企鹅物流数据到本地
      */
-    @Scheduled(cron = "0 0/20 * * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void savePenguinData() {
         stageService.savePenguinData();
     }
@@ -145,7 +145,7 @@ public class TaskService {
     /**
      * 统计今天的干员携带率数据
      */
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/30 * * * ?")
     public void statisticsTodayOperatorCarryRateTask() {
         operatorCarryRateService.statisticsTodayOperatorCarryRate();
     }
