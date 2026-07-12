@@ -1,5 +1,6 @@
 package com.lhs.task;
 
+import com.lhs.service.admin.AccessService;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.OperatorDataService;
@@ -28,6 +29,8 @@ public class TaskService {
     private final UserService userService;
     private final BindService bindService;
 
+    private final AccessService accessService;
+
     private final StageDropHourStatisticsService stageDropHourStatisticsService;
 
     public TaskService(
@@ -40,6 +43,7 @@ public class TaskService {
             OperatorDataService operatorDataService,
             UserService userService,
             BindService bindService,
+            AccessService accessService,
             StageDropHourStatisticsService stageDropHourStatisticsService) {
         this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
 
@@ -51,6 +55,7 @@ public class TaskService {
         this.operatorDataService = operatorDataService;
         this.userService = userService;
         this.bindService = bindService;
+        this.accessService = accessService;
     }
 
     // 每天执行一次的任务
@@ -156,6 +161,15 @@ public class TaskService {
     @Scheduled(cron = "0 0/10 * * * ?")
     public void deleteOperatorCarryRateExpireData() {
         operatorCarryRateService.deleteExpireData();
+    }
+
+    /**
+     * 旧数据迁移：每次迁移一天的 page_visits 数据到 access_log
+     * 每分钟执行一次，从 2026-07-13 开始逐天迁移
+     */
+    @Scheduled(cron = "0 0/3 * * * ?")
+    public void migrateOldVisits() {
+        accessService.migrateOldVisits();
     }
 
     

@@ -15,6 +15,7 @@ import com.lhs.entity.vo.dev.UrlVisitGroupVO;
 import com.lhs.mapper.admin.AccessLogMapper;
 import com.lhs.mapper.admin.PageVisitsMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -31,6 +32,9 @@ public class AccessService {
     /** 每批查询的记录数 */
     private static final int BATCH_SIZE = 50_000;
 
+    /** 每批插入的记录数，避免单批事务过大 */
+    private static final int INSERT_BATCH_SIZE = 1_000;
+
     /** Top URL 数量 */
     private static final int TOP_URL_COUNT = 30;
 
@@ -40,11 +44,20 @@ public class AccessService {
     private final AccessLogMapper accessLogMapper;
     private final PageVisitsMapper pageVisitsMapper;
     private final IdGenerator idGenerator;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public AccessService(AccessLogMapper accessLogMapper, PageVisitsMapper pageVisitsMapper) {
+    /** Redis中记录上次迁移日期的键 */
+    private static final String MIGRATE_LAST_DATE_KEY = "migrate:lastSyncedDate";
+
+    /** 迁移起始日期（前一天），首次执行时迁移 2026-07-13 */
+    private static final String MIGRATE_START_DATE = "2026-07-12";
+
+    public AccessService(AccessLogMapper accessLogMapper, PageVisitsMapper pageVisitsMapper,
+            RedisTemplate<String, Object> redisTemplate) {
         this.accessLogMapper = accessLogMapper;
         this.pageVisitsMapper = pageVisitsMapper;
         this.idGenerator = new IdGenerator(1L);
+        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -89,87 +102,6 @@ public class AccessService {
         accessLogMapper.insert(accessLog);
     }
 
-    /**
-     * 将旧的 page_visits 表数据迁移到新的 access_log 表
-     * 每批插入 MIGRATE_BATCH_SIZE 条记录，避免大事务
-     *
-     * @return 迁移的总记录数
-     */
-    public long migrateOldVisits() {
-        long totalMigrated = 0;
-        List<AccessLog> batch = new ArrayList<>();
-        long offset = 0;
-
-        while (true) {
-            // 每次只查询 BATCH_SIZE 条旧记录，避免一次性加载全部数据到内存
-            List<PageViewStatistics> oldRecords = pageVisitsMapper.selectList(
-                    new LambdaQueryWrapper<PageViewStatistics>()
-                            .orderByAsc(PageViewStatistics::getCreateTime)
-                            .last("LIMIT " + offset + "," + BATCH_SIZE)
-            );
-
-            if (oldRecords.isEmpty()) {
-                break;
-            }
-
-            for (PageViewStatistics old : oldRecords) {
-                int count = old.getPageView() != null ? old.getPageView() : 0;
-                if (count <= 0) {
-                    continue;
-                }
-
-                // 解析基准时间：优先用 visitsTime 字段（格式 yyyy-MM-dd HH:mm），回退到 createTime
-                Date baseTime = parseVisitsTime(old.getViewTime());
-                if (baseTime == null) {
-                    baseTime = old.getCreateTime();
-                }
-                if (baseTime == null) {
-                    baseTime = new Date();
-                }
-
-                // 根据 count 生成多条访问记录，时间在基准时间到基准时间+1小时之间均匀分布
-                long baseMillis = baseTime.getTime();
-                long slotMillis = 3600_000L; // 1小时
-
-                for (int i = 0; i < count; i++) {
-                    AccessLog log = new AccessLog();
-                    log.setId(idGenerator.nextId());
-                    log.setUrl(old.getPagePath());
-                    log.setIp("Migration");
-                    log.setRegion("Unknown");
-                    log.setReferer("Migration");
-                    log.setDevice("Unknown");
-                    log.setBrowser("Unknown");
-                    log.setOs("Unknown");
-                    // 时间在1小时范围内均匀偏移，避免所有记录时间戳完全一致
-                    long timeOffset = count > 1 ? (slotMillis * i / count) : 0;
-                    log.setAccessTime(new Date(baseMillis + timeOffset));
-                    batch.add(log);
-
-                    if (batch.size() >= BATCH_SIZE) {
-                        for (AccessLog accessLog : batch) {
-                            accessLogMapper.insert(accessLog);
-                        }
-                        totalMigrated += batch.size();
-                        batch.clear();
-                    }
-                }
-            }
-
-            offset += BATCH_SIZE;
-        }
-
-        // 插入剩余的最后一小批
-        if (!batch.isEmpty()) {
-            for (AccessLog accessLog : batch) {
-                accessLogMapper.insert(accessLog);
-            }
-            totalMigrated += batch.size();
-            batch.clear();
-        }
-
-        return totalMigrated;
-    }
 
     /**
      * 解析 visitsTime 字符串，支持格式 yyyy-MM-dd HH:mm
@@ -440,7 +372,7 @@ public class AccessService {
         end.set(Calendar.MILLISECOND, 0);
 
         List<String> hours = new ArrayList<>();
-        while (cal.before(end)) {
+        while (!cal.after(end)) {
             hours.add(HOUR_FORMAT.format(cal.getTime()));
             cal.add(Calendar.HOUR_OF_DAY, 1);
         }
@@ -466,7 +398,7 @@ public class AccessService {
         end.set(Calendar.MILLISECOND, 0);
 
         List<String> days = new ArrayList<>();
-        while (cal.before(end)) {
+        while (!cal.after(end)) {
             days.add(DAY_FORMAT.format(cal.getTime()));
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
@@ -485,4 +417,120 @@ public class AccessService {
         }
         return url;
     }
+
+
+        /**
+     * 将旧的 page_visits 表数据迁移到新的 access_log 表
+     * 每次执行迁移一天的旧数据，基于 Redis 记录进度，定时任务每分钟调用一次
+     *
+     * @return 本次迁移的记录数，0 表示没有待迁移的数据或已全部完成
+     */
+    public long migrateOldVisits() {
+        // 从Redis获取上次迁移到的日期，首次执行默认为MIGRATE_START_DATE
+        Object lastDateObj = redisTemplate.opsForValue().get(MIGRATE_LAST_DATE_KEY);
+        String lastDateStr = lastDateObj != null ? lastDateObj.toString() : MIGRATE_START_DATE;
+
+        // 计算下一个要迁移的日期
+        Calendar cal = Calendar.getInstance();
+        try {
+            cal.setTime(DAY_FORMAT.parse(lastDateStr));
+        } catch (Exception e) {
+            throw new ServiceException(ResultCode.PARAM_IS_INVALID);
+        }
+        cal.add(Calendar.DAY_OF_YEAR, 1);
+
+        // 不超过今天（今天数据还未完整，不迁移）
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+        if (!cal.before(today)) {
+            return 0; // 没有更多待迁移的日期
+        }
+
+        Date startOfDay = cal.getTime();
+        cal.add(Calendar.DAY_OF_YEAR, 1);
+        Date endOfDay = cal.getTime();
+        String syncingDate = DAY_FORMAT.format(startOfDay);
+
+        long totalMigrated = 0;
+        List<AccessLog> batch = new ArrayList<>();
+        long offset = 0;
+
+        while (true) {
+            List<PageViewStatistics> oldRecords = pageVisitsMapper.selectList(
+                    new LambdaQueryWrapper<PageViewStatistics>()
+                            .ge(PageViewStatistics::getCreateTime, startOfDay)
+                            .lt(PageViewStatistics::getCreateTime, endOfDay)
+                            .orderByAsc(PageViewStatistics::getCreateTime)
+                            .last("LIMIT " + offset + "," + BATCH_SIZE)
+            );
+
+            if (oldRecords.isEmpty()) {
+                break;
+            }
+
+            for (PageViewStatistics old : oldRecords) {
+                int count = old.getPageView() != null ? old.getPageView() : 0;
+                if (count <= 0) {
+                    continue;
+                }
+
+                // 解析基准时间：优先用 viewTime 字段，回退到 createTime
+                Date baseTime = parseVisitsTime(old.getViewTime());
+                if (baseTime == null) {
+                    baseTime = old.getCreateTime();
+                }
+                if (baseTime == null) {
+                    baseTime = new Date();
+                }
+
+                // 根据 count 生成多条访问记录，时间在基准时间到基准时间+1小时之间均匀分布
+                long baseMillis = baseTime.getTime();
+                long slotMillis = 3600_000L; // 1小时
+
+                for (int i = 0; i < count; i++) {
+                    AccessLog log = new AccessLog();
+                    log.setId(idGenerator.nextId());
+                    log.setUrl(old.getPagePath());
+                    log.setIp("Migration");
+                    log.setRegion("Unknown");
+                    log.setReferer("Migration");
+                    log.setDevice("Unknown");
+                    log.setBrowser("Unknown");
+                    log.setOs("Unknown");
+                    // 时间在1小时范围内均匀偏移，避免所有记录时间戳完全一致
+                    long timeOffset = count > 1 ? (slotMillis * i / count) : 0;
+                    log.setAccessTime(new Date(baseMillis + timeOffset));
+                    batch.add(log);
+
+                    if (batch.size() >= INSERT_BATCH_SIZE) {
+                        for (AccessLog accessLog : batch) {
+                            accessLogMapper.insert(accessLog);
+                        }
+                        totalMigrated += batch.size();
+                        batch.clear();
+                    }
+                }
+            }
+
+            offset += BATCH_SIZE;
+        }
+
+        // 插入剩余的最后一小批
+        if (!batch.isEmpty()) {
+            for (AccessLog accessLog : batch) {
+                accessLogMapper.insert(accessLog);
+            }
+            totalMigrated += batch.size();
+            batch.clear();
+        }
+
+        // 更新Redis中的进度到本次迁移的日期
+        redisTemplate.opsForValue().set(MIGRATE_LAST_DATE_KEY, syncingDate);
+
+        return totalMigrated;
+    }
+
 }
