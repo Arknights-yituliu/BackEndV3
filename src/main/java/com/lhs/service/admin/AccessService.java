@@ -96,65 +96,76 @@ public class AccessService {
      * @return 迁移的总记录数
      */
     public long migrateOldVisits() {
-        // 查询所有旧记录，按创建时间升序
-        List<PageViewStatistics> oldRecords = pageVisitsMapper.selectList(
-                new LambdaQueryWrapper<PageViewStatistics>()
-                        .orderByAsc(PageViewStatistics::getCreateTime)
-        );
-
         long totalMigrated = 0;
         List<AccessLog> batch = new ArrayList<>();
+        long offset = 0;
 
-        for (PageViewStatistics old : oldRecords) {
-            int count = old.getPageView() != null ? old.getPageView() : 0;
-            if (count <= 0) {
-                continue;
+        while (true) {
+            // 每次只查询 BATCH_SIZE 条旧记录，避免一次性加载全部数据到内存
+            List<PageViewStatistics> oldRecords = pageVisitsMapper.selectList(
+                    new LambdaQueryWrapper<PageViewStatistics>()
+                            .orderByAsc(PageViewStatistics::getCreateTime)
+                            .last("LIMIT " + offset + "," + BATCH_SIZE)
+            );
+
+            if (oldRecords.isEmpty()) {
+                break;
             }
 
-            // 解析基准时间：优先用 visitsTime 字段（格式 yyyy-MM-dd HH:mm），回退到 createTime
-            Date baseTime = parseVisitsTime(old.getViewTime());
-            if (baseTime == null) {
-                baseTime = old.getCreateTime();
-            }
-            if (baseTime == null) {
-                baseTime = new Date();
-            }
+            for (PageViewStatistics old : oldRecords) {
+                int count = old.getPageView() != null ? old.getPageView() : 0;
+                if (count <= 0) {
+                    continue;
+                }
 
-            // 根据 count 生成多条访问记录，时间在基准时间到基准时间+1小时之间均匀分布
-            long baseMillis = baseTime.getTime();
-            long slotMillis = 3600_000L; // 1小时
+                // 解析基准时间：优先用 visitsTime 字段（格式 yyyy-MM-dd HH:mm），回退到 createTime
+                Date baseTime = parseVisitsTime(old.getViewTime());
+                if (baseTime == null) {
+                    baseTime = old.getCreateTime();
+                }
+                if (baseTime == null) {
+                    baseTime = new Date();
+                }
 
-            for (int i = 0; i < count; i++) {
-                AccessLog log = new AccessLog();
-                log.setId(idGenerator.nextId());
-                log.setUrl(old.getPagePath());
-                log.setIp("Migration");
-                log.setRegion("Unknown");
-                log.setReferer("Migration");
-                log.setDevice("Unknown");
-                log.setBrowser("Unknown");
-                log.setOs("Unknown");
-                // 时间在1小时范围内均匀偏移，避免所有记录时间戳完全一致
-                long offset = count > 1 ? (slotMillis * i / count) : 0;
-                log.setAccessTime(new Date(baseMillis + offset));
-                batch.add(log);
+                // 根据 count 生成多条访问记录，时间在基准时间到基准时间+1小时之间均匀分布
+                long baseMillis = baseTime.getTime();
+                long slotMillis = 3600_000L; // 1小时
 
-                if (batch.size() >= BATCH_SIZE) {
-                    for (AccessLog accessLog : batch) {
-                        accessLogMapper.insert(accessLog);
+                for (int i = 0; i < count; i++) {
+                    AccessLog log = new AccessLog();
+                    log.setId(idGenerator.nextId());
+                    log.setUrl(old.getPagePath());
+                    log.setIp("Migration");
+                    log.setRegion("Unknown");
+                    log.setReferer("Migration");
+                    log.setDevice("Unknown");
+                    log.setBrowser("Unknown");
+                    log.setOs("Unknown");
+                    // 时间在1小时范围内均匀偏移，避免所有记录时间戳完全一致
+                    long timeOffset = count > 1 ? (slotMillis * i / count) : 0;
+                    log.setAccessTime(new Date(baseMillis + timeOffset));
+                    batch.add(log);
+
+                    if (batch.size() >= BATCH_SIZE) {
+                        for (AccessLog accessLog : batch) {
+                            accessLogMapper.insert(accessLog);
+                        }
+                        totalMigrated += batch.size();
+                        batch.clear();
                     }
-                    totalMigrated += batch.size();
-                    batch.clear();
                 }
             }
+
+            offset += BATCH_SIZE;
         }
 
-        // 插入剩余批次
+        // 插入剩余的最后一小批
         if (!batch.isEmpty()) {
-            for (AccessLog log : batch) {
-                accessLogMapper.insert(log);
+            for (AccessLog accessLog : batch) {
+                accessLogMapper.insert(accessLog);
             }
             totalMigrated += batch.size();
+            batch.clear();
         }
 
         return totalMigrated;
