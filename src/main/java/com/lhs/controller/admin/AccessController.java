@@ -104,14 +104,5 @@ public class AccessController {
         return Result.success(visits);
     }
 
-    /**
-     * 将旧的 page_visits 表数据迁移到新的 access_log 表
-     *
-     * @return 迁移结果，包含迁移的记录总数
-     */
-    @PostMapping("/access-log/migrate")
-    public Result<Long> migrateOldVisits() {
-        long count = accessService.migrateOldVisits();
-        return Result.success(count);
-    }
+   
 }

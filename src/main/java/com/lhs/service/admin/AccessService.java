@@ -5,6 +5,7 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.IpUtil;
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.UserAgentUtil;
 import com.lhs.entity.dto.AccessLogDTO;
 import com.lhs.entity.po.admin.AccessLog;
@@ -49,8 +50,8 @@ public class AccessService {
     /** Redis中记录上次迁移日期的键 */
     private static final String MIGRATE_LAST_DATE_KEY = "migrate:lastSyncedDate";
 
-    /** 迁移起始日期（前一天），首次执行时迁移 2026-07-13 */
-    private static final String MIGRATE_START_DATE = "2026-07-12";
+    /** 迁移起始标记日期（2026-07-13的后一天），首次执行时回退到 2026-07-13 */
+    private static final String MIGRATE_START_DATE = "2026-07-14";
 
     public AccessService(AccessLogMapper accessLogMapper, PageVisitsMapper pageVisitsMapper,
             RedisTemplate<String, Object> redisTemplate) {
@@ -421,38 +422,32 @@ public class AccessService {
 
         /**
      * 将旧的 page_visits 表数据迁移到新的 access_log 表
-     * 每次执行迁移一天的旧数据，基于 Redis 记录进度，定时任务每分钟调用一次
+     * 每次执行迁移一天的旧数据，从 2026-07-13 开始向更早的日期逐天推进，基于 Redis 记录进度
      *
      * @return 本次迁移的记录数，0 表示没有待迁移的数据或已全部完成
      */
     public long migrateOldVisits() {
+        Logger.info("旧数据迁移任务开始执行");
+
         // 从Redis获取上次迁移到的日期，首次执行默认为MIGRATE_START_DATE
         Object lastDateObj = redisTemplate.opsForValue().get(MIGRATE_LAST_DATE_KEY);
         String lastDateStr = lastDateObj != null ? lastDateObj.toString() : MIGRATE_START_DATE;
+        Logger.info("上次迁移日期: {}", lastDateStr);
 
-        // 计算下一个要迁移的日期
+        // 计算下一个要迁移的日期（向更早的日期回退）
         Calendar cal = Calendar.getInstance();
         try {
             cal.setTime(DAY_FORMAT.parse(lastDateStr));
         } catch (Exception e) {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID);
         }
-        cal.add(Calendar.DAY_OF_YEAR, 1);
-
-        // 不超过今天（今天数据还未完整，不迁移）
-        Calendar today = Calendar.getInstance();
-        today.set(Calendar.HOUR_OF_DAY, 0);
-        today.set(Calendar.MINUTE, 0);
-        today.set(Calendar.SECOND, 0);
-        today.set(Calendar.MILLISECOND, 0);
-        if (!cal.before(today)) {
-            return 0; // 没有更多待迁移的日期
-        }
+        cal.add(Calendar.DAY_OF_YEAR, -1);
 
         Date startOfDay = cal.getTime();
         cal.add(Calendar.DAY_OF_YEAR, 1);
         Date endOfDay = cal.getTime();
         String syncingDate = DAY_FORMAT.format(startOfDay);
+        Logger.info("开始迁移日期: {} 的数据", syncingDate);
 
         long totalMigrated = 0;
         List<AccessLog> batch = new ArrayList<>();
@@ -510,6 +505,7 @@ public class AccessService {
                             accessLogMapper.insert(accessLog);
                         }
                         totalMigrated += batch.size();
+                        Logger.info("已迁移 {} 条记录，累计 {} 条", batch.size(), totalMigrated);
                         batch.clear();
                     }
                 }
@@ -524,11 +520,13 @@ public class AccessService {
                 accessLogMapper.insert(accessLog);
             }
             totalMigrated += batch.size();
+            Logger.info("已迁移最后一批 {} 条记录", batch.size());
             batch.clear();
         }
 
         // 更新Redis中的进度到本次迁移的日期
         redisTemplate.opsForValue().set(MIGRATE_LAST_DATE_KEY, syncingDate);
+        Logger.info("日期 {} 迁移完成，共迁移 {} 条记录", syncingDate, totalMigrated);
 
         return totalMigrated;
     }

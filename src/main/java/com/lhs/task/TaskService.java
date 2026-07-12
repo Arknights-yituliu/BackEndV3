@@ -165,7 +165,7 @@ public class TaskService {
 
     /**
      * 旧数据迁移：每次迁移一天的 page_visits 数据到 access_log
-     * 每分钟执行一次，从 2026-07-13 开始逐天迁移
+     * 每3分钟执行一次，从 2026-07-13 开始逐天迁移
      */
     @Scheduled(cron = "0 0/3 * * * ?")
     public void migrateOldVisits() {
