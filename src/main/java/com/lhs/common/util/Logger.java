@@ -12,6 +12,13 @@ public class Logger {
         log.info(message, args);
     }
 
+      /**
+     * 打印 error 日志，支持 {} 占位符
+     */
+    public static void warn(String message, Object... args) {
+        log.warn(message, args);
+    }
+
     /**
      * 打印 error 日志，支持 {} 占位符
      */

@@ -41,7 +41,7 @@ public class FileUtil {
 
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(filepath+filename);
-            byte[] bytes = json.getBytes();
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             fileOutputStream.write(bytes);
             fileOutputStream.close();
         } catch (IOException e) {
