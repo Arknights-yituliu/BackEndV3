@@ -353,6 +353,69 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 //        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
     }
 
+      @Override
+    public void getBuildingTableByGameResourceByTorappu(GameDataFormatFilePath gameDataFormatFilePath) {
+        //从PRTS链接读取基建相关解包文件
+        String read = HttpRequestUtil.get("https://torappu.prts.wiki/gamedata/latest/excel/building_data.json", new HashMap<>());
+        String read1 = HttpRequestUtil.get("https://torappu.prts.wiki/gamedata/latest/excel/character_table.json", new HashMap<>());
+
+
+        //获取干员部分信息，测试时需分离
+        JsonNode building = JsonMapper.parseJSONObject(read);
+        JsonNode characters = JsonMapper.parseJSONObject(read1);
+        JsonNode buffs = building.get("buffs");
+        JsonNode chars = building.get("chars");
+        List<BuildingData> buildingDataList = new ArrayList<>();
+        for (JsonNode jsonNode : chars) {
+            String charId = jsonNode.get("charId").asText();
+            JsonNode character = characters.get(charId);
+
+            String name = character.get("name").asText();
+            JsonNode buffChar = jsonNode.get("buffChar");
+            for (JsonNode buffCharElement : buffChar) {
+                JsonNode buffData = buffCharElement.get("buffData");
+                for (JsonNode buffDataElement : buffData) {
+                    String buffId = buffDataElement.get("buffId").asText();
+                    JsonNode cond = buffDataElement.get("cond");
+                    BuildingData buildingData = new BuildingData();
+                    buildingData.setCharId(charId);
+                    buildingData.setLevel(cond.get("level").asInt());
+                    buildingData.setPhase(getPhase(cond.get("phase").asText()));
+                    JsonNode buff = buffs.get(buffId);
+                    if (buff == null) continue;
+
+
+                    String buffName = buff.get("buffName").asText();
+                    String buffColor = buff.get("buffColor").asText();
+                    String textColor = buff.get("textColor").asText();
+                    String description = buff.get("description").asText();
+                    String roomType = buff.get("buffIcon").asText();
+                    buildingData.setBuffName(buffName);
+                    buildingData.setBuffColor(buffColor);
+                    buildingData.setTextColor(textColor);
+//                    if (name.equals("假日威龙陈")) {
+//                        System.out.println(description);
+//                    }
+
+                    buildingData.setDescription(replaceDescription(description));
+                    buildingData.setRoomType(roomType);
+                    buildingData.setName(name);
+                    buildingDataList.add(buildingData);
+
+                }
+            }
+        }
+
+
+//        Map<String, List<BuildingData>> collect = buildingDataList.stream()
+//                .collect(Collectors.groupingBy(BuildingData::getRoomType));
+//        buildingDataList.sort(Comparator.comparing(BuildingData::getTimestamp).reversed());
+        Collections.reverse(buildingDataList); //解包出来的数据，新干员永远在末尾处，直接对列表进行倒序可以让最新的干员位于表格渲染的最上位置
+        FileUtil.saveJsonFile(gameDataFormatFilePath.getJsonOutputPath() + "src/static/json/build/", "building_table.json", JsonMapper.toJSONString(buildingDataList));
+        // 测试输出路径
+//        FileUtil.save(JSON_BUILD, "building_table.json", JsonMapper.toJSONString(buildingDataList));
+    }
+
     private Map<String, List<Map<String, Object>>> getEquipInfoMap(String filePath) {
 
         Map<String, List<Map<String, Object>>> equipInfoMap = new HashMap<>();

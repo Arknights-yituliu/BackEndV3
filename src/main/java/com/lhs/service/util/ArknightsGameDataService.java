@@ -21,7 +21,7 @@ public interface ArknightsGameDataService {
     void getBuildingTable(GameDataFormatFilePath gameDataFormatFilePath);
 
     void getBuildingTableByGameResource(GameDataFormatFilePath gameDataFormatFilePath);
-
+    void getBuildingTableByGameResourceByTorappu(GameDataFormatFilePath gameDataFormatFilePath);
     /**
      * 生成术语对应表json
      */

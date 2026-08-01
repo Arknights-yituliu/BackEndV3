@@ -47,7 +47,7 @@ public class ArknightsBaseDataTest {
         gameDataFormatFilePath.setJsonOutputPath("C:/WebStormProject/frontend-v2-plus/");
         arknightsGameDataV2Service.getOperatorInfoSimpleTableV2(gameDataFormatFilePath);
         arknightsGameDataService.getOperatorInfoSimpleTableByGameResource(gameDataFormatFilePath);
-        arknightsGameDataService.getBuildingTableByGameResource(gameDataFormatFilePath);
+        arknightsGameDataService.getBuildingTableByGameResourceByTorappu(gameDataFormatFilePath);
     }
 
 
