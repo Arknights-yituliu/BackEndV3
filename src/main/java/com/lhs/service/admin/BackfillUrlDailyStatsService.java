@@ -34,7 +34,7 @@ public class BackfillUrlDailyStatsService {
     private static final Date BACKFILL_END_DAY = buildDay(2024, 1, 1);
 
     /** Redis key：回填游标，值为下次扫描起始日期（格式 yyyy-MM-dd） */
-    private static final String BACKFILL_CURSOR_KEY = "BACKFILL:DAY:URL:ACCESS:STATS:CURSOR";
+    private static final String BACKFILL_CURSOR_KEY = "BACKFILL:DAY:URL:ACCESS2:STATS:CURSOR";
 
     /** 游标日期格式化模板 */
     private static final String CURSOR_PATTERN = "yyyy-MM-dd";

@@ -30,12 +30,39 @@ public class RecruitTagUploadService {
         this.idGenerator = new IdGenerator(1L);
     }
 
-    private String getDBTableIndex() {
-        return "survey_recruit_6";
+    /**
+     * 根据时间生成公招数据对应的分表表名，按月分表，例如 2026年8月 对应 recruit_drop_2026_08
+     *
+     * @param date 数据时间
+     * @return 分表表名
+     */
+    private String getDBTableIndex(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return String.format("recruit_drop_%d_%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
+    }
+
+    /**
+     * 生成时间区间 [startTime, endTime] 覆盖的所有月份分表名列表
+     * 统计窗口跨越月末/月初时需查多张表，例如 2026-08-31 22:00 至 2026-09-01 01:00 会返回 8月、9月两张表
+     *
+     * @param startTime 起始时间（毫秒）
+     * @param endTime   结束时间（毫秒）
+     * @return 涉及的分表名列表（按月份升序）
+     */
+    private List<String> generateMonthTables(long startTime, long endTime) {
+        List<String> tables = new ArrayList<>();
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(startTime);
+        Date end = new Date(endTime);
+        while (!cal.getTime().after(end)) {
+            tables.add(getDBTableIndex(cal.getTime()));
+            cal.add(Calendar.MONTH, 1);
+        }
+        return tables;
     }
 
     public String saveMaaRecruitDataNew(MaaRecruitVo maaRecruitVo) {
-        String tableName = getDBTableIndex();
         RecruitData recruitData = RecruitData.builder()
                 .id(idGenerator.nextId())
                 .uid(maaRecruitVo.getUuid())
@@ -46,6 +73,8 @@ public class RecruitTagUploadService {
                 .version(maaRecruitVo.getVersion())
                 .createTime(System.currentTimeMillis())
                 .build();
+        // 按数据创建时间所属月份落到对应分表
+        String tableName = getDBTableIndex(new Date(recruitData.getCreateTime()));
         recruitDataMapper.insertRecruitData(tableName, recruitData);
 
         return null;
@@ -76,9 +105,12 @@ public class RecruitTagUploadService {
         }
 
 
-        String tableName = getDBTableIndex();
-
-        List<RecruitData> recruit_data_DB = recruitDataMapper.selectRecruitDataByCreateTime(tableName, lastTime, date.getTime());
+        // 统计区间 [lastTime, now]，可能跨越月末/月初，需要查询涉及的所有月份分表并合并
+        List<String> tableNames = generateMonthTables(lastTime, date.getTime());
+        List<RecruitData> recruit_data_DB = new ArrayList<>();
+        for (String tableName : tableNames) {
+            recruit_data_DB.addAll(recruitDataMapper.selectRecruitDataByCreateTime(tableName, lastTime, date.getTime()));
+        }
         Logger.info("本次公招统计条数为："+recruit_data_DB.size());
 
         Map<Integer, List<RecruitData>> collect = recruit_data_DB.stream()

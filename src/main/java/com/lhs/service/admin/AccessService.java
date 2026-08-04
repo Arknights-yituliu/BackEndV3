@@ -79,7 +79,7 @@ public class AccessService {
         this.accessLogHourlyStatsTaskMapper = accessLogHourlyStatsTaskMapper;
         this.accessLogUrlDailyStatsMapper = accessLogUrlDailyStatsMapper;
         this.accessLogUrlDailyStatsTaskMapper = accessLogUrlDailyStatsTaskMapper;
-        this.idGenerator = new IdGenerator(1L);
+        this.idGenerator = new IdGenerator(3L);
         this.redisTemplate = redisTemplate;
     }
 
@@ -98,8 +98,14 @@ public class AccessService {
         String referer = request.getHeader("Referer");
         accessLog.setReferer(referer != null ? referer : "Unknown");
 
-        // URL
+        // URL（去除 ? 及后面的查询参数）
         String url = accessLogDTO.getUrl();
+        if (url != null) {
+            int queryIndex = url.indexOf('?');
+            if (queryIndex >= 0) {
+                url = url.substring(0, queryIndex);
+            }
+        }
         accessLog.setUrl(url != null ? url : "Empty");
 
         // 访问时间

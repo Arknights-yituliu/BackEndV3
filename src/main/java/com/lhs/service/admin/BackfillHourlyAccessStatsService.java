@@ -34,7 +34,7 @@ public class BackfillHourlyAccessStatsService {
     private static final Date BACKFILL_END_HOUR = buildHour(2024, 1, 1);
 
     /** Redis key：回填游标，值为下次扫描起始小时（格式 yyyy-MM-dd HH:00:00） */
-    private static final String BACKFILL_CURSOR_KEY = "BACKFILL:HOUR:ACCESS:STATS:CURSOR";
+    private static final String BACKFILL_CURSOR_KEY = "BACKFILL:HOUR:ACCESS2:STATS:CURSOR";
 
     /** 游标时间格式化模板 */
     private static final String CURSOR_PATTERN = "yyyy-MM-dd HH:00:00";

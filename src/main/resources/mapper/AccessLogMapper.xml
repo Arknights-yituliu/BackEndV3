@@ -23,14 +23,14 @@
         ]]>
     </select>
 
-    <!-- 按URL分组统计指定时间范围内各URL的访问量 -->
+    <!-- 按URL分组统计指定时间范围内各URL的访问量（先截断?及后面的查询参数，只按URL本身统计） -->
     <select id="countByUrl" resultType="com.lhs.entity.dto.UrlCountDTO">
         <![CDATA[
-            SELECT url, COUNT(*) AS count
+            SELECT SUBSTRING_INDEX(url, '?', 1) AS url, COUNT(*) AS count
             FROM access_log
             WHERE access_time >= #{startTime}
               AND access_time < #{endTime}
-            GROUP BY url
+            GROUP BY SUBSTRING_INDEX(url, '?', 1)
         ]]>
     </select>
 

@@ -2,7 +2,6 @@ package com.lhs.item;
 
 import java.util.*;
 
-import com.aliyun.oss.common.utils.HttpUtil;
 import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.common.util.JsonMapper;
 import org.junit.jupiter.api.Test;
