@@ -1,6 +1,8 @@
 package com.lhs.task;
 
 import com.lhs.service.admin.AccessService;
+import com.lhs.service.admin.BackfillHourlyAccessStatsService;
+import com.lhs.service.admin.BackfillUrlDailyStatsService;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.OperatorDataService;
@@ -31,6 +33,10 @@ public class TaskService {
 
     private final AccessService accessService;
 
+    private final BackfillHourlyAccessStatsService backfillHourlyAccessStatsService;
+
+    private final BackfillUrlDailyStatsService backfillUrlDailyStatsService;
+
     private final StageDropHourStatisticsService stageDropHourStatisticsService;
 
     public TaskService(
@@ -44,6 +50,8 @@ public class TaskService {
             UserService userService,
             BindService bindService,
             AccessService accessService,
+            BackfillHourlyAccessStatsService backfillHourlyAccessStatsService,
+            BackfillUrlDailyStatsService backfillUrlDailyStatsService,
             StageDropHourStatisticsService stageDropHourStatisticsService) {
         this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
 
@@ -56,6 +64,8 @@ public class TaskService {
         this.userService = userService;
         this.bindService = bindService;
         this.accessService = accessService;
+        this.backfillHourlyAccessStatsService = backfillHourlyAccessStatsService;
+        this.backfillUrlDailyStatsService = backfillUrlDailyStatsService;
     }
 
     // 每天执行一次的任务
@@ -94,6 +104,51 @@ public class TaskService {
     @Scheduled(cron = "0 15 * * * ?")
     public void statisticsLastHour() {
         stageDropHourStatisticsService.statisticsLastHour();
+    }
+
+    /**
+     * 统计上一个完整小时的访问量并写入预聚合表
+     * 每小时执行 3 次（每 20 分钟一次），重复执行幂等，供 /access-log/hourly-total 接口直接读取
+     */
+    @Scheduled(cron = "0 0/20 * * * ?")
+    public void statisticsLastHourAccessVisits() {
+        accessService.statisticsLastHour();
+    }
+
+    /**
+     * 删除 access_log_hourly_stats 表中已过期的统计数据
+     * 每天凌晨执行一次，清理重跑后遗留的 EXPIRE 记录
+     */
+    @Scheduled(cron = "0 20 4 * * ?")
+    public void deleteExpireAccessHourlyStats() {
+        accessService.deleteExpireHourlyStats();
+    }
+
+    /**
+     * 统计昨天的每个URL访问量并写入预聚合表
+     * 一天执行 3 次（0:30、8:30、16:30），重复执行幂等，供 /access-log/daily 接口直接读取
+     */
+    @Scheduled(cron = "0 0 0/8 * * ?")
+    public void statisticsYesterdayUrlDailyVisits() {
+        accessService.statisticsYesterdayUrlDailyVisits();
+    }
+
+    /**
+     * 统计今天的每个URL访问量并写入预聚合表
+     * 每 30 分钟执行一次，反复重跑刷新今天的最新数据，供 /access-log/daily 接口直接读取
+     */
+    @Scheduled(cron = "0 0/30 * * * ?")
+    public void statisticsTodayUrlDailyVisits() {
+        accessService.statisticsTodayUrlDailyVisits();
+    }
+
+    /**
+     * 删除 access_log_url_daily_stats 表中已过期的统计数据
+     * 每天凌晨执行一次，清理重跑后遗留的 EXPIRE 记录
+     */
+    @Scheduled(cron = "0 25 4 * * ?")
+    public void deleteExpireAccessUrlDailyStats() {
+        accessService.deleteExpireUrlDailyStats();
     }
 
     /**
@@ -140,6 +195,26 @@ public class TaskService {
 
     // 按分钟执行的任务
     /**
+     * 回填小时访问量历史数据
+     * 每 30 秒执行一次，每次向过去推进一个尚未统计的小时（首次统计 2026-08-05 00:00，其次 2026-08-04 23:00，依此类推）
+     * 回填范围 2026-08-05 00:00 至 2024-01-01 00:00，全部完成后自动空转
+     */
+    @Scheduled(cron = "0/30 * * * * ?")
+    public void backfillHourlyAccessStats() {
+        backfillHourlyAccessStatsService.backfillOnce();
+    }
+
+    /**
+     * 回填URL每日访问量历史数据
+     * 每 30 秒执行一次，每次向过去推进一个尚未统计的日期（首次统计 2026-08-05，其次 2026-08-04，依此类推）
+     * 回填范围 2026-08-05 至 2024-01-01，全部完成后自动空转
+     */
+    @Scheduled(cron = "0/30 * * * * ?")
+    public void backfillUrlDailyStats() {
+        backfillUrlDailyStatsService.backfillOnce();
+    }
+
+    /**
      * 保存企鹅物流数据到本地
      */
     @Scheduled(cron = "0 0/10 * * * ?")
@@ -161,15 +236,6 @@ public class TaskService {
     @Scheduled(cron = "0 0/10 * * * ?")
     public void deleteOperatorCarryRateExpireData() {
         operatorCarryRateService.deleteExpireData();
-    }
-
-    /**
-     * 旧数据迁移：每次迁移一天的 page_visits 数据到 access_log
-     * 每3分钟执行一次，从 2026-07-13 开始逐天迁移
-     */
-    @Scheduled(cron = "0 0/3 * * * ?")
-    public void migrateOldVisits() {
-        accessService.migrateOldVisits();
     }
 
     

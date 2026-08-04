@@ -23,4 +23,15 @@
         ]]>
     </select>
 
+    <!-- 按URL分组统计指定时间范围内各URL的访问量 -->
+    <select id="countByUrl" resultType="com.lhs.entity.dto.UrlCountDTO">
+        <![CDATA[
+            SELECT url, COUNT(*) AS count
+            FROM access_log
+            WHERE access_time >= #{startTime}
+              AND access_time < #{endTime}
+            GROUP BY url
+        ]]>
+    </select>
+
 </mapper>
