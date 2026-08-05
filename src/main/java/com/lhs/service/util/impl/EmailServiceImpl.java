@@ -61,14 +61,14 @@ public class EmailServiceImpl implements EmailService {
         String daily163Key = "email:daily163:" + today;
         Object count163Obj = redisTemplate.opsForValue().get(daily163Key);
         int count163 = count163Obj != null ? Integer.parseInt(count163Obj.toString()) : 0;
-
-        if (count163 < 300) {
-            send163Email(email);
-            redisTemplate.opsForValue().increment(daily163Key);
-            redisTemplate.expire(daily163Key, 1, TimeUnit.DAYS);
-        } else {
-            sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
-        }
+        sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
+//        if (count163 < 300) {
+//            send163Email(email);
+//            redisTemplate.opsForValue().increment(daily163Key);
+//            redisTemplate.expire(daily163Key, 1, TimeUnit.DAYS);
+//        } else {
+//            sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
+//        }
     }
 
     private void send163Email(EmailFormDTO email) {
