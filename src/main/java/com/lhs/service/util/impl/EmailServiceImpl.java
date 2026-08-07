@@ -1,9 +1,12 @@
 package com.lhs.service.util.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
+import com.lhs.entity.po.util.SmtpConfig;
+import com.lhs.mapper.util.SmtpConfigMapper;
 import com.lhs.service.util.EmailService;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
@@ -14,83 +17,160 @@ import com.tencentcloudapi.ses.v20201002.models.SendEmailRequest;
 import com.tencentcloudapi.ses.v20201002.models.SendEmailResponse;
 import com.tencentcloudapi.ses.v20201002.models.Template;
 
-import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 腾讯云邮件推送 SES 服务实现
+ * 多渠道邮件发送服务实现
+ * 渠道降级策略（基于每日累计发送量）：
+ * 1. 每日 500 封以内：腾讯云 SES 发送
+ * 2. 超过 500 封：降级为第一个 163 邮箱（mail-163-1）发送
+ * 3. 超过 800 封：转为第二个 163 邮箱（mail-163-2）发送
  */
 @Service
 public class EmailServiceImpl implements EmailService {
+
+    /** 每日邮件降级阈值：500 封以内走腾讯云 SES */
+    private static final int TENCENT_DAILY_LIMIT = 500;
+
+    /** 每日邮件降级阈值：超过 500 封后降级为第一个 163 邮箱，超过 800 封转为第二个 163 邮箱 */
+    private static final int FIRST_163_DAILY_LIMIT = 800;
 
     private final String secretId;
     private final String secretKey;
     private final String region;
     private final String fromAddress;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final SmtpConfigMapper smtpConfigMapper;
 
-    @Resource
-    private JavaMailSender javaMailSender;
+    /** 渠道标识 -> 邮件发送器 缓存 */
+    private final Map<String, JavaMailSenderImpl> senderCache = new ConcurrentHashMap<>();
 
     public EmailServiceImpl(
             @Value("${tencent.secretId}") String secretId,
             @Value("${tencent.secretKey}") String secretKey,
             @Value("${tencent.email.region}") String region,
             @Value("${tencent.email.from-address}") String fromAddress,
-            RedisTemplate<String, Object> redisTemplate) {
+            RedisTemplate<String, Object> redisTemplate,
+            SmtpConfigMapper smtpConfigMapper) {
         this.secretId = secretId;
         this.secretKey = secretKey;
         this.region = region;
         this.fromAddress = fromAddress;
         this.redisTemplate = redisTemplate;
+        this.smtpConfigMapper = smtpConfigMapper;
     }
 
     @Override
     public void sendSimpleEmail(EmailFormDTO email) {
-        // 优先使用163邮箱，单日超过300次后切换腾讯云
-        String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        String daily163Key = "email:daily163:" + today;
-        Object count163Obj = redisTemplate.opsForValue().get(daily163Key);
-        int count163 = count163Obj != null ? Integer.parseInt(count163Obj.toString()) : 0;
-        sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
-//        if (count163 < 300) {
-//            send163Email(email);
-//            redisTemplate.opsForValue().increment(daily163Key);
-//            redisTemplate.expire(daily163Key, 1, TimeUnit.DAYS);
-//        } else {
-//            sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
-//        }
-    }
-
-    private void send163Email(EmailFormDTO email) {
-        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        simpleMailMessage.setFrom(email.getFrom());
-        simpleMailMessage.setTo(email.getTo());
-        simpleMailMessage.setSubject(email.getSubject());
-        simpleMailMessage.setText(email.getText());
-        javaMailSender.send(simpleMailMessage);
-    }
-
-    private void sendTencentCloudEmail(String toAddress, String subject, String content) {
-        // 单日发送上限检查（每日1000封）
+        // 每日累计发送量作为渠道降级路由依据
         String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
         String dailyKey = "email:daily:" + today;
         Object countObj = redisTemplate.opsForValue().get(dailyKey);
         int dailyCount = countObj != null ? Integer.parseInt(countObj.toString()) : 0;
-        if (dailyCount >= 1000) {
-            Logger.error("单日邮件发送已达上限1000封");
-            throw new ServiceException(ResultCode.INTERFACE_DAILY_SENDING_LIMIT);
+
+        if (dailyCount < TENCENT_DAILY_LIMIT) {
+            // 每日 500 封以内：腾讯云 SES 发送
+            sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
+        } else if (dailyCount < FIRST_163_DAILY_LIMIT) {
+            // 超过 500 封：降级为第一个 163 邮箱发送
+            Logger.info("邮件渠道降级：今日已发送 {} 封，切换为 mail-163-1", dailyCount);
+            send163Email(email, "mail-163-1");
+        } else {
+            // 超过 800 封：降级为第二个 163 邮箱发送
+            Logger.info("邮件渠道降级：今日已发送 {} 封，切换为 mail-163-2", dailyCount);
+            send163Email(email, "mail-163-2");
         }
 
+        // 发送成功，递增当日累计计数
+        redisTemplate.opsForValue().increment(dailyKey);
+        redisTemplate.expire(dailyKey, 1, TimeUnit.DAYS);
+    }
+
+    /**
+     * 使用指定渠道标识的 163 邮箱发送
+     *
+     * @param email      邮件内容
+     * @param accountKey 渠道标识，如 mail-163-1 / mail-163-2
+     */
+    private void send163Email(EmailFormDTO email, String accountKey) {
+        sendBySender(getSender(accountKey), email);
+    }
+
+    /**
+     * 根据渠道标识获取邮件发送器（首次获取后缓存复用）
+     *
+     * @param accountKey 渠道标识，如 mail-163-1 / mail-163-2
+     * @return 邮件发送器
+     */
+    private JavaMailSender getSender(String accountKey) {
+        return senderCache.computeIfAbsent(accountKey, this::createSender);
+    }
+
+    /**
+     * 根据渠道标识从数据库读取配置并创建邮件发送器
+     *
+     * @param accountKey 渠道标识
+     * @return 配置好的邮件发送器
+     */
+    private JavaMailSenderImpl createSender(String accountKey) {
+        SmtpConfig config = smtpConfigMapper.selectOne(new LambdaQueryWrapper<SmtpConfig>()
+                .eq(SmtpConfig::getAccountKey, accountKey)
+                .eq(SmtpConfig::getEnabled, Boolean.TRUE));
+        if (config == null) {
+            throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
+        }
+
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost(config.getHost());
+        sender.setPort(config.getPort());
+        sender.setUsername(config.getUsername());
+        sender.setPassword(config.getPassword());
+        sender.setProtocol(config.getProtocol() != null ? config.getProtocol() : "smtp");
+        sender.setDefaultEncoding(config.getDefaultEncoding() != null ? config.getDefaultEncoding() : "UTF-8");
+
+        // 配置 SSL 相关属性
+        if (Boolean.TRUE.equals(config.getSslEnable())) {
+            Properties props = sender.getJavaMailProperties();
+            props.put("mail.smtp.ssl.enable", "true");
+            if (config.getPort() != null) {
+                props.put("mail.smtp.socketFactory.port", String.valueOf(config.getPort()));
+            }
+            props.put("mail.smtp.socketFactoryClass", "javax.net.ssl.SSLSocketFactory");
+        }
+        return sender;
+    }
+
+    
+    /**
+     * 通过指定 SMTP 发送器发送邮件
+     *
+     * @param sender SMTP 发送器（对应某个邮箱渠道）
+     * @param email  邮件内容
+     */
+    private void sendBySender(JavaMailSender sender, EmailFormDTO email) {
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        // 发件人使用当前SMTP账号（跟随渠道配置），不依赖业务层传入的 from
+        simpleMailMessage.setFrom(((JavaMailSenderImpl) sender).getUsername());
+        simpleMailMessage.setTo(email.getTo());
+        simpleMailMessage.setSubject(email.getSubject());
+        simpleMailMessage.setText(email.getText());
+        sender.send(simpleMailMessage);
+    }
+
+    private void sendTencentCloudEmail(String toAddress, String subject, String content) {
         // 初始化认证对象
         Credential cred = new Credential(secretId, secretKey);
 
@@ -121,9 +201,6 @@ public class EmailServiceImpl implements EmailService {
 
         try {
             SendEmailResponse resp = client.SendEmail(req);
-            // 发送成功，递增当日计数器
-            redisTemplate.opsForValue().increment(dailyKey);
-            redisTemplate.expire(dailyKey, 1, TimeUnit.DAYS);
             Logger.info("腾讯云邮件发送成功，MessageId: {}", resp.getMessageId());
         } catch (TencentCloudSDKException e) {
             Logger.error("腾讯云邮件发送失败: {}", e.getMessage());

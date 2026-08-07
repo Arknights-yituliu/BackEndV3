@@ -30,9 +30,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class BindServiceImpl implements BindService {
 
-    /** 系统发件邮箱地址 */
-    private static final String SYSTEM_EMAIL = "ark_yituliu@163.com";
-
     private final UserService userService;
     private final RedisTemplate<String, String> redisTemplate;
     private final EmailService emailService;
@@ -251,7 +248,6 @@ public class BindServiceImpl implements BindService {
         Integer code = emailService.createVerificationCode(emailAddress, 9999);
 
         EmailFormDTO emailFormDTO = new EmailFormDTO();
-        emailFormDTO.setFrom(SYSTEM_EMAIL);
         emailFormDTO.setTo(emailAddress);
         emailFormDTO.setSubject("【一图流】验证码");
         emailFormDTO.setText(String.valueOf(code));

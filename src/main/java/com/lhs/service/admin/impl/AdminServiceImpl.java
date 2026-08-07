@@ -30,9 +30,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AdminServiceImpl implements AdminService {
 
-    /** 系统发件邮箱地址 */
-    private static final String SYSTEM_EMAIL = "ark_yituliu@163.com";
-
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final AdminMapper adminMapper;
@@ -75,7 +72,6 @@ public class AdminServiceImpl implements AdminService {
         String code = String.format("%6s", random).replace(" ", "0");
         redisTemplate.opsForValue().set("CODE:" + admin.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
         EmailFormDTO emailFormDTO = new EmailFormDTO();
-        emailFormDTO.setFrom(SYSTEM_EMAIL);
         emailFormDTO.setTo(email);
         emailFormDTO.setSubject("开发者登录验证码");
         emailFormDTO.setText(code);
