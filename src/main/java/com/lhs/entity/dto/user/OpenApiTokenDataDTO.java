@@ -9,6 +9,8 @@ public class OpenApiTokenDataDTO {
 
     private Long uid;
     private List<Integer> scope;
+    /** 创建时间戳（毫秒） */
+    private Long createTime;
 
     public Long getUid() {
         return uid;
@@ -24,5 +26,13 @@ public class OpenApiTokenDataDTO {
 
     public void setScope(List<Integer> scope) {
         this.scope = scope;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
     }
 }

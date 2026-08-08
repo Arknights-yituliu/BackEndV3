@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * OpenAPI Token 管理服务实现
@@ -61,12 +60,13 @@ public class OpenApiServiceImpl implements OpenApiService {
         // 使用UUID生成唯一token
         String token = UUID.randomUUID().toString().replace("-", "");
 
-        // 构造Redis存储数据：{"uid": uid, "scope": [10001, 10002]}
+        // 构造Redis存储数据：{"uid": uid, "scope": [10001, 10002], "createTime": 时间戳}，不设置过期时间，token 永不过期
         Map<String, Object> tokenData = new HashMap<>();
         tokenData.put("uid", uid);
         tokenData.put("scope", scopeCodes);
+        tokenData.put("createTime", System.currentTimeMillis());
 
-        redisTemplate.opsForValue().set("open-api-token:" + token, JsonMapper.toJSONString(tokenData), 30, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("open-api-token:" + token, JsonMapper.toJSONString(tokenData));
 
         // 将token写入数据库记录
         TokenRecord record = new TokenRecord();
