@@ -15,6 +15,8 @@ import com.qcloud.cos.region.Region;
 import com.tencentcloudapi.cdn.v20180606.CdnClient;
 import com.tencentcloudapi.cdn.v20180606.models.PurgePathCacheRequest;
 import com.tencentcloudapi.cdn.v20180606.models.PurgePathCacheResponse;
+import com.tencentcloudapi.cdn.v20180606.models.PurgeUrlsCacheRequest;
+import com.tencentcloudapi.cdn.v20180606.models.PurgeUrlsCacheResponse;
 import com.tencentcloudapi.common.AbstractModel;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
@@ -307,6 +309,35 @@ public class TencentCloudServiceImpl implements TencentCloudService {
             req.setArea("mainland");
             // 返回的resp是一个PurgePathCacheResponse的实例，与请求对象对应
             PurgePathCacheResponse resp = client.PurgePathCache(req);
+            // 输出json格式的字符串回包
+            System.out.println(AbstractModel.toJsonString(resp));
+        } catch (TencentCloudSDKException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void CDNRefreshUrls(List<String> urls)  {
+        String secretId = SecretId;
+        String secretKey = SecretKey;
+        try{
+            // 实例化一个认证对象，入参需要传入腾讯云账户 SecretId 和 SecretKey，此处还需注意密钥对的保密
+            Credential cred = new Credential(secretId, secretKey);
+            // 实例化一个http选项，可选的，没有特殊需求可以跳过
+            HttpProfile httpProfile = new HttpProfile();
+            httpProfile.setEndpoint("cdn.tencentcloudapi.com");
+            // 实例化一个client选项，可选的，没有特殊需求可以跳过
+            ClientProfile clientProfile = new ClientProfile();
+            clientProfile.setHttpProfile(httpProfile);
+            // 实例化要请求产品的client对象,clientProfile是可选的
+            CdnClient client = new CdnClient(cred, "", clientProfile);
+            // 实例化一个请求对象,每个接口都会对应一个request对象
+            PurgeUrlsCacheRequest req = new PurgeUrlsCacheRequest();
+            // 设置需要刷新的 URL 列表（单个 URL 需带 http:// 或 https:// 前缀）
+            req.setUrls(urls.toArray(new String[0]));
+            req.setArea("mainland");
+            // 返回的resp是一个PurgeUrlsCacheResponse的实例，与请求对象对应
+            PurgeUrlsCacheResponse resp = client.PurgeUrlsCache(req);
             // 输出json格式的字符串回包
             System.out.println(AbstractModel.toJsonString(resp));
         } catch (TencentCloudSDKException e) {
