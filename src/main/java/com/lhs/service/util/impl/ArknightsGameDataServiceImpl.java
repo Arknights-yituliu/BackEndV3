@@ -230,7 +230,7 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     @Override
     public void getBuildingTable(GameDataFormatFilePath gameDataFormatFilePath) {
         //读取基建相关解包文件
-        String read = FileUtil.read(gameDataFormatFilePath.getArknightsGameResourcePath() + "excel/building_data.json");
+        String read = FileUtil.read(gameDataFormatFilePath.getArknightsGameDataPath() + "building_data.json");
         String read1 = FileUtil.read(gameDataFormatFilePath.getArknightsGameResourcePath() + "excel/character_table.json");
 
 

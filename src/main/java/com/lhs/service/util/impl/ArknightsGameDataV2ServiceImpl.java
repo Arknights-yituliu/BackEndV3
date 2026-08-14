@@ -45,7 +45,7 @@ public class ArknightsGameDataV2ServiceImpl implements ArknightsGameDataV2Servic
                     Objects.equals(operatorInfoNode.get("itemObtainApproach").asText(), "null")) {
                 continue;
             }
-            Map<String, Object> operatorInfo = createOperatorInfo(charId, operatorInfoNode, skillNameAndIcon, equipInfoMap, 0);
+            Map<String, Object> operatorInfo = createOperatorInfo(charId, operatorInfoNode, skillNameAndIcon, equipInfoMap, 1);
             operatorInfoMap.put(charId, operatorInfo);
         }
 
@@ -62,7 +62,7 @@ public class ArknightsGameDataV2ServiceImpl implements ArknightsGameDataV2Servic
                     Objects.equals(operatorInfoNode.get("itemObtainApproach").asText(), "null")) {
                 continue;
             }
-            Map<String, Object> operatorInfo = createOperatorInfo(charId, operatorInfoNode, skillNameAndIcon, equipInfoMap, 0);
+            Map<String, Object> operatorInfo = createOperatorInfo(charId, operatorInfoNode, skillNameAndIcon, equipInfoMap, 1);
             operatorInfoMap.put(charId, operatorInfo);
         }
 
