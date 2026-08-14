@@ -194,25 +194,7 @@ public class TaskService {
 
 
     // 按分钟执行的任务
-    /**
-     * 回填小时访问量历史数据
-     * 每 30 秒执行一次，每次向过去推进一个尚未统计的小时（首次统计 2026-08-05 00:00，其次 2026-08-04 23:00，依此类推）
-     * 回填范围 2026-08-05 00:00 至 2024-01-01 00:00，全部完成后自动空转
-     */
-    @Scheduled(cron = "0/30 * * * * ?")
-    public void backfillHourlyAccessStats() {
-        backfillHourlyAccessStatsService.backfillOnce();
-    }
 
-    /**
-     * 回填URL每日访问量历史数据
-     * 每 30 秒执行一次，每次向过去推进一个尚未统计的日期（首次统计 2026-08-05，其次 2026-08-04，依此类推）
-     * 回填范围 2026-08-05 至 2024-01-01，全部完成后自动空转
-     */
-    @Scheduled(cron = "0/30 * * * * ?")
-    public void backfillUrlDailyStats() {
-        backfillUrlDailyStatsService.backfillOnce();
-    }
 
     /**
      * 保存企鹅物流数据到本地
