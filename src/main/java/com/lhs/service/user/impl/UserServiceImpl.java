@@ -490,7 +490,7 @@ public class UserServiceImpl implements UserService {
             // 旧token未写入Redis，解密获取uid，同时写入新格式完成迁移
             Logger.info("token走旧格式解密路径，已同步写入Redis");
             yituliuId = decryptToken(token);
-            redisTemplate.opsForValue().set("loginToken:" + token, yituliuId.toString(), 30, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set("loginToken:" + token, yituliuId.toString());
             // 同时补写数据库记录
             TokenRecord record = new TokenRecord();
             record.setId(idGenerator.nextId());
@@ -836,8 +836,8 @@ public class UserServiceImpl implements UserService {
         long timeStamp = System.currentTimeMillis();
         String token = AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
 
-        // 将token存入Redis，支持登出撤销，30天过期
-        redisTemplate.opsForValue().set("loginToken:" + token, id.toString(), 30, TimeUnit.DAYS);
+        // 将token存入Redis，支持登出撤销，不设置过期时间，token 永不过期
+        redisTemplate.opsForValue().set("loginToken:" + token, id.toString());
 
         // 将token写入数据库记录
         TokenRecord record = new TokenRecord();
