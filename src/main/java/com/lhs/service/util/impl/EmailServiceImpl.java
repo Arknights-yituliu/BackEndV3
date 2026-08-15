@@ -43,10 +43,10 @@ import java.util.concurrent.TimeUnit;
 public class EmailServiceImpl implements EmailService {
 
     /** 每日邮件降级阈值：1000 封以内走腾讯云 SES */
-    private static final int TENCENT_DAILY_LIMIT = 1000;
+    private static final int TENCENT_DAILY_LIMIT = 5000;
 
     /** 每日邮件降级阈值：超过 1000 封后降级为第一个 163 邮箱，超过 1300 封转为第二个 163 邮箱 */
-    private static final int FIRST_163_DAILY_LIMIT = 1300;
+    private static final int FIRST_163_DAILY_LIMIT = 5300;
 
     private final String secretId;
     private final String secretKey;
