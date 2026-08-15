@@ -14,7 +14,7 @@ import com.lhs.entity.vo.rogue.RogueSeedRatingVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.rogue.*;
 import com.lhs.service.rogue.RogueSeedService;
-import com.lhs.service.user.UserService;
+import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Service
 public class RogueSeedServiceImpl implements RogueSeedService {
 
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -44,7 +44,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     private final RogueSeedRatingStatisticsMapper rogueSeedRatingStatisticsMapper;
     private final UserActionOnSeedMapper userActionOnSeedMapper;
 
-    public RogueSeedServiceImpl(UserService userService,
+    public RogueSeedServiceImpl(OAuthUserService oAuthUserService,
                                 RedisTemplate<String, Object> redisTemplate,
                                 TencentCloudService tencentCloudService,
                                 RogueSeedMapper rogueSeedMapper,
@@ -52,7 +52,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
                                 RogueSeedRatingMapper rogueSeedRatingMapper,
                                 RateLimiter rateLimiter,
                                 RogueSeedRatingStatisticsMapper rogueSeedRatingStatisticsMapper, UserActionOnSeedMapper userActionOnSeedMapper) {
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
         this.redisTemplate = redisTemplate;
         this.tencentCloudService = tencentCloudService;
         this.rogueSeedMapper = rogueSeedMapper;
@@ -75,11 +75,11 @@ public class RogueSeedServiceImpl implements RogueSeedService {
         Long uid = 1L;
 
         //判断用户是否处于登录状态
-        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        Boolean loginStatus = oAuthUserService.checkUserLoginStatus(httpServletRequest);
         //处于登录状态获取用户信息
         if (loginStatus) {
             //获取用户信息后将uid取出
-            UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+            UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
             uid = userInfoVO.getUid();
         }
 
@@ -220,9 +220,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
         Long uid = ratingDTO.getUid();
 
-        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        Boolean loginStatus = oAuthUserService.checkUserLoginStatus(httpServletRequest);
         if (loginStatus) {
-            UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+            UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
             uid = userInfoVO.getUid();
         }
 
@@ -401,9 +401,9 @@ public class RogueSeedServiceImpl implements RogueSeedService {
     public Map<Long, RogueSeedRating> listRogueSeedUserRating(HttpServletRequest httpServletRequest, Long uid) {
         Map<Long, RogueSeedRating> collect = new HashMap<>();
 
-        Boolean loginStatus = userService.checkUserLoginStatus(httpServletRequest);
+        Boolean loginStatus = oAuthUserService.checkUserLoginStatus(httpServletRequest);
         if (loginStatus) {
-            UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+            UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
             uid = userInfoVO.getUid();
         }
 
@@ -461,7 +461,7 @@ public class RogueSeedServiceImpl implements RogueSeedService {
 
     @Override
     public void recordUserActionOnSeed(UserActionOnSeedDTO userActionOnSeedDTO, HttpServletRequest httpServletRequest) {
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         UserActionOnSeed userActionOnSeed = new UserActionOnSeed();
         userActionOnSeed.setId(idGenerator.nextId());
         userActionOnSeed.setSeedId(userActionOnSeedDTO.getSeedId());

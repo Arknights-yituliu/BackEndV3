@@ -11,7 +11,7 @@ import com.lhs.service.material.*;
 
 import com.lhs.service.survey.QuestionnaireService;
 import com.lhs.service.user.BindService;
-import com.lhs.service.user.UserService;
+import com.lhs.service.user.OAuthUserService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ public class TaskService {
 
     private final OperatorDataService operatorDataService;
 
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
     private final BindService bindService;
 
     private final AccessService accessService;
@@ -47,7 +47,7 @@ public class TaskService {
             OperatorCarryRateService operatorCarryRateService,
             QuestionnaireService questionnaireService,
             OperatorDataService operatorDataService,
-            UserService userService,
+            OAuthUserService oAuthUserService,
             BindService bindService,
             AccessService accessService,
             BackfillHourlyAccessStatsService backfillHourlyAccessStatsService,
@@ -61,7 +61,7 @@ public class TaskService {
         this.operatorCarryRateService = operatorCarryRateService;
         this.questionnaireService = questionnaireService;
         this.operatorDataService = operatorDataService;
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
         this.bindService = bindService;
         this.accessService = accessService;
         this.backfillHourlyAccessStatsService = backfillHourlyAccessStatsService;
@@ -75,7 +75,7 @@ public class TaskService {
      */
     @Scheduled(cron = "0 31 4 * * ?")
     public void backupUserInfo() {
-        userService.backupUserInfo();
+        oAuthUserService.backupUserInfo();
         bindService.backupUserExternalAccountBinding();
     }
 

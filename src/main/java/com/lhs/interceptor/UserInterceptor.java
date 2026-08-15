@@ -1,7 +1,7 @@
 package com.lhs.interceptor;
 
 import com.lhs.common.util.Logger;
-import com.lhs.service.user.UserService;
+import com.lhs.service.user.OAuthUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -14,10 +14,10 @@ public class UserInterceptor implements HandlerInterceptor {
 
 
    
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
 
-    public UserInterceptor(UserService userService) {
-        this.userService = userService;
+    public UserInterceptor(OAuthUserService oAuthUserService) {
+        this.oAuthUserService = oAuthUserService;
     }
 
 
@@ -41,7 +41,7 @@ public class UserInterceptor implements HandlerInterceptor {
 
     
         Logger.info("一图流用户鉴权{}：");
-        userService.extractToken(request);
+        oAuthUserService.extractToken(request);
 
 
         return true;

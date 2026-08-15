@@ -1,7 +1,7 @@
 package com.lhs.interceptor;
 
 import com.lhs.common.util.Logger;
-import com.lhs.service.user.UserService;
+import com.lhs.service.user.OAuthUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -20,12 +20,12 @@ public class AdminInterceptor implements HandlerInterceptor {
 
 
 
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
 
-    public AdminInterceptor(RedisTemplate<String, Object> redisTemplate,UserService userService){
+    public AdminInterceptor(RedisTemplate<String, Object> redisTemplate, OAuthUserService oAuthUserService){
             this.redisTemplate =redisTemplate;
 
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
     }
 
 
@@ -48,7 +48,7 @@ public class AdminInterceptor implements HandlerInterceptor {
 
         String requestURI = request.getRequestURI();
         Logger.info("一图流用户鉴权{}：");
-        userService.extractToken(request);
+        oAuthUserService.extractToken(request);
 
 
         return true;

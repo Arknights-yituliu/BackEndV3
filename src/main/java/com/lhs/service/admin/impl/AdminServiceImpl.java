@@ -18,7 +18,6 @@ import com.lhs.mapper.admin.PageVisitsMapper;
 import com.lhs.mapper.admin.VisitsMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.admin.AdminService;
-import com.lhs.service.user.UserService;
 import com.lhs.service.util.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,8 +37,6 @@ public class AdminServiceImpl implements AdminService {
 
     private final PageVisitsMapper pageVisitsMapper;
 
-    private final UserService userService;
-
     private final EmailService emailService;
 
     private final UserInfoMapper userInfoMapper;
@@ -48,14 +45,12 @@ public class AdminServiceImpl implements AdminService {
                             AdminMapper adminMapper,
                             VisitsMapper visitsMapper,
                             PageVisitsMapper pageVisitsMapper,
-                            UserService userService,
                             EmailService emailService,
                             UserInfoMapper userInfoMapper) {
         this.redisTemplate = redisTemplate;
         this.adminMapper = adminMapper;
         this.visitsMapper = visitsMapper;
         this.pageVisitsMapper = pageVisitsMapper;
-        this.userService = userService;
         this.emailService = emailService;
         this.userInfoMapper = userInfoMapper;
     }

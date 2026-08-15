@@ -29,6 +29,12 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 遗留用户服务实现（仅保留下线前的注册/登录/找回/改密等逻辑）
+ * <p>
+ * 用户中心迁移后，这些逻辑已下线、不再对外使用；
+ * 仍被业务使用的用户逻辑已迁移至 {@link OAuthUserServiceImpl}
+ */
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -106,6 +112,13 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    /**
+     * 账号密码方式注册用户（已下线，保留历史逻辑）
+     *
+     * @param loginDataDTO 注册信息
+     * @param ipAddress    加密后的 IP
+     * @return 新用户信息
+     */
     private UserInfo registerByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
 
         // 获取用户名，密码，邮箱
@@ -175,6 +188,13 @@ public class UserServiceImpl implements UserService {
         return userInfoNew;
     }
 
+    /**
+     * 邮箱方式注册用户（已下线，保留历史逻辑）
+     *
+     * @param loginDataDTO 注册信息
+     * @param ipAddress    加密后的 IP
+     * @return 新用户信息
+     */
     private UserInfo registerByEmail(LoginDataDTO loginDataDTO, String ipAddress) {
 
         // 当前时间
@@ -267,6 +287,13 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    /**
+     * 邮箱验证码方式登录（已下线，保留历史逻辑）
+     *
+     * @param loginDataDTO 登录信息
+     * @param ipAddress    加密后的 IP
+     * @return 用户信息
+     */
     private UserInfo loginByEmail(LoginDataDTO loginDataDTO, String ipAddress) {
         Logger.info("用户使用邮箱登录");
 
@@ -301,6 +328,13 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * 账号密码方式登录（已下线，保留历史逻辑）
+     *
+     * @param loginDataDTO 登录信息
+     * @param ipAddress    加密后的 IP
+     * @return 用户信息
+     */
     private UserInfo loginByPassword(LoginDataDTO loginDataDTO, String ipAddress) {
         Logger.info("账号密码方式登录：");
         String userName = loginDataDTO.getUserName();
@@ -333,7 +367,6 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.USER_PASSWORD_ERROR);
         }
 
-        
         // 旧 AES 密码自动升级为 bcrypt
         if (PasswordUtil.isLegacyAES(userInfo.getPassword())) {
             userInfo.setPassword(PasswordUtil.hash(passWord));
@@ -344,188 +377,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoVO getUserInfoVOByToken(String token) {
-
-        if (!checkParamsValidity(token)) {
-            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        }
-
-        token = token.replace("Authorization", "");
-
-        UserInfo userInfo = getUserInfoPOByToken(token);
-        // 用户信息 包括凭证，用户名，用户状态等
-        UserInfoVO userInfoVO = getUserInfoVO(userInfo);
-        userInfoVO.setToken(token);
-        return userInfoVO;
-    }
-
-    
-
-    private UserInfoVO getUserInfoVO(UserInfo userInfo) {
-        UserInfoVO userInfoVO = new UserInfoVO();
-        userInfoVO.setUid(userInfo.getId());
-        userInfoVO.setUserName(userInfo.getUserName());
-        userInfoVO.setStatus(userInfo.getStatus());
-        userInfoVO.setEmail(userInfo.getEmail());
-        userInfoVO.setAvatar(userInfo.getAvatar());
-        userInfoVO.setAkUid("0");
-        userInfoVO.setAkNickName(userInfo.getUserName());
-
-        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserExternalAccountBinding::getUid, userInfo.getId())
-                .orderByDesc(UserExternalAccountBinding::getUpdateTime);
-        List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
-                .selectList(queryWrapper);
-
-       
-
-        if (userInfo.getPassword() != null && userInfo.getPassword().length() > 10) {
-            userInfoVO.setHasPassword(true);
-        }
-
-        if (userInfo.getEmail() != null && userInfo.getEmail().contains("@")) {
-            userInfoVO.setHasEmail(true);
-        } else {
-            userInfoVO.setEmail("未绑定");
-        }
-
-        if (externalAccountBindings.isEmpty()) {
-            return userInfoVO;
-        }
-
-        Logger.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
-
-        userInfoVO.setAkUid(externalAccountBindings.get(0).getAkUid());
-
-        return userInfoVO;
-    }
-
-    @Override
-    public UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest) {
-        String token = extractToken(httpServletRequest);
-        return getUserInfoVOByToken(token);
-    }
-
-    @Override
-    public Long getUidByHttpServletRequest(HttpServletRequest httpServletRequest) {
-        String header = httpServletRequest.getHeader("Authorization");
-
-        if (header != null && header.startsWith("Authorization") && header.length() > 30) {
-            UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-            return userInfoVO.getUid();
-        }
-
-        String uidByHeader = httpServletRequest.getHeader("uid");
-        if (isNumericAndLengthy(uidByHeader)) {
-            return Long.parseLong(uidByHeader);
-        }
-
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);
-
-        Object value = redisTemplate.opsForHash().get("Commit_Ip", ipAddress);
-        if (value == null) {
-            Long id = idGenerator.nextId();
-            redisTemplate.opsForHash().put("Commit_Ip", ipAddress, id);
-            return id;
-        }
-
-        return Long.parseLong(value.toString());
-    }
-
-    public static boolean isNumericAndLengthy(String str) {
-        if (str == null || str.isEmpty()) {
-            return false;
-        }
-        if (str.length() <= 8) {
-            return false;
-        }
-        for (char c : str.toCharArray()) {
-            if (!Character.isDigit(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public UserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest) {
-        String token = extractToken(httpServletRequest);
-        return getUserInfoPOByToken(token);
-    }
-
-    @Override
-    public String extractToken(HttpServletRequest httpServletRequest) {
-        String token = httpServletRequest.getHeader("Authorization");
-
-        if (token != null && token.startsWith("Authorization") && token.length() > 30) {
-            return token.replace("Authorization", "");
-        }
-
-        throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-    }
-
-    @Override
-    public Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest) {
-        String header = httpServletRequest.getHeader("Authorization");
-
-        return header != null && header.startsWith("Authorization") && header.length() > 30;
-    }
-
-    @Override
-    public UserInfo getUserInfoPOByToken(String token) {
-        if (!checkParamsValidity(token)) {
-            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        }
-
-        token = token.replace("Authorization", "");
-
-        // 优先从Redis新格式获取uid（key: loginToken:{token}）
-        String uidStr = redisTemplate.opsForValue().get("loginToken:" + token);
-        Long yituliuId;
-
-        if (uidStr != null) {
-            // 新格式命中，直接获取uid
-            yituliuId = Long.parseLong(uidStr);
-        } else {
-            // 旧token未写入Redis，解密获取uid，同时写入新格式完成迁移
-            Logger.info("token走旧格式解密路径，已同步写入Redis");
-            yituliuId = decryptToken(token);
-            redisTemplate.opsForValue().set("loginToken:" + token, yituliuId.toString());
-            // 同时补写数据库记录
-            TokenRecord record = new TokenRecord();
-            record.setId(idGenerator.nextId());
-            record.setUid(yituliuId);
-            record.setToken(token);
-            record.setType("login");
-            record.setRemark("旧token迁移");
-            record.setCreateTime(new Date());
-            tokenRecordMapper.insert(record);
-        }
-
-        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", yituliuId);
-        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper); // 查询用户
-
-        if (userInfo == null) {
-            throw new ServiceException(ResultCode.USER_NOT_EXIST);
-        }
-        if (userInfo.getStatus() < 0) {
-            throw new ServiceException(ResultCode.USER_FORBIDDEN);
-        }
-
-        return userInfo;
-    }
-
-   
-
-    @Override
     public UserInfoVO updateUserData(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
 
         // 兼容之前的命名
         String action = updateUserDataDto.getProperty() == null ? updateUserDataDto.getAction()
                 : updateUserDataDto.getProperty();
 
-        UserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
+        UserInfo userInfo = userInfoMapper.selectById(getUidForUpdate(httpServletRequest));
 
         if ("passWord".equals(action)) {
             return updatePassWord(userInfo, updateUserDataDto);
@@ -544,7 +402,27 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 更新密码
+     * 从请求头中解析出当前用户 id（旧版 update 逻辑使用）
+     *
+     * @param httpServletRequest HTTP 请求对象
+     * @return 用户 id
+     */
+    private Long getUidForUpdate(HttpServletRequest httpServletRequest) {
+        String token = httpServletRequest.getHeader("Authorization");
+        if (token != null && token.startsWith("Authorization") && token.length() > 30) {
+            token = token.replace("Authorization", "");
+            String uidStr = redisTemplate.opsForValue().get("loginToken:" + token);
+            if (uidStr != null) {
+                return Long.parseLong(uidStr);
+            }
+            // 旧 token 解密兜底
+            return decryptToken(token);
+        }
+        throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+    }
+
+    /**
+     * 更新密码（已下线，保留历史逻辑）
      *
      * @param userInfo          用户信息
      * @param updateUserDataDto 用户修改的信息
@@ -582,7 +460,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 更新用户名
+     * 更新用户名（已下线，保留历史逻辑）
      *
      * @param userInfo          用户信息
      * @param updateUserDataDto 用户修改的信息
@@ -619,6 +497,13 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
+    /**
+     * 更新头像（已下线，保留历史逻辑）
+     *
+     * @param userInfo          用户信息
+     * @param updateUserDataDto 用户修改的信息
+     * @return 用户新信息
+     */
     private UserInfoVO updateUserAvatar(UserInfo userInfo, UpdateUserDataDTO updateUserDataDto) {
 
         UserInfo newUserInfo = new UserInfo();
@@ -629,16 +514,6 @@ public class UserServiceImpl implements UserService {
         UserInfoVO response = new UserInfoVO();
         response.setAvatar(userInfo.getAvatar());
         return response;
-    }
-
-    @Override
-    public void backupUserInfo() {
-
-        List<UserInfo> userInfoList = userInfoMapper.selectList(null);
-        String dayText = TimeUtil.getDayText();
-
-        tencentCloudService.backupCOS(JsonMapper.toJSONString(userInfoList),
-                "/mysql/user/" + dayText + "/user_info.json");
     }
 
     @Override
@@ -698,6 +573,12 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * 邮箱找回账号（已下线，保留历史逻辑）
+     *
+     * @param loginDataDTO 找回信息
+     * @return 临时凭证
+     */
     private HashMap<String, String> retrieveAccountByEmail(LoginDataDTO loginDataDTO) {
         String email = loginDataDTO.getEmail();
         if (!checkParamsValidity(email)) {
@@ -724,6 +605,12 @@ public class UserServiceImpl implements UserService {
         return createTemporaryCertificate(userInfo);
     }
 
+    /**
+     * 森空岛凭证找回账号（已下线，保留历史逻辑）
+     *
+     * @param loginDataDTO 找回信息
+     * @return 临时凭证
+     */
     private HashMap<String, String> retrieveAccountBySkland(LoginDataDTO loginDataDTO) {
         String cred = loginDataDTO.getSklandCred();
         cred = cred.replaceAll("[\"']+", "");
@@ -738,6 +625,12 @@ public class UserServiceImpl implements UserService {
         return getUserInfoBySkland(akPlayerBindingListVO);
     }
 
+    /**
+     * 鹰角通行证找回账号（已下线，保留历史逻辑）
+     *
+     * @param loginDataDTO 找回信息
+     * @return 临时凭证
+     */
     private HashMap<String, String> retrieveAccountByHGToken(LoginDataDTO loginDataDTO) {
         Logger.info("用户使用找回登录");
         String hgToken = loginDataDTO.getHgToken();
@@ -749,6 +642,12 @@ public class UserServiceImpl implements UserService {
         return getUserInfoBySkland(akPlayerBindingListVO);
     }
 
+    /**
+     * 根据方舟绑定信息匹配本地账号并生成临时凭证（已下线，保留历史逻辑）
+     *
+     * @param akPlayerBindingListVO 方舟绑定信息
+     * @return 临时凭证
+     */
     private HashMap<String, String> getUserInfoBySkland(AkPlayerBindingListVO akPlayerBindingListVO) {
         // 默认的方舟绑定信息
         PlayerBinding playerBinding = akPlayerBindingListVO.getPlayerBinding();
@@ -786,15 +685,12 @@ public class UserServiceImpl implements UserService {
         return createTemporaryCertificate(userInfo);
     }
 
-    @Override
-    public void logout(HttpServletRequest httpServletRequest) {
-        String token = extractToken(httpServletRequest);
-        redisTemplate.delete("loginToken:" + token);
-        // 删除数据库中的token记录
-        tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>().eq(TokenRecord::getToken, token));
-        Logger.info("用户token已登出撤销");
-    }
-
+    /**
+     * 生成找回账号用的临时凭证（已下线，保留历史逻辑）
+     *
+     * @param userInfo 用户信息
+     * @return 临时凭证
+     */
     private HashMap<String, String> createTemporaryCertificate(UserInfo userInfo) {
         String tmpToken = userInfo.getUserName() + userInfo.getId() + System.currentTimeMillis();
 
@@ -807,9 +703,8 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
-
-     /**
-     * 解密用户凭证
+    /**
+     * 解密用户凭证（已下线，保留历史逻辑）
      *
      * @param token 用户凭证
      * @return 一图流id
@@ -825,6 +720,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 生成用户登录凭证并写入 Redis 与数据库记录（已下线，保留历史逻辑）
+     *
+     * @param userInfo 用户信息
+     * @return 登录 token
+     */
     private String tokenGenerator(UserInfo userInfo) {
         // 用户凭证 由用户部分信息+一图流id+时间戳 加密得到
         Map<String, Object> hashMap = new HashMap<>();
@@ -852,7 +753,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 验证邮箱格式是否正确
+     * 验证邮箱格式是否正确（已下线，保留历史逻辑）
      *
      * @param email 邮箱地址
      */
@@ -868,7 +769,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 检查用户名是否为中文，英文，数字
+     * 检查用户名是否为中文，英文，数字（已下线，保留历史逻辑）
      *
      * @param userName 用户名
      */
@@ -897,7 +798,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 检查密码是否为英文，数字
+     * 检查密码是否为英文，数字（已下线，保留历史逻辑）
      *
      * @param passWord 密码
      */
@@ -944,7 +845,4 @@ public class UserServiceImpl implements UserService {
 
         return true;
     }
-
- 
-
 }
