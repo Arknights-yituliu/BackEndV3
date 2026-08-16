@@ -52,17 +52,28 @@ public class OAuth2CallbackController {
     public Result<HashMap<String, Object>> callback(@RequestParam String code,
             @RequestParam(required = false) String state,
             HttpServletResponse response) {
+        Logger.info("【OAuth2 回调】进入回调接口，code=" + code + ", state=" + state);
+
         // 1. 校验 state（防 CSRF）并取出 code_verifier
         String codeVerifier = oAuth2ClientService.consumeCodeVerifier(state);
+        Logger.info("【OAuth2 回调】校验 state 完成，codeVerifier 取到状态=" + (codeVerifier != null ? "成功" : "失败/null"));
 
         // 2. 授权码换令牌
         OAuth2TokenResponse tokenResponse = oAuth2ClientService.exchangeToken(code, codeVerifier);
+        String accessToken = tokenResponse.getAccessToken();
+        Logger.info("【OAuth2 回调】换取令牌成功，accessToken前16位=" + maskToken(accessToken)
+                + ", 有效期=" + tokenResponse.getExpiresIn() + "秒, scope=" + tokenResponse.getScope());
 
         // 3. 获取用户信息
-        OAuth2UserInfo oAuth2UserInfo = oAuth2ClientService.getUserInfo(tokenResponse.getAccessToken());
+        OAuth2UserInfo oAuth2UserInfo = oAuth2ClientService.getUserInfo(accessToken);
+        Logger.info("【OAuth2 回调】获取用户信息成功，uid=" + oAuth2UserInfo.getUid()
+                + ", userName=" + oAuth2UserInfo.getUserName()
+                + ", clientId=" + oAuth2UserInfo.getClientId()
+                + ", email=" + oAuth2UserInfo.getEmail());
 
         // 4. 以 UC uid 建立本地会话（资料缓存 upsert + 生成本地 Token）
         HashMap<String, Object> session = oAuthUserService.createSessionByOAuth2Uid(oAuth2UserInfo);
+        Logger.info("【OAuth2 回调】建立本地会话成功，本地token前16位=" + maskToken(String.valueOf(session.get("token"))));
 
         // 5. 配置了前端回跳地址则 302 跳转携带 token，否则直接返回 JSON
         String frontendUrl = oAuth2Properties.getFrontendRedirectUrl();
@@ -70,12 +81,30 @@ public class OAuth2CallbackController {
             try {
                 String token = String.valueOf(session.get("token"));
                 String redirectUrl = frontendUrl + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+                Logger.info("【OAuth2 回调】302 跳转前端，redirectUrl=" + redirectUrl);
                 response.sendRedirect(redirectUrl);
                 return null;
             } catch (Exception e) {
                 Logger.error("OAuth2 回调跳转前端失败", e);
             }
         }
+        Logger.info("【OAuth2 回调】未配置前端回跳地址，直接返回 JSON 会话");
         return Result.success(session);
+    }
+
+    /**
+     * 脱敏 token，仅保留前 16 位，避免完整 token 落入日志
+     *
+     * @param token 待脱敏的 token
+     * @return 脱敏后的 token 文本
+     */
+    private String maskToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return "null";
+        }
+        if (token.length() > 16) {
+            return token.substring(0, 16) + "***";
+        }
+        return token + "***";
     }
 }

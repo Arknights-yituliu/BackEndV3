@@ -1,5 +1,6 @@
 package com.lhs.controller;
 
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.OpenApiPermission;
 import com.lhs.entity.dto.user.OpenApiTokenRequestDTO;
@@ -40,11 +41,14 @@ public class UserController {
     @Operation(summary = "OAuth2 登录引导，返回 UC 授权跳转地址")
     @GetMapping("/user/oauth2/login")
     public Result<HashMap<String, Object>> oauth2Login() {
+        Logger.info("【OAuth2 登录】发起授权引导，生成 state + PKCE 参数");
         // 生成 state + PKCE 参数并缓存 code_verifier
         Map<String, String> authSession = oAuth2ClientService.createAuthorizationSession();
         // 构造 UC 授权地址
         String authorizeUrl = oAuth2ClientService.buildAuthorizeUrl(
                 authSession.get("state"), authSession.get("codeChallenge"));
+        Logger.info("【OAuth2 登录】授权引导生成完成，state=" + authSession.get("state")
+                + ", authorizeUrl=" + authorizeUrl);
         HashMap<String, Object> result = new HashMap<>();
         result.put("authorizeUrl", authorizeUrl);
         return Result.success(result);

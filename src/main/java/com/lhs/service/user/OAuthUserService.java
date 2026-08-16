@@ -1,7 +1,7 @@
 package com.lhs.service.user;
 
 import com.lhs.entity.dto.user.OAuth2UserInfo;
-import com.lhs.entity.po.user.UserInfo;
+import com.lhs.entity.po.user.OAuthUserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -46,7 +46,7 @@ public interface OAuthUserService {
      * @param token 用户登录后获得的凭证
      * @return 用户信息
      */
-    UserInfo getUserInfoPOByToken(String token);
+    OAuthUserInfo getUserInfoPOByToken(String token);
 
     /**
      * 通过 HttpServletRequest 获取 token，根据 token 拿到用户信息
@@ -71,7 +71,7 @@ public interface OAuthUserService {
      * @param httpServletRequest HTTP 请求对象
      * @return 用户信息
      */
-    UserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest);
+    OAuthUserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest);
 
     /**
      * 用户登出，删除 Redis 中的登录 token

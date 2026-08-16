@@ -93,17 +93,17 @@ user-center:
     # UC 服务地址（/oauth2/** 根）
     base-url: http://localhost:8080
     # 客户端 ID（与 UC oauth_client 表 id 一致）
-    client-id: yituliu-web
+    client-id: arknights-yituliu-web
     # 客户端密钥（明文，妥善保管，仅服务端持有）
-    client-secret: 请替换为UC登记的client_secret明文
+    client-secret: arknights-yituliu-web
     # 回调地址（必须与 UC 登记白名单精确匹配）
-    redirect-uri: http://localhost:10012/oauth/callback
+    redirect-uri: http://localhost:10010/oauth/callback
     # 授权范围
     scope: user.read
     # UC 登录页地址（未登录时兜底跳转，可留空）
     login-page-url:
     # 授权成功后的前端回跳地址（可选，配置后回调接口将302跳转并携带token；留空则回调返回JSON）
-    frontend-redirect-url:
+    frontend-redirect-url: http://localhost:4000/dev/oauth-test
 
 
 

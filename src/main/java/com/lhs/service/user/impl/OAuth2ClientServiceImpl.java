@@ -153,6 +153,7 @@ public class OAuth2ClientServiceImpl implements OAuth2ClientService {
                 .build();
 
         String body = send(request);
+
         Result<OAuth2TokenResponse> result = JsonMapper.parseObject(body, new TypeReference<Result<OAuth2TokenResponse>>() {
         });
         if (result == null || result.getCode() == null || result.getCode() != 200) {

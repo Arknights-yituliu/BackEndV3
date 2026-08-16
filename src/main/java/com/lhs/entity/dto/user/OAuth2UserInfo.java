@@ -3,8 +3,9 @@ package com.lhs.entity.dto.user;
 /**
  * OAuth2 用户信息响应
  * <p>
- * 对应 UC /oauth2/userinfo 接口 data 部分。
- * 基础字段为 uid/clientId/scope；userName/avatar/email 需 UC 扩展返回，缺失时使用本地兜底值
+ * 对应 UC /oauth2/userinfo 接口 data 部分：
+ * uid、email、userName（账号名）、nickname（昵称）、avatar。
+ * userName/avatar/email/nickname 均为 UC 扩展字段，缺失时使用本地兜底值
  */
 public class OAuth2UserInfo {
 
@@ -17,8 +18,11 @@ public class OAuth2UserInfo {
     /** 授权范围 */
     private String scope;
 
-    /** 用户名（UC 扩展字段，可空） */
+    /** 用户名/账号名（UC 扩展字段，可空） */
     private String userName;
+
+    /** 昵称（UC 扩展字段，可空） */
+    private String nickname;
 
     /** 头像（UC 扩展字段，可空） */
     private String avatar;
@@ -56,6 +60,14 @@ public class OAuth2UserInfo {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public String getAvatar() {
