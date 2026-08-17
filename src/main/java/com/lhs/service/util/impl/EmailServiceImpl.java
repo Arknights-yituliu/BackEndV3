@@ -34,19 +34,23 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 多渠道邮件发送服务实现
- * 渠道降级策略（基于每日累计发送量）：
- * 1. 每日 1000 封以内：腾讯云 SES 发送
- * 2. 超过 1000 封：降级为第一个 163 邮箱（mail-163-1）发送
- * 3. 超过 1300 封：转为第二个 163 邮箱（mail-163-2）发送
+ * 渠道路由策略（基于每日累计发送量）：
+ * 1. 每日 300 封以内：第一个 163 邮箱（mail-163-1）发送
+ * 2. 超过 300 封且 600 封以内：第二个 163 邮箱（mail-163-2）发送
+ * 3. 超过 600 封且 20000 封以内：腾讯云 SES 发送
+ * 4. 超过 20000 封：拒绝发送（腾讯云上限，抛出异常）
  */
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    /** 每日邮件降级阈值：1000 封以内走腾讯云 SES */
-    private static final int TENCENT_DAILY_LIMIT = 5000;
+    /** 第一个 163 邮箱（mail-163-1）每日发送额度：300 封 */
+    private static final int MAIL_163_1_DAILY_LIMIT = 300;
 
-    /** 每日邮件降级阈值：超过 1000 封后降级为第一个 163 邮箱，超过 1300 封转为第二个 163 邮箱 */
-    private static final int FIRST_163_DAILY_LIMIT = 5300;
+    /** 第二个 163 邮箱（mail-163-2）每日发送额度：300 封，累计 600 封后切腾讯云 */
+    private static final int MAIL_163_2_DAILY_LIMIT = 600;
+
+    /** 腾讯云 SES 每日发送上限：20000 封，超过后拒绝发送 */
+    private static final int TENCENT_DAILY_LIMIT = 21000;
 
     private final String secretId;
     private final String secretKey;
@@ -81,17 +85,22 @@ public class EmailServiceImpl implements EmailService {
         Object countObj = redisTemplate.opsForValue().get(dailyKey);
         int dailyCount = countObj != null ? Integer.parseInt(countObj.toString()) : 0;
 
-        if (dailyCount < TENCENT_DAILY_LIMIT) {
-            // 每日 1000 封以内：腾讯云 SES 发送
-            sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
-        } else if (dailyCount < FIRST_163_DAILY_LIMIT) {
-            // 超过 1000 封：降级为第一个 163 邮箱发送
-            Logger.info("邮件渠道降级：今日已发送 {} 封，切换为 mail-163-1", dailyCount);
+        if (dailyCount < MAIL_163_1_DAILY_LIMIT) {
+            // 每日 300 封以内：第一个 163 邮箱发送
+            Logger.info("邮件渠道路由：今日已发送 {} 封，使用 mail-163-1", dailyCount);
             send163Email(email, "mail-163-1");
-        } else {
-            // 超过 1300 封：降级为第二个 163 邮箱发送
-            Logger.info("邮件渠道降级：今日已发送 {} 封，切换为 mail-163-2", dailyCount);
+        } else if (dailyCount < MAIL_163_2_DAILY_LIMIT) {
+            // 超过 300 封：切换为第二个 163 邮箱发送
+            Logger.info("邮件渠道路由：今日已发送 {} 封，切换为 mail-163-2", dailyCount);
             send163Email(email, "mail-163-2");
+        } else if (dailyCount < TENCENT_DAILY_LIMIT) {
+            // 超过 600 封且未达 21000 上限：腾讯云 SES 发送
+            Logger.info("邮件渠道路由：今日已发送 {} 封，切换为腾讯云 SES", dailyCount);
+            sendTencentCloudEmail(email.getTo(), email.getSubject(), email.getText());
+        } else {
+            // 超过 21000 封：达到腾讯云上限，拒绝发送
+            Logger.error("邮件渠道路由：今日已发送 {} 封，达到腾讯云 21000 封上限，拒绝发送", dailyCount);
+            throw new ServiceException(ResultCode.INTERFACE_DAILY_SENDING_LIMIT);
         }
 
         // 发送成功，递增当日累计计数
