@@ -26,9 +26,6 @@ public class OAuthUserInfo {
     @TableId
     private Long id;
 
-    /** 用户名（UC 账号名） */
-    private String userName;
-
     /** 昵称（UC 扩展字段，可空） */
     private String nickname;
 

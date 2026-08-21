@@ -115,7 +115,7 @@ public class OpenApiServiceImpl implements OpenApiService {
         // 删除数据库中的token记录
         tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>()
                 .eq(TokenRecord::getToken, token));
-        Logger.info("用户 {} (uid={}) 删除了第三方API token", userInfoVO.getUserName(), userInfoVO.getUid());
+        Logger.info("用户 {} (uid={}) 删除了第三方API token", userInfoVO.getNickname(), userInfoVO.getUid());
     }
 
     @Override

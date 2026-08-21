@@ -92,6 +92,22 @@ public class UserController {
         return Result.success();
     }
 
+    @Operation(summary = "修改当前登录用户的昵称")
+    @PostMapping("/auth/user/nickname")
+    public Result<Object> updateNickname(HttpServletRequest httpServletRequest,
+            @RequestBody Map<String, String> body) {
+        oAuthUserService.updateNickname(httpServletRequest, body.get("nickname"));
+        return Result.success();
+    }
+
+    @Operation(summary = "修改当前登录用户的头像")
+    @PostMapping("/auth/user/avatar")
+    public Result<Object> updateAvatar(HttpServletRequest httpServletRequest,
+            @RequestBody Map<String, String> body) {
+        oAuthUserService.updateAvatar(httpServletRequest, body.get("avatar"));
+        return Result.success();
+    }
+
     @Operation(summary = "删除第三方API Token")
     @PostMapping("/auth/user/open-api/token/delete")
     public Result<Object> deleteOpenApiToken(HttpServletRequest httpServletRequest,

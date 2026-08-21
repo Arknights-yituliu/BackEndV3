@@ -131,7 +131,6 @@ CREATE TABLE `visits`  (
 DROP TABLE IF EXISTS `oauth_user_info`;
 CREATE TABLE `oauth_user_info`  (
   `id` bigint(20) NOT NULL,
-  `user_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,

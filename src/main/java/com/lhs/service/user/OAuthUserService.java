@@ -91,6 +91,22 @@ public interface OAuthUserService {
     HashMap<String, Object> createSessionByOAuth2Uid(OAuth2UserInfo oAuth2UserInfo);
 
     /**
+     * 修改当前登录用户的昵称
+     *
+     * @param httpServletRequest HTTP 请求对象
+     * @param nickname           新昵称
+     */
+    void updateNickname(HttpServletRequest httpServletRequest, String nickname);
+
+    /**
+     * 修改当前登录用户的头像
+     *
+     * @param httpServletRequest HTTP 请求对象
+     * @param avatar             新头像地址
+     */
+    void updateAvatar(HttpServletRequest httpServletRequest, String avatar);
+
+    /**
      * 备份用户信息（资料缓存表）到腾讯云 COS
      */
     void backupUserInfo();

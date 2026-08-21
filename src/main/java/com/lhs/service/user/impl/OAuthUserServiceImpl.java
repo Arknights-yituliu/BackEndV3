@@ -82,7 +82,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
         token = token.replace("Authorization", "");
 
         OAuthUserInfo userInfo = getUserInfoPOByToken(token);
-        // 用户信息 包括凭证，用户名，用户状态等
+        // 用户信息 包括凭证，用户状态等
         UserInfoVO userInfoVO = getUserInfoVO(userInfo);
         userInfoVO.setToken(token);
         return userInfoVO;
@@ -97,15 +97,11 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     private UserInfoVO getUserInfoVO(OAuthUserInfo userInfo) {
         UserInfoVO userInfoVO = new UserInfoVO();
         userInfoVO.setUid(userInfo.getId());
-        userInfoVO.setUserName(userInfo.getUserName());
-        // 昵称缺失时兜底用用户名（兼容旧 user_info 迁移用户，无昵称字段）
-        String nickname = userInfo.getNickname();
-        userInfoVO.setNickName(nickname != null ? nickname : userInfo.getUserName());
+        userInfoVO.setNickname(userInfo.getNickname());
         userInfoVO.setStatus(userInfo.getStatus());
         userInfoVO.setEmail(userInfo.getEmail());
         userInfoVO.setAvatar(userInfo.getAvatar());
         userInfoVO.setAkUid("0");
-        userInfoVO.setAkNickName(userInfo.getUserName());
 
         LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserExternalAccountBinding::getUid, userInfo.getId())
@@ -226,6 +222,30 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     }
 
     @Override
+    public void updateNickname(HttpServletRequest httpServletRequest, String nickname) {
+        // 校验昵称非空，空值直接拒绝
+        if (!checkParamsValidity(nickname)) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK);
+        }
+        OAuthUserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
+        userInfo.setNickname(nickname);
+        userInfo.setUpdateTime(new Date());
+        oauthUserInfoMapper.updateById(userInfo);
+    }
+
+    @Override
+    public void updateAvatar(HttpServletRequest httpServletRequest, String avatar) {
+        // 校验头像地址非空，空值直接拒绝
+        if (!checkParamsValidity(avatar)) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK);
+        }
+        OAuthUserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
+        userInfo.setAvatar(avatar);
+        userInfo.setUpdateTime(new Date());
+        oauthUserInfoMapper.updateById(userInfo);
+    }
+
+    @Override
     public HashMap<String, Object> createSessionByOAuth2Uid(OAuth2UserInfo oAuth2UserInfo) {
         // UC uid 是本地会话的唯一标识
         Long ucUid = oAuth2UserInfo.getUid();
@@ -241,7 +261,6 @@ public class OAuthUserServiceImpl implements OAuthUserService {
             // 首次通过 UC 登录：插入资料缓存，id 即 UC uid
             userInfo = new OAuthUserInfo();
             userInfo.setId(ucUid);
-            userInfo.setUserName(resolveOAuth2UserName(oAuth2UserInfo));
             userInfo.setNickname(resolveOAuth2Nickname(oAuth2UserInfo));
             userInfo.setAvatar(resolveOAuth2Avatar(oAuth2UserInfo));
             userInfo.setEmail(oAuth2UserInfo.getEmail());
@@ -252,7 +271,6 @@ public class OAuthUserServiceImpl implements OAuthUserService {
             oauthUserInfoMapper.insert(userInfo);
         } else {
             // 已存在：刷新资料缓存（资料以 UC 为准）
-            userInfo.setUserName(resolveOAuth2UserName(oAuth2UserInfo));
             userInfo.setNickname(resolveOAuth2Nickname(oAuth2UserInfo));
             userInfo.setAvatar(resolveOAuth2Avatar(oAuth2UserInfo));
             if (oAuth2UserInfo.getEmail() != null) {
@@ -271,21 +289,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     }
 
     /**
-     * 解析用户名（UC 未返回时兜底为"博士+uid"）
-     *
-     * @param oAuth2UserInfo UC 用户信息
-     * @return 用户名
-     */
-    private String resolveOAuth2UserName(OAuth2UserInfo oAuth2UserInfo) {
-        String userName = oAuth2UserInfo.getUserName();
-        if (!checkParamsValidity(userName)) {
-            return "博士" + oAuth2UserInfo.getUid();
-        }
-        return userName;
-    }
-
-    /**
-     * 解析昵称（UC 未返回昵称时兜底为用户名）
+     * 解析昵称（UC 未返回昵称时兜底为"博士+uid"）
      *
      * @param oAuth2UserInfo UC 用户信息
      * @return 昵称
@@ -293,7 +297,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     private String resolveOAuth2Nickname(OAuth2UserInfo oAuth2UserInfo) {
         String nickname = oAuth2UserInfo.getNickname();
         if (!checkParamsValidity(nickname)) {
-            return resolveOAuth2UserName(oAuth2UserInfo);
+            return "博士" + oAuth2UserInfo.getUid();
         }
         return nickname;
     }
@@ -329,11 +333,9 @@ public class OAuthUserServiceImpl implements OAuthUserService {
      * @return 登录 token
      */
     private String tokenGenerator(OAuthUserInfo userInfo) {
-        // 用户凭证 由用户部分信息+一图流id+时间戳 加密得到
+        // 用户凭证 由用户id+时间戳 加密得到
         Map<String, Object> hashMap = new HashMap<>();
-        String userName = userInfo.getUserName();
         Long id = userInfo.getId();
-        hashMap.put("userName", userName.replace(".", "·"));
         hashMap.put("id", userInfo.getId());
         String header = JsonMapper.toJSONString(hashMap);
         long timeStamp = System.currentTimeMillis();
