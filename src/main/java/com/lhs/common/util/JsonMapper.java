@@ -43,7 +43,7 @@ public class JsonMapper {
         try {
             t = objectMapper.readValue(jsonString, type);
         } catch (JsonProcessingException e) {
-            Logger.error("JsonString转为自定义对象失败：{}"+ e.getMessage());
+            Logger.error("JsonString转为自定义对象失败：{}输入的字符串是："+jsonString+"，错误原因{}"+ e.getMessage());
         }
         return t;
     }

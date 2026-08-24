@@ -1,10 +1,9 @@
 package com.lhs.service.util;
 
 
-import com.lhs.entity.po.survey.OperatorTable;
 
-import java.util.List;
-import java.util.Map;
+
+import com.lhs.entity.dto.hypergryph.GameDataFormatFilePath;
 
 public interface ArknightsGameDataService {
 
@@ -12,32 +11,28 @@ public interface ArknightsGameDataService {
     void saveOperatorDataTag(String tag);
     String getOperatorDataTag();
 
-    Map<String, String> getEquipIdAndType();
+    void getOperatorInfoSimpleTable(GameDataFormatFilePath gameDataFormatFilePath);
 
-    /**
-     * 获取干员信息集合，里面主要用到干员的获取方式和实装时间
-     * @return 干员信息
-     */
-    List<OperatorTable> getOperatorTable();
-
-    void getOperatorInfoSimpleTable();
+    void getOperatorInfoSimpleTableByGameResource(GameDataFormatFilePath gameDataFormatFilePath);
 
     /**
      * 生成基建技能一览json
      */
-    void getBuildingTable();
+    void getBuildingTable(GameDataFormatFilePath gameDataFormatFilePath);
 
+    void getBuildingTableByGameResource(GameDataFormatFilePath gameDataFormatFilePath);
+    void getBuildingTableByGameResourceByTorappu(GameDataFormatFilePath gameDataFormatFilePath);
     /**
      * 生成术语对应表json
      */
-    void getTermDescriptionTable();
+    void getTermDescriptionTable(GameDataFormatFilePath gameDataFormatFilePath);
 
     /**
      * 生成生息演算食物/食材一览表json
      */
-    void getSandboxFoodsTable();
+    void getSandboxFoodsTable(GameDataFormatFilePath gameDataFormatFilePath);
 
-    void getAvatar();
+    void getAvatar(GameDataFormatFilePath gameDataFormatFilePath);
 
 
 }

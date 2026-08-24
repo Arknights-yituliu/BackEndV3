@@ -8,7 +8,8 @@ import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.survey.WarehouseInfoMapper;
 import com.lhs.mapper.survey.service.WarehouseInfoMapperService;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
-import com.lhs.service.user.UserService;
+import com.lhs.service.user.BindService;
+import com.lhs.service.user.OAuthUserService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -21,7 +22,8 @@ public class WarehouseInfoService {
     private final WarehouseInfoMapper warehouseInfoMapper;
 
     private final WarehouseInfoMapperService warehouseInfoMapperService;
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
+    private final BindService bindService;
 
     private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
     private final IdGenerator idGenerator;
@@ -30,12 +32,14 @@ public class WarehouseInfoService {
 
     public WarehouseInfoService(WarehouseInfoMapper warehouseInfoMapper,
                                 WarehouseInfoMapperService warehouseInfoMapperService,
-                                UserService userService,
+                                OAuthUserService oAuthUserService,
+                                BindService bindService,
                                 AkPlayerBindInfoMapper akPlayerBindInfoMapper,
                                 HypergryphService hypergryphService) {
         this.warehouseInfoMapper = warehouseInfoMapper;
         this.warehouseInfoMapperService = warehouseInfoMapperService;
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
+        this.bindService = bindService;
         this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
 
         this.hypergryphService = hypergryphService;
@@ -51,7 +55,7 @@ public class WarehouseInfoService {
         //玩家仓库信息
         List<WarehouseInfo> warehouseInfoList = params.getList();
         //一图流用户信息
-        UserInfoVO userInfoByToken = userService.getUserInfoVOByToken(token);
+        UserInfoVO userInfoByToken = oAuthUserService.getUserInfoVOByToken(token);
         //一图流用户uid
         Long uid = userInfoByToken.getUid();
 
@@ -62,7 +66,7 @@ public class WarehouseInfoService {
         AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
         akPlayerBindInfoDTO.setAkUid(akUid);
         akPlayerBindInfoDTO.setWarehouseInfoId(lastDataId);
-        userService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfoByToken,akPlayerBindInfoDTO);
+        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfoByToken,akPlayerBindInfoDTO);
 
         //当前导入时间的时间戳
         long timeStamp = System.currentTimeMillis();

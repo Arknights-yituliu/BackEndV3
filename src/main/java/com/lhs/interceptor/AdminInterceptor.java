@@ -1,9 +1,7 @@
 package com.lhs.interceptor;
 
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
-import com.lhs.common.util.ResultCode;
-import com.lhs.service.admin.AdminService;
+import com.lhs.service.user.OAuthUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -20,10 +18,14 @@ public class AdminInterceptor implements HandlerInterceptor {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final AdminService adminService;
-    public AdminInterceptor(RedisTemplate<String, Object> redisTemplate, AdminService adminService){
+
+
+    private final OAuthUserService oAuthUserService;
+
+    public AdminInterceptor(RedisTemplate<String, Object> redisTemplate, OAuthUserService oAuthUserService){
             this.redisTemplate =redisTemplate;
-        this.adminService = adminService;
+
+        this.oAuthUserService = oAuthUserService;
     }
 
 
@@ -39,16 +41,17 @@ public class AdminInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 //      获取进过拦截器的路径
+        //获取进过拦截器的路径
         if (HttpMethod.OPTIONS.toString().equals(request.getMethod())) {
             return true;
         }
 
         String requestURI = request.getRequestURI();
-        Logger.info("拦截路径："+requestURI);
-        String token = request.getHeader("token");
-        if(token == null) throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        //  检查开发者Token
-        return adminService.checkToken(token);
+        Logger.info("一图流用户鉴权{}：");
+        oAuthUserService.extractToken(request);
+
+
+        return true;
     }
 
     /**

@@ -1,0 +1,21 @@
+[
+  {
+    "id": 202412050001,
+    "expCoefficient": 0.633,
+    "sampleSize": 300
+  },
+  {
+    "id": 202412050002,
+    "expCoefficient": 0.633,
+    "sampleSize": 300,
+    "customItem": [{
+      "itemId": "30073",
+      "itemValue": 1.8
+    }]
+  },
+  {
+    "id": 202412050003,
+    "expCoefficient": 0,
+    "sampleSize": 300
+  }
+]

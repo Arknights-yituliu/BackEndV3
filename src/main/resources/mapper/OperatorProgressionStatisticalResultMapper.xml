@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.survey.OperatorProgressionStatisticalResultMapper">
+
+    <!-- 插入或更新record_type=1的数据 -->
+    <insert id="insertOrUpdateByRecordType" parameterType="com.lhs.entity.po.survey.OperatorProgressionStatisticalResult">
+        REPLACE INTO operator_progression_statistical_result (id, sample_size, statistical_result, record_type, create_time)
+        SELECT 
+            #{item.id}, 
+            #{item.sampleSize}, 
+            #{item.statisticalResult}, 
+            #{item.recordType}, 
+            #{item.createTime}
+        FROM operator_progression_statistical_result
+        WHERE record_type = 1
+        UNION ALL
+        SELECT 
+            #{item.id}, 
+            #{item.sampleSize}, 
+            #{item.statisticalResult}, 
+            #{item.recordType}, 
+            #{item.createTime}
+        WHERE NOT EXISTS (
+            SELECT 1 FROM operator_progression_statistical_result WHERE record_type = 1
+        )
+    </insert>
+
+</mapper>

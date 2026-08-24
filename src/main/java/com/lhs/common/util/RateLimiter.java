@@ -1,5 +1,6 @@
 package com.lhs.common.util;
 
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -9,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RateLimiter {
 
-    private static final String KEY_PREFIX = "rate_limit_";
+    private static final String KEY_PREFIX = "Limit:";
 
 
     private final StringRedisTemplate redisTemplate;
@@ -18,11 +19,15 @@ public class RateLimiter {
         this.redisTemplate = redisTemplate;
     }
 
-
-    public void tryAcquire(String id, int maxRequests, int timeWindowInSeconds,ResultCode resultCode) {
-        String key = KEY_PREFIX + id;
-        Long currentTime = System.currentTimeMillis();
-
+    /**
+     * 限制特定时间窗口内可请求的最大次数
+     * @param key  请求方法的key
+     * @param maxRequests 最大请求数
+     * @param timeWindowInSeconds 时间窗口（单位秒）
+     * @param resultCode 报错信息
+     */
+    public void tryAcquire(String key, int maxRequests, int timeWindowInSeconds, ResultCode resultCode) {
+        key = KEY_PREFIX + key;
         // 使用原子操作递增计数器，并获取递增后的值
         Long countObj = redisTemplate.opsForValue().increment(key);
         long count = (countObj == null) ? 0 : countObj; // 避免潜在的 NullPointerException

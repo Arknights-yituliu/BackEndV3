@@ -1,15 +1,15 @@
 package com.lhs.common.util;
 
-import com.lhs.common.exception.ServiceException;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+
+import com.qcloud.cos.thirdparty.org.apache.http.HttpEntity;
+import com.qcloud.cos.thirdparty.org.apache.http.client.config.RequestConfig;
+import com.qcloud.cos.thirdparty.org.apache.http.client.methods.CloseableHttpResponse;
+import com.qcloud.cos.thirdparty.org.apache.http.client.methods.HttpGet;
+import com.qcloud.cos.thirdparty.org.apache.http.client.methods.HttpPost;
+import com.qcloud.cos.thirdparty.org.apache.http.entity.StringEntity;
+import com.qcloud.cos.thirdparty.org.apache.http.impl.client.CloseableHttpClient;
+import com.qcloud.cos.thirdparty.org.apache.http.impl.client.HttpClients;
+import com.qcloud.cos.thirdparty.org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.HashMap;

@@ -46,109 +46,6 @@ CREATE TABLE `ak_player_bind_info`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for ak_player_bind_infov2
--- ----------------------------
-DROP TABLE IF EXISTS `ak_player_bind_infov2`;
-CREATE TABLE `ak_player_bind_infov2`  (
-  `id` bigint(20) NOT NULL,
-  `ak_nick_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `ak_uid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `delete_flag` bit(1) NOT NULL,
-  `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `last_time` bigint(20) NULL DEFAULT NULL,
-  `uid` bigint(20) NULL DEFAULT NULL,
-  `user_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for gacha_data
--- ----------------------------
-DROP TABLE IF EXISTS `gacha_data`;
-CREATE TABLE `gacha_data`  (
-  `gacha_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `is_new` bit(1) NOT NULL,
-  `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `pool` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `rarity` int(11) NULL DEFAULT NULL,
-  `ts` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`gacha_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for item
--- ----------------------------
-DROP TABLE IF EXISTS `item`;
-CREATE TABLE `item`  (
-  `id` bigint(20) NOT NULL,
-  `item_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `rarity` int(11) NULL DEFAULT NULL,
-  `item_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `card_num` int(255) NULL DEFAULT NULL,
-  `weight` double(11, 6) NULL DEFAULT NULL,
-  `item_value_ap` double(11, 6) NULL DEFAULT NULL,
-  `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `item_value` double(11, 6) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for item_iteration_value
--- ----------------------------
-DROP TABLE IF EXISTS `item_iteration_value`;
-CREATE TABLE `item_iteration_value`  (
-  `id` bigint(11) NOT NULL,
-  `item_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `item_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `iteration_value` double NULL DEFAULT NULL,
-  `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for operator_table
--- ----------------------------
-DROP TABLE IF EXISTS `operator_table`;
-CREATE TABLE `operator_table`  (
-  `char_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `update_time` datetime NULL DEFAULT NULL,
-  `obtain_approach` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `rarity` int(11) NULL DEFAULT NULL,
-  PRIMARY KEY (`char_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for operator_upload_log
--- ----------------------------
-DROP TABLE IF EXISTS `operator_upload_log`;
-CREATE TABLE `operator_upload_log`  (
-  `id` bigint(20) NOT NULL,
-  `delete_flag` bit(1) NOT NULL,
-  `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `last_time` bigint(20) NULL DEFAULT NULL,
-  `uid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `user_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for pack_content
--- ----------------------------
-DROP TABLE IF EXISTS `pack_content`;
-CREATE TABLE `pack_content`  (
-  `id` bigint(11) NOT NULL,
-  `item_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `pack_id` bigint(11) NULL DEFAULT NULL,
-  `quantity` int(11) NULL DEFAULT NULL,
-  `item_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `archived` bit(1) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `pack_id`(`pack_id`) USING BTREE COMMENT '礼包id'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
 -- Table structure for pack_info
 -- ----------------------------
 DROP TABLE IF EXISTS `pack_info`;
@@ -168,43 +65,6 @@ CREATE TABLE `pack_info`  (
   `sort_id` bigint(20) NULL DEFAULT NULL,
   `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for pack_item
--- ----------------------------
-DROP TABLE IF EXISTS `pack_item`;
-CREATE TABLE `pack_item`  (
-  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `value` double NULL DEFAULT NULL,
-  `zone_index` int(11) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for page_visits
--- ----------------------------
-DROP TABLE IF EXISTS `page_visits`;
-CREATE TABLE `page_visits`  (
-  `redis_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `page_path` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `visits_time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `visits_count` int(11) NOT NULL,
-  `create_time` datetime NOT NULL,
-  PRIMARY KEY (`redis_key`) USING BTREE,
-  INDEX `page_path`(`page_path`) USING BTREE,
-  INDEX `create_time`(`create_time`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for quantile_table
--- ----------------------------
-DROP TABLE IF EXISTS `quantile_table`;
-CREATE TABLE `quantile_table`  (
-  `section` double NOT NULL,
-  `value` double NULL DEFAULT NULL,
-  PRIMARY KEY (`section`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -250,161 +110,6 @@ CREATE TABLE `stage`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for stage_result
--- ----------------------------
-DROP TABLE IF EXISTS `stage_result`;
-CREATE TABLE `stage_result`  (
-  `id` bigint(20) NOT NULL,
-  `stage_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `stage_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `item_series` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `item_series_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `secondary_item_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `stage_efficiency` double NULL DEFAULT NULL,
-  `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `le_t4_efficiency` double NULL DEFAULT NULL,
-  `le_t3_efficiency` double NULL DEFAULT NULL,
-  `le_t2_efficiency` double NULL DEFAULT NULL,
-  `spm` double NULL DEFAULT NULL,
-  `end_time` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for stage_result_detail
--- ----------------------------
-DROP TABLE IF EXISTS `stage_result_detail`;
-CREATE TABLE `stage_result_detail`  (
-  `id` bigint(20) NOT NULL,
-  `stage_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `item_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `item_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `knock_rating` double NULL DEFAULT NULL,
-  `result` double NULL DEFAULT NULL,
-  `ap_expect` double NULL DEFAULT NULL,
-  `ratio` double NULL DEFAULT NULL,
-  `sample_size` int(11) NULL DEFAULT NULL,
-  `ratio_rank` int(11) NULL DEFAULT NULL,
-  `sample_confidence` double NULL DEFAULT NULL,
-  `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `end_time` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for store_act
--- ----------------------------
-DROP TABLE IF EXISTS `store_act`;
-CREATE TABLE `store_act`  (
-  `act_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `end_time` datetime NULL DEFAULT NULL,
-  `result` varchar(16000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`act_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for store_perm
--- ----------------------------
-DROP TABLE IF EXISTS `store_perm`;
-CREATE TABLE `store_perm`  (
-  `id` int(10) NOT NULL,
-  `item_name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `store_type` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `cost` double(11, 3) NULL DEFAULT NULL,
-  `quantity` int(10) NULL DEFAULT NULL,
-  `rarity` int(10) NULL DEFAULT NULL,
-  `cost_per` double(11, 3) NULL DEFAULT NULL,
-  `item_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for survey_character_2
--- ----------------------------
-DROP TABLE IF EXISTS `survey_character_2`;
-CREATE TABLE `survey_character_2`  (
-  `id` bigint(20) NOT NULL,
-  `uid` bigint(10) NULL DEFAULT NULL,
-  `char_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `elite` int(2) NULL DEFAULT NULL,
-  `level` int(3) NULL DEFAULT NULL,
-  `potential` int(2) NULL DEFAULT NULL,
-  `rarity` int(2) NULL DEFAULT NULL,
-  `skill1` int(2) NULL DEFAULT NULL,
-  `skill2` int(2) NULL DEFAULT NULL,
-  `skill3` int(2) NULL DEFAULT NULL,
-  `mod_x` int(2) NULL DEFAULT NULL,
-  `mod_y` int(2) NULL DEFAULT NULL,
-  `own` tinyint(1) NULL DEFAULT NULL,
-  `main_skill` int(2) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `uid`(`uid`) USING BTREE COMMENT '用户名'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for survey_operator_1
--- ----------------------------
-DROP TABLE IF EXISTS `survey_operator_1`;
-CREATE TABLE `survey_operator_1`  (
-  `id` bigint(20) NOT NULL,
-  `uid` bigint(10) NULL DEFAULT NULL,
-  `char_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `elite` int(2) NULL DEFAULT NULL,
-  `level` int(3) NULL DEFAULT NULL,
-  `potential` int(2) NULL DEFAULT NULL,
-  `rarity` int(2) NULL DEFAULT NULL,
-  `skill1` int(2) NULL DEFAULT NULL,
-  `skill2` int(2) NULL DEFAULT NULL,
-  `skill3` int(2) NULL DEFAULT NULL,
-  `mod_x` int(2) NULL DEFAULT NULL,
-  `mod_y` int(2) NULL DEFAULT NULL,
-  `own` tinyint(1) NULL DEFAULT NULL,
-  `main_skill` int(2) NULL DEFAULT NULL,
-  `mod_d` int(2) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `uid`(`uid`) USING BTREE COMMENT '用户名'
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for survey_operator_statistics
--- ----------------------------
-DROP TABLE IF EXISTS `survey_operator_statistics`;
-CREATE TABLE `survey_operator_statistics`  (
-  `char_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `rarity` int(11) NULL DEFAULT NULL,
-  `own` int(11) NULL DEFAULT NULL,
-  `elite` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `skill1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `skill2` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `skill3` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `mod_x` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `mod_y` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `potential` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `mod_d` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`char_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for survey_user
--- ----------------------------
-DROP TABLE IF EXISTS `survey_user`;
-CREATE TABLE `survey_user`  (
-  `id` bigint(20) NOT NULL,
-  `user_name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `ak_uid` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `pass_word` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `status` int(1) NOT NULL,
-  `update_time` datetime NOT NULL,
-  `create_time` datetime NOT NULL,
-  `ip` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `delete_flag` tinyint(4) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `user_name`(`user_name`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
 -- Table structure for visits
 -- ----------------------------
 DROP TABLE IF EXISTS `visits`;
@@ -421,15 +126,126 @@ CREATE TABLE `visits`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for work_shop_products
+-- Table structure for oauth_user_info
 -- ----------------------------
-DROP TABLE IF EXISTS `work_shop_products`;
-CREATE TABLE `work_shop_products`  (
-  `id` bigint(11) NOT NULL,
-  `rank` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `expect_value` double NULL DEFAULT NULL,
-  `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+DROP TABLE IF EXISTS `oauth_user_info`;
+CREATE TABLE `oauth_user_info`  (
+  `id` bigint(20) NOT NULL,
+  `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `status` int(11) NULL DEFAULT 1,
+  `create_time` datetime NULL DEFAULT NULL,
+  `update_time` datetime NULL DEFAULT NULL,
+  `delete_flag` tinyint(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for token_record
+-- ----------------------------
+DROP TABLE IF EXISTS `token_record`;
+CREATE TABLE `token_record`  (
+  `id` bigint(20) NOT NULL,
+  `uid` bigint(20) NULL DEFAULT NULL,
+  `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `scope` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `create_time` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_uid`(`uid`) USING BTREE,
+  INDEX `idx_token`(`token`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for access_log
+-- ----------------------------
+DROP TABLE IF EXISTS `access_log`;
+CREATE TABLE `access_log`  (
+  `id` bigint(20) NOT NULL,
+  `url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `region` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `referer` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `device` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `browser` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `os` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `access_time` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_access_time`(`access_time`) USING BTREE,
+  INDEX `idx_url`(`url`(100)) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for access_log_hourly_stats
+-- 每小时访问量统计表，由定时任务每小时统计上一完整小时写入
+-- 同一小时重跑会生成新 task_id 的记录并将旧记录置为 EXPIRE，API 仅读 DISPLAY 记录
+-- ----------------------------
+DROP TABLE IF EXISTS `access_log_hourly_stats`;
+CREATE TABLE `access_log_hourly_stats`  (
+  `id` bigint(20) NOT NULL COMMENT '主键ID，由应用层 IdGenerator 生成',
+  `stat_hour` datetime NOT NULL COMMENT '统计的小时（整点，例如 2026-08-04 14:00:00）',
+  `visit_count` bigint(20) NOT NULL DEFAULT 0 COMMENT '该小时的总访问量',
+  `task_id` bigint(20) NOT NULL COMMENT '本次统计的任务ID，关联 access_log_hourly_stats_task.task_id',
+  `record_code` int(11) NOT NULL DEFAULT 1 COMMENT '记录状态：1=展示数据(DISPLAY)，-1=过期数据(EXPIRE)',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_stat_hour_code`(`stat_hour`, `record_code`) USING BTREE,
+  INDEX `idx_task_id`(`task_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '每小时访问量统计表';
+
+-- ----------------------------
+-- Table structure for access_log_hourly_stats_task
+-- 小时访问量统计任务记录表，记录每个统计小时的执行情况与当前有效 task_id
+-- ----------------------------
+DROP TABLE IF EXISTS `access_log_hourly_stats_task`;
+CREATE TABLE `access_log_hourly_stats_task`  (
+  `id` bigint(20) NOT NULL COMMENT '主键ID，由应用层 IdGenerator 生成',
+  `stat_hour` datetime NOT NULL COMMENT '统计的小时（整点）',
+  `task_id` bigint(20) NOT NULL COMMENT '该小时当前有效的任务ID，关联 access_log_hourly_stats.task_id',
+  `data_count` bigint(20) NOT NULL DEFAULT 0 COMMENT '该小时的访问量',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '首次创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最近一次重新统计时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_stat_hour`(`stat_hour`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '小时访问量统计任务记录表';
+
+-- ----------------------------
+-- Table structure for access_log_url_daily_stats
+-- 每个URL每日访问量统计表，由定时任务每天统计前一天写入
+-- 同一天重跑会生成新 task_id 的记录并将旧记录置为 EXPIRE，API 仅读 DISPLAY 记录
+-- ----------------------------
+DROP TABLE IF EXISTS `access_log_url_daily_stats`;
+CREATE TABLE `access_log_url_daily_stats`  (
+  `id` bigint(20) NOT NULL COMMENT '主键ID，由应用层 IdGenerator 生成',
+  `url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'URL（已去除结尾斜杠）',
+  `stat_day` datetime NOT NULL COMMENT '统计的日期（当天 00:00:00）',
+  `visit_count` bigint(20) NOT NULL DEFAULT 0 COMMENT '该URL当天的访问量',
+  `task_id` bigint(20) NOT NULL COMMENT '本次统计的任务ID，关联 access_log_url_daily_stats_task.task_id',
+  `record_code` int(11) NOT NULL DEFAULT 1 COMMENT '记录状态：1=展示数据(DISPLAY)，-1=过期数据(EXPIRE)',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_stat_day_code`(`stat_day`, `record_code`) USING BTREE,
+  INDEX `idx_task_id`(`task_id`) USING BTREE,
+  INDEX `idx_url`(`url`(100)) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '每个URL每日访问量统计表';
+
+-- ----------------------------
+-- Table structure for access_log_url_daily_stats_task
+-- URL每日访问量统计任务记录表，记录每个统计日的执行情况与当前有效 task_id
+-- ----------------------------
+DROP TABLE IF EXISTS `access_log_url_daily_stats_task`;
+CREATE TABLE `access_log_url_daily_stats_task`  (
+  `id` bigint(20) NOT NULL COMMENT '主键ID，由应用层 IdGenerator 生成',
+  `stat_day` datetime NOT NULL COMMENT '统计的日期（当天 00:00:00）',
+  `task_id` bigint(20) NOT NULL COMMENT '该日当前有效的任务ID，关联 access_log_url_daily_stats.task_id',
+  `data_count` bigint(20) NOT NULL DEFAULT 0 COMMENT '该日统计的URL数量',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '首次创建时间',
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最近一次重新统计时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_stat_day`(`stat_day`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = 'URL每日访问量统计任务记录表';
 
 SET FOREIGN_KEY_CHECKS = 1;

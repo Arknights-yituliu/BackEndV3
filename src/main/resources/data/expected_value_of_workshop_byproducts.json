@@ -1,0 +1,18 @@
+[
+  {
+    "rarity": 1,
+    "expectValue": 1.962201
+  },
+  {
+    "rarity": 2,
+    "expectValue": 5.853670784766422
+  },
+  {
+    "rarity": 3,
+    "expectValue": 24.578868967312253
+  },
+  {
+    "rarity": 4,
+    "expectValue": 79.8592285162492
+  }
+]

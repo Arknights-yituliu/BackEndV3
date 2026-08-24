@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.admin.AccessLogMapper">
+
+    <!-- 统计指定时间范围内的页面浏览量(PV) -->
+    <select id="countPageViews" resultType="java.lang.Long">
+        <![CDATA[
+            SELECT COUNT(*)
+            FROM access_log
+            WHERE access_time >= #{startTime}
+              AND access_time < #{endTime}
+        ]]>
+    </select>
+
+    <!-- 统计指定时间范围内的独立访客数(UV) -->
+    <select id="countUniqueVisitors" resultType="java.lang.Long">
+        <![CDATA[
+            SELECT COUNT(DISTINCT ip)
+            FROM access_log
+            WHERE access_time >= #{startTime}
+              AND access_time < #{endTime}
+        ]]>
+    </select>
+
+    <!-- 按URL分组统计指定时间范围内各URL的访问量（先截断?及后面的查询参数，只按URL本身统计） -->
+    <select id="countByUrl" resultType="com.lhs.entity.dto.UrlCountDTO">
+        <![CDATA[
+            SELECT SUBSTRING_INDEX(url, '?', 1) AS url, COUNT(*) AS count
+            FROM access_log
+            WHERE access_time >= #{startTime}
+              AND access_time < #{endTime}
+            GROUP BY SUBSTRING_INDEX(url, '?', 1)
+        ]]>
+    </select>
+
+</mapper>

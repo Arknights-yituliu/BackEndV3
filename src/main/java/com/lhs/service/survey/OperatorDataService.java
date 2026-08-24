@@ -1,28 +1,15 @@
 package com.lhs.service.survey;
 
 import com.lhs.common.util.Result;
+import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
+import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
-import com.lhs.entity.po.survey.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.*;
 
 
 public interface OperatorDataService  {
-    /**
-     * 手动上传干员练度调查表
-     * @param token token
-     * @param surveyOperatorDataList 干员练度调查表单
-     * @return 成功消息
-     */
-    Map<String, Object> manualUploadOperator(String token, List<OperatorData> surveyOperatorDataList);
-
-    /**
-     * 导入森空岛干员练度数据
-     * @param token 一图流凭证
-     * @param dataStr 上传的json字符串
-     * @return 返回成功信息
-     */
-    Map<String, Object> importSKLandPlayerInfoV2(String token, String dataStr);
 
 
     /**
@@ -34,13 +21,30 @@ public interface OperatorDataService  {
 
     /**
      * 找回用户填写的数据
-     * @param token token
      * @return 成功消息
      */
-    List<OperatorDataVo> getOperatorInfoByToken(String token);
+    List<OperatorProgressionDataDTO> listOperatorProgressionData(String token);
 
 
-    Object importSKLandPlayerInfoV3(PlayerInfoDTO playerInfoDTO);
+    Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO);
 
-    Object operatorDataReport();
+
+    void backupOperatorProgressionData();
+
+    /**
+     * 第三方API上传干员练度数据（含token校验）
+     *
+     * @param httpServletRequest HTTP请求（从Header提取token）
+     * @param playerInfoDTO      玩家信息
+     * @return 处理结果
+     */
+    Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO);
+
+    /**
+     * 第三方API获取干员练度数据（含token校验）
+     *
+     * @param httpServletRequest HTTP请求（从Header提取token）
+     * @return 干员练度数据列表（含技能和模组详细信息）
+     */
+    List<OperatorProgressionDataV2DTO> openApiGetOperatorData(HttpServletRequest httpServletRequest);
 }

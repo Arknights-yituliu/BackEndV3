@@ -1,5 +1,6 @@
 package com.lhs.common.util;
 
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 
 public class IdGenerator {
@@ -25,8 +26,9 @@ public class IdGenerator {
 
         if(timestamp == lastTimestamp){
             sequence++;
-            if(sequence>99){
+            if(sequence>999){
                 timestamp = tilNextMillis(lastTimestamp);
+                sequence = 0L;
             }
         }else {
             sequence = 0L;
@@ -34,7 +36,7 @@ public class IdGenerator {
 
         lastTimestamp = timestamp;
 
-        return ((timestamp-START_TIMESTAMP)*100+workerId)*100+sequence;
+        return ((timestamp-START_TIMESTAMP)*10+workerId)*1000+sequence;
     }
 
 

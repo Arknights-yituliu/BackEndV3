@@ -1,27 +1,36 @@
 package com.lhs.common.util;
 
-import com.lhs.common.exception.ServiceException;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ServerErrorException;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
 
 
-
-    public static void save(String filepath,String filename,String json){
+    /**
+     * 保存文件
+     * @param filepath 文件路径
+     * @param filename 文件名称
+     * @param json json
+     */
+    public static void saveJsonFile(String filepath, String filename, String json){
         File file = new File(filepath);
+
         if(!file.exists()){
-            file.mkdir();
+            boolean mkdir = file.mkdirs();
+            System.out.println("创建目录结果"+mkdir);
         }
 
         File file1 = new File(filepath,filename);
+
         if(!file1.exists()){
             try {
                 file1.createNewFile();
@@ -32,7 +41,7 @@ public class FileUtil {
 
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(filepath+filename);
-            byte[] bytes = json.getBytes();
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             fileOutputStream.write(bytes);
             fileOutputStream.close();
         } catch (IOException e) {
@@ -41,7 +50,7 @@ public class FileUtil {
 
     }
 
-    public static void save(HttpServletResponse response, String filePath, String fileName, String jsonForMat) {
+    public static void saveJsonFile(HttpServletResponse response, String filePath, String fileName, String jsonForMat) {
         try {
             // 拼接文件完整路径
             String fullPath = filePath + fileName ;
@@ -104,6 +113,27 @@ public class FileUtil {
         }
     }
 
+
+    public static String read(File file) {
+        String context = "";
+        try {
+            Reader reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8);
+            int ch = 0;
+            StringBuilder sb = new StringBuilder();
+            while ((ch = reader.read()) != -1) {
+                sb.append((char) ch);
+            }
+
+            reader.close();
+            context = sb.toString();
+            return context;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static String read(MultipartFile multipartFile) {
         String jsonStr = "";
         try {
@@ -137,6 +167,23 @@ public class FileUtil {
     }
 
 
+    public static void copyFile(File source, File dest) {
+
+        try {
+            FileInputStream is = new FileInputStream(source);
+            FileOutputStream os = new FileOutputStream(dest);
+            FileChannel sourceChannel = is.getChannel();
+            FileChannel destChannel = os.getChannel();
+            sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
+            sourceChannel.close();
+            destChannel.close();
+            is.close();
+            os.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void inputStreamToFile(InputStream ins, File file) {
         try {
             OutputStream os = Files.newOutputStream(file.toPath());
@@ -151,6 +198,39 @@ public class FileUtil {
             e.printStackTrace();
         }
     }
+
+
+    public static byte[] zipFile(File fileToZip) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (ZipOutputStream zipOut = new ZipOutputStream(byteArrayOutputStream)) {
+            zipFile(fileToZip, fileToZip.getName(), zipOut);
+        }
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            // 如果是目录，则遍历子文件
+            for (File childFile : Objects.requireNonNull(fileToZip.listFiles())) {
+                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+            }
+        } else {
+            try (FileInputStream fis = new FileInputStream(fileToZip)) {
+                ZipEntry zipEntry = new ZipEntry(fileName);
+                zipOut.putNextEntry(zipEntry);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = fis.read(buffer)) >= 0) {
+                    zipOut.write(buffer, 0, length);
+                }
+            }
+        }
+    }
+
+
 
 
     /**
@@ -204,6 +284,8 @@ public class FileUtil {
         }
         return stringBuilder.toString().toUpperCase();
     }
+
+
 
     /**
      * 校验是否为excel

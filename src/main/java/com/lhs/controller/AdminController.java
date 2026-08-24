@@ -1,9 +1,8 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.material.StageConfigDTO;
+import com.lhs.entity.dto.material.PackInfoDTO;
 import com.lhs.entity.po.admin.LogInfo;
-import com.lhs.entity.po.material.ItemCustom;
 import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.entity.vo.dev.PageViewStatisticsVo;
 import com.lhs.entity.vo.dev.VisitsTimeVo;
@@ -90,63 +89,51 @@ public class AdminController {
     @Operation(summary = "获取管理者信息")
     @GetMapping("/dev/developer/info")
     public Result<Map<String,Object>> getDeveloperInfo(@RequestParam("token") String token) {
-
         return Result.success(adminService.getDeveloperInfo(token));
+    }
+
+
+    @GetMapping("/admin/cache/keys")
+    public Result<Map<String, Object>> cacheKeys(HttpServletRequest httpServletRequest) {
+        return Result.success(adminService.getCacheKeys());
+    }
+
+    @GetMapping("/admin/cache/delete")
+    public Result<String> deleteCacheKey(HttpServletRequest httpServletRequest,@RequestParam("key") String key) {
+        return Result.success(adminService.deleteCacheKey(key));
     }
 
     @Operation(summary = "更新商店礼包")
     @PostMapping("/admin/store/pack/update")
-    public Result<String> updateStageResult(@RequestBody PackInfoVO packInfoVO) {
-
-        return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoVO));
+    public Result<String> updateStageResult(HttpServletRequest httpServletRequest,@RequestBody PackInfoDTO packInfoDTO) {
+        return Result.success( packInfoService.saveOrUpdatePackInfo(packInfoDTO));
     }
 
     @Operation(summary = "根据id获取礼包")
     @GetMapping("/admin/store/pack")
-    public Result<PackInfoVO> updateStageResult(@RequestParam(required = false, defaultValue = "1") String id) {
+    public Result<PackInfoVO> updateStageResult(HttpServletRequest httpServletRequest,@RequestParam("id") String id) {
         PackInfoVO pack = packInfoService.getPackById(id);
         return Result.success(pack);
     }
 
     @Operation(summary = "删除礼包材料")
     @GetMapping("/admin/store/pack/delete")
-    public Result<Object> deletePackInfo(@RequestParam String id){
+    public Result<Object> deletePackInfo(HttpServletRequest httpServletRequest,@RequestParam String id){
         return Result.success(packInfoService.deletePackInfoById(id));
     }
 
 
     @Operation(summary = "获取全部礼包")
     @GetMapping("/dev/store/pack")
-    public Result<List<PackInfoVO>> getPackList(@RequestParam(required = false, defaultValue = "0.633") Double expCoefficient,
-                                                @RequestParam(required = false, defaultValue = "300") Integer sampleSize){
-        StageConfigDTO stageConfigDTO = new StageConfigDTO();
-        stageConfigDTO.setExpCoefficient(expCoefficient);
-        stageConfigDTO.setSampleSize(sampleSize);
-        return Result.success(packInfoService.listAllPackInfo(stageConfigDTO));
+    public Result<List<PackInfoVO>> getPackList(){
+     
+        return Result.success(packInfoService.listAllPackInfo());
     }
 
 
-    @Operation(summary = "更新礼包材料表")
-    @PostMapping("/admin/item/update")
-    public Result<ItemCustom> saveOrUpdatePackItem(@RequestBody ItemCustom newItemCustom){
-        ItemCustom itemCustom = packInfoService.saveOrUpdatePackItem(newItemCustom);
-        return Result.success(itemCustom);
-    }
+   
 
-    @Operation(summary = "删除礼包材料")
-    @GetMapping("/admin/item/delete")
-    public Result<String> deletePackItem(@RequestParam String id){
 
-        return Result.success(packInfoService.deletePackItemById(id));
-    }
-
-    @Operation(summary = "清除礼包缓存数据")
-    @GetMapping("/admin/pack/reset")
-    public Result<Object> clearPackCache(){
-        StageConfigDTO stageConfigDTO = new StageConfigDTO();
-        packInfoService.uploadPackInfoPageToCos(stageConfigDTO);
-        return Result.success();
-    }
 
 
     @PostMapping("/admin/view/statistics")
@@ -159,8 +146,8 @@ public class AdminController {
     @Operation(summary = "更新活动商店性价比(新")
     @PostMapping("/admin/store/act/update")
     public Result<Object> updateActStoreByActName(HttpServletRequest request, @RequestBody ActivityStoreDataVO activityStoreDataVo) {
-        Boolean level = adminService.developerLevel(request);
-        String message = storeService.updateActivityStoreDataByActivityName(activityStoreDataVo, level);
+
+        String message = storeService.updateActivityStoreDataByActivityName(activityStoreDataVo);
         return Result.success(message);
     }
 
@@ -172,24 +159,19 @@ public class AdminController {
         return Result.success(list);
     }
 
-//    @Operation(summary = "上传图片服务")
-//    @PostMapping("/admin/upload/image")
-//    public Result<String> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("path") String path, @RequestParam("imageName") String imageName) {
-//        imageInfoService.saveImage(file,path,imageName);
-//        return Result.success("上传成功");
-//    }
+    @Operation(summary = "上传图片服务")
+    @PostMapping("/admin/upload/image")
+    public Result<String> uploadImage(@RequestParam("file") MultipartFile file,@RequestParam("imageName") String imageName) {
+        imageInfoService.saveImage(file,"image/",imageName);
+        return Result.success("上传成功");
+    }
 
     @Operation(summary = "批量上传图片服务")
-    @PostMapping("/admin/upload/image")
+    @PostMapping("/admin/upload/images")
     public Result<String> uploadImageFiles(@RequestParam("files") List<MultipartFile> files, @RequestParam("path") String path) {
 
         return Result.success(imageInfoService.saveImageFiles(files,path));
     }
 
-    @Operation(summary = "获取礼包自定义材料表")
-    @GetMapping("/store/pack/item/list")
-    public Result<List<ItemCustom>> getItemList() {
-        List<ItemCustom> itemCustomList = packInfoService.listPackItem(new StageConfigDTO());
-        return Result.success(itemCustomList);
-    }
+   
 }

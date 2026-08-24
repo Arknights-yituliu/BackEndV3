@@ -1,0 +1,119 @@
+package com.lhs.controller;
+
+import com.lhs.common.util.Result;
+import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
+import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
+import com.lhs.entity.dto.survey.PlayerInfoDTO;
+import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
+import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
+import com.lhs.entity.vo.survey.SklandCredTokenVO;
+import com.lhs.service.survey.*;
+import com.lhs.service.util.ArknightsGameDataService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@Tag(name ="干员练度调查")
+
+public class GameDataController {
+    private final OperatorDataService operatorDataService;
+    private final HypergryphService HypergryphService;
+
+    private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
+
+    private final WarehouseInfoService warehouseInfoService;
+
+    private final SklandHgTokenService sklandHgTokenService;
+
+    public GameDataController(OperatorDataService operatorDataService,
+                                    ArknightsGameDataService arknightsGameDataService,
+                                    OperatorProgressionStatisticsService operatorProgressionStatisticsService,
+                                    HypergryphService HypergryphService,
+                                    WarehouseInfoService warehouseInfoService,
+                                    SklandHgTokenService sklandHgTokenService) {
+        this.operatorDataService = operatorDataService;
+        this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
+        this.HypergryphService = HypergryphService;
+        this.warehouseInfoService = warehouseInfoService;
+        this.sklandHgTokenService = sklandHgTokenService;
+    }
+
+
+    @Operation(summary ="手动统计")
+    @GetMapping("/survey/statistic")
+    public Result<Object> statistic() {
+        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
+        return Result.success();
+    }
+
+    @Operation(summary = "通过鹰角网络通行证获取凭证、密匙、玩家绑定数据")
+    @PostMapping("/survey/hg/player-binding")
+    public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(@RequestBody Map<String,String> params) {
+        String token = params.get("token");
+        return Result.success(HypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
+    }
+
+
+    @Operation(summary ="通过森空岛导入干员练度V3")
+    @PostMapping("/auth/survey/operator/import/skland/v3")
+    public Result<Object> importSurveyCharacterFormBySKLandV3(HttpServletRequest httpServletRequest,@RequestBody PlayerInfoDTO playerInfoDTO) {
+
+        return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest,playerInfoDTO));
+    }
+
+    @Operation(summary = "通过鹰角官网 token 换取森空岛 cred 和 token")
+    @PostMapping("/survey/hg/cred-token")
+    public Result<SklandCredTokenVO> getCredAndTokenByHgToken(@RequestBody Map<String, String> params) {
+        return Result.success(sklandHgTokenService.getCredAndTokenByHgToken(params.get("token")));
+    }
+
+
+
+    @Operation(summary ="通过森空岛导入仓库材料")
+    @PostMapping("/survey/warehouse-info/import/skland")
+    public Result<Object> importWarehouseInfoBySKLand(@RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {
+        return Result.success(warehouseInfoService.saveWarehouseInventoryInfo(warehouseInventoryAPIParams));
+    }
+
+    @Operation(summary ="用户干员练度重置")
+    @PostMapping("/survey/operator/reset")
+    public Result<Object> operatorDataReset(@RequestBody Map<String,String> params) {
+        String token = params.get("token");
+        return operatorDataService.operatorDataReset(token);
+    }
+
+
+    @Operation(summary ="获取干员数据")
+    @GetMapping("/survey/operator/info")
+    public Result<Object> getOperatorTable(@RequestParam("token")String token) {
+        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService.listOperatorProgressionData(token);
+        return Result.success(operatorProgressionDataDTOList);
+    }
+
+
+
+    @Operation(summary ="干员练度调查表统计结果")
+    @GetMapping("/survey/operator/result/v2")
+    public Result<OperatorProgressionStatisticalResultVOV2> characterStatisticalResultV2() {
+        return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());
+    }
+
+    @Operation(summary = "第三方API上传干员练度数据（需要write权限token）")
+    @PostMapping("/open-api/operator/upload")
+    public Result<Map<String, Object>> openApiUploadOperatorData(HttpServletRequest httpServletRequest,
+            @RequestBody PlayerInfoDTO playerInfoDTO) {
+        return Result.success(operatorDataService.openApiUploadOperatorData(httpServletRequest, playerInfoDTO));
+    }
+
+    @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
+    @GetMapping("/open-api/operator/info")
+    public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+        return Result.success(operatorDataService.openApiGetOperatorData(httpServletRequest));
+    }
+
+}
