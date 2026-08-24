@@ -21,8 +21,8 @@ import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.BindService;
+import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.user.OpenApiService;
-import com.lhs.service.user.UserService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,7 +38,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
     private final OpenApiService openApiService;
     private final BindService bindService;
 
@@ -53,13 +53,13 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private static final String CHARACTER_TABLE_REDIS_KEY = "CharacterTable:2026-07-08 14:20";
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-                                   UserService userService, OpenApiService openApiService, BindService bindService,
+                                   OAuthUserService oAuthUserService, OpenApiService openApiService, BindService bindService,
                                    OperatorProgressionDataMapper operatorProgressionDataMapper,
                                    WarehouseInfoService warehouseInfoService,
                                    TencentCloudService tencentCloudService,
                                    UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
         this.redisTemplate = redisTemplate;
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
         this.openApiService = openApiService;
         this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
@@ -107,7 +107,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     @Override
     public Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO) {
 
-        UserInfoVO userInfo = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfo = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
 
         //防止用户多次点击上传
         Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInfoUploadInterval:" + userInfo.getUid(), "done", 5, TimeUnit.SECONDS);
@@ -239,7 +239,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     @Override
     public List<OperatorProgressionDataDTO> listOperatorProgressionData(String token) {
         //查询用户信息
-        UserInfoVO userInfo = userService.getUserInfoVOByToken(token);
+        UserInfoVO userInfo = oAuthUserService.getUserInfoVOByToken(token);
         Logger.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
         //保存的干员数据
         List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = new ArrayList<>();

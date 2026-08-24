@@ -9,8 +9,8 @@ import com.lhs.entity.dto.user.OpenApiTokenDataDTO;
 import com.lhs.entity.po.user.TokenRecord;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.user.TokenRecordMapper;
+import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.user.OpenApiService;
-import com.lhs.service.user.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,21 +31,21 @@ import java.util.UUID;
 public class OpenApiServiceImpl implements OpenApiService {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
     private final TokenRecordMapper tokenRecordMapper;
     private final IdGenerator idGenerator;
 
-    public OpenApiServiceImpl(RedisTemplate<String, String> redisTemplate, UserService userService,
+    public OpenApiServiceImpl(RedisTemplate<String, String> redisTemplate, OAuthUserService oAuthUserService,
                               TokenRecordMapper tokenRecordMapper) {
         this.redisTemplate = redisTemplate;
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
         this.tokenRecordMapper = tokenRecordMapper;
         this.idGenerator = new IdGenerator(1L);
     }
 
     @Override
     public String generateOpenApiToken(HttpServletRequest httpServletRequest, List<Integer> scopeCodes, String remark) {
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         Long uid = userInfoVO.getUid();
 
         // 检查token数量是否已达上限（最多5个）
@@ -110,17 +110,17 @@ public class OpenApiServiceImpl implements OpenApiService {
 
     @Override
     public void deleteOpenApiToken(HttpServletRequest httpServletRequest, String token) {
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         redisTemplate.delete("open-api-token:" + token);
         // 删除数据库中的token记录
         tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>()
                 .eq(TokenRecord::getToken, token));
-        Logger.info("用户 {} (uid={}) 删除了第三方API token", userInfoVO.getUserName(), userInfoVO.getUid());
+        Logger.info("用户 {} (uid={}) 删除了第三方API token", userInfoVO.getNickname(), userInfoVO.getUid());
     }
 
     @Override
     public List<Map<String, Object>> listUserTokens(HttpServletRequest httpServletRequest) {
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         Long uid = userInfoVO.getUid();
 
         // 从数据库查询该用户所有open-api类型的token

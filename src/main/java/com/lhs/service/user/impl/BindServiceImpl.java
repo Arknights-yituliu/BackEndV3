@@ -16,7 +16,7 @@ import com.lhs.mapper.user.AkPlayerBindInfoMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
 import com.lhs.service.user.BindService;
-import com.lhs.service.user.UserService;
+import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.util.EmailService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class BindServiceImpl implements BindService {
 
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
     private final RedisTemplate<String, String> redisTemplate;
     private final EmailService emailService;
     private final UserInfoMapper userInfoMapper;
@@ -39,14 +39,14 @@ public class BindServiceImpl implements BindService {
     private final TencentCloudService tencentCloudService;
     private final IdGenerator idGenerator;
 
-    public BindServiceImpl(UserService userService,
+    public BindServiceImpl(OAuthUserService oAuthUserService,
             RedisTemplate<String, String> redisTemplate,
             EmailService emailService,
             UserInfoMapper userInfoMapper,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
             AkPlayerBindInfoMapper akPlayerBindInfoMapper,
             TencentCloudService tencentCloudService) {
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
         this.redisTemplate = redisTemplate;
         this.emailService = emailService;
         this.userInfoMapper = userInfoMapper;
@@ -102,7 +102,7 @@ public class BindServiceImpl implements BindService {
     @Override
     public void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest,
             EmailRequestDTO emailRequestDto) {
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         String email = userInfoVO.getEmail();
 
         // IP 频率限制：同一 IP 30 秒内最多 1 次
@@ -126,7 +126,7 @@ public class BindServiceImpl implements BindService {
 
     @Override
     public String checkVerificationCode(HttpServletRequest httpServletRequest, String verificationCode) {
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         if (!checkParamsValidity(verificationCode)) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
         }
@@ -142,7 +142,7 @@ public class BindServiceImpl implements BindService {
 
     @Override
     public void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
-        UserInfoVO userInfoVO = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         String email = updateUserDataDto.getEmail();
         validateEmail(email);
         if (userInfoVO.getHasEmail()) {

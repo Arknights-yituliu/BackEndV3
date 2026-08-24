@@ -1,15 +1,13 @@
 package com.lhs.controller;
 
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.user.EmailRequestDTO;
-import com.lhs.entity.dto.user.LoginDataDTO;
 import com.lhs.entity.dto.user.OpenApiPermission;
 import com.lhs.entity.dto.user.OpenApiTokenRequestDTO;
-import com.lhs.entity.dto.user.UpdateUserDataDTO;
 import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.service.user.BindService;
+import com.lhs.service.user.OAuth2ClientService;
+import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.user.OpenApiService;
-import com.lhs.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,104 +17,56 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 一图流用户系统控制器
+ * <p>
+ * 用户中心迁移后：注册/登录/找回/改密/邮箱绑定等接口已下线，
+ * 登录统一走 OAuth2 授权（见 /user/oauth2/login 与 /oauth/callback）
+ */
 @RestController
 @Tag(name = "一图流用户系统")
 public class UserController {
 
-    private final UserService userService;
+    private final OAuthUserService oAuthUserService;
     private final OpenApiService openApiService;
-    private final BindService bindService;
+    private final OAuth2ClientService oAuth2ClientService;
 
-    public UserController(UserService userService, OpenApiService openApiService, BindService bindService) {
-        this.userService = userService;
+    public UserController(OAuthUserService oAuthUserService, OpenApiService openApiService,
+            OAuth2ClientService oAuth2ClientService) {
+        this.oAuthUserService = oAuthUserService;
         this.openApiService = openApiService;
-        this.bindService = bindService;
+        this.oAuth2ClientService = oAuth2ClientService;
     }
 
-    @Operation(summary = "调查站用户注册")
-    @PostMapping("/user/register/v3")
-    public Result<HashMap<String, Object>> registerV3(HttpServletRequest httpServletRequest,
-            @RequestBody LoginDataDTO loginDataDTO) {
-        HashMap<String, Object> response = userService.registerV3(httpServletRequest, loginDataDTO);
-        return Result.success(response);
+    @Operation(summary = "OAuth2 登录引导，返回 UC 授权跳转地址")
+    @GetMapping("/user/oauth2/login")
+    public Result<HashMap<String, Object>> oauth2Login() {
+        Logger.info("【OAuth2 登录】发起授权引导，生成 state + PKCE 参数");
+        // 生成 state + PKCE 参数并缓存 code_verifier
+        Map<String, String> authSession = oAuth2ClientService.createAuthorizationSession();
+        // 构造 UC 授权地址
+        String authorizeUrl = oAuth2ClientService.buildAuthorizeUrl(
+                authSession.get("state"), authSession.get("codeChallenge"));
+        Logger.info("【OAuth2 登录】授权引导生成完成，state=" + authSession.get("state")
+                + ", authorizeUrl=" + authorizeUrl);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("authorizeUrl", authorizeUrl);
+        return Result.success(result);
     }
-
-    @Operation(summary = "调查站用户登录")
-    @PostMapping("/user/login/v3")
-    public Result<HashMap<String, Object>> loginV3(HttpServletRequest httpServletRequest,
-            @RequestBody LoginDataDTO loginDataDTO) {
-        HashMap<String, Object> response = userService.loginV3(httpServletRequest, loginDataDTO);
-        return Result.success(response);
-    }
-
 
     @Operation(summary = "根据token检查用户登录状态吗，返回用户信息")
     @GetMapping("/user/info")
     public Result<UserInfoVO> getUserInfo(@RequestParam String token) {
-        UserInfoVO response = userService.getUserInfoVOByToken(token);
+        UserInfoVO response = oAuthUserService.getUserInfoVOByToken(token);
         return Result.success(response);
     }
 
     @Operation(summary = "根据token检查用户登录状态吗，返回用户信息")
     @GetMapping("/user/info/v2")
     public Result<UserInfoVO> getUserInfoV2(HttpServletRequest httpServletRequest) {
-        UserInfoVO response = userService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        UserInfoVO response = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
         return Result.success(response);
     }
-
-    @Operation(summary ="发送邮件验证码")
-    @PostMapping("/user/verificationCode")
-    public Result<Object> sendVerificationCode(HttpServletRequest httpServletRequest, @RequestBody EmailRequestDTO emailRequestDto) {
-        bindService.sendVerificationCode(httpServletRequest, emailRequestDto);
-        return Result.success();
-    }
-
-    @Operation(summary = "发送更新邮件验证码")
-    @PostMapping("/auth/user/update-email/verificationCode")
-    public Result<Object> sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest,
-            @RequestBody EmailRequestDTO emailRequestDto) {
-        bindService.sendUpdateEmailVerificationCode(httpServletRequest, emailRequestDto);
-        return Result.success();
-    }
-
-    @Operation(summary = "检查验证码")
-    @GetMapping("/auth/user/check/verificationCode")
-    public Result<Object> checkVerificationCode(HttpServletRequest httpServletRequest,
-            @RequestParam("verificationCode") String verificationCode) {
-        return Result.success(bindService.checkVerificationCode(httpServletRequest, verificationCode));
-    }
-
-    @Operation(summary = "绑定邮箱")
-    @PostMapping("/auth/user/bind-email")
-    public Result<Object> bindEmail(HttpServletRequest httpServletRequest,
-            @RequestBody UpdateUserDataDTO updateUserDataDto) {
-        bindService.bindEmail(httpServletRequest, updateUserDataDto);
-        return Result.success();
-    }
-
-    @Operation(summary = "更新用户信息")
-    @PostMapping("/auth/user/update/v2")
-    public Result<UserInfoVO> updateUserInfo(HttpServletRequest httpServletRequest,
-            @RequestBody UpdateUserDataDTO updateUserDataDto) {
-        UserInfoVO userInfoVO = userService.updateUserData(httpServletRequest, updateUserDataDto);
-        return Result.success(userInfoVO);
-    }
-
-    @Operation(summary = "通过验证找回账号")
-    @PostMapping("/user/retrieve/auth")
-    public Result<HashMap<String, String>> retrieveAccount(@RequestBody LoginDataDTO loginDataDTO) {
-        return Result.success(userService.retrieveAccount(loginDataDTO));
-    }
-
-    @Operation(summary = "重设密码")
-    @PostMapping("/user/reset/password")
-    public Result<HashMap<String, String>> resetPassword(HttpServletRequest httpServletRequest,
-            @RequestBody LoginDataDTO loginDataDTO) {
-        return Result.success(userService.resetPassword(httpServletRequest, loginDataDTO));
-    }
-
-
-    
 
     @Operation(summary = "生成第三方API Token，scope参数传入权限code数组，如[10001]")
     @PostMapping("/user/open-api/token")
@@ -138,7 +88,23 @@ public class UserController {
     @Operation(summary = "用户登出，使当前登录token失效")
     @PostMapping("/auth/user/logout")
     public Result<Object> logout(HttpServletRequest httpServletRequest) {
-        userService.logout(httpServletRequest);
+        oAuthUserService.logout(httpServletRequest);
+        return Result.success();
+    }
+
+    @Operation(summary = "修改当前登录用户的昵称")
+    @PostMapping("/auth/user/nickname")
+    public Result<Object> updateNickname(HttpServletRequest httpServletRequest,
+            @RequestBody Map<String, String> body) {
+        oAuthUserService.updateNickname(httpServletRequest, body.get("nickname"));
+        return Result.success();
+    }
+
+    @Operation(summary = "修改当前登录用户的头像")
+    @PostMapping("/auth/user/avatar")
+    public Result<Object> updateAvatar(HttpServletRequest httpServletRequest,
+            @RequestBody Map<String, String> body) {
+        oAuthUserService.updateAvatar(httpServletRequest, body.get("avatar"));
         return Result.success();
     }
 

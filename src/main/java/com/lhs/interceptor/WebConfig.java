@@ -1,6 +1,6 @@
 package com.lhs.interceptor;
 
-import com.lhs.service.user.UserService;
+import com.lhs.service.user.OAuthUserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -12,16 +12,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private final OAuthUserService oAuthUserService;
 
-
-    private final UserService userService;
-
-
-
-    public WebConfig(RedisTemplate<String, Object> redisTemplate,UserService userService) {
+    public WebConfig(RedisTemplate<String, Object> redisTemplate, OAuthUserService oAuthUserService) {
         this.redisTemplate = redisTemplate;
-
-        this.userService = userService;
+        this.oAuthUserService = oAuthUserService;
     }
 
     /**
@@ -31,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-        registry.addInterceptor(new AdminInterceptor(redisTemplate,userService))
+        registry.addInterceptor(new AdminInterceptor(redisTemplate,oAuthUserService))
                 .addPathPatterns("/admin/**"); //拦截
 //                .excludePathPatterns(); //放行
 
@@ -40,7 +35,7 @@ public class WebConfig implements WebMvcConfigurer {
 //                .excludePathPatterns(); //放行
 
 
-        registry.addInterceptor(new UserInterceptor(userService))
+        registry.addInterceptor(new UserInterceptor(oAuthUserService))
                 .addPathPatterns("/auth/**"); //拦截
 //                .excludePathPatterns(); //放行
 

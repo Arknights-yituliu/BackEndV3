@@ -21,10 +21,4 @@ public interface AdminService {
     Map<String, Object> getCacheKeys();
 
     String deleteCacheKey(String key);
-
-    /**
-     * 批量将旧 AES 加密密码迁移为 bcrypt 哈希
-     * @return 迁移结果统计
-     */
-    Map<String, Object> migratePasswordsToBcrypt();
 }
