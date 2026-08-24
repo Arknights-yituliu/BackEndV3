@@ -11,6 +11,7 @@ import com.lhs.entity.po.user.OAuthUserInfo;
 import com.lhs.entity.po.user.TokenRecord;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.mapper.user.OAuthUserInfoMapper;
 import com.lhs.mapper.user.TokenRecordMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
@@ -246,7 +247,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     }
 
     @Override
-    public HashMap<String, Object> createSessionByOAuth2Uid(OAuth2UserInfo oAuth2UserInfo) {
+    public LoginSessionVO createSessionByOAuth2Uid(OAuth2UserInfo oAuth2UserInfo) {
         // UC uid 是本地会话的唯一标识
         Long ucUid = oAuth2UserInfo.getUid();
         if (ucUid == null) {
@@ -282,10 +283,10 @@ public class OAuthUserServiceImpl implements OAuthUserService {
 
         // 生成本地会话 Token
         String token = tokenGenerator(userInfo);
-        HashMap<String, Object> result = new HashMap<>();
-        result.put("token", token);
-        result.put("uid", ucUid);
-        return result;
+        LoginSessionVO session = new LoginSessionVO();
+        session.setToken(token);
+        session.setUid(ucUid);
+        return session;
     }
 
     /**

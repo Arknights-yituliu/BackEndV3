@@ -3,9 +3,8 @@ package com.lhs.service.user;
 import com.lhs.entity.dto.user.OAuth2UserInfo;
 import com.lhs.entity.po.user.OAuthUserInfo;
 import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.entity.vo.user.LoginSessionVO;
 import jakarta.servlet.http.HttpServletRequest;
-
-import java.util.HashMap;
 
 /**
  * OAuth2 用户中心接入后的用户服务
@@ -88,7 +87,7 @@ public interface OAuthUserService {
      * @param oAuth2UserInfo UC 返回的用户信息
      * @return 本地会话（含 token）
      */
-    HashMap<String, Object> createSessionByOAuth2Uid(OAuth2UserInfo oAuth2UserInfo);
+    LoginSessionVO createSessionByOAuth2Uid(OAuth2UserInfo oAuth2UserInfo);
 
     /**
      * 修改当前登录用户的昵称

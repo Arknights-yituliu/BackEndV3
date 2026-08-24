@@ -5,6 +5,7 @@ import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.OAuth2TokenResponse;
 import com.lhs.entity.dto.user.OAuth2UserInfo;
+import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.service.user.OAuth2ClientService;
 import com.lhs.service.user.OAuthUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 
 /**
  * 统一用户中心 OAuth2 授权回调接口
@@ -49,7 +49,7 @@ public class OAuth2CallbackController {
      */
     @Operation(summary = "OAuth2 授权回调")
     @GetMapping("/oauth/callback")
-    public Result<HashMap<String, Object>> callback(@RequestParam String code,
+    public Result<LoginSessionVO> callback(@RequestParam String code,
             @RequestParam(required = false) String state,
             HttpServletResponse response) {
         Logger.info("【OAuth2 回调】进入回调接口，code=" + code + ", state=" + state);
@@ -72,14 +72,14 @@ public class OAuth2CallbackController {
                 + ", email=" + oAuth2UserInfo.getEmail());
 
         // 4. 以 UC uid 建立本地会话（资料缓存 upsert + 生成本地 Token）
-        HashMap<String, Object> session = oAuthUserService.createSessionByOAuth2Uid(oAuth2UserInfo);
-        Logger.info("【OAuth2 回调】建立本地会话成功，本地token前16位=" + maskToken(String.valueOf(session.get("token"))));
+        LoginSessionVO session = oAuthUserService.createSessionByOAuth2Uid(oAuth2UserInfo);
+        Logger.info("【OAuth2 回调】建立本地会话成功，本地token前16位=" + maskToken(session.getToken()));
 
         // 5. 配置了前端回跳地址则 302 跳转携带 token，否则直接返回 JSON
         String frontendUrl = oAuth2Properties.getFrontendRedirectUrl();
         if (frontendUrl != null && !frontendUrl.isEmpty()) {
             try {
-                String token = String.valueOf(session.get("token"));
+                String token = session.getToken();
                 String redirectUrl = frontendUrl + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
                 Logger.info("【OAuth2 回调】302 跳转前端，redirectUrl=" + redirectUrl);
                 response.sendRedirect(redirectUrl);
