@@ -2,6 +2,7 @@ package com.lhs.service.survey;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.context.UserContext;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.common.enums.ResultCode;
@@ -48,7 +49,7 @@ public class QuestionnaireService {
 
         //获取提交者IP
         String ipAddress = IpUtil.getIpAddress(httpServletRequest);
-        Long uid = oAuthUserService.getUidByHttpServletRequest(httpServletRequest);
+        Long uid = UserContext.getUid();
         //提交间隔不能短于5s，短于5s抛出异常
         rateLimiter.tryAcquire("SurveySubmitterIP:" + ipAddress, 1, 5, ResultCode.NOT_REPEAT_REQUESTS);
 

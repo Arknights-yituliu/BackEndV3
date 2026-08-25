@@ -3,6 +3,7 @@ package com.lhs.service.user.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.AES;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
@@ -128,36 +129,19 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     }
 
     @Override
-    public UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest) {
-        String token = extractToken(httpServletRequest);
-        return getUserInfoVOByToken(token);
+    public UserInfoVO getUserInfoVO() {
+        // 从线程上下文获取当前登录用户资料（/auth/** 拦截器已写入）
+        OAuthUserInfo userInfo = UserContext.getUserInfo();
+        if (userInfo == null) {
+            // 上下文为空说明未登录或未经过拦截器，按未登录处理
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        // 复用私有组装逻辑（含方舟绑定信息与邮箱状态）
+        return getUserInfoVO(userInfo);
     }
 
-    @Override
-    public Long getUidByHttpServletRequest(HttpServletRequest httpServletRequest) {
-        String header = httpServletRequest.getHeader("Authorization");
 
-        if (header != null && header.startsWith("Authorization") && header.length() > 30) {
-            UserInfoVO userInfoVO = getUserInfoVOByHttpServletRequest(httpServletRequest);
-            return userInfoVO.getUid();
-        }
 
-        String uidByHeader = httpServletRequest.getHeader("uid");
-        if (isNumericAndLengthy(uidByHeader)) {
-            return Long.parseLong(uidByHeader);
-        }
-
-        String ipAddress = AES.encrypt(IpUtil.getIpAddress(httpServletRequest), ConfigUtil.Secret);
-
-        Object value = redisTemplate.opsForHash().get("Commit_Ip", ipAddress);
-        if (value == null) {
-            Long id = idGenerator.nextId();
-            redisTemplate.opsForHash().put("Commit_Ip", ipAddress, id);
-            return id;
-        }
-
-        return Long.parseLong(value.toString());
-    }
 
     /**
      * 判断字符串是否为超过 8 位的纯数字（用于区分临时 uid）
@@ -178,12 +162,6 @@ public class OAuthUserServiceImpl implements OAuthUserService {
             }
         }
         return true;
-    }
-
-    @Override
-    public OAuthUserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest) {
-        String token = extractToken(httpServletRequest);
-        return getUserInfoPOByToken(token);
     }
 
     @Override
@@ -228,7 +206,8 @@ public class OAuthUserServiceImpl implements OAuthUserService {
         if (!checkParamsValidity(nickname)) {
             throw new ServiceException(ResultCode.PARAM_IS_BLANK);
         }
-        OAuthUserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
+        // 从线程上下文获取当前登录用户（/auth/** 拦截器已写入）
+        OAuthUserInfo userInfo = UserContext.getUserInfo();
         userInfo.setNickname(nickname);
         userInfo.setUpdateTime(new Date());
         oauthUserInfoMapper.updateById(userInfo);
@@ -240,7 +219,8 @@ public class OAuthUserServiceImpl implements OAuthUserService {
         if (!checkParamsValidity(avatar)) {
             throw new ServiceException(ResultCode.PARAM_IS_BLANK);
         }
-        OAuthUserInfo userInfo = getUserInfoPOByHttpServletRequest(httpServletRequest);
+        // 从线程上下文获取当前登录用户（/auth/** 拦截器已写入）
+        OAuthUserInfo userInfo = UserContext.getUserInfo();
         userInfo.setAvatar(avatar);
         userInfo.setUpdateTime(new Date());
         oauthUserInfoMapper.updateById(userInfo);

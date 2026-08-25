@@ -1,5 +1,6 @@
 package com.lhs.service.user.impl;
 
+import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
@@ -44,9 +45,10 @@ public class OpenApiServiceImpl implements OpenApiService {
     }
 
     @Override
-    public String generateOpenApiToken(HttpServletRequest httpServletRequest, List<Integer> scopeCodes, String remark) {
-        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        Long uid = userInfoVO.getUid();
+    public String generateOpenApiToken( List<Integer> scopeCodes, String remark) {
+
+        Long uid = UserContext.getUid();
+
 
         // 检查token数量是否已达上限（最多5个）
         Long tokenCount = tokenRecordMapper.selectCount(
@@ -109,19 +111,19 @@ public class OpenApiServiceImpl implements OpenApiService {
     }
 
     @Override
-    public void deleteOpenApiToken(HttpServletRequest httpServletRequest, String token) {
-        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+    public void deleteOpenApiToken( String token) {
+        Long uid = UserContext.getUid();
         redisTemplate.delete("open-api-token:" + token);
         // 删除数据库中的token记录
         tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>()
                 .eq(TokenRecord::getToken, token));
-        Logger.info("用户 {} (uid={}) 删除了第三方API token", userInfoVO.getNickname(), userInfoVO.getUid());
+        Logger.info("用户 {} (uid={}) 删除了第三方API token", uid);
     }
 
     @Override
-    public List<Map<String, Object>> listUserTokens(HttpServletRequest httpServletRequest) {
-        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        Long uid = userInfoVO.getUid();
+    public List<Map<String, Object>> listUserTokens() {
+
+        Long uid = UserContext.getUid();
 
         // 从数据库查询该用户所有open-api类型的token
         List<TokenRecord> records = tokenRecordMapper.selectList(

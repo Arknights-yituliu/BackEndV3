@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Tag(name ="干员练度调查")
+@Tag(name = "干员练度调查")
 
 public class GameDataController {
     private final OperatorDataService operatorDataService;
@@ -31,11 +31,11 @@ public class GameDataController {
     private final SklandHgTokenService sklandHgTokenService;
 
     public GameDataController(OperatorDataService operatorDataService,
-                                    ArknightsGameDataService arknightsGameDataService,
-                                    OperatorProgressionStatisticsService operatorProgressionStatisticsService,
-                                    HypergryphService HypergryphService,
-                                    WarehouseInfoService warehouseInfoService,
-                                    SklandHgTokenService sklandHgTokenService) {
+            ArknightsGameDataService arknightsGameDataService,
+            OperatorProgressionStatisticsService operatorProgressionStatisticsService,
+            HypergryphService HypergryphService,
+            WarehouseInfoService warehouseInfoService,
+            SklandHgTokenService sklandHgTokenService) {
         this.operatorDataService = operatorDataService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.HypergryphService = HypergryphService;
@@ -43,8 +43,7 @@ public class GameDataController {
         this.sklandHgTokenService = sklandHgTokenService;
     }
 
-
-    @Operation(summary ="手动统计")
+    @Operation(summary = "手动统计")
     @GetMapping("/survey/statistic")
     public Result<Object> statistic() {
         operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
@@ -53,17 +52,26 @@ public class GameDataController {
 
     @Operation(summary = "通过鹰角网络通行证获取凭证、密匙、玩家绑定数据")
     @PostMapping("/survey/hg/player-binding")
-    public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(@RequestBody Map<String,String> params) {
+    public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(
+            @RequestBody Map<String, String> params) {
         String token = params.get("token");
         return Result.success(HypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
     }
 
+    @Operation(summary = "获取干员数据")
+    @GetMapping("/auth/survey/operator/info")
+    public Result<Object> getOperatorTable() {
+        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService
+                .listOperatorProgressionData();
+        return Result.success(operatorProgressionDataDTOList);
+    }
 
-    @Operation(summary ="通过森空岛导入干员练度V3")
+    @Operation(summary = "通过森空岛导入干员练度V3")
     @PostMapping("/auth/survey/operator/import/skland/v3")
-    public Result<Object> importSurveyCharacterFormBySKLandV3(HttpServletRequest httpServletRequest,@RequestBody PlayerInfoDTO playerInfoDTO) {
+    public Result<Object> importSurveyCharacterFormBySKLandV3(HttpServletRequest httpServletRequest,
+            @RequestBody PlayerInfoDTO playerInfoDTO) {
 
-        return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest,playerInfoDTO));
+        return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest, playerInfoDTO));
     }
 
     @Operation(summary = "通过鹰角官网 token 换取森空岛 cred 和 token")
@@ -72,32 +80,21 @@ public class GameDataController {
         return Result.success(sklandHgTokenService.getCredAndTokenByHgToken(params.get("token")));
     }
 
-
-
-    @Operation(summary ="通过森空岛导入仓库材料")
+    @Operation(summary = "通过森空岛导入仓库材料")
     @PostMapping("/survey/warehouse-info/import/skland")
-    public Result<Object> importWarehouseInfoBySKLand(@RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {
+    public Result<Object> importWarehouseInfoBySKLand(
+            @RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {
         return Result.success(warehouseInfoService.saveWarehouseInventoryInfo(warehouseInventoryAPIParams));
     }
 
-    @Operation(summary ="用户干员练度重置")
+    @Operation(summary = "用户干员练度重置")
     @PostMapping("/survey/operator/reset")
-    public Result<Object> operatorDataReset(@RequestBody Map<String,String> params) {
+    public Result<Object> operatorDataReset(@RequestBody Map<String, String> params) {
         String token = params.get("token");
         return operatorDataService.operatorDataReset(token);
     }
 
-
-    @Operation(summary ="获取干员数据")
-    @GetMapping("/survey/operator/info")
-    public Result<Object> getOperatorTable(@RequestParam("token")String token) {
-        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService.listOperatorProgressionData(token);
-        return Result.success(operatorProgressionDataDTOList);
-    }
-
-
-
-    @Operation(summary ="干员练度调查表统计结果")
+    @Operation(summary = "干员练度调查表统计结果")
     @GetMapping("/survey/operator/result/v2")
     public Result<OperatorProgressionStatisticalResultVOV2> characterStatisticalResultV2() {
         return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());

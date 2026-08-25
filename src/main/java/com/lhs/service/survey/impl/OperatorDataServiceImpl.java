@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lhs.common.config.ConfigUtil;
+import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
@@ -21,7 +22,7 @@ import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.BindService;
-import com.lhs.service.user.OAuthUserService;
+
 import com.lhs.service.user.OpenApiService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,10 +36,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OperatorDataServiceImpl implements OperatorDataService {
 
-
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final OAuthUserService oAuthUserService;
+    
     private final OpenApiService openApiService;
     private final BindService bindService;
 
@@ -53,13 +53,13 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private static final String CHARACTER_TABLE_REDIS_KEY = "CharacterTable:2026-07-08 14:20";
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-                                   OAuthUserService oAuthUserService, OpenApiService openApiService, BindService bindService,
-                                   OperatorProgressionDataMapper operatorProgressionDataMapper,
-                                   WarehouseInfoService warehouseInfoService,
-                                   TencentCloudService tencentCloudService,
-                                   UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
+            OpenApiService openApiService, BindService bindService,
+            OperatorProgressionDataMapper operatorProgressionDataMapper,
+            WarehouseInfoService warehouseInfoService,
+            TencentCloudService tencentCloudService,
+            UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
         this.redisTemplate = redisTemplate;
-        this.oAuthUserService = oAuthUserService;
+      
         this.openApiService = openApiService;
         this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
@@ -102,15 +102,14 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return resultMap;
     }
 
-
-
     @Override
-    public Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO) {
+    public Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO) {
 
-        UserInfoVO userInfo = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
+        Long uid = UserContext.getUid();
 
-        //防止用户多次点击上传
-        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInfoUploadInterval:" + userInfo.getUid(), "done", 5, TimeUnit.SECONDS);
+        // 防止用户多次点击上传
+        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInfoUploadInterval:" + uid,
+                "done", 5, TimeUnit.SECONDS);
         if (Boolean.FALSE.equals(done)) {
             throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
         }
@@ -123,37 +122,34 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         akPlayerBindInfoDTO.setAkUid(akUid);
         akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
         akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
-        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfo, akPlayerBindInfoDTO);
-        userInfo.setAkUid(akUid);
+        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(uid, akPlayerBindInfoDTO);
 
         return saveOperatorData(akUid, operatorDataList);
     }
 
-
-
     /**
      * 保存干员数据
      *
-     * @param akUid  明日方舟玩家uid
+     * @param akUid                          明日方舟玩家uid
      * @param operatorProgressionDataDTOList 干员练度调查表
      * @return 成功信息
      */
-    private Map<String, Object> saveOperatorData(String akUid, List<OperatorProgressionDataDTO> operatorProgressionDataDTOList) {
+    private Map<String, Object> saveOperatorData(String akUid,
+            List<OperatorProgressionDataDTO> operatorProgressionDataDTOList) {
 
-        //本次修改影响的数据行数
+        // 本次修改影响的数据行数
         int affectedRows = 0;
 
-        //循环上传的干员练度
+        // 循环上传的干员练度
         for (OperatorProgressionDataDTO operatorProgressionDataDTO : operatorProgressionDataDTOList) {
-            //更新数据条数
+            // 更新数据条数
             operatorProgressionDataDTO.setOwn(true);
             checkOperatorDataValidity(operatorProgressionDataDTO);
-            affectedRows++;  //新增数据条数
+            affectedRows++; // 新增数据条数
         }
 
-
         LambdaQueryWrapper<OperatorProgressionData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OperatorProgressionData::getAkUid,akUid);
+        queryWrapper.eq(OperatorProgressionData::getAkUid, akUid);
         boolean exists = operatorProgressionDataMapper.exists(queryWrapper);
 
         OperatorProgressionData operatorProgressionData = new OperatorProgressionData();
@@ -161,25 +157,22 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         operatorProgressionData.setOperatorProgression(JsonMapper.toJSONString(operatorProgressionDataDTOList));
         operatorProgressionData.setCreateTime(new Date());
 
-        if(exists){
+        if (exists) {
             operatorProgressionDataMapper.updateById(operatorProgressionData);
-        }else {
+        } else {
             operatorProgressionDataMapper.insert(operatorProgressionData);
         }
 
         Date date = new Date();
-        //更新用户最后一次上传时间
+        // 更新用户最后一次上传时间
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
         Map<String, Object> hashMap = new HashMap<>();
         hashMap.put("affectedRows", affectedRows);
         hashMap.put("updateTime", simpleDateFormat.format(date));
-        hashMap.put("registered", false);
+
         return hashMap;
     }
-
-
-
 
     /**
      * 对新老干员数据进行检查，是否有非法数据
@@ -188,7 +181,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
      */
     private void checkOperatorDataValidity(OperatorProgressionDataDTO operatorProgressionDataDTO) {
 
-        //精英化阶段小于2 不能专精和开模组
+        // 精英化阶段小于2 不能专精和开模组
         if (operatorProgressionDataDTO.getElite() < 2) {
             operatorProgressionDataDTO.setSkill1(0);
             operatorProgressionDataDTO.setSkill2(0);
@@ -219,58 +212,62 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             operatorProgressionDataDTO.setMainSkill(1);
         }
 
-
         if (operatorProgressionDataDTO.getModD() == null) {
             operatorProgressionDataDTO.setModD(0);
         }
 
-
     }
-
 
     @Override
     public Result<Object> operatorDataReset(String token) {
 
-
         return Result.success("重置了" + "条数据");
     }
 
-
     @Override
-    public List<OperatorProgressionDataDTO> listOperatorProgressionData(String token) {
-        //查询用户信息
-        UserInfoVO userInfo = oAuthUserService.getUserInfoVOByToken(token);
-        Logger.info("用户uid：" + userInfo.getUid() + "；方舟uid：" + userInfo.getAkUid());
-        //保存的干员数据
-        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = new ArrayList<>();
-        //查询当前用户的默认方舟uid的干员数据
-        LambdaQueryWrapper<OperatorProgressionData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OperatorProgressionData::getAkUid, userInfo.getAkUid());
+    public List<OperatorProgressionDataDTO> listOperatorProgressionData() {
+        // 查询用户信息
+        Long uid = UserContext.getUid();
+        LambdaQueryWrapper<UserExternalAccountBinding> userExternalAccountBindingQueryWrapper = new LambdaQueryWrapper<>();
+        userExternalAccountBindingQueryWrapper.eq(UserExternalAccountBinding::getUid, uid)
+                .orderByDesc(UserExternalAccountBinding::getUpdateTime);
+        List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
+                .selectList(userExternalAccountBindingQueryWrapper);
+        String akUid = externalAccountBindings.get(0).getAkUid();
 
-        OperatorProgressionData operatorProgressionData = operatorProgressionDataMapper.selectOne(queryWrapper);
+        Logger.info("用户uid：" + uid + "；方舟uid：" + akUid);
+
+        // 保存的干员数据
+        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = new ArrayList<>();
+        // 查询当前用户的默认方舟uid的干员数据
+        LambdaQueryWrapper<OperatorProgressionData> operatorProgressionDataQueryWrapper = new LambdaQueryWrapper<>();
+        operatorProgressionDataQueryWrapper.eq(OperatorProgressionData::getAkUid, akUid);
+
+        OperatorProgressionData operatorProgressionData = operatorProgressionDataMapper
+                .selectOne(operatorProgressionDataQueryWrapper);
 
         if (operatorProgressionData == null) {
             return operatorProgressionDataDTOList;
         }
 
-
         String operatorProgression = operatorProgressionData.getOperatorProgression();
-         operatorProgressionDataDTOList = JsonMapper.parseJSONArray(operatorProgression, new TypeReference<>() {
+        operatorProgressionDataDTOList = JsonMapper.parseJSONArray(operatorProgression, new TypeReference<>() {
         });
 
         return operatorProgressionDataDTOList;
     }
 
     @Override
-    public void backupOperatorProgressionData(){
+    public void backupOperatorProgressionData() {
         String dayText = TimeUtil.getDayText();
         List<OperatorProgressionData> operatorProgressionDataList;
         for (int i = 0; i < 100; i++) {
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 2000,2000);
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 2000, 2000);
             if (operatorProgressionDataList.isEmpty()) {
                 break;
             }
-            tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),"/mysql/operatorProgressionData/"+dayText+"/"+i+".json");
+            tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),
+                    "/mysql/operatorProgressionData/" + dayText + "/" + i + ".json");
         }
     }
 
@@ -285,10 +282,8 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
         akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
 
-        UserInfoVO userInfoVO = new UserInfoVO();
-        userInfoVO.setUid(uid);
-        userInfoVO.setAkUid(akUid);
-        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfoVO, akPlayerBindInfoDTO);
+      
+        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(uid, akPlayerBindInfoDTO);
 
         return saveOperatorData(akUid, operatorDataList);
     }
@@ -315,11 +310,13 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             return new ArrayList<>();
         }
 
-        return JsonMapper.parseJSONArray(operatorProgressionData.getOperatorProgression(), new TypeReference<>() {});
+        return JsonMapper.parseJSONArray(operatorProgressionData.getOperatorProgression(), new TypeReference<>() {
+        });
     }
 
     @Override
-    public Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO) {
+    public Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest,
+            PlayerInfoDTO playerInfoDTO) {
         String token = httpServletRequest.getHeader("Authorization");
         Long uid = openApiService.validateOpenApiToken(token, OpenApiPermission.operatorDataWriteAccess.getCode());
         return saveOpenApiOperatorData(uid, playerInfoDTO);
@@ -389,7 +386,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         }
 
         // 将DB中的skill1、skill2、skill3按顺序映射
-        Integer[] skillLevels = {raw.getSkill1(), raw.getSkill2(), raw.getSkill3()};
+        Integer[] skillLevels = { raw.getSkill1(), raw.getSkill2(), raw.getSkill3() };
 
         for (int i = 0; i < skillsNode.size(); i++) {
             JsonNode skillNode = skillsNode.get(i);
@@ -446,8 +443,8 @@ public class OperatorDataServiceImpl implements OperatorDataService {
      * @param level         模组等级
      */
     private void addEquipIfExists(List<OperatorProgressionDataV2DTO.EquipInfo> equipList,
-                                  Map<String, String> typeToEquipId,
-                                  String type, Integer level) {
+            Map<String, String> typeToEquipId,
+            String type, Integer level) {
         String uniEquipId = typeToEquipId.get(type);
         if (uniEquipId != null) {
             equipList.add(new OperatorProgressionDataV2DTO.EquipInfo(uniEquipId, type, level != null ? level : 0));

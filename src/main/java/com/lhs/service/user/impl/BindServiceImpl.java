@@ -6,12 +6,10 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.dto.user.EmailRequestDTO;
-import com.lhs.entity.dto.user.UpdateUserDataDTO;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.user.AkPlayerBindInfo;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.po.user.UserInfo;
-import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.mapper.user.UserInfoMapper;
@@ -23,7 +21,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -100,76 +97,6 @@ public class BindServiceImpl implements BindService {
     }
 
     @Override
-    public void sendUpdateEmailVerificationCode(HttpServletRequest httpServletRequest,
-            EmailRequestDTO emailRequestDto) {
-        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        String email = userInfoVO.getEmail();
-
-        // IP 频率限制：同一 IP 30 秒内最多 1 次
-        String ip = IpUtil.getIpAddress(httpServletRequest);
-        String ipKey = "rate_limit:verification_code:update_email:ip:" + ip;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(ipKey))) {
-            throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
-        }
-        redisTemplate.opsForValue().set(ipKey, "1", 30, TimeUnit.SECONDS);
-
-        // 邮箱频率限制：同一邮箱 30 秒内最多 1 次
-        String emailKey = "rate_limit:verification_code:update_email:email:" + email;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(emailKey))) {
-            throw new ServiceException(ResultCode.EMAIL_SENT_TOO_FREQUENTLY);
-        }
-        redisTemplate.opsForValue().set(emailKey, "1", 30, TimeUnit.SECONDS);
-
-        validateEmail(email);
-        seedEmail(email);
-    }
-
-    @Override
-    public String checkVerificationCode(HttpServletRequest httpServletRequest, String verificationCode) {
-        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        if (!checkParamsValidity(verificationCode)) {
-            throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
-        }
-
-        String email = userInfoVO.getEmail();
-        // 检查验证码
-        emailService.compareVerificationCode(verificationCode, email);
-
-        Integer code = emailService.createVerificationCode(userInfoVO.getUid().toString(), 9999);
-
-        return String.valueOf(code);
-    }
-
-    @Override
-    public void bindEmail(HttpServletRequest httpServletRequest, UpdateUserDataDTO updateUserDataDto) {
-        UserInfoVO userInfoVO = oAuthUserService.getUserInfoVOByHttpServletRequest(httpServletRequest);
-        String email = updateUserDataDto.getEmail();
-        validateEmail(email);
-        if (userInfoVO.getHasEmail()) {
-            Logger.info("更新绑定邮箱 {} 用户有邮箱，需要验证");
-            emailService.compareVerificationCode(updateUserDataDto.getCred(), userInfoVO.getUid().toString());
-        }
-
-        emailService.compareVerificationCode(updateUserDataDto.getVerificationCode(), email);
-
-        // 设置查询构造器条件
-        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserInfo::getEmail, email);
-        // 查询是否有绑定这个邮箱的用户
-        UserInfo userInfoByEmail = userInfoMapper.selectOne(queryWrapper);
-
-        if (userInfoByEmail != null) {
-            throw new ServiceException(ResultCode.USER_IS_EXIST);
-        }
-
-        UserInfo userInfo = new UserInfo();
-        userInfo.setEmail(email);
-        userInfo.setId(userInfoVO.getUid());
-        userInfo.setUpdateTime(new Date());
-        userInfoMapper.updateById(userInfo);
-    }
-
-    @Override
     public void backupUserExternalAccountBinding() {
         String dayText = TimeUtil.getDayText();
         List<UserExternalAccountBinding> list1 = userExternalAccountBindingMapper.selectList(null);
@@ -182,12 +109,12 @@ public class BindServiceImpl implements BindService {
     }
 
     @Override
-    public void saveExternalAccountBindingInfoAndAKPlayerBindInfo(UserInfoVO userInfoVO,
+    public void saveExternalAccountBindingInfoAndAKPlayerBindInfo(Long uid,
             AkPlayerBindInfoDTO akPlayerBindInfoDTO) {
         UserExternalAccountBinding userExternalAccountBinding = new UserExternalAccountBinding();
         userExternalAccountBinding.setId(idGenerator.nextId());
 
-        userExternalAccountBinding.setUid(userInfoVO.getUid());
+        userExternalAccountBinding.setUid(uid);
         userExternalAccountBinding.setAkUid(akPlayerBindInfoDTO.getAkUid());
 
         saveUserExternalAccountBinding(userExternalAccountBinding);

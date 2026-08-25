@@ -47,30 +47,16 @@ public interface OAuthUserService {
      */
     OAuthUserInfo getUserInfoPOByToken(String token);
 
-    /**
-     * 通过 HttpServletRequest 获取 token，根据 token 拿到用户信息
-     *
-     * @param httpServletRequest HTTP 请求对象
-     * @return 用户信息
-     */
-    UserInfoVO getUserInfoVOByHttpServletRequest(HttpServletRequest httpServletRequest);
 
     /**
-     * 通过 HttpServletRequest 获取 token，根据 token 拿到用户 id；
-     * 无 token 时优先取请求头 uid，仍没有则根据 IP 生成临时 uid
+     * 获取当前登录用户信息 VO（从线程上下文 UserContext 取数并组装）
+     * <p>
+     * 由 UserInterceptor 在请求进入时写入，请求结束后自动清理；
+     * 未登录或未经过拦截器的请求抛 USER_NOT_LOGIN
      *
-     * @param httpServletRequest HTTP 请求对象
-     * @return 用户 id
+     * @return 当前登录用户信息 VO
      */
-    Long getUidByHttpServletRequest(HttpServletRequest httpServletRequest);
-
-    /**
-     * 通过 HttpServletRequest 获取 token，根据 token 拿到用户信息
-     *
-     * @param httpServletRequest HTTP 请求对象
-     * @return 用户信息
-     */
-    OAuthUserInfo getUserInfoPOByHttpServletRequest(HttpServletRequest httpServletRequest);
+    UserInfoVO getUserInfoVO();
 
     /**
      * 用户登出，删除 Redis 中的登录 token

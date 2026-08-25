@@ -23,7 +23,7 @@ public interface OperatorDataService  {
      * 找回用户填写的数据
      * @return 成功消息
      */
-    List<OperatorProgressionDataDTO> listOperatorProgressionData(String token);
+    List<OperatorProgressionDataDTO> listOperatorProgressionData();
 
 
     Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO);

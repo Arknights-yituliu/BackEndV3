@@ -1,5 +1,6 @@
 package com.lhs.service.survey;
 
+import com.lhs.common.context.UserContext;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
@@ -21,28 +22,19 @@ public class WarehouseInfoService {
 
     private final WarehouseInfoMapper warehouseInfoMapper;
 
-    private final WarehouseInfoMapperService warehouseInfoMapperService;
-    private final OAuthUserService oAuthUserService;
+
     private final BindService bindService;
 
-    private final AkPlayerBindInfoMapper akPlayerBindInfoMapper;
+
     private final IdGenerator idGenerator;
 
-    private final HypergryphService hypergryphService;
 
     public WarehouseInfoService(WarehouseInfoMapper warehouseInfoMapper,
-                                WarehouseInfoMapperService warehouseInfoMapperService,
-                                OAuthUserService oAuthUserService,
-                                BindService bindService,
-                                AkPlayerBindInfoMapper akPlayerBindInfoMapper,
-                                HypergryphService hypergryphService) {
+                                BindService bindService) {
         this.warehouseInfoMapper = warehouseInfoMapper;
-        this.warehouseInfoMapperService = warehouseInfoMapperService;
-        this.oAuthUserService = oAuthUserService;
-        this.bindService = bindService;
-        this.akPlayerBindInfoMapper = akPlayerBindInfoMapper;
 
-        this.hypergryphService = hypergryphService;
+        this.bindService = bindService;
+
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -55,9 +47,8 @@ public class WarehouseInfoService {
         //玩家仓库信息
         List<WarehouseInfo> warehouseInfoList = params.getList();
         //一图流用户信息
-        UserInfoVO userInfoByToken = oAuthUserService.getUserInfoVOByToken(token);
-        //一图流用户uid
-        Long uid = userInfoByToken.getUid();
+        Long uid = UserContext.getUid();
+
 
         //数据库id
         //最新数据的标记id
@@ -66,7 +57,7 @@ public class WarehouseInfoService {
         AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
         akPlayerBindInfoDTO.setAkUid(akUid);
         akPlayerBindInfoDTO.setWarehouseInfoId(lastDataId);
-        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(userInfoByToken,akPlayerBindInfoDTO);
+        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(uid, akPlayerBindInfoDTO);
 
         //当前导入时间的时间戳
         long timeStamp = System.currentTimeMillis();
