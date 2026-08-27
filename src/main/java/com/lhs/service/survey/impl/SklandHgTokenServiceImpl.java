@@ -5,6 +5,7 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.Logger;
 import com.lhs.entity.vo.survey.SklandCredTokenVO;
 import com.lhs.service.survey.SklandHgTokenService;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,7 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
         JsonNode resp = postJson(OAUTH2_URL, body, headers);
         JsonNode data = resp.get("data");
         if (data == null || data.get("code") == null) {
+            Logger.error("grant 接口调用失败，响应：{}", resp);
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         return data.get("code").asText();
@@ -98,6 +100,7 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
 
         JsonNode resp = postJson(GENERATE_CRED_BY_CODE_URL, body, headers);
         if (resp.get("code") == null || resp.get("code").asInt() != 0) {
+            Logger.error("generate_cred_by_code 接口调用失败，响应：{}", resp);
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         JsonNode data = resp.get("data");

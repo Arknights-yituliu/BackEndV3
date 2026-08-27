@@ -13,7 +13,7 @@ public interface BindService {
     /**
      * 保存一图流用户与第三方游戏账号（明日方舟）的绑定关系
      *
-     * @param userInfoVO          一图流用户信息
+     * @param uid          一图流用户信息
      * @param akPlayerBindInfoDTO 第三方账号的信息
      */
     void saveExternalAccountBindingInfoAndAKPlayerBindInfo(Long uid, AkPlayerBindInfoDTO akPlayerBindInfoDTO);
