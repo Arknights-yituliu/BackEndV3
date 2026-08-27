@@ -45,7 +45,7 @@ public class UserInterceptor implements HandlerInterceptor {
 
         // 将当前登录用户上下文写入线程级容器，供 Controller/Service 直接取用
         UserContext.set(userInfo.getId(), token, userInfo);
-        System.out.println(111111);
+
         return true;
     }
 

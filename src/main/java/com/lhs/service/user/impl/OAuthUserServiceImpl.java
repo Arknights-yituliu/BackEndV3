@@ -121,7 +121,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
             return userInfoVO;
         }
 
-        Logger.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
+//        Logger.info("用户绑定了" + externalAccountBindings.size() + "条方舟uid");
 
         userInfoVO.setAkUid(externalAccountBindings.get(0).getAkUid());
 

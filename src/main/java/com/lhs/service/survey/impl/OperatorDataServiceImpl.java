@@ -235,7 +235,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                 .selectList(userExternalAccountBindingQueryWrapper);
         String akUid = externalAccountBindings.get(0).getAkUid();
 
-        Logger.info("用户uid：" + uid + "；方舟uid：" + akUid);
+//        Logger.info("用户uid：" + uid + "；方舟uid：" + akUid);
 
         // 保存的干员数据
         List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = new ArrayList<>();
