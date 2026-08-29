@@ -45,13 +45,13 @@ public class AccessController {
 
 
        /**
-     * 获取指定时间范围内每个URL每天的访问次数统计（按URL分组）
+     * 按URL维度获取指定时间范围内每个URL每天的访问次数分布（按URL分组）
      * 返回Top 30 URL，时间范围最大不超过30天
      * @param start 开始时间（格式 yyyy-MM-dd HH:mm:ss）
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return URL分组访问量列表
      */
-    @GetMapping("/access-log/daily")
+    @GetMapping("/access-log/url/daily")
     public Result<List<UrlVisitGroupVO>> getUrlDailyVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {
@@ -60,13 +60,13 @@ public class AccessController {
     }
 
     /**
-     * 获取指定时间范围内每个URL的总访问次数
-     * Top 15 单独列出，其余合并为"其他"，第一项固定为"访问总和"，时间范围最大不超过30天
+     * 按URL维度获取指定时间范围内每个URL的总访问次数
+     * Top 15 单独列出，其余合并为"其他"，时间范围最大不超过30天
      * @param start 开始时间（格式 yyyy-MM-dd HH:mm:ss）
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return URL总访问量列表
      */
-    @GetMapping("/access-log/total")
+    @GetMapping("/access-log/url/total")
     public Result<List<UrlTotalVisitVO>> getUrlTotalVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {
@@ -75,13 +75,13 @@ public class AccessController {
     }
 
     /**
-     * 获取指定时间范围内每小时的总访问量（所有URL聚合）
+     * 按小时维度获取指定时间范围内每小时的总访问量（所有URL聚合）
      * 时间范围最大不超过30天
      * @param start 开始时间（格式 yyyy-MM-dd HH:mm:ss）
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return 每小时总访问量列表
      */
-    @GetMapping("/access-log/hourly-total")
+    @GetMapping("/access-log/hourly")
     public Result<List<UrlPeriodDataVO>> getHourlyTotalVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {
@@ -90,13 +90,13 @@ public class AccessController {
     }
 
     /**
-     * 获取指定时间范围内每日的总访问量（所有URL聚合）
+     * 按天维度获取指定时间范围内每日的总访问量（所有URL聚合）
      * 时间范围最大不超过30天
      * @param start 开始时间（格式 yyyy-MM-dd HH:mm:ss）
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return 每日总访问量列表
      */
-    @GetMapping("/access-log/daily-total")
+    @GetMapping("/access-log/daily")
     public Result<List<UrlPeriodDataVO>> getDailyTotalVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {

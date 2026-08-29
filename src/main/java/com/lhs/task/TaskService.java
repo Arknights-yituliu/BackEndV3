@@ -108,7 +108,7 @@ public class TaskService {
 
     /**
      * 统计上一个完整小时的访问量并写入预聚合表
-     * 每小时执行 3 次（每 20 分钟一次），重复执行幂等，供 /access-log/hourly-total 接口直接读取
+     * 每小时执行 3 次（每 20 分钟一次），重复执行幂等，供 /access-log/hourly 接口直接读取
      */
     @Scheduled(cron = "0 0/20 * * * ?")
     public void statisticsLastHourAccessVisits() {
@@ -126,7 +126,7 @@ public class TaskService {
 
     /**
      * 统计昨天的每个URL访问量并写入预聚合表
-     * 一天执行 3 次（0:30、8:30、16:30），重复执行幂等，供 /access-log/daily 接口直接读取
+     * 一天执行 3 次（0:30、8:30、16:30），重复执行幂等，供 /access-log/url/daily 接口直接读取
      */
     @Scheduled(cron = "0 0 0/8 * * ?")
     public void statisticsYesterdayUrlDailyVisits() {
@@ -135,7 +135,7 @@ public class TaskService {
 
     /**
      * 统计今天的每个URL访问量并写入预聚合表
-     * 每 30 分钟执行一次，反复重跑刷新今天的最新数据，供 /access-log/daily 接口直接读取
+     * 每 30 分钟执行一次，反复重跑刷新今天的最新数据，供 /access-log/url/daily 接口直接读取
      */
     @Scheduled(cron = "0 0/30 * * * ?")
     public void statisticsTodayUrlDailyVisits() {

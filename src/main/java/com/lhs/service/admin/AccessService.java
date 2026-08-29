@@ -590,8 +590,8 @@ public class AccessService {
 
     /**
      * 统计指定时间范围内每日的总访问量（所有URL聚合）
-     * 直接读取 access_log_hourly_stats 预聚合表中 recordCode=DISPLAY 的记录按天求和，避免实时全表扫描，零值补齐
-     * 注意：当前进行中的小时尚未被定时任务统计，当天的最后几小时可能缺失或为0
+     * 直接读取 access_log_url_daily_stats 预聚合表中 recordCode=DISPLAY 的记录按天聚合，避免实时全表扫描，零值补齐
+     * 与 /access-log/url/total 使用同一张日统计表，保证两接口口径一致
      *
      * @param startTime 开始时间
      * @param endTime   结束时间
@@ -606,21 +606,21 @@ public class AccessService {
             throw new ServiceException(ResultCode.DATE_RANGE_TOO_LARGE);
         }
 
-        // 查询区间内已统计的小时数据，stat_hour >= 起始整点 且 stat_hour <= 结束整点，仅取展示数据
-        Date startHour = truncateToHour(startTime);
-        Date endHour = truncateToHour(endTime);
+        // 查询区间内已统计的每日URL数据，stat_day 从起始日00:00到结束日00:00（闭区间），仅取展示数据
+        Date startDay = truncateToDay(startTime);
+        Date endDay = truncateToDay(endTime);
 
-        List<AccessLogHourlyStats> stats = accessLogHourlyStatsMapper.selectList(
-                new LambdaQueryWrapper<AccessLogHourlyStats>()
-                        .ge(AccessLogHourlyStats::getStatHour, startHour)
-                        .le(AccessLogHourlyStats::getStatHour, endHour)
-                        .eq(AccessLogHourlyStats::getRecordCode, RecordType.DISPLAY.code())
+        List<AccessLogUrlDailyStats> stats = accessLogUrlDailyStatsMapper.selectList(
+                new LambdaQueryWrapper<AccessLogUrlDailyStats>()
+                        .ge(AccessLogUrlDailyStats::getStatDay, startDay)
+                        .le(AccessLogUrlDailyStats::getStatDay, endDay)
+                        .eq(AccessLogUrlDailyStats::getRecordCode, RecordType.DISPLAY.code())
         );
 
-        // 按天汇总小时访问量
+        // 按天汇总各URL访问量
         Map<String, Long> dayCount = new HashMap<>();
-        for (AccessLogHourlyStats stat : stats) {
-            String day = DAY_FORMAT.format(stat.getStatHour());
+        for (AccessLogUrlDailyStats stat : stats) {
+            String day = DAY_FORMAT.format(stat.getStatDay());
             dayCount.merge(day, stat.getVisitCount(), Long::sum);
         }
 
