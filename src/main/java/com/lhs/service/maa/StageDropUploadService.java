@@ -61,7 +61,7 @@ public class StageDropUploadService {
             return;
         }
 
-        Boolean lock = redisTemplate.opsForValue().setIfAbsent("StageDropLimit:" + penguinId, date.getTime(), 5, TimeUnit.SECONDS);
+        Boolean lock = redisTemplate.opsForValue().setIfAbsent(RedisKeyUtil.stageDropLock(penguinId), date.getTime(), 5, TimeUnit.SECONDS);
 
         if (Boolean.FALSE.equals(lock)) {
             return;
@@ -69,14 +69,8 @@ public class StageDropUploadService {
 
 
         if ("main_01-07".equals(stageDropDTO.getStageId())) {
-            Long maxUploads = redisTemplate.opsForValue().increment("1-7_MAX_UPLOADS_PER_DAY");
-            // 设置过期时间，为了防止错过，前10次请求设置请求过期时间
-            if (maxUploads != null && maxUploads < 10) {
-                redisTemplate.expire("1-7_MAX_UPLOADS_PER_DAY", EXPIRATION_TIME, TimeUnit.SECONDS);
-            }
-
-            // 检查是否超过限制，每24小时仅可上传50000次1-7，服务器塞满了放不下了
-            if (maxUploads != null && maxUploads > 20000) {
+            // 每24小时仅可上传20000次1-7，服务器塞满了放不下了（超限静默拒绝）
+            if (!RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.stageOneSevenDailyUpload(), 20000, EXPIRATION_TIME)) {
                 return;
             }
         }

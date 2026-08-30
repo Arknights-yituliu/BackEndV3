@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.entity.po.maa.RecruitData;
 import com.lhs.entity.po.maa.RecruitStatistics;
 import com.lhs.mapper.survey.RecruitDataMapper;
@@ -90,7 +91,7 @@ public class RecruitTagUploadService {
 
         Date date = new Date();
 
-        Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
+        Object lastStatisticsTime = redisTemplate.opsForValue().get(RedisKeyUtil.lastRecruitStatisticsTime());
 
 
         if (lastStatisticsTime == null){
@@ -269,7 +270,7 @@ public class RecruitTagUploadService {
             }
         }
 
-        redisTemplate.opsForValue().set("LastRecruitStatisticsTime", date.getTime());
+        redisTemplate.opsForValue().set(RedisKeyUtil.lastRecruitStatisticsTime(), date.getTime());
 
         return recruitStatisticsMap;
     }
@@ -279,7 +280,7 @@ public class RecruitTagUploadService {
 
         List<RecruitStatistics> recruitStatistics = recruitDataMapper.selectRecruitStatistics();
         Map<String, Integer> recruitStatisticsMap = recruitStatistics.stream().collect(Collectors.toMap(RecruitStatistics::getStatisticalItem, RecruitStatistics::getStatisticalResult));
-        Object lastStatisticsTime = redisTemplate.opsForValue().get("LastRecruitStatisticsTime");
+        Object lastStatisticsTime = redisTemplate.opsForValue().get(RedisKeyUtil.lastRecruitStatisticsTime());
         if(lastStatisticsTime == null) {
             lastStatisticsTime = System.currentTimeMillis();
         }

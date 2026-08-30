@@ -176,7 +176,7 @@ public class StageService {
             stageMapper.insert(stage);
         }
 
-        redisTemplate.delete("StageInfoMap");
+        redisTemplate.delete(RedisKeyUtil.stageInfoMap());
 
     }
 

@@ -66,12 +66,12 @@ public class StoreServiceImpl implements StoreService {
             storeActMapper.updateById(activityStoreData);
         }
 
-        redisTemplate.delete("Item:ActStoreInfo");
+        redisTemplate.delete(RedisKeyUtil.actStoreInfo());
 
         return "活动商店已更新";
     }
 
-    @RedisCacheable(key="Item:ActStoreInfo")
+    @RedisCacheable(key = RedisKeyUtil.ACT_STORE_INFO_KEY)
     @Override
     public List<ActivityStoreDataVO> listActivityStoreData() {
 

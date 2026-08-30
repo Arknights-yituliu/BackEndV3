@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * OAuth2 用户中心接入后的用户服务实现
@@ -173,7 +174,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
         token = token.replace("Authorization", "");
 
         // 从 Redis 获取 uid（key: loginToken:{token}），未命中视为未登录
-        String uidStr = redisTemplate.opsForValue().get("loginToken:" + token);
+        String uidStr = redisTemplate.opsForValue().get(RedisKeyUtil.loginToken(token));
         if (uidStr == null) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
@@ -194,7 +195,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     @Override
     public void logout(HttpServletRequest httpServletRequest) {
         String token = extractToken(httpServletRequest);
-        redisTemplate.delete("loginToken:" + token);
+        redisTemplate.delete(RedisKeyUtil.loginToken(token));
         // 删除数据库中的 token 记录
         tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>().eq(TokenRecord::getToken, token));
         Logger.info("用户token已登出撤销");
@@ -322,8 +323,8 @@ public class OAuthUserServiceImpl implements OAuthUserService {
         long timeStamp = System.currentTimeMillis();
         String token = AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
 
-        // 将 token 存入 Redis，支持登出撤销，不设置过期时间，token 永不过期
-        redisTemplate.opsForValue().set("loginToken:" + token, id.toString());
+        // 将 token 存入 Redis，支持登出撤销，有效期 90 天
+        redisTemplate.opsForValue().set(RedisKeyUtil.loginToken(token), id.toString(), 90, TimeUnit.DAYS);
 
         // 将 token 写入数据库记录
         TokenRecord record = new TokenRecord();

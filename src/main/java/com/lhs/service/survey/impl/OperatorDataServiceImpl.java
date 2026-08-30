@@ -49,9 +49,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final TencentCloudService tencentCloudService;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
-    /** Redis中干员角色表缓存的key */
-    private static final String CHARACTER_TABLE_REDIS_KEY = "CharacterTable:2026-07-08 14:20";
-
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
             OpenApiService openApiService, BindService bindService,
             OperatorProgressionDataMapper operatorProgressionDataMapper,
@@ -75,7 +72,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
      */
     private Map<String, JsonNode> getCharacterTable() {
         // 尝试从Redis获取缓存的JSON字符串
-        Object cached = redisTemplate.opsForValue().get(CHARACTER_TABLE_REDIS_KEY);
+        Object cached = redisTemplate.opsForValue().get(RedisKeyUtil.characterTable("2026-07-08 14:20"));
         String jsonText;
         if (cached != null) {
             jsonText = cached.toString();
@@ -85,7 +82,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             if (jsonText == null) {
                 return new HashMap<>();
             }
-            redisTemplate.opsForValue().set(CHARACTER_TABLE_REDIS_KEY, jsonText);
+            redisTemplate.opsForValue().set(RedisKeyUtil.characterTable("2026-07-08 14:20"), jsonText);
             Logger.info("character_table_simple.v2.json 已加载并缓存到Redis");
         }
 
@@ -108,7 +105,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         Long uid = UserContext.getUid();
 
         // 防止用户多次点击上传
-        Boolean done = redisTemplate.opsForValue().setIfAbsent("SurveyOperatorInfoUploadInterval:" + uid,
+        Boolean done = redisTemplate.opsForValue().setIfAbsent(RedisKeyUtil.surveyOperatorUploadInterval(uid),
                 "done", 5, TimeUnit.SECONDS);
         if (Boolean.FALSE.equals(done)) {
             throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);

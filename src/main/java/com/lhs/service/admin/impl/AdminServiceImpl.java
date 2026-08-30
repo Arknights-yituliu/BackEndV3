@@ -7,6 +7,7 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.admin.Admin;
@@ -58,7 +59,7 @@ public class AdminServiceImpl implements AdminService {
         String email = admin.getEmail();
         int random = new Random().nextInt(999999);
         String code = String.format("%6s", random).replace(" ", "0");
-        redisTemplate.opsForValue().set("CODE:" + admin.getEmail() + "CODE", code, 300, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(RedisKeyUtil.adminEmailCode(admin.getEmail()), code, 300, TimeUnit.SECONDS);
         EmailFormDTO emailFormDTO = new EmailFormDTO();
         emailFormDTO.setTo(email);
         emailFormDTO.setSubject("开发者登录验证码");
@@ -75,7 +76,7 @@ public class AdminServiceImpl implements AdminService {
         if (admin == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
         }
-        String code = String.valueOf(redisTemplate.opsForValue().get("CODE:" + admin.getEmail() + "CODE"));
+        String code = String.valueOf(redisTemplate.opsForValue().get(RedisKeyUtil.adminEmailCode(admin.getEmail())));
         //检查邮件验证码
         if (!loginVo.getVerificationCode().equals(code)) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.annotation.RedisCacheable;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.entity.dto.material.PackInfoDTO;
 import com.lhs.entity.po.admin.ImageInfo;
 import com.lhs.entity.po.material.PackInfo;
@@ -51,7 +52,7 @@ public class PackInfoService {
     }
 
 
-    @RedisCacheable(key = "Item:PackInfo", timeout = 43200)
+    @RedisCacheable(key = RedisKeyUtil.PACK_INFO_KEY, timeout = 43200)
     public List<PackInfoVOV5> listPackInfo() {
         //查询所有礼包
         LambdaQueryWrapper<PackInfo> packInfoQueryWrapper = new LambdaQueryWrapper<>();
@@ -77,7 +78,7 @@ public class PackInfoService {
 
     public String getPackInfoVersion() {
 
-        Object key = redisTemplate.opsForValue().get("Item:PackInfoVersion");
+        Object key = redisTemplate.opsForValue().get(RedisKeyUtil.packInfoVersion());
 
         if (key == null) {
             return "2025/04/27 00:00:00";
@@ -125,7 +126,7 @@ public class PackInfoService {
             message = "更新礼包成功";
         }
 
-        redisTemplate.delete("Item:PackInfo");
+        redisTemplate.delete(RedisKeyUtil.packInfo());
 
         // 获取当前时间
         LocalDateTime now = LocalDateTime.now();
@@ -134,7 +135,7 @@ public class PackInfoService {
         // 格式化为字符串
         String formattedDateTime = now.format(formatter);
 
-        redisTemplate.opsForValue().set("Item:PackInfoVersion", formattedDateTime);
+        redisTemplate.opsForValue().set(RedisKeyUtil.packInfoVersion(), formattedDateTime);
 
         return message;
     }

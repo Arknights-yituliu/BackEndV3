@@ -7,6 +7,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.PkceUtil;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.OAuth2TokenResponse;
 import com.lhs.entity.dto.user.OAuth2UserInfo;
@@ -32,9 +33,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class OAuth2ClientServiceImpl implements OAuth2ClientService {
-
-    /** state 缓存 key 前缀 */
-    private static final String STATE_KEY_PREFIX = "oauth2:auth:state:";
 
     /** state 有效期（秒），对齐授权码有效期 */
     private static final long STATE_TTL_SECONDS = 600;
@@ -64,7 +62,7 @@ public class OAuth2ClientServiceImpl implements OAuth2ClientService {
             throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
         }
         // 缓存 code_verifier，供回调时校验 state 后取出
-        redisTemplate.opsForValue().set(STATE_KEY_PREFIX + state, codeVerifier, STATE_TTL_SECONDS, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(RedisKeyUtil.oauth2State(state), codeVerifier, STATE_TTL_SECONDS, TimeUnit.SECONDS);
 
         Map<String, String> session = new HashMap<>();
         session.put("state", state);
@@ -88,12 +86,12 @@ public class OAuth2ClientServiceImpl implements OAuth2ClientService {
     @Override
     public String consumeCodeVerifier(String state) {
         // state 不存在或已过期则拒绝（防 CSRF）
-        String codeVerifier = redisTemplate.opsForValue().get(STATE_KEY_PREFIX + state);
+        String codeVerifier = redisTemplate.opsForValue().get(RedisKeyUtil.oauth2State(state));
         if (codeVerifier == null || codeVerifier.isEmpty()) {
             throw new ServiceException(ResultCode.USER_PERMISSION_NO_ACCESS_OR_TIME_OUT);
         }
         // 一次性使用，取后即删
-        redisTemplate.delete(STATE_KEY_PREFIX + state);
+        redisTemplate.delete(RedisKeyUtil.oauth2State(state));
         return codeVerifier;
     }
 

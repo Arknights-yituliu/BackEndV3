@@ -4,15 +4,12 @@ import com.lhs.common.util.Result;
 import com.lhs.entity.dto.material.PackInfoDTO;
 import com.lhs.entity.po.admin.LogInfo;
 import com.lhs.entity.vo.dev.LoginVo;
-import com.lhs.entity.vo.dev.PageViewStatisticsVo;
-import com.lhs.entity.vo.dev.VisitsTimeVo;
 import com.lhs.entity.vo.material.PackInfoVO;
 import com.lhs.entity.vo.material.ActivityStoreDataVO;
 import com.lhs.service.admin.AdminService;
 import com.lhs.service.admin.ImageInfoService;
 import com.lhs.service.admin.LogService;
 import com.lhs.service.material.PackInfoService;
-import com.lhs.service.user.VisitsService;
 import com.lhs.service.material.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,17 +29,14 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    private final VisitsService visitsService;
-
     private final ImageInfoService imageInfoService;
 
     private final LogService logService;
 
-    public AdminController(StoreService storeService, AdminService adminService, VisitsService visitsService,
+    public AdminController(StoreService storeService, AdminService adminService,
                            ImageInfoService imageInfoService, PackInfoService packInfoService, LogService logService) {
         this.storeService = storeService;
         this.adminService = adminService;
-        this.visitsService = visitsService;
         this.imageInfoService = imageInfoService;
         this.packInfoService = packInfoService;
         this.logService = logService;
@@ -54,21 +48,9 @@ public class AdminController {
         return Result.success("后端启动成功");
     }
 
-    @GetMapping("/visits/page")
-    public Result<Object> updatePageVisits(@RequestParam String path) {
-        visitsService.updatePageVisits(path);
-        return Result.success();
-    }
-
     @PostMapping("/log/collect")
     public Result<String> collectLog(@RequestBody LogInfo logInfo){
         logService.saveLog(logInfo);
-        return Result.success();
-    }
-
-    @GetMapping("/visits/save")
-    public Result<Object> savePageVisits() {
-        visitsService.savePageVisits();
         return Result.success();
     }
 
@@ -134,13 +116,6 @@ public class AdminController {
    
 
 
-
-
-    @PostMapping("/admin/view/statistics")
-    public Result<List<PageViewStatisticsVo>> queryVisits(@RequestBody VisitsTimeVo visitsTimeVo) {
-        List<PageViewStatisticsVo> pageViewStatisticsVos = visitsService.getVisits(visitsTimeVo);
-        return Result.success(pageViewStatisticsVos);
-    }
 
 
     @Operation(summary = "更新活动商店性价比(新")

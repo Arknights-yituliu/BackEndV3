@@ -26,18 +26,15 @@ public class QuestionnaireService {
     private final QuestionnaireResultMapper questionnaireResultMapper;
 
     private final IdGenerator idGenerator;
-    private final RateLimiter rateLimiter;
     private final OAuthUserService oAuthUserService;
     private final TencentCloudService tencentCloudService;
 
 
     public QuestionnaireService(RedisTemplate<String, String> redisTemplate,
                                 QuestionnaireResultMapper questionnaireResultMapper,
-                                RateLimiter rateLimiter,
                                 OAuthUserService oAuthUserService, TencentCloudService tencentCloudService) {
         this.redisTemplate = redisTemplate;
         this.questionnaireResultMapper = questionnaireResultMapper;
-        this.rateLimiter = rateLimiter;
         this.oAuthUserService = oAuthUserService;
         this.tencentCloudService = tencentCloudService;
 
@@ -51,7 +48,7 @@ public class QuestionnaireService {
         String ipAddress = IpUtil.getIpAddress(httpServletRequest);
         Long uid = UserContext.getUid();
         //提交间隔不能短于5s，短于5s抛出异常
-        rateLimiter.tryAcquire("SurveySubmitterIP:" + ipAddress, 1, 5, ResultCode.NOT_REPEAT_REQUESTS);
+        RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.surveySubmitterIp(ipAddress), 1, 5, ResultCode.NOT_REPEAT_REQUESTS);
 
 
         //检查上传的干员是否有重复

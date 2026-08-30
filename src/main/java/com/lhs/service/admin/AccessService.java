@@ -6,6 +6,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Logger;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.common.util.UserAgentUtil;
 import com.lhs.entity.dto.AccessLogDTO;
 import com.lhs.entity.dto.UrlCountDTO;
@@ -60,9 +61,6 @@ public class AccessService {
     private final AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper;
     private final IdGenerator idGenerator;
     private final RedisTemplate<String, Object> redisTemplate;
-
-    /** Redis中记录上次迁移日期的键 */
-    private static final String MIGRATE_LAST_DATE_KEY = "migrate:lastSyncedDate";
 
     /** 迁移起始标记日期（2026-07-13的后一天），首次执行时回退到 2026-07-13 */
     private static final String MIGRATE_START_DATE = "2026-07-14";
@@ -708,7 +706,7 @@ public class AccessService {
         Logger.info("旧数据迁移任务开始执行");
 
         // 从Redis获取上次迁移到的日期，首次执行默认为MIGRATE_START_DATE
-        Object lastDateObj = redisTemplate.opsForValue().get(MIGRATE_LAST_DATE_KEY);
+        Object lastDateObj = redisTemplate.opsForValue().get(RedisKeyUtil.migrateLastSyncedDate());
         String lastDateStr = lastDateObj != null ? lastDateObj.toString() : MIGRATE_START_DATE;
         Logger.info("上次迁移日期: {}", lastDateStr);
 
@@ -803,7 +801,7 @@ public class AccessService {
         }
 
         // 更新Redis中的进度到本次迁移的日期
-        redisTemplate.opsForValue().set(MIGRATE_LAST_DATE_KEY, syncingDate);
+        redisTemplate.opsForValue().set(RedisKeyUtil.migrateLastSyncedDate(), syncingDate);
         Logger.info("日期 {} 迁移完成，共迁移 {} 条记录", syncingDate, totalMigrated);
 
         return totalMigrated;

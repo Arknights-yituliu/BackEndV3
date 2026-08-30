@@ -2,6 +2,7 @@ package com.lhs.service.admin;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.util.Logger;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.entity.po.admin.AccessLogHourlyStatsTask;
 import com.lhs.mapper.admin.AccessLogHourlyStatsTaskMapper;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,9 +33,6 @@ public class BackfillHourlyAccessStatsService {
 
     /** 回填结束边界（不含）：2024-01-01 00:00，即最早回填到 2024-01-01 00:00 这个小时 */
     private static final Date BACKFILL_END_HOUR = buildHour(2024, 1, 1);
-
-    /** Redis key：回填游标，值为下次扫描起始小时（格式 yyyy-MM-dd HH:00:00） */
-    private static final String BACKFILL_CURSOR_KEY = "BACKFILL:HOUR:ACCESS2:STATS:CURSOR";
 
     /** 游标时间格式化模板 */
     private static final String CURSOR_PATTERN = "yyyy-MM-dd HH:00:00";
@@ -100,7 +98,7 @@ public class BackfillHourlyAccessStatsService {
      * @return 下次扫描的起始小时
      */
     private Date loadCursor() {
-        Object value = redisTemplate.opsForValue().get(BACKFILL_CURSOR_KEY);
+        Object value = redisTemplate.opsForValue().get(RedisKeyUtil.backfillHourlyCursor());
         if (value == null) {
             return BACKFILL_START_HOUR;
         }
@@ -118,7 +116,7 @@ public class BackfillHourlyAccessStatsService {
      * @param cursor 下次扫描的起始小时
      */
     private void saveCursor(Date cursor) {
-        redisTemplate.opsForValue().set(BACKFILL_CURSOR_KEY, new SimpleDateFormat(CURSOR_PATTERN).format(cursor));
+        redisTemplate.opsForValue().set(RedisKeyUtil.backfillHourlyCursor(), new SimpleDateFormat(CURSOR_PATTERN).format(cursor));
     }
 
     /**

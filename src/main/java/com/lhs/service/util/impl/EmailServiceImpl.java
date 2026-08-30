@@ -3,6 +3,7 @@ package com.lhs.service.util.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.util.SmtpConfig;
@@ -81,7 +82,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendSimpleEmail(EmailFormDTO email) {
         // 每日累计发送量作为渠道降级路由依据
         String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        String dailyKey = "email:daily:" + today;
+        String dailyKey = RedisKeyUtil.emailDaily(today);
         Object countObj = redisTemplate.opsForValue().get(dailyKey);
         int dailyCount = countObj != null ? Integer.parseInt(countObj.toString()) : 0;
 
@@ -228,13 +229,13 @@ public class EmailServiceImpl implements EmailService {
     public Integer createVerificationCode(String emailAddress, Integer maxCodeNum) {
         int random = new Random().nextInt(8999) + 1000;
         String code = String.valueOf(random);
-        redisTemplate.opsForValue().set("CODE:CODE." + emailAddress, code, 300, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(RedisKeyUtil.emailCode(emailAddress), code, 300, TimeUnit.SECONDS);
         return random;
     }
 
     @Override
     public void compareVerificationCode(String inputCode, String key) {
-        Object code = redisTemplate.opsForValue().get("CODE:CODE." + key);
+        Object code = redisTemplate.opsForValue().get(RedisKeyUtil.emailCode(key));
 
         if (code == null) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_EXIST);
