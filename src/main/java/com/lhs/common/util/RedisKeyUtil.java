@@ -61,9 +61,6 @@ public final class RedisKeyUtil {
     /** 活动商店缓存 key：Item:ActStoreInfo（供 @RedisCacheable 注解引用） */
     public static final String ACT_STORE_INFO_KEY = "Item:ActStoreInfo";
 
-    /** 关卡数据缓存 key：StageInfoMap */
-    private static final String KEY_STAGE_INFO_MAP = "StageInfoMap";
-
     /** 干员表数据缓存 key 前缀：CharacterTable:{version} */
     private static final String PREFIX_CHARACTER_TABLE = "CharacterTable:";
 
@@ -74,15 +71,6 @@ public final class RedisKeyUtil {
 
     /** 每日邮件计数 key 前缀：email:daily:{date} */
     private static final String PREFIX_EMAIL_DAILY = "email:daily:";
-
-    /** 小时访问统计回填游标 key：BACKFILL:HOUR:ACCESS2:STATS:CURSOR */
-    private static final String KEY_BACKFILL_HOUR_CURSOR = "BACKFILL:HOUR:ACCESS2:STATS:CURSOR";
-
-    /** 日访问统计回填游标 key：BACKFILL:DAY:URL:ACCESS2:STATS:CURSOR */
-    private static final String KEY_BACKFILL_DAY_CURSOR = "BACKFILL:DAY:URL:ACCESS2:STATS:CURSOR";
-
-    /** 访问数据迁移最近同步日期 key：migrate:lastSyncedDate */
-    private static final String KEY_MIGRATE_LAST_SYNCED_DATE = "migrate:lastSyncedDate";
 
     private RedisKeyUtil() {
     }
@@ -223,15 +211,6 @@ public final class RedisKeyUtil {
     }
 
     /**
-     * 关卡数据缓存 key
-     *
-     * @return Redis key
-     */
-    public static String stageInfoMap() {
-        return KEY_STAGE_INFO_MAP;
-    }
-
-    /**
      * 干员表数据缓存 key
      *
      * @param version 干员表版本（如 2026-07-08 14:20）
@@ -258,32 +237,5 @@ public final class RedisKeyUtil {
      */
     public static String emailDaily(String date) {
         return PREFIX_EMAIL_DAILY + date;
-    }
-
-    /**
-     * 小时访问统计回填游标 key
-     *
-     * @return Redis key
-     */
-    public static String backfillHourlyCursor() {
-        return KEY_BACKFILL_HOUR_CURSOR;
-    }
-
-    /**
-     * 日访问统计回填游标 key
-     *
-     * @return Redis key
-     */
-    public static String backfillDayCursor() {
-        return KEY_BACKFILL_DAY_CURSOR;
-    }
-
-    /**
-     * 访问数据迁移最近同步日期 key
-     *
-     * @return Redis key
-     */
-    public static String migrateLastSyncedDate() {
-        return KEY_MIGRATE_LAST_SYNCED_DATE;
     }
 }

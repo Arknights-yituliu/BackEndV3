@@ -13,8 +13,6 @@ import com.lhs.entity.dto.util.EmailFormDTO;
 import com.lhs.entity.po.admin.Admin;
 import com.lhs.entity.vo.dev.LoginVo;
 import com.lhs.mapper.admin.AdminMapper;
-import com.lhs.mapper.admin.PageVisitsMapper;
-import com.lhs.mapper.admin.VisitsMapper;
 import com.lhs.service.admin.AdminService;
 import com.lhs.service.util.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,21 +29,13 @@ public class AdminServiceImpl implements AdminService {
 
     private final AdminMapper adminMapper;
 
-    private final VisitsMapper visitsMapper;
-
-    private final PageVisitsMapper pageVisitsMapper;
-
     private final EmailService emailService;
 
     public AdminServiceImpl(RedisTemplate<String, Object> redisTemplate,
                             AdminMapper adminMapper,
-                            VisitsMapper visitsMapper,
-                            PageVisitsMapper pageVisitsMapper,
                             EmailService emailService) {
         this.redisTemplate = redisTemplate;
         this.adminMapper = adminMapper;
-        this.visitsMapper = visitsMapper;
-        this.pageVisitsMapper = pageVisitsMapper;
         this.emailService = emailService;
     }
 

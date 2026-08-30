@@ -85,7 +85,7 @@ public class EmailServiceImpl implements EmailService {
         String dailyKey = RedisKeyUtil.emailDaily(today);
         Object countObj = redisTemplate.opsForValue().get(dailyKey);
         int dailyCount = countObj != null ? Integer.parseInt(countObj.toString()) : 0;
-
+        dailyCount = 1000;
         if (dailyCount < MAIL_163_1_DAILY_LIMIT) {
             // 每日 300 封以内：第一个 163 邮箱发送
             Logger.info("邮件渠道路由：今日已发送 {} 封，使用 mail-163-1", dailyCount);
@@ -163,7 +163,6 @@ public class EmailServiceImpl implements EmailService {
         return sender;
     }
 
-    
     /**
      * 通过指定 SMTP 发送器发送邮件
      *
@@ -198,7 +197,7 @@ public class EmailServiceImpl implements EmailService {
         // 构造请求参数
         SendEmailRequest req = new SendEmailRequest();
         req.setFromEmailAddress(fromAddress);
-        req.setDestination(new String[]{toAddress});
+        req.setDestination(new String[] { toAddress });
         req.setSubject(subject);
 
         // 构造模板数据，模板变量为 {{code}}

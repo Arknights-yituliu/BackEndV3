@@ -6,7 +6,6 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Logger;
-import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.common.util.UserAgentUtil;
 import com.lhs.entity.dto.AccessLogDTO;
 import com.lhs.entity.dto.UrlCountDTO;
@@ -16,7 +15,6 @@ import com.lhs.entity.po.admin.AccessLogHourlyStats;
 import com.lhs.entity.po.admin.AccessLogHourlyStatsTask;
 import com.lhs.entity.po.admin.AccessLogUrlDailyStats;
 import com.lhs.entity.po.admin.AccessLogUrlDailyStatsTask;
-import com.lhs.entity.po.admin.PageViewStatistics;
 import com.lhs.entity.vo.dev.UrlPeriodDataVO;
 import com.lhs.entity.vo.dev.UrlTotalVisitVO;
 import com.lhs.entity.vo.dev.UrlVisitGroupVO;
@@ -25,9 +23,7 @@ import com.lhs.mapper.admin.AccessLogHourlyStatsTaskMapper;
 import com.lhs.mapper.admin.AccessLogMapper;
 import com.lhs.mapper.admin.AccessLogUrlDailyStatsMapper;
 import com.lhs.mapper.admin.AccessLogUrlDailyStatsTaskMapper;
-import com.lhs.mapper.admin.PageVisitsMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -41,12 +37,6 @@ import java.util.stream.Collectors;
 @Service
 public class AccessService {
 
-    /** 每批查询的记录数 */
-    private static final int BATCH_SIZE = 50_000;
-
-    /** 每批插入的记录数，避免单批事务过大 */
-    private static final int INSERT_BATCH_SIZE = 1_000;
-
     /** Top URL 数量 */
     private static final int TOP_URL_COUNT = 30;
 
@@ -54,31 +44,23 @@ public class AccessService {
     private static final SimpleDateFormat DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     private final AccessLogMapper accessLogMapper;
-    private final PageVisitsMapper pageVisitsMapper;
     private final AccessLogHourlyStatsMapper accessLogHourlyStatsMapper;
     private final AccessLogHourlyStatsTaskMapper accessLogHourlyStatsTaskMapper;
     private final AccessLogUrlDailyStatsMapper accessLogUrlDailyStatsMapper;
     private final AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper;
     private final IdGenerator idGenerator;
-    private final RedisTemplate<String, Object> redisTemplate;
 
-    /** 迁移起始标记日期（2026-07-13的后一天），首次执行时回退到 2026-07-13 */
-    private static final String MIGRATE_START_DATE = "2026-07-14";
-
-    public AccessService(AccessLogMapper accessLogMapper, PageVisitsMapper pageVisitsMapper,
+    public AccessService(AccessLogMapper accessLogMapper,
             AccessLogHourlyStatsMapper accessLogHourlyStatsMapper,
             AccessLogHourlyStatsTaskMapper accessLogHourlyStatsTaskMapper,
             AccessLogUrlDailyStatsMapper accessLogUrlDailyStatsMapper,
-            AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper,
-            RedisTemplate<String, Object> redisTemplate) {
+            AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper) {
         this.accessLogMapper = accessLogMapper;
-        this.pageVisitsMapper = pageVisitsMapper;
         this.accessLogHourlyStatsMapper = accessLogHourlyStatsMapper;
         this.accessLogHourlyStatsTaskMapper = accessLogHourlyStatsTaskMapper;
         this.accessLogUrlDailyStatsMapper = accessLogUrlDailyStatsMapper;
         this.accessLogUrlDailyStatsTaskMapper = accessLogUrlDailyStatsTaskMapper;
         this.idGenerator = new IdGenerator(3L);
-        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -127,21 +109,6 @@ public class AccessService {
         accessLog.setRegion(region != null ? region : "Unknown");
 
         accessLogMapper.insert(accessLog);
-    }
-
-
-    /**
-     * 解析 visitsTime 字符串，支持格式 yyyy-MM-dd HH:mm
-     */
-    private Date parseVisitsTime(String visitsTime) {
-        if (visitsTime == null || visitsTime.isEmpty()) {
-            return null;
-        }
-        try {
-            return new SimpleDateFormat("yyyy-MM-dd HH:mm").parse(visitsTime);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     /**
@@ -693,118 +660,6 @@ public class AccessService {
             return url.substring(0, url.length() - 1);
         }
         return url;
-    }
-
-
-        /**
-     * 将旧的 page_visits 表数据迁移到新的 access_log 表
-     * 每次执行迁移一天的旧数据，从 2026-07-13 开始向更早的日期逐天推进，基于 Redis 记录进度
-     *
-     * @return 本次迁移的记录数，0 表示没有待迁移的数据或已全部完成
-     */
-    public long migrateOldVisits() {
-        Logger.info("旧数据迁移任务开始执行");
-
-        // 从Redis获取上次迁移到的日期，首次执行默认为MIGRATE_START_DATE
-        Object lastDateObj = redisTemplate.opsForValue().get(RedisKeyUtil.migrateLastSyncedDate());
-        String lastDateStr = lastDateObj != null ? lastDateObj.toString() : MIGRATE_START_DATE;
-        Logger.info("上次迁移日期: {}", lastDateStr);
-
-        // 计算下一个要迁移的日期（向更早的日期回退）
-        Calendar cal = Calendar.getInstance();
-        try {
-            cal.setTime(DAY_FORMAT.parse(lastDateStr));
-        } catch (Exception e) {
-            throw new ServiceException(ResultCode.PARAM_IS_INVALID);
-        }
-        cal.add(Calendar.DAY_OF_YEAR, -1);
-
-        Date startOfDay = cal.getTime();
-        cal.add(Calendar.DAY_OF_YEAR, 1);
-        Date endOfDay = cal.getTime();
-        String syncingDate = DAY_FORMAT.format(startOfDay);
-        Logger.info("开始迁移日期: {} 的数据", syncingDate);
-
-        long totalMigrated = 0;
-        List<AccessLog> batch = new ArrayList<>();
-        long offset = 0;
-
-        while (true) {
-            List<PageViewStatistics> oldRecords = pageVisitsMapper.selectList(
-                    new LambdaQueryWrapper<PageViewStatistics>()
-                            .ge(PageViewStatistics::getCreateTime, startOfDay)
-                            .lt(PageViewStatistics::getCreateTime, endOfDay)
-                            .orderByAsc(PageViewStatistics::getCreateTime)
-                            .last("LIMIT " + offset + "," + BATCH_SIZE)
-            );
-
-            if (oldRecords.isEmpty()) {
-                break;
-            }
-
-            for (PageViewStatistics old : oldRecords) {
-                int count = old.getPageView() != null ? old.getPageView() : 0;
-                if (count <= 0) {
-                    continue;
-                }
-
-                // 解析基准时间：优先用 viewTime 字段，回退到 createTime
-                Date baseTime = parseVisitsTime(old.getViewTime());
-                if (baseTime == null) {
-                    baseTime = old.getCreateTime();
-                }
-                if (baseTime == null) {
-                    baseTime = new Date();
-                }
-
-                // 根据 count 生成多条访问记录，时间在基准时间到基准时间+1小时之间均匀分布
-                long baseMillis = baseTime.getTime();
-                long slotMillis = 3600_000L; // 1小时
-
-                for (int i = 0; i < count; i++) {
-                    AccessLog log = new AccessLog();
-                    log.setId(idGenerator.nextId());
-                    log.setUrl(old.getPagePath());
-                    log.setIp("Migration");
-                    log.setRegion("Unknown");
-                    log.setReferer("Migration");
-                    log.setDevice("Unknown");
-                    log.setBrowser("Unknown");
-                    log.setOs("Unknown");
-                    // 时间在1小时范围内均匀偏移，避免所有记录时间戳完全一致
-                    long timeOffset = count > 1 ? (slotMillis * i / count) : 0;
-                    log.setAccessTime(new Date(baseMillis + timeOffset));
-                    batch.add(log);
-
-                    if (batch.size() >= INSERT_BATCH_SIZE) {
-                        for (AccessLog accessLog : batch) {
-                            accessLogMapper.insert(accessLog);
-                        }
-                        totalMigrated += batch.size();
-                        Logger.info("已迁移 {} 条记录，累计 {} 条", batch.size(), totalMigrated);
-                        batch.clear();
-                    }
-                }
-            }
-
-            offset += BATCH_SIZE;
-        }
-
-        // 插入剩余的最后一小批
-        if (!batch.isEmpty()) {
-            for (AccessLog accessLog : batch) {
-                accessLogMapper.insert(accessLog);
-            }
-            totalMigrated += batch.size();
-            Logger.info("已迁移最后一批 {} 条记录", batch.size());
-            batch.clear();
-        }
-
-        // 更新Redis中的进度到本次迁移的日期
-        redisTemplate.opsForValue().set(RedisKeyUtil.migrateLastSyncedDate(), syncingDate);
-        Logger.info("日期 {} 迁移完成，共迁移 {} 条记录", syncingDate, totalMigrated);
-
-        return totalMigrated;
     }
 
 }

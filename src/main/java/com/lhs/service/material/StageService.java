@@ -10,7 +10,6 @@ import com.lhs.entity.po.material.Stage;
 import com.lhs.mapper.material.StageMapper;
 
 import com.lhs.service.util.TencentCloudService;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -23,13 +22,11 @@ public class StageService {
 
 
     private final StageMapper stageMapper;
-    private final RedisTemplate<String,Object> redisTemplate;
 
     private final TencentCloudService tencentCloudService;
 
-    public StageService(StageMapper stageMapper, RedisTemplate<String, Object> redisTemplate, TencentCloudService tencentCloudService) {
+    public StageService(StageMapper stageMapper, TencentCloudService tencentCloudService) {
         this.stageMapper = stageMapper;
-        this.redisTemplate = redisTemplate;
         this.tencentCloudService = tencentCloudService;
     }
 
@@ -175,8 +172,6 @@ public class StageService {
             Logger.info("本次拉取更新的关卡是："+stageId);
             stageMapper.insert(stage);
         }
-
-        redisTemplate.delete(RedisKeyUtil.stageInfoMap());
 
     }
 

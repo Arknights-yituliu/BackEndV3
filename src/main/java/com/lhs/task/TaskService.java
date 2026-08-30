@@ -1,8 +1,6 @@
 package com.lhs.task;
 
 import com.lhs.service.admin.AccessService;
-import com.lhs.service.admin.BackfillHourlyAccessStatsService;
-import com.lhs.service.admin.BackfillUrlDailyStatsService;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.OperatorDataService;
@@ -33,10 +31,6 @@ public class TaskService {
 
     private final AccessService accessService;
 
-    private final BackfillHourlyAccessStatsService backfillHourlyAccessStatsService;
-
-    private final BackfillUrlDailyStatsService backfillUrlDailyStatsService;
-
     private final StageDropHourStatisticsService stageDropHourStatisticsService;
 
     public TaskService(
@@ -50,8 +44,6 @@ public class TaskService {
             OAuthUserService oAuthUserService,
             BindService bindService,
             AccessService accessService,
-            BackfillHourlyAccessStatsService backfillHourlyAccessStatsService,
-            BackfillUrlDailyStatsService backfillUrlDailyStatsService,
             StageDropHourStatisticsService stageDropHourStatisticsService) {
         this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
 
@@ -64,8 +56,6 @@ public class TaskService {
         this.oAuthUserService = oAuthUserService;
         this.bindService = bindService;
         this.accessService = accessService;
-        this.backfillHourlyAccessStatsService = backfillHourlyAccessStatsService;
-        this.backfillUrlDailyStatsService = backfillUrlDailyStatsService;
     }
 
     // 每天执行一次的任务
