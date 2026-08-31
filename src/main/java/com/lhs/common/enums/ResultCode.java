@@ -69,6 +69,7 @@ public enum ResultCode {
 
 
 	PLEASE_FILL_IN_AT_LEAST_ONE_STRATEGY_OR_VALUE(30104, "请至少填写一种策略或价值"),
+	OPERATOR_DATA_NOT_FOUND(30105, "未找到干员数据，请导入"),
 
 
 

@@ -230,6 +230,11 @@ public class OperatorDataServiceImpl implements OperatorDataService {
                 .orderByDesc(UserExternalAccountBinding::getUpdateTime);
         List<UserExternalAccountBinding> externalAccountBindings = userExternalAccountBindingMapper
                 .selectList(userExternalAccountBindingQueryWrapper);
+
+        // 用户未绑定任何外部账号时无干员数据，提示先导入
+        if (externalAccountBindings == null || externalAccountBindings.isEmpty()) {
+            throw new ServiceException(ResultCode.OPERATOR_DATA_NOT_FOUND);
+        }
         String akUid = externalAccountBindings.get(0).getAkUid();
 
 //        Logger.info("用户uid：" + uid + "；方舟uid：" + akUid);
@@ -243,8 +248,9 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         OperatorProgressionData operatorProgressionData = operatorProgressionDataMapper
                 .selectOne(operatorProgressionDataQueryWrapper);
 
+        // 已绑定账号但未导入干员数据，提示先导入
         if (operatorProgressionData == null) {
-            return operatorProgressionDataDTOList;
+            throw new ServiceException(ResultCode.OPERATOR_DATA_NOT_FOUND);
         }
 
         String operatorProgression = operatorProgressionData.getOperatorProgression();
