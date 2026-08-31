@@ -51,7 +51,7 @@ public class AccessController {
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return URL分组访问量列表
      */
-    @GetMapping("/access-log/url/daily")
+    @GetMapping("/admin/access-log/url/daily")
     public Result<List<UrlVisitGroupVO>> getUrlDailyVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {
@@ -66,7 +66,7 @@ public class AccessController {
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return URL总访问量列表
      */
-    @GetMapping("/access-log/url/total")
+    @GetMapping("/admin/access-log/url/total")
     public Result<List<UrlTotalVisitVO>> getUrlTotalVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {
@@ -81,7 +81,7 @@ public class AccessController {
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return 每小时总访问量列表
      */
-    @GetMapping("/access-log/hourly")
+    @GetMapping("/admin/access-log/hourly")
     public Result<List<UrlPeriodDataVO>> getHourlyTotalVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {
@@ -96,7 +96,7 @@ public class AccessController {
      * @param end   结束时间（格式 yyyy-MM-dd HH:mm:ss）
      * @return 每日总访问量列表
      */
-    @GetMapping("/access-log/daily")
+    @GetMapping("/admin/access-log/daily")
     public Result<List<UrlPeriodDataVO>> getDailyTotalVisits(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date start,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date end) {

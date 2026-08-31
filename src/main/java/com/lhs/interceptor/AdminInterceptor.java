@@ -1,9 +1,10 @@
 package com.lhs.interceptor;
 
+import com.lhs.common.enums.ResultCode;
+import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
-import com.lhs.service.user.OAuthUserService;
+import com.lhs.service.admin.AdminService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -14,43 +15,35 @@ import jakarta.servlet.http.HttpServletResponse;
 @Slf4j
 public class AdminInterceptor implements HandlerInterceptor {
 
+    private final AdminService adminService;
 
-
-    private final RedisTemplate<String, Object> redisTemplate;
-
-
-
-    private final OAuthUserService oAuthUserService;
-
-    public AdminInterceptor(RedisTemplate<String, Object> redisTemplate, OAuthUserService oAuthUserService){
-            this.redisTemplate =redisTemplate;
-
-        this.oAuthUserService = oAuthUserService;
+    public AdminInterceptor(AdminService adminService) {
+        this.adminService = adminService;
     }
 
 
     /**
      * 目标方法执行之前
-     * 登录检查写在这里，如果没有登录，就不执行目标方法
-     * @param request 请求
+     * 管理员/开发者鉴权：校验请求携带的开发者 token，非管理员或无有效 token 则拒绝执行目标方法
+     *
+     * @param request  请求
      * @param response 响应
-     * @param handler 操作
-     * @return 登录状态
-     * @throws Exception
+     * @param handler  操作
+     * @return 是否放行
+     * @throws Exception 校验失败时抛出 ServiceException
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//      获取进过拦截器的路径
-        //获取进过拦截器的路径
         if (HttpMethod.OPTIONS.toString().equals(request.getMethod())) {
             return true;
         }
 
-        String requestURI = request.getRequestURI();
-        Logger.info("一图流用户鉴权{}：");
-        oAuthUserService.extractToken(request);
-
-
+        // 校验开发者身份：token 缺失/无效/过期由 developerLevel 内部抛异常，非管理员返回 false 拒绝
+        Boolean isDeveloper = adminService.developerLevel(request);
+        if (isDeveloper == null || !isDeveloper) {
+            Logger.info("管理员鉴权失败，拒绝访问：{}", request.getRequestURI());
+            throw new ServiceException(ResultCode.USER_INSUFFICIENT_PERMISSIONS);
+        }
         return true;
     }
 
