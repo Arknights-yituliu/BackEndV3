@@ -1,6 +1,7 @@
 package com.lhs.common.exception;
 
 
+import com.lhs.common.enums.ResultCode;
 import com.lhs.common.util.Result;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,7 +22,9 @@ public class GlobalExceptionHandler {
     public Object handleException(Exception e) {
 		Result<Object> result = null;
 		if(e instanceof ServiceException) {
-			result = Result.failure(((ServiceException) e).getResultCode());
+			// 使用异常携带的消息（默认即枚举的 message，若构造时传入自定义消息则透传该消息）
+			ResultCode resultCode = ((ServiceException) e).getResultCode();
+			result = Result.failure(resultCode.code(), e.getMessage());
 		}
 		else {
 			String message = e.getMessage();

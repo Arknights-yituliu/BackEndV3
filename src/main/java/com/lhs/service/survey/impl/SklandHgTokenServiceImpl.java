@@ -73,6 +73,12 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
         JsonNode data = resp.get("data");
         if (data == null || data.get("code") == null) {
             Logger.error("grant 接口调用失败，响应：{}", resp);
+            // 提取森空岛返回的 msg 透传给前端（如"需要进行设备验证"）
+            JsonNode msgNode = resp.get("msg");
+            if (msgNode != null && !msgNode.asText().isEmpty()) {
+                throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR,
+                        "来自森空岛的报错：" + msgNode.asText());
+            }
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         return data.get("code").asText();
@@ -101,6 +107,12 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
         JsonNode resp = postJson(GENERATE_CRED_BY_CODE_URL, body, headers);
         if (resp.get("code") == null || resp.get("code").asInt() != 0) {
             Logger.error("generate_cred_by_code 接口调用失败，响应：{}", resp);
+            // 提取森空岛返回的 msg 透传给前端（如"需要进行设备验证"）
+            JsonNode msgNode = resp.get("msg");
+            if (msgNode != null && !msgNode.asText().isEmpty()) {
+                throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR,
+                        "来自森空岛的报错：" + msgNode.asText());
+            }
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         JsonNode data = resp.get("data");
