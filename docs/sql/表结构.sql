@@ -249,10 +249,10 @@ CREATE TABLE `access_log_url_daily_stats_task`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = 'URL每日访问量统计任务记录表';
 
 -- ----------------------------
--- Table structure for user_schedule
+-- Table structure for riic_schedule
 -- ----------------------------
-DROP TABLE IF EXISTS `user_schedule`;
-CREATE TABLE `user_schedule`  (
+DROP TABLE IF EXISTS `riic_schedule`;
+CREATE TABLE `riic_schedule`  (
   `id` bigint(20) NOT NULL COMMENT '主键（雪花ID）',
   `uid` bigint(20) NOT NULL COMMENT '所属用户uid',
   `schedule` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '排班表JSON文本',
@@ -260,6 +260,6 @@ CREATE TABLE `user_schedule`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '最近更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_uid`(`uid`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '用户排班表';
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic COMMENT = '基建排班表';
 
 SET FOREIGN_KEY_CHECKS = 1;

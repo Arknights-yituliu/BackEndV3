@@ -9,14 +9,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.util.Date;
 
 /**
- * 用户排班表实体（user_schedule 表）
+ * 基建排班表实体（riic_schedule 表，RIIC 排班）
  * <p>
  * 排班表内容为前端传入的 JSON，作为文本整体落库；
  * 每个用户最多保存 10 条，可按 id 覆盖（仅限本人）
  */
 @Data
-@TableName("user_schedule")
-public class UserSchedule {
+@TableName("riic_schedule")
+public class RiicSchedule {
 
     /** 主键（雪花ID） */
     @TableId

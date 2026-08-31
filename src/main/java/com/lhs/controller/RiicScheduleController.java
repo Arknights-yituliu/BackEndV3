@@ -2,8 +2,8 @@ package com.lhs.controller;
 
 import com.lhs.common.context.UserContext;
 import com.lhs.common.util.Result;
-import com.lhs.entity.po.user.UserSchedule;
-import com.lhs.service.user.UserScheduleService;
+import com.lhs.entity.po.user.RiicSchedule;
+import com.lhs.service.user.RiicScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -13,19 +13,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 用户排班表控制器
+ * 基建排班表控制器
  * <p>
  * 路径挂在 /auth/** 下，由 UserInterceptor 统一校验登录态，
  * 当前登录用户从 UserContext 获取，不传 token 参数
  */
 @RestController
-@Tag(name = "用户排班表")
-public class UserScheduleController {
+@Tag(name = "基建排班表")
+public class RiicScheduleController {
 
-    private final UserScheduleService userScheduleService;
+    private final RiicScheduleService riicScheduleService;
 
-    public UserScheduleController(UserScheduleService userScheduleService) {
-        this.userScheduleService = userScheduleService;
+    public RiicScheduleController(RiicScheduleService riicScheduleService) {
+        this.riicScheduleService = riicScheduleService;
     }
 
     /**
@@ -46,7 +46,7 @@ public class UserScheduleController {
         Object scheduleObj = body.get("schedule");
         String scheduleJson = scheduleObj != null ? scheduleObj.toString() : null;
 
-        Long scheduleId = userScheduleService.saveSchedule(uid, id, scheduleJson);
+        Long scheduleId = riicScheduleService.saveSchedule(uid, id, scheduleJson);
         Map<String, Long> result = new HashMap<>();
         result.put("id", scheduleId);
         return Result.success(result);
@@ -59,8 +59,8 @@ public class UserScheduleController {
      */
     @Operation(summary = "查询当前用户全部排班表")
     @GetMapping("/auth/schedule/list")
-    public Result<List<UserSchedule>> listSchedules() {
-        return Result.success(userScheduleService.listByUid(UserContext.getUid()));
+    public Result<List<RiicSchedule>> listSchedules() {
+        return Result.success(riicScheduleService.listByUid(UserContext.getUid()));
     }
 
     /**
@@ -71,7 +71,7 @@ public class UserScheduleController {
      */
     @Operation(summary = "查询指定 id 的排班表（登录用户均可查看）")
     @GetMapping("/auth/schedule/detail")
-    public Result<UserSchedule> getSchedule(@RequestParam Long id) {
-        return Result.success(userScheduleService.getSchedule(id));
+    public Result<RiicSchedule> getSchedule(@RequestParam Long id) {
+        return Result.success(riicScheduleService.getSchedule(id));
     }
 }

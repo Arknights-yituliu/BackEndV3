@@ -1,16 +1,16 @@
 package com.lhs.service.user;
 
-import com.lhs.entity.po.user.UserSchedule;
+import com.lhs.entity.po.user.RiicSchedule;
 
 import java.util.List;
 
 /**
- * 用户排班表服务
+ * 基建排班表服务
  * <p>
  * 提供排班表的保存/覆盖、列表查询、指定查询；
  * 保存要求登录状态（uid 由调用方从 UserContext 获取），并限制每用户最多 10 条
  */
-public interface UserScheduleService {
+public interface RiicScheduleService {
 
     /**
      * 保存或覆盖排班表
@@ -30,7 +30,7 @@ public interface UserScheduleService {
      * @param uid 当前登录用户 uid
      * @return 排班表列表
      */
-    List<UserSchedule> listByUid(Long uid);
+    List<RiicSchedule> listByUid(Long uid);
 
     /**
      * 查询指定 id 的排班表（不限本人，登录用户均可查看）
@@ -38,5 +38,5 @@ public interface UserScheduleService {
      * @param id 排班表 id
      * @return 排班表
      */
-    UserSchedule getSchedule(Long id);
+    RiicSchedule getSchedule(Long id);
 }

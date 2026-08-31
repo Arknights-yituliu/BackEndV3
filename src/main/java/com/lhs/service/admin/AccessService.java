@@ -40,6 +40,9 @@ public class AccessService {
     /** Top URL 数量 */
     private static final int TOP_URL_COUNT = 30;
 
+    /** 允许查询的最大时间范围（35 天），覆盖整月 31 天的边界情况 */
+    private static final long MAX_RANGE_MILLIS = 35L * 24 * 60 * 60 * 1000;
+
     private static final SimpleDateFormat HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:00");
     private static final SimpleDateFormat DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -126,7 +129,7 @@ public class AccessService {
         if (diffMillis <= 0) {
             throw new ServiceException(ResultCode.START_TIME_CANNOT_BE_GREATER_THAN_END_TIME);
         }
-        if (diffMillis > 30L * 24 * 60 * 60 * 1000) {
+        if (diffMillis > MAX_RANGE_MILLIS) {
             throw new ServiceException(ResultCode.DATE_RANGE_TOO_LARGE);
         }
 
@@ -341,7 +344,7 @@ public class AccessService {
         if (diffMillis <= 0) {
             throw new ServiceException(ResultCode.START_TIME_CANNOT_BE_GREATER_THAN_END_TIME);
         }
-        if (diffMillis > 30L * 24 * 60 * 60 * 1000) {
+        if (diffMillis > MAX_RANGE_MILLIS) {
             throw new ServiceException(ResultCode.DATE_RANGE_TOO_LARGE);
         }
 
@@ -401,7 +404,7 @@ public class AccessService {
         if (diffMillis <= 0) {
             throw new ServiceException(ResultCode.START_TIME_CANNOT_BE_GREATER_THAN_END_TIME);
         }
-        if (diffMillis > 30L * 24 * 60 * 60 * 1000) {
+        if (diffMillis > MAX_RANGE_MILLIS) {
             throw new ServiceException(ResultCode.DATE_RANGE_TOO_LARGE);
         }
 
@@ -567,7 +570,7 @@ public class AccessService {
         if (diffMillis <= 0) {
             throw new ServiceException(ResultCode.START_TIME_CANNOT_BE_GREATER_THAN_END_TIME);
         }
-        if (diffMillis > 30L * 24 * 60 * 60 * 1000) {
+        if (diffMillis > MAX_RANGE_MILLIS) {
             throw new ServiceException(ResultCode.DATE_RANGE_TOO_LARGE);
         }
 
