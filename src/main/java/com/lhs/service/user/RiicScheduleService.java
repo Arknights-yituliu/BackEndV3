@@ -39,4 +39,12 @@ public interface RiicScheduleService {
      * @return 排班表
      */
     RiicSchedule getSchedule(Long id);
+
+    /**
+     * 删除指定 id 的排班表（仅限本人）
+     *
+     * @param uid 当前登录用户 uid
+     * @param id  排班表 id
+     */
+    void deleteSchedule(Long uid, Long id);
 }

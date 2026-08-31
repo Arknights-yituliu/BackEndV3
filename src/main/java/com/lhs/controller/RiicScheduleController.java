@@ -74,4 +74,17 @@ public class RiicScheduleController {
     public Result<RiicSchedule> getSchedule(@RequestParam Long id) {
         return Result.success(riicScheduleService.getSchedule(id));
     }
+
+    /**
+     * 删除指定 id 的排班表（仅限本人）
+     *
+     * @param id 排班表 id
+     * @return 操作结果
+     */
+    @Operation(summary = "删除指定 id 的排班表（仅限本人）")
+    @DeleteMapping("/auth/schedule/delete")
+    public Result<Object> deleteSchedule(@RequestParam Long id) {
+        riicScheduleService.deleteSchedule(UserContext.getUid(), id);
+        return Result.success();
+    }
 }

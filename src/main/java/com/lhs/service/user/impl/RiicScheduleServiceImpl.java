@@ -76,4 +76,14 @@ public class RiicScheduleServiceImpl implements RiicScheduleService {
         }
         return schedule;
     }
+
+    @Override
+    public void deleteSchedule(Long uid, Long id) {
+        // 校验记录存在且属于当前用户，越权与不存在统一报错
+        RiicSchedule exist = riicScheduleMapper.selectById(id);
+        if (exist == null || !exist.getUid().equals(uid)) {
+            throw new ServiceException(ResultCode.USER_SCHEDULE_NOT_FOUND);
+        }
+        riicScheduleMapper.deleteById(id);
+    }
 }
