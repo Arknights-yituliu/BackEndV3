@@ -132,13 +132,14 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Boolean developerLevel(HttpServletRequest request) {
-        String token = request.getHeader("token");
+        String token = request.getHeader("Authorization");
         Admin admin = getAdminInfoByToken(token);
         return admin.getLevel() == 0;
 
     }
 
     private Admin getAdminInfoByToken(String token) {
+        System.out.println(token);
         if (token == null || "null".equals(token)) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }

@@ -7,6 +7,8 @@ import com.lhs.common.util.HttpRequestUtil;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.entity.vo.survey.SklandCredTokenVO;
+import com.lhs.entity.vo.survey.SklandQrCheckVO;
+import com.lhs.entity.vo.survey.SklandQrCreateVO;
 import com.lhs.service.survey.SklandHgTokenService;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,10 @@ import java.util.Map;
 
 /**
  * 鹰角官网 token 换取森空岛 cred/token 的服务实现
+ * <p>
+ * 包含两条链路：
+ * 1. hg token 直接换取：grant 换一次性 code → generate_cred_by_code 换 cred/token
+ * 2. 扫码登录：申请二维码 → 轮询扫码状态 → scanCode 换通行证 token → 走链路 1
  * <p>
  * 对应前端 src/utils/survey/skland.js 中的 getCredAndTokenByHgToken 方法
  */
@@ -26,6 +32,15 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
 
     /** code 换取 cred/token 接口 */
     private static final String GENERATE_CRED_BY_CODE_URL = "https://zonai.skland.com/web/v1/user/auth/generate_cred_by_code";
+
+    /** 申请扫码二维码接口 */
+    private static final String GEN_SCAN_LOGIN_URL = "https://as.hypergryph.com/general/v1/gen_scan/login";
+
+    /** 扫码状态查询接口 */
+    private static final String SCAN_STATUS_URL = "https://as.hypergryph.com/general/v1/scan_status";
+
+    /** 一次性 scanCode 换取通行证 token 接口 */
+    private static final String TOKEN_BY_SCAN_CODE_URL = "https://as.hypergryph.com/user/auth/v1/token_by_scan_code";
 
     /** 森空岛应用 code */
     private static final String APP_CODE = "4ca99fa6b56cc2ba";
@@ -39,12 +54,99 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
     /** 通用 UA */
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0";
 
+    /** 扫码二维码 deep link 前缀，scanUrl 缺省时用 scanId 拼接 */
+    private static final String DEEP_LINK_PREFIX = "hypergryph://scan_login?scanId=";
+
+    /**
+     * 通过鹰角官网 hg token 换取森空岛 cred 和临时 token
+     *
+     * @param hgToken 鹰角官网 token（data.content）
+     * @return 森空岛 cred 和 token
+     */
     @Override
     public SklandCredTokenVO getCredAndTokenByHgToken(String hgToken) {
         // 第一步：用 hg token 调 grant 接口换取一次性 code
         String code = grant(hgToken);
         // 第二步：用 code 换取 cred 和 token
         return generateCredByCode(code);
+    }
+
+    /**
+     * 申请扫码登录二维码
+     *
+     * @return 扫码会话（scanId + 二维码内容）
+     */
+    @Override
+    public SklandQrCreateVO createQrLogin() {
+        Map<String, Object> body = new HashMap<>();
+        body.put("appCode", APP_CODE);
+
+        JsonNode resp = postJson(GEN_SCAN_LOGIN_URL, body, buildScanHeaders());
+        if (resp.get("status") == null || resp.get("status").asInt() != 0 || resp.get("data") == null) {
+            Logger.error("森空岛申请扫码二维码失败，响应：{}", resp);
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+        }
+        JsonNode data = resp.get("data");
+        String scanId = data.get("scanId").asText();
+        // scanUrl 可能缺省，缺省时用 scanId 自行拼接 deep link
+        JsonNode scanUrlNode = data.get("scanUrl");
+        String scanUrl = scanUrlNode != null && !scanUrlNode.isNull() ? scanUrlNode.asText() : null;
+        String qrContent = (scanUrl != null && !scanUrl.isEmpty()) ? scanUrl : DEEP_LINK_PREFIX + scanId;
+
+        SklandQrCreateVO vo = new SklandQrCreateVO();
+        vo.setScanId(scanId);
+        vo.setQrContent(qrContent);
+        return vo;
+    }
+
+    /**
+     * 查询扫码状态；用户确认后自动完成换取，返回森空岛凭证
+     *
+     * @param scanId 扫码会话 ID
+     * @return 扫码状态（100/101/102 时前端继续轮询，0 时携带 cred/token）
+     */
+    @Override
+    public SklandQrCheckVO checkQrLogin(String scanId) {
+        JsonNode resp = getJson(SCAN_STATUS_URL + "?scanId=" + scanId, buildScanHeaders());
+        int status = resp.get("status") == null ? -1 : resp.get("status").asInt();
+
+        SklandQrCheckVO vo = new SklandQrCheckVO();
+        vo.setStatus(status);
+        vo.setMsg(resp.get("msg") != null ? resp.get("msg").asText() : null);
+
+        // 用户已确认，用 scanCode 换通行证 token，再换森空岛凭证
+        if (status == 0) {
+            JsonNode data = resp.get("data");
+            if (data == null || data.get("scanCode") == null) {
+                Logger.error("森空岛扫码确认成功但缺少 scanCode，响应：{}", resp);
+                throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+            }
+            String scanCode = data.get("scanCode").asText();
+            String hgToken = exchangeHgToken(scanCode);
+            SklandCredTokenVO credToken = getCredAndTokenByHgToken(hgToken);
+            vo.setCred(credToken.getCred());
+            vo.setToken(credToken.getToken());
+        }
+        return vo;
+    }
+
+    /**
+     * 用一次性 scanCode 换取鹰角通行证 token
+     *
+     * @param scanCode 确认后的一次性授权码
+     * @return 鹰角通行证 token
+     */
+    private String exchangeHgToken(String scanCode) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("scanCode", scanCode);
+
+        JsonNode resp = postJson(TOKEN_BY_SCAN_CODE_URL, body, buildScanHeaders());
+        if (resp.get("status") == null || resp.get("status").asInt() != 0
+                || resp.get("data") == null || resp.get("data").get("token") == null) {
+            Logger.error("森空岛扫码换通行证 token 失败，响应：{}", resp);
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+        }
+        return resp.get("data").get("token").asText();
     }
 
     /**
@@ -136,5 +238,33 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         return JsonMapper.parseJSONObject(responseText);
+    }
+
+    /**
+     * 发送 GET 请求并解析响应
+     *
+     * @param url     请求地址（含 query）
+     * @param headers 请求头
+     * @return 解析后的响应 JSON
+     */
+    private JsonNode getJson(String url, Map<String, String> headers) {
+        String responseText = HttpRequestUtil.get(url, headers);
+        if (responseText == null) {
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+        }
+        return JsonMapper.parseJSONObject(responseText);
+    }
+
+    /**
+     * 构建扫码接口通用请求头（参考官方前端 user.hypergryph.com）
+     *
+     * @return 请求头
+     */
+    private Map<String, String> buildScanHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        headers.put("Origin", "https://user.hypergryph.com");
+        headers.put("Referer", "https://user.hypergryph.com/");
+        return headers;
     }
 }

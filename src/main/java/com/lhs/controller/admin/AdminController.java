@@ -1,4 +1,4 @@
-package com.lhs.controller;
+package com.lhs.controller.admin;
 
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.material.PackInfoDTO;
