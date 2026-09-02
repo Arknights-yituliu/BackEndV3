@@ -47,6 +47,12 @@ public final class RedisKeyUtil {
     /** 1-7 每日上传上限计数 key：1-7_MAX_UPLOADS_PER_DAY */
     private static final String KEY_STAGE_ONE_SEVEN_DAILY_UPLOAD = "1-7_MAX_UPLOADS_PER_DAY";
 
+    /** 直连登录会话领取 IP 限流 key 前缀 */
+    private static final String PREFIX_DIRECT_SESSION_IP_RATE = "DirectSession:IP:";
+
+    /** 直连登录会话领取客户端指纹限流 key 前缀 */
+    private static final String PREFIX_DIRECT_SESSION_FINGERPRINT_RATE = "DirectSession:Fingerprint:";
+
     // ==================== 数据缓存 ====================
 
     /** 干员标签数据缓存 key：Tag:OperatorData */
@@ -172,6 +178,26 @@ public final class RedisKeyUtil {
      */
     public static String stageOneSevenDailyUpload() {
         return KEY_STAGE_ONE_SEVEN_DAILY_UPLOAD;
+    }
+
+    /**
+     * 直连登录会话领取的 IP 限流 key。
+     *
+     * @param ip 请求来源 IP
+     * @return Redis key
+     */
+    public static String directSessionIpRate(String ip) {
+        return PREFIX_DIRECT_SESSION_IP_RATE + ip;
+    }
+
+    /**
+     * 直连登录会话领取的客户端指纹限流 key。
+     *
+     * @param fingerprint UA 或设备标识生成的指纹
+     * @return Redis key
+     */
+    public static String directSessionFingerprintRate(String fingerprint) {
+        return PREFIX_DIRECT_SESSION_FINGERPRINT_RATE + fingerprint;
     }
 
     /**

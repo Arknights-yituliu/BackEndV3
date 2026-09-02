@@ -16,7 +16,7 @@ public interface DirectLoginService {
      *
      * @return 发起会话凭证及有效期
      */
-    DirectLoginSessionVO createDirectSession();
+    DirectLoginSessionVO createDirectSession(String sourceIp);
 
     /**
      * 凭一次性 ticket 兑换用户信息并建立本地会话
