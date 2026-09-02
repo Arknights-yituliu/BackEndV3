@@ -57,7 +57,7 @@ public class WarehouseInfoService {
         AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
         akPlayerBindInfoDTO.setAkUid(akUid);
         akPlayerBindInfoDTO.setWarehouseInfoId(lastDataId);
-        bindService.saveExternalAccountBindingInfoAndAKPlayerBindInfo(uid, akPlayerBindInfoDTO);
+        bindService.saveSklandBindingAndPlayerInfo(uid, akPlayerBindInfoDTO);
 
         //当前导入时间的时间戳
         long timeStamp = System.currentTimeMillis();

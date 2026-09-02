@@ -3,6 +3,7 @@ package com.lhs.service.survey;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
+import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -28,6 +29,7 @@ public interface OperatorDataService  {
 
     Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO);
 
+    Map<String, Object> importManualOperatorData(ManualOperatorDataDTO manualOperatorDataDTO);
 
     void backupOperatorProgressionData();
 

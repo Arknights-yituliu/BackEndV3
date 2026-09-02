@@ -4,6 +4,7 @@ import com.lhs.common.util.Result;
 import com.lhs.entity.vo.survey.SklandCredTokenVO;
 import com.lhs.entity.vo.survey.SklandQrCheckVO;
 import com.lhs.entity.vo.survey.SklandQrCreateVO;
+import com.lhs.service.survey.HypergryphService;
 import com.lhs.service.survey.SklandHgTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,9 +27,11 @@ import java.util.Map;
 public class SklandController {
 
     private final SklandHgTokenService sklandHgTokenService;
+    private final HypergryphService hypergryphService;
 
-    public SklandController(SklandHgTokenService sklandHgTokenService) {
+    public SklandController(SklandHgTokenService sklandHgTokenService, HypergryphService hypergryphService) {
         this.sklandHgTokenService = sklandHgTokenService;
+        this.hypergryphService = hypergryphService;
     }
 
     /**
@@ -41,6 +44,13 @@ public class SklandController {
     @PostMapping("/survey/hg/cred-token")
     public Result<SklandCredTokenVO> getCredAndTokenByHgToken(@RequestBody Map<String, String> params) {
         return Result.success(sklandHgTokenService.getCredAndTokenByHgToken(params.get("token")));
+    }
+
+    @Operation(summary = "通过鹰角网络通行证获取凭证、密匙、玩家绑定数据")
+    @PostMapping("/survey/hg/player-binding")
+    public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(
+            @RequestBody Map<String, String> params) {
+        return Result.success(hypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(params.get("token")));
     }
 
     /**

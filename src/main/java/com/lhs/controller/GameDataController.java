@@ -3,6 +3,7 @@ package com.lhs.controller;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
+import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
@@ -21,7 +22,6 @@ import java.util.Map;
 
 public class GameDataController {
     private final OperatorDataService operatorDataService;
-    private final HypergryphService HypergryphService;
 
     private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
 
@@ -30,11 +30,9 @@ public class GameDataController {
     public GameDataController(OperatorDataService operatorDataService,
             ArknightsGameDataService arknightsGameDataService,
             OperatorProgressionStatisticsService operatorProgressionStatisticsService,
-            HypergryphService HypergryphService,
             WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
-        this.HypergryphService = HypergryphService;
         this.warehouseInfoService = warehouseInfoService;
     }
 
@@ -43,14 +41,6 @@ public class GameDataController {
     public Result<Object> statistic() {
         operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
         return Result.success();
-    }
-
-    @Operation(summary = "通过鹰角网络通行证获取凭证、密匙、玩家绑定数据")
-    @PostMapping("/survey/hg/player-binding")
-    public Result<Map<String, Object>> getCredAndTokenAndPlayerBindingsByHgToken(
-            @RequestBody Map<String, String> params) {
-        String token = params.get("token");
-        return Result.success(HypergryphService.getCredAndTokenAndPlayerBindingsByHgToken(token));
     }
 
     @Operation(summary = "获取干员数据")
@@ -67,6 +57,13 @@ public class GameDataController {
             @RequestBody PlayerInfoDTO playerInfoDTO) {
 
         return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest, playerInfoDTO));
+    }
+
+    @Operation(summary = "手动导入干员练度")
+    @PostMapping("/auth/survey/operator/import/manual")
+    public Result<Map<String, Object>> importManualOperatorData(
+            @RequestBody ManualOperatorDataDTO manualOperatorDataDTO) {
+        return Result.success(operatorDataService.importManualOperatorData(manualOperatorDataDTO));
     }
 
     @Operation(summary = "通过森空岛导入仓库材料")
