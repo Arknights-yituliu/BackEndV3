@@ -40,8 +40,7 @@ public class UserController {
         // 构造 UC 授权地址
         String authorizeUrl = oAuth2ClientService.buildAuthorizeUrl(
                 authSession.get("state"), authSession.get("codeChallenge"));
-        Logger.info("【OAuth2 登录】授权引导生成完成，state=" + authSession.get("state")
-                + ", authorizeUrl=" + authorizeUrl);
+        Logger.info("【OAuth2 登录】授权引导生成完成");
         HashMap<String, Object> result = new HashMap<>();
         result.put("authorizeUrl", authorizeUrl);
         return Result.success(result);

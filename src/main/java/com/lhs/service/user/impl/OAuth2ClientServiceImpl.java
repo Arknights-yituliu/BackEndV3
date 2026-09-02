@@ -129,7 +129,7 @@ public class OAuth2ClientServiceImpl implements OAuth2ClientService {
         Result<OAuth2UserInfo> result = JsonMapper.parseObject(body, new TypeReference<Result<OAuth2UserInfo>>() {
         });
         if (result == null || result.getCode() == null || result.getCode() != 200) {
-            Logger.error("UC userinfo 调用失败：{}" + body);
+            Logger.error("UC userinfo 调用失败，响应 code={}", result == null ? null : result.getCode());
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         return result.getData();
@@ -155,7 +155,7 @@ public class OAuth2ClientServiceImpl implements OAuth2ClientService {
         Result<OAuth2TokenResponse> result = JsonMapper.parseObject(body, new TypeReference<Result<OAuth2TokenResponse>>() {
         });
         if (result == null || result.getCode() == null || result.getCode() != 200) {
-            Logger.error("UC token 交换失败：{}" + body);
+            Logger.error("UC token 交换失败，响应 code={}", result == null ? null : result.getCode());
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         return result.getData();
@@ -171,7 +171,7 @@ public class OAuth2ClientServiceImpl implements OAuth2ClientService {
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                Logger.error("UC 请求失败，状态码：{}" + response.statusCode() + "，响应：{}" + response.body());
+                Logger.error("UC 请求失败，状态码：{}", response.statusCode());
                 throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
             }
             return response.body();

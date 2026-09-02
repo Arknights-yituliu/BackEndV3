@@ -52,7 +52,7 @@ public class OAuth2CallbackController {
     public Result<LoginSessionVO> callback(@RequestParam String code,
             @RequestParam(required = false) String state,
             HttpServletResponse response) {
-        Logger.info("【OAuth2 回调】进入回调接口，code=" + code + ", state=" + state);
+        Logger.info("【OAuth2 回调】进入回调接口");
 
         // 1. 校验 state（防 CSRF）并取出 code_verifier
         String codeVerifier = oAuth2ClientService.consumeCodeVerifier(state);
@@ -61,8 +61,8 @@ public class OAuth2CallbackController {
         // 2. 授权码换令牌
         OAuth2TokenResponse tokenResponse = oAuth2ClientService.exchangeToken(code, codeVerifier);
         String accessToken = tokenResponse.getAccessToken();
-        Logger.info("【OAuth2 回调】换取令牌成功，accessToken前16位=" + maskToken(accessToken)
-                + ", 有效期=" + tokenResponse.getExpiresIn() + "秒, scope=" + tokenResponse.getScope());
+        Logger.info("【OAuth2 回调】换取令牌成功，有效期=" + tokenResponse.getExpiresIn()
+                + "秒, scope=" + tokenResponse.getScope());
 
         // 3. 获取用户信息
         OAuth2UserInfo oAuth2UserInfo = oAuth2ClientService.getUserInfo(accessToken);
@@ -73,7 +73,7 @@ public class OAuth2CallbackController {
 
         // 4. 以 UC uid 建立本地会话（资料缓存 upsert + 生成本地 Token）
         LoginSessionVO session = oAuthUserService.createSessionByOAuth2Uid(oAuth2UserInfo);
-        Logger.info("【OAuth2 回调】建立本地会话成功，本地token前16位=" + maskToken(session.getToken()));
+        Logger.info("【OAuth2 回调】建立本地会话成功，uid=" + session.getUid());
 
         // 5. 配置了前端回跳地址则 302 跳转携带 token，否则直接返回 JSON
         String frontendUrl = oAuth2Properties.getFrontendRedirectUrl();
@@ -81,7 +81,7 @@ public class OAuth2CallbackController {
             try {
                 String token = session.getToken();
                 String redirectUrl = frontendUrl + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
-                Logger.info("【OAuth2 回调】302 跳转前端，redirectUrl=" + redirectUrl);
+                Logger.info("【OAuth2 回调】302 跳转前端");
                 response.sendRedirect(redirectUrl);
                 return null;
             } catch (Exception e) {
@@ -92,19 +92,4 @@ public class OAuth2CallbackController {
         return Result.success(session);
     }
 
-    /**
-     * 脱敏 token，仅保留前 16 位，避免完整 token 落入日志
-     *
-     * @param token 待脱敏的 token
-     * @return 脱敏后的 token 文本
-     */
-    private String maskToken(String token) {
-        if (token == null || token.isEmpty()) {
-            return "null";
-        }
-        if (token.length() > 16) {
-            return token.substring(0, 16) + "***";
-        }
-        return token + "***";
-    }
 }
