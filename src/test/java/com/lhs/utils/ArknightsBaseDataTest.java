@@ -25,14 +25,14 @@ public class ArknightsBaseDataTest {
     @Test
     public void getOperatorInfoSimpleTableByGameResource() {
         GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/VCProject/ArknightsGameResource/gamedata/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/VCProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/VCProject/ak-resources/image/avatar/");
-        gameDataFormatFilePath.setJsonOutputPath("C:/VCProject/frontend-v2-plus/");
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/VCProject/ArknightsGameResource/gamedata/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/VCProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/VCProject/ak-resources/image/avatar/");
-        gameDataFormatFilePath.setJsonOutputPath("C:/VCProject/frontend-v2-plus/");
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/dev_projects/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/dev_projects/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/dev_projects/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setJsonOutputPath("C:/dev_projects/frontend-v2-plus/");
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/dev_projects/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/dev_projects/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/dev_projects/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setJsonOutputPath("C:/dev_projects/frontend-v2-plus/");
         arknightsGameDataV2Service.getOperatorInfoSimpleTableV2(gameDataFormatFilePath);
 
         arknightsGameDataService.getBuildingTableByGameResourceByTorappu(gameDataFormatFilePath);
@@ -42,10 +42,10 @@ public class ArknightsBaseDataTest {
     @Test
     public void getAvatar() {
         GameDataFormatFilePath gameDataFormatFilePath = new GameDataFormatFilePath();
-        gameDataFormatFilePath.setArknightsGameResourcePath("C:/VCProject/ArknightsGameResource/gamedata/");
-        gameDataFormatFilePath.setArknightsGameResourceAvatarPath("C:/VCProject/ArknightsGameResource/avatar/");
-        gameDataFormatFilePath.setArknightsGameDataPath("C:/VCProject/ArknightsGameData/zh_CN/gamedata/");
-        gameDataFormatFilePath.setImageOutputPath("C:/VCProject/ak-resources/image/avatar/");
+        gameDataFormatFilePath.setArknightsGameResourcePath("C:/dev_projects/ArknightsGameResource/gamedata/");
+        gameDataFormatFilePath.setArknightsGameResourceAvatarPath("C:/dev_projects/ArknightsGameResource/avatar/");
+        gameDataFormatFilePath.setArknightsGameDataPath("C:/dev_projects/ArknightsGameData/zh_CN/gamedata/");
+        gameDataFormatFilePath.setImageOutputPath("C:/dev_projects/ak-resources/image/original/avatar/");
         arknightsGameDataService.getAvatar(gameDataFormatFilePath);
     }
 

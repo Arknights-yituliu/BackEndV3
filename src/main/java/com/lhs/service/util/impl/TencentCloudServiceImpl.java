@@ -225,6 +225,10 @@ public class TencentCloudServiceImpl implements TencentCloudService {
                 continue;
             }
 
+            if(bucketPath.contains("jie-garden/")){
+                continue;
+            }
+
             if (!file.exists()) {
                 System.err.println("文件不存在: " + file.getAbsolutePath());
                 continue;
