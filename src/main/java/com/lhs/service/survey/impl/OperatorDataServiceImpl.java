@@ -140,7 +140,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         // 循环上传的干员练度
         for (OperatorProgressionDataDTO operatorProgressionDataDTO : operatorProgressionDataDTOList) {
             // 更新数据条数
-            operatorProgressionDataDTO.setOwn(true);
             checkOperatorDataValidity(operatorProgressionDataDTO);
             affectedRows++; // 新增数据条数
         }
@@ -194,7 +193,8 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             }
         }
 
-        if (!operatorProgressionDataDTO.getOwn()) {
+        // 仅明确标记为未拥有时才清零练度，避免前端未传 own（null）时误清零
+        if (Boolean.FALSE.equals(operatorProgressionDataDTO.getOwn())) {
             operatorProgressionDataDTO.setMainSkill(0);
             operatorProgressionDataDTO.setPotential(0);
             operatorProgressionDataDTO.setSkill1(0);
