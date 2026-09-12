@@ -9,12 +9,10 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.user.OAuth2UserInfo;
 import com.lhs.entity.po.user.OAuthUserInfo;
-import com.lhs.entity.po.user.TokenRecord;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.mapper.user.OAuthUserInfoMapper;
-import com.lhs.mapper.user.TokenRecordMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.util.TencentCloudService;
@@ -41,20 +39,15 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final TencentCloudService tencentCloudService;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
-    private final TokenRecordMapper tokenRecordMapper;
-    private final IdGenerator idGenerator;
 
     public OAuthUserServiceImpl(OAuthUserInfoMapper oauthUserInfoMapper,
             RedisTemplate<String, String> redisTemplate,
             TencentCloudService tencentCloudService,
-            UserExternalAccountBindingMapper userExternalAccountBindingMapper,
-            TokenRecordMapper tokenRecordMapper) {
+            UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
         this.oauthUserInfoMapper = oauthUserInfoMapper;
         this.redisTemplate = redisTemplate;
         this.tencentCloudService = tencentCloudService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
-        this.tokenRecordMapper = tokenRecordMapper;
-        this.idGenerator = new IdGenerator(1L);
     }
 
     @Override
@@ -196,8 +189,6 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     public void logout(HttpServletRequest httpServletRequest) {
         String token = extractToken(httpServletRequest);
         redisTemplate.delete(RedisKeyUtil.loginToken(token));
-        // 删除数据库中的 token 记录
-        tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>().eq(TokenRecord::getToken, token));
         Logger.info("用户token已登出撤销");
     }
 
@@ -309,7 +300,7 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     }
 
     /**
-     * 生成用户登录凭证并写入 Redis 与数据库记录
+     * 生成用户登录凭证并写入 Redis
      *
      * @param userInfo 用户信息
      * @return 登录 token
@@ -325,15 +316,6 @@ public class OAuthUserServiceImpl implements OAuthUserService {
 
         // 将 token 存入 Redis，支持登出撤销，有效期 90 天
         redisTemplate.opsForValue().set(RedisKeyUtil.loginToken(token), id.toString(), 90, TimeUnit.DAYS);
-
-        // 将 token 写入数据库记录
-        TokenRecord record = new TokenRecord();
-        record.setId(idGenerator.nextId());
-        record.setUid(id);
-        record.setToken(token);
-        record.setType("login");
-        record.setCreateTime(new Date());
-        tokenRecordMapper.insert(record);
 
         return token;
     }

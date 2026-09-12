@@ -54,6 +54,7 @@ public enum ResultCode {
 	PASS_WORD_MUST_BE_IN_CHINESE_OR_ENGLISH(20026, "密码只能由英文、数字组成"),
 	USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN(20027, "用户登录凭证解析错误或用户未登录，请进行反馈"),
 	OPEN_API_TOKEN_COUNT_EXCEEDED(20028, "第三方API Token生成数量已达上限（最多5个）"),
+	OPEN_API_TOKEN_EXPIRED(20029, "第三方API Token已过期，请重新生成"),
 
 
 
