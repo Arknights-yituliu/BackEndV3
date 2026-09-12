@@ -257,17 +257,22 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return operatorProgressionDataDTOList;
     }
 
+    /**
+     * 备份干员练度数据到腾讯云COS
+     */
     @Override
-    public void backupOperatorProgressionData() {
+    public void backupOperatorProgressionData(){
         String dayText = TimeUtil.getDayText();
         List<OperatorProgressionData> operatorProgressionDataList;
+        String lastAkUid = "";
         for (int i = 0; i < 100; i++) {
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 2000, 2000);
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(lastAkUid,2000);
             if (operatorProgressionDataList.isEmpty()) {
                 break;
             }
-            tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),
-                    "/mysql/operatorProgressionData/" + dayText + "/" + i + ".json");
+            // 记录本批最后一条的 ak_uid，作为下一批查询的游标
+            lastAkUid = operatorProgressionDataList.get(operatorProgressionDataList.size() - 1).getAkUid();
+            tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),"/mysql/operatorProgressionData/"+dayText+"/"+i+".json");
         }
     }
 

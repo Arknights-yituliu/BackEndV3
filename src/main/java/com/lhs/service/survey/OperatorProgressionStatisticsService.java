@@ -78,13 +78,17 @@ public class OperatorProgressionStatisticsService {
 
         List<OperatorProgressionData> operatorProgressionDataList;
 
+        String lastAkUid = "";
         for (int i = 0; i < 300; i++) {
 
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 1000, 1000);
+            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(lastAkUid, 1000);
 
             if (operatorProgressionDataList.isEmpty()) {
                 break;
             }
+
+            // 记录本批最后一条的 ak_uid，作为下一批查询的游标
+            lastAkUid = operatorProgressionDataList.get(operatorProgressionDataList.size() - 1).getAkUid();
 
             count += operatorProgressionDataList.size();
 
@@ -135,7 +139,7 @@ public class OperatorProgressionStatisticsService {
                 }
             }
 
-            Logger.info("当前批次数据startIndex：" + i * 1000);
+            Logger.info("当前批次数据游标：" + lastAkUid);
         }
 
         List<OperatorProgressionStatisticalResultDTO> list = new ArrayList<>();

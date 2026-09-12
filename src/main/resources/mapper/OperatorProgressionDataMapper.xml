@@ -5,10 +5,13 @@
 
 
 
+  <!-- 按主键 ak_uid 游标分页查询，避免 limit offset 深分页扫描 -->
   <select id="getOperatorProgressionData" resultType="com.lhs.entity.po.survey.OperatorProgressionData">
-      SELECT *
+      SELECT ak_uid, operator_progression, create_time
       FROM operator_progression_data
-      limit #{offset},#{rowNum};
+      WHERE ak_uid &gt; #{lastAkUid}
+      ORDER BY ak_uid
+      LIMIT #{rowNum}
   </select>
 
 

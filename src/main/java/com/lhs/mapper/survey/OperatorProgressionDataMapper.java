@@ -11,5 +11,12 @@ public interface OperatorProgressionDataMapper extends BaseMapper<OperatorProgre
 
     List<OperatorProgressionData> getOperatorProgressionDataByDate(@Param("createTime") Date createTime, @Param("offset") Integer offset);
 
-    List<OperatorProgressionData> getOperatorProgressionData(@Param("offset") Integer offset,@Param("rowNum")Integer rowNum);
+    /**
+     * 按主键 ak_uid 游标分页查询干员练度数据
+     *
+     * @param lastAkUid 上一批最后一条的 ak_uid，首次传空字符串
+     * @param rowNum    每批查询条数
+     * @return 干员练度数据列表
+     */
+    List<OperatorProgressionData> getOperatorProgressionData(@Param("lastAkUid") String lastAkUid, @Param("rowNum") Integer rowNum);
 }
