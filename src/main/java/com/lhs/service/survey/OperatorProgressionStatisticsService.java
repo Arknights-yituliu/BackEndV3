@@ -78,7 +78,7 @@ public class OperatorProgressionStatisticsService {
 
         List<OperatorProgressionData> operatorProgressionDataList;
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 300; i++) {
 
             operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 1000, 1000);
 
