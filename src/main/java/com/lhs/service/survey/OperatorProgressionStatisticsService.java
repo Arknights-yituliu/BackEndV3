@@ -51,6 +51,15 @@ public class OperatorProgressionStatisticsService {
     }
 
 
+    /**
+     * 统计干员练度数据（V2）
+     * <p>
+     * 以 ak_uid 游标分页全量遍历 operator_progression_data，按记录上传时间过滤出有效样本，
+     * 汇总各干员的拥有数、有效样本数以及精英化/技能/模组的分布，
+     * 最终以 JSON 形式写入 id 为 20260101 的统计数据记录（存在则更新）
+     *
+     * @param archived 归档标记，当前实现未使用
+     */
     public void statisticsOperatorProgressionDataV2(Boolean archived) {
         Logger.info("干员练度数据统计任务开始执行");
         HashMap<String, Date> operatorUpdateTime = new HashMap<>();
@@ -68,8 +77,12 @@ public class OperatorProgressionStatisticsService {
             operatorUpdateTime.put(key, date);
         }
 
+        // 各干员的有效样本数：key 为干员 charId，value 为上传时间不早于该干员更新时间的记录数
         HashMap<String, Integer> sampleSizeMap = new HashMap<>();
 
+        // 收集所有记录的创建时间（毫秒时间戳），循环结束后统一排序并用二分统计样本数。
+        // 这样避免在每条记录上遍历全部干员，把复杂度从 O(记录数 × 干员数) 降到 O(N log N + 干员数 log N)
+        List<Long> createTimeList = new ArrayList<>();
 
         //干员练度统计数据统计结果
         Map<String, OperatorProgressionStatisticalResultDTO> collect = new HashMap<>();
@@ -78,16 +91,18 @@ public class OperatorProgressionStatisticsService {
 
         List<OperatorProgressionData> operatorProgressionDataList;
 
+        // 游标分页的起始游标：ak_uid 均为非空字符串，空串可匹配到第一条记录
         String lastAkUid = "";
         for (int i = 0; i < 300; i++) {
 
+            // 按 ak_uid 升序游标分页读取，每批最多 1000 条，避免 limit offset 深分页逐页扫描
             operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(lastAkUid, 1000);
 
             if (operatorProgressionDataList.isEmpty()) {
                 break;
             }
 
-            // 记录本批最后一条的 ak_uid，作为下一批查询的游标
+            // 以本批最后一条的 ak_uid 作为下一批的游标，保证遍历不重不漏（依赖 ak_uid 为主键、唯一）
             lastAkUid = operatorProgressionDataList.get(operatorProgressionDataList.size() - 1).getAkUid();
 
             count += operatorProgressionDataList.size();
@@ -96,18 +111,12 @@ public class OperatorProgressionStatisticsService {
             //循环统计干员练度
             for (OperatorProgressionData operatorProgressionData : operatorProgressionDataList) {
                 Date createTime = operatorProgressionData.getCreateTime();
+                // 记录本次上传时间，循环结束后统一统计各干员的有效样本数（见下方二分统计）
+                createTimeList.add(createTime.getTime());
                 String operatorProgression = operatorProgressionData.getOperatorProgression();
                 //将json文本转为集合
                 List<OperatorProgressionDataDTO> dataDTOList = JsonMapper.parseJSONArray(operatorProgression, new TypeReference<>() {
                 });
-
-
-                for (String charId : operatorUpdateTime.keySet()) {
-                    Date updateTime = operatorUpdateTime.get(charId);
-                    if (updateTime != null && createTime.compareTo(updateTime) >= 0) {
-                        sampleSizeMap.merge(charId, 1, Integer::sum);
-                    }
-                }
 
 
                 //循环每个账号的干员练度
@@ -142,6 +151,30 @@ public class OperatorProgressionStatisticsService {
             Logger.info("当前批次数据游标：" + lastAkUid);
         }
 
+        // 统计各干员的有效样本数：effectiveSample(charId) = 上传时间不早于该干员更新时间的记录数。
+        // 原实现是"每条记录遍历全部干员累加"，这里做等价变形为"对每个干员统计满足条件的记录数"：
+        // 先把所有记录的创建时间升序排序，再用二分定位第一个不早于干员更新时间的记录，
+        // 其后的记录数量即为该干员的有效样本数，结果与原实现完全一致
+        long[] createTimeArray = new long[createTimeList.size()];
+        for (int i = 0; i < createTimeArray.length; i++) {
+            createTimeArray[i] = createTimeList.get(i);
+        }
+        Arrays.sort(createTimeArray);
+        for (Map.Entry<String, Date> entry : operatorUpdateTime.entrySet()) {
+            Date updateTime = entry.getValue();
+            // 干员更新时间缺失时跳过，不参与样本统计
+            if (updateTime == null) {
+                continue;
+            }
+            // 二分定位第一个创建时间不早于干员更新时间的记录下标
+            int index = lowerBound(createTimeArray, updateTime.getTime());
+            // 下标及其后的记录均计入样本；index 等于数组长度表示无记录满足条件，
+            // 此时不写入 map，保持原有逻辑（后续按总记录数 count 兜底）
+            if (index < createTimeArray.length) {
+                sampleSizeMap.put(entry.getKey(), createTimeArray.length - index);
+            }
+        }
+
         List<OperatorProgressionStatisticalResultDTO> list = new ArrayList<>();
         for (OperatorProgressionStatisticalResultDTO dto : collect.values()) {
             Integer i = sampleSizeMap.get(dto.getCharId());
@@ -169,6 +202,31 @@ public class OperatorProgressionStatisticsService {
 
         Logger.info("本次统计干员练度的抽样人数为：" + count + "人次");
 
+    }
+
+
+    /**
+     * 二分查找第一个大于等于目标值的位置（下界）
+     * <p>
+     * 用于统计"上传时间不早于干员更新时间"的记录数：返回下标 index 后，
+     * 区间 [index, array.length) 内的元素均满足条件，数量为 array.length - index
+     *
+     * @param array  已按升序排列的数组
+     * @param target 目标值
+     * @return 第一个大于等于目标值的下标，若所有元素都小于目标值则返回数组长度
+     */
+    private static int lowerBound(long[] array, long target) {
+        int low = 0;
+        int high = array.length;
+        while (low < high) {
+            int mid = (low + high) >>> 1;
+            if (array[mid] < target) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+        return low;
     }
 
 
