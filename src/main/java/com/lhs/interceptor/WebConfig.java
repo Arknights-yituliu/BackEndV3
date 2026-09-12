@@ -1,5 +1,6 @@
 package com.lhs.interceptor;
 
+import com.lhs.service.admin.AdminService;
 import com.lhs.service.user.OAuthUserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,9 +15,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final OAuthUserService oAuthUserService;
 
-    public WebConfig(RedisTemplate<String, Object> redisTemplate, OAuthUserService oAuthUserService) {
+    private final AdminService adminService;
+
+    public WebConfig(RedisTemplate<String, Object> redisTemplate, OAuthUserService oAuthUserService,
+                     AdminService adminService) {
         this.redisTemplate = redisTemplate;
         this.oAuthUserService = oAuthUserService;
+        this.adminService = adminService;
     }
 
     /**
@@ -26,7 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 
-        registry.addInterceptor(new AdminInterceptor(redisTemplate,oAuthUserService))
+        registry.addInterceptor(new AdminInterceptor(adminService))
                 .addPathPatterns("/admin/**"); //拦截
 //                .excludePathPatterns(); //放行
 

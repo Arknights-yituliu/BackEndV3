@@ -45,9 +45,10 @@ public class DirectLoginServiceImpl implements DirectLoginService {
     }
 
     @Override
-    public DirectLoginSessionVO createDirectSession() {
+    public DirectLoginSessionVO createDirectSession(String sourceIp) {
         String form = "client_id=" + encode(oauth2Properties.getClientId())
-                + "&client_secret=" + encode(oauth2Properties.getClientSecret());
+                + "&client_secret=" + encode(oauth2Properties.getClientSecret())
+                + "&source_ip=" + encode(sourceIp);
         String body = sendForm("/oauth2/direct-session", form);
         Result<DirectLoginSessionVO> result = JsonMapper.parseObject(body,
                 new TypeReference<Result<DirectLoginSessionVO>>() {

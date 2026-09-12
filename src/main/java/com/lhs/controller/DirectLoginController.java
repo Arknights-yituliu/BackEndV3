@@ -1,11 +1,17 @@
 package com.lhs.controller;
 
+import com.lhs.common.enums.ResultCode;
+import com.lhs.common.util.IpUtil;
+import com.lhs.common.util.RedisKeyUtil;
+import com.lhs.common.util.RedisRateLimiter;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.DirectLoginSessionVO;
 import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.service.user.DirectLoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,10 +30,16 @@ import java.util.Map;
 @Tag(name = "直连登录")
 public class DirectLoginController {
 
-    private final DirectLoginService directLoginService;
+    private static final long DIRECT_SESSION_IP_LIMIT = 20;
+    private static final long DIRECT_SESSION_FINGERPRINT_LIMIT = 8;
+    private static final long DIRECT_SESSION_RATE_WINDOW_SECONDS = 60;
 
-    public DirectLoginController(DirectLoginService directLoginService) {
+    private final DirectLoginService directLoginService;
+    private final RedisTemplate<String, String> redisTemplate;
+
+    public DirectLoginController(DirectLoginService directLoginService, RedisTemplate<String, String> redisTemplate) {
         this.directLoginService = directLoginService;
+        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -37,8 +49,13 @@ public class DirectLoginController {
      */
     @Operation(summary = "直连登录-发起会话，返回 channel")
     @GetMapping("/direct-session")
-    public Result<DirectLoginSessionVO> createDirectSession() {
-        return Result.success(directLoginService.createDirectSession());
+    public Result<DirectLoginSessionVO> createDirectSession(HttpServletRequest request) {
+        String sourceIp = IpUtil.getIpAddress(request);
+        RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.directSessionIpRate(sourceIp),
+                DIRECT_SESSION_IP_LIMIT, DIRECT_SESSION_RATE_WINDOW_SECONDS, ResultCode.EXCESSIVE_IP_ACCESS_TIMES);
+        RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.directSessionFingerprintRate(resolveClientFingerprint(request)),
+                DIRECT_SESSION_FINGERPRINT_LIMIT, DIRECT_SESSION_RATE_WINDOW_SECONDS, ResultCode.EXCESSIVE_IP_ACCESS_TIMES);
+        return Result.success(directLoginService.createDirectSession(sourceIp));
     }
 
     /**
@@ -51,5 +68,14 @@ public class DirectLoginController {
     @PostMapping("/complete-login")
     public Result<LoginSessionVO> completeLogin(@RequestBody Map<String, String> body) {
         return Result.success(directLoginService.completeLogin(body.get("ticket")));
+    }
+
+    private String resolveClientFingerprint(HttpServletRequest request) {
+        String deviceId = request.getHeader("X-Device-Id");
+        String source = deviceId == null || deviceId.isBlank() ? request.getHeader("User-Agent") : deviceId;
+        if (source == null || source.isBlank()) {
+            source = "unknown";
+        }
+        return Integer.toUnsignedString(source.hashCode(), 16);
     }
 }

@@ -34,12 +34,12 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
 
     @Override
     public void saveOperatorDataTag(String tag) {
-        redisTemplate.opsForValue().set("Tag:OperatorData", tag);
+        redisTemplate.opsForValue().set(RedisKeyUtil.operatorDataTag(), tag);
     }
 
     @Override
     public String getOperatorDataTag() {
-        Object value = redisTemplate.opsForValue().get("Tag:OperatorData");
+        Object value = redisTemplate.opsForValue().get(RedisKeyUtil.operatorDataTag());
         if (value == null) {
             return "114514";
         }

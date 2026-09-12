@@ -6,7 +6,6 @@ import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
-import com.lhs.entity.vo.survey.SklandCredTokenVO;
 import com.lhs.service.survey.*;
 import com.lhs.service.util.ArknightsGameDataService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,19 +27,15 @@ public class GameDataController {
 
     private final WarehouseInfoService warehouseInfoService;
 
-    private final SklandHgTokenService sklandHgTokenService;
-
     public GameDataController(OperatorDataService operatorDataService,
             ArknightsGameDataService arknightsGameDataService,
             OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             HypergryphService HypergryphService,
-            WarehouseInfoService warehouseInfoService,
-            SklandHgTokenService sklandHgTokenService) {
+            WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
         this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.HypergryphService = HypergryphService;
         this.warehouseInfoService = warehouseInfoService;
-        this.sklandHgTokenService = sklandHgTokenService;
     }
 
     @Operation(summary = "手动统计")
@@ -72,12 +67,6 @@ public class GameDataController {
             @RequestBody PlayerInfoDTO playerInfoDTO) {
 
         return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest, playerInfoDTO));
-    }
-
-    @Operation(summary = "通过鹰角官网 token 换取森空岛 cred 和 token")
-    @PostMapping("/survey/hg/cred-token")
-    public Result<SklandCredTokenVO> getCredAndTokenByHgToken(@RequestBody Map<String, String> params) {
-        return Result.success(sklandHgTokenService.getCredAndTokenByHgToken(params.get("token")));
     }
 
     @Operation(summary = "通过森空岛导入仓库材料")

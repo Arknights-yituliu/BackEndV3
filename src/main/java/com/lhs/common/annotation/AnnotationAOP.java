@@ -1,7 +1,5 @@
 package com.lhs.common.annotation;
 
-import com.lhs.common.enums.ResultCode;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -49,52 +47,6 @@ public class AnnotationAOP {
         startTime.remove();
     }
 
-    @Around("@annotation(rateLimiter)")
-    public Object rateLimiter(ProceedingJoinPoint joinPoint, RateLimiter rateLimiter) throws Throwable {
-
-        //获取方法的参数列表
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        Object[] args = joinPoint.getArgs();
-
-        //限流的窗口时间
-        int time = rateLimiter.time();
-        //窗口时间内的最大次数
-        int maximumTimes = rateLimiter.MaximumTimes();
-        //限流的key前缀，后面可能根据参数拼接
-        String keyPrefix = rateLimiter.key();
-
-        // 假设只有一个参数，且该参数是自定义实体类
-
-        String keyField = rateLimiter.keyField();
-
-        return joinPoint.proceed();
-
-    }
-
-    private void RedisLimiter(String key, Integer time, Integer maximumTimes) {
-        Boolean hasKey = redisTemplate.hasKey(key);
-        Long expireTime = redisTemplate.getExpire(key, TimeUnit.SECONDS);
-        if (hasKey == null || !hasKey || expireTime == null || expireTime <= 0) {
-            redisTemplate.expire(key, time, TimeUnit.SECONDS);
-        }
-        // 增加访问计数，原子操作以确保并发安全
-
-        Long count = redisTemplate.opsForValue().increment(key);
-        if (count == null) {
-            return;
-        }
-        if (count < maximumTimes) {
-            return;
-        }
-
-        throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
-
-
-    }
-
-
-    //扫描所有添加了@RedisCacheable注解的方法
     @Around("@annotation(redisCacheable)")
     public Object redisCacheable(ProceedingJoinPoint joinPoint, RedisCacheable redisCacheable) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();

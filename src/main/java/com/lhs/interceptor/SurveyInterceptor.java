@@ -1,9 +1,10 @@
 package com.lhs.interceptor;
 
 import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.lhs.common.exception.ServiceException;
 import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.util.IpUtil;
+import com.lhs.common.util.RedisKeyUtil;
+import com.lhs.common.util.RedisRateLimiter;
 import com.lhs.common.enums.ResultCode;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -11,7 +12,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.concurrent.TimeUnit;
 
 public class SurveyInterceptor implements HandlerInterceptor {
 
@@ -27,14 +27,8 @@ public class SurveyInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         String ipAddress = AES.encrypt(IpUtil.getIpAddress(request), ConfigUtil.Secret);
-        Object cache = redisTemplate.opsForValue().get("IP:"+ipAddress);
-        if(cache==null) {
-            redisTemplate.opsForValue().set("IP:"+ipAddress, 1, 60, TimeUnit.SECONDS);
-            return  true;
-        }
-        int times = Integer.parseInt(String.valueOf(cache));
-        if(times>5) throw new ServiceException(ResultCode.EXCESSIVE_IP_ACCESS_TIMES);
-        redisTemplate.opsForValue().increment("IP:"+ipAddress);
+        // 60 秒窗口内同一 IP 最多访问 6 次，超限拒绝（与原有语义一致：第 7 次起拒绝）
+        RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.ipRate(ipAddress), 6, 60, ResultCode.EXCESSIVE_IP_ACCESS_TIMES);
         return true;
     }
 

@@ -6,6 +6,7 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
+import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.entity.dto.user.OpenApiTokenDataDTO;
 import com.lhs.entity.po.user.TokenRecord;
 import com.lhs.entity.vo.survey.UserInfoVO;
@@ -68,7 +69,7 @@ public class OpenApiServiceImpl implements OpenApiService {
         tokenData.put("scope", scopeCodes);
         tokenData.put("createTime", System.currentTimeMillis());
 
-        redisTemplate.opsForValue().set("open-api-token:" + token, JsonMapper.toJSONString(tokenData));
+        redisTemplate.opsForValue().set(RedisKeyUtil.openApiToken(token), JsonMapper.toJSONString(tokenData));
 
         // 将token写入数据库记录
         TokenRecord record = new TokenRecord();
@@ -92,7 +93,7 @@ public class OpenApiServiceImpl implements OpenApiService {
         }
 
         // 从Redis读取并解析token数据
-        String tokenDataJson = redisTemplate.opsForValue().get("open-api-token:" + token);
+        String tokenDataJson = redisTemplate.opsForValue().get(RedisKeyUtil.openApiToken(token));
         if (tokenDataJson == null) {
             throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
         }
@@ -113,7 +114,7 @@ public class OpenApiServiceImpl implements OpenApiService {
     @Override
     public void deleteOpenApiToken( String token) {
         Long uid = UserContext.getUid();
-        redisTemplate.delete("open-api-token:" + token);
+        redisTemplate.delete(RedisKeyUtil.openApiToken(token));
         // 删除数据库中的token记录
         tokenRecordMapper.delete(new LambdaQueryWrapper<TokenRecord>()
                 .eq(TokenRecord::getToken, token));
