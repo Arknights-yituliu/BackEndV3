@@ -14,6 +14,7 @@ import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.mapper.user.OAuthUserInfoMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
+import com.lhs.service.user.UcTokenMigrateService;
 import com.lhs.service.user.UserSessionService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,15 +40,18 @@ public class UserSessionServiceImpl implements UserSessionService {
     private final RedisTemplate<String, String> redisTemplate;
     private final TencentCloudService tencentCloudService;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
+    private final UcTokenMigrateService ucTokenMigrateService;
 
     public UserSessionServiceImpl(OAuthUserInfoMapper oauthUserInfoMapper,
             RedisTemplate<String, String> redisTemplate,
             TencentCloudService tencentCloudService,
-            UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
+            UserExternalAccountBindingMapper userExternalAccountBindingMapper,
+            UcTokenMigrateService ucTokenMigrateService) {
         this.oauthUserInfoMapper = oauthUserInfoMapper;
         this.redisTemplate = redisTemplate;
         this.tencentCloudService = tencentCloudService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
+        this.ucTokenMigrateService = ucTokenMigrateService;
     }
 
     @Override
@@ -166,6 +170,12 @@ public class UserSessionServiceImpl implements UserSessionService {
     @Override
     public void logout(HttpServletRequest httpServletRequest) {
         String token = extractToken(httpServletRequest);
+        // 先按自签 token 反查 uid（登出后 loginToken 即被删除，必须先取）
+        String uidStr = redisTemplate.opsForValue().get(RedisKeyUtil.loginToken(token));
+        // 双撤：先撤销 UC 侧授权（含刷新能力），再删本地会话；缺一即留下仍可用的凭据
+        if (uidStr != null) {
+            ucTokenMigrateService.revokeByUid(Long.parseLong(uidStr));
+        }
         redisTemplate.delete(RedisKeyUtil.loginToken(token));
         Logger.info("用户token已登出撤销");
     }
@@ -231,11 +241,20 @@ public class UserSessionServiceImpl implements UserSessionService {
             oauthUserInfoMapper.updateById(userInfo);
         }
 
-        // 生成本地会话 Token
+        // 生成本地会话 Token（兼作 UC 令牌的刷新凭据，长期保留、不随迁移清理）
         String token = tokenGenerator(userInfo);
+
+        // 接住 UC 一并签发的令牌：refresh_token 落服务端 uid 维度缓存用于刷新，access_token 随本响应回带前端
+        ucTokenMigrateService.saveIssuedToken(ucUid, directLoginUserVO.getAccessToken(),
+                directLoginUserVO.getRefreshToken(), directLoginUserVO.getExpiresIn(),
+                directLoginUserVO.getScope());
+
         LoginSessionVO session = new LoginSessionVO();
         session.setToken(token);
         session.setUid(ucUid);
+        session.setUcAccessToken(directLoginUserVO.getAccessToken());
+        session.setUcTokenExpiresIn(directLoginUserVO.getExpiresIn());
+        session.setUcTokenScope(directLoginUserVO.getScope());
         return session;
     }
 

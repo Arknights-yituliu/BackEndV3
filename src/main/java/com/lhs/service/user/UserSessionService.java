@@ -57,6 +57,7 @@ public interface UserSessionService {
      */
     LoginSessionVO createSession(DirectLoginUserVO directLoginUserVO);
 
+
     /**
      * 修改当前登录用户的昵称
      *
