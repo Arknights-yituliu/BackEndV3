@@ -55,8 +55,8 @@ public class spriteTest {
         // 格式化为字符串
         String todayStr = today.format(formatter);
         String spriteFilename = "skills"+todayStr+".png";
-        String inputDir = "C:\\VCProject\\ArknightsGameResource\\skill\\";     // 图片输入目录
-        String outputDir = "C:\\VCProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
+        String inputDir = "C:\\dev_projects\\ArknightsGameResource\\skill\\";     // 图片输入目录
+        String outputDir = "C:\\dev_projects\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         String cssFilename = "sprite_skill.css";
 
         SpriteInfo spriteInfo = new SpriteInfo();
@@ -74,8 +74,8 @@ public class spriteTest {
     @Test
     void avatarSpriteGenerator() {
 
-        String inputDir = "C:\\VCProject\\ak-resources\\image\\original\\avatar\\";     // 图片输入目录
-        String outputDir = "C:\\VCProject\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
+        String inputDir = "C:\\dev_projects\\ak-resources\\image\\original\\avatar\\";     // 图片输入目录
+        String outputDir = "C:\\dev_projects\\frontend-v2-plus\\src\\assets\\css\\sprite\\";    // 输出目录
         // 获取当前日期
         LocalDateTime now = LocalDateTime.now();
 

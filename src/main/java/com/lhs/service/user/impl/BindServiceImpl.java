@@ -44,14 +44,10 @@ public class BindServiceImpl implements BindService {
     }
 
     @Override
-    public void saveExternalAccountBindingInfoAndAKPlayerBindInfo(Long uid,
-            AkPlayerBindInfoDTO akPlayerBindInfoDTO) {
+    public void saveSklandBindingAndPlayerInfo(Long uid, AkPlayerBindInfoDTO akPlayerBindInfoDTO) {
         UserExternalAccountBinding userExternalAccountBinding = new UserExternalAccountBinding();
-        userExternalAccountBinding.setId(idGenerator.nextId());
-
         userExternalAccountBinding.setUid(uid);
         userExternalAccountBinding.setAkUid(akPlayerBindInfoDTO.getAkUid());
-
         saveUserExternalAccountBinding(userExternalAccountBinding);
 
         AkPlayerBindInfo akPlayerBindInfo = new AkPlayerBindInfo();
@@ -63,6 +59,7 @@ public class BindServiceImpl implements BindService {
      * 保存或更新用户外部账号绑定信息
      */
     private void saveUserExternalAccountBinding(UserExternalAccountBinding userExternalAccountBinding) {
+        // 同一用户和游戏账号只保留一条绑定记录，重复导入时更新时间。
         LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserExternalAccountBinding::getAkUid, userExternalAccountBinding.getAkUid())
                 .eq(UserExternalAccountBinding::getUid, userExternalAccountBinding.getUid());

@@ -10,9 +10,8 @@ import java.util.List;
 public interface OpenApiService {
 
     /**
-     * 生成第三方API访问token，支持多权限范围，token存储在Redis中，30天过期
+     * 生成第三方API访问token，支持多权限范围，token存储在Redis中，180天过期
      *
-
      * @param scopeCodes         token权限 code 列表，如 [10001] 或 [10001, 10002]
      * @param remark             备注
      * @return API访问token
@@ -37,10 +36,9 @@ public interface OpenApiService {
     void deleteOpenApiToken( String token);
 
     /**
-     * 获取当前用户生成的所有第三方API token
+     * 获取当前用户生成的所有未过期的第三方API token
      *
-
-     * @return token列表，每项包含 token、scope、createTime
+     * @return token列表，每项包含 token、scope、remark、createTime
      */
     List<java.util.Map<String, Object>> listUserTokens();
 }
