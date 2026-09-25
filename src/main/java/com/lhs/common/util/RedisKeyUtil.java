@@ -15,9 +15,6 @@ public final class RedisKeyUtil {
     /** 用户登录 token → uid 的映射 key 前缀：loginToken:{token} */
     private static final String PREFIX_LOGIN_TOKEN = "loginToken:";
 
-    /** OAuth2 授权 state → code_verifier 缓存 key 前缀：oauth2:auth:state:{state} */
-    private static final String PREFIX_OAUTH2_STATE = "oauth2:auth:state:";
-
     /** OpenAPI 访问令牌数据 key 前缀：open-api-token:{token} */
     private static final String PREFIX_OPEN_API_TOKEN = "open-api-token:";
 
@@ -89,16 +86,6 @@ public final class RedisKeyUtil {
      */
     public static String loginToken(String token) {
         return PREFIX_LOGIN_TOKEN + token;
-    }
-
-    /**
-     * OAuth2 授权 state 缓存 key（存放 code_verifier）
-     *
-     * @param state 授权 state
-     * @return Redis key
-     */
-    public static String oauth2State(String state) {
-        return PREFIX_OAUTH2_STATE + state;
     }
 
     /**

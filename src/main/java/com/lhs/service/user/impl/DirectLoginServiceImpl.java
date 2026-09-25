@@ -9,10 +9,9 @@ import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
 import com.lhs.entity.dto.user.DirectLoginSessionVO;
 import com.lhs.entity.dto.user.DirectLoginUserVO;
-import com.lhs.entity.dto.user.OAuth2UserInfo;
 import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.service.user.DirectLoginService;
-import com.lhs.service.user.OAuthUserService;
+import com.lhs.service.user.UserSessionService;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -27,18 +26,18 @@ import java.time.Duration;
  * UC 直连登录接入服务实现（方案 B：保持旧系统登录页）
  * <p>
  * 调用 UC /oauth2/direct-session 发起会话、/oauth2/direct-user 兑换用户信息，
- * 兑换成功后复用 OAuthUserService 建立本地会话（资料缓存 upsert + 生成本地 Token）
+ * 兑换成功后复用 UserSessionService 建立本地会话（资料缓存 upsert + 生成本地 Token）
  */
 @Service
 public class DirectLoginServiceImpl implements DirectLoginService {
 
     private final OAuth2Properties oauth2Properties;
-    private final OAuthUserService oAuthUserService;
+    private final UserSessionService userSessionService;
     private final HttpClient httpClient;
 
-    public DirectLoginServiceImpl(OAuth2Properties oauth2Properties, OAuthUserService oAuthUserService) {
+    public DirectLoginServiceImpl(OAuth2Properties oauth2Properties, UserSessionService userSessionService) {
         this.oauth2Properties = oauth2Properties;
-        this.oAuthUserService = oAuthUserService;
+        this.userSessionService = userSessionService;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
@@ -80,13 +79,8 @@ public class DirectLoginServiceImpl implements DirectLoginService {
             throw new ServiceException(ResultCode.USER_FORBIDDEN);
         }
 
-        // 转为 OAuth2UserInfo 复用本地会话建立逻辑（资料缓存 + 生成本地 Token）
-        OAuth2UserInfo oAuth2UserInfo = new OAuth2UserInfo();
-        oAuth2UserInfo.setUid(ucUser.getUid());
-        oAuth2UserInfo.setNickname(ucUser.getNickname());
-        oAuth2UserInfo.setAvatar(ucUser.getAvatar());
-        oAuth2UserInfo.setEmail(ucUser.getEmail());
-        return oAuthUserService.createSessionByOAuth2Uid(oAuth2UserInfo);
+        // 复用本地会话建立逻辑（资料缓存 + 生成本地 Token）
+        return userSessionService.createSession(ucUser);
     }
 
     /**

@@ -11,7 +11,6 @@ import com.lhs.entity.dto.user.OpenApiTokenDataDTO;
 import com.lhs.entity.po.user.TokenRecord;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.mapper.user.TokenRecordMapper;
-import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.user.OpenApiService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,14 +43,12 @@ public class OpenApiServiceImpl implements OpenApiService {
     private static final long TOKEN_COUNT_LIMIT = 5L;
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final OAuthUserService oAuthUserService;
     private final TokenRecordMapper tokenRecordMapper;
     private final IdGenerator idGenerator;
 
-    public OpenApiServiceImpl(RedisTemplate<String, String> redisTemplate, OAuthUserService oAuthUserService,
+    public OpenApiServiceImpl(RedisTemplate<String, String> redisTemplate,
                               TokenRecordMapper tokenRecordMapper) {
         this.redisTemplate = redisTemplate;
-        this.oAuthUserService = oAuthUserService;
         this.tokenRecordMapper = tokenRecordMapper;
         this.idGenerator = new IdGenerator(1L);
     }

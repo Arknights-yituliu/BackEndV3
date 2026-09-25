@@ -10,7 +10,6 @@ import com.lhs.mapper.survey.WarehouseInfoMapper;
 import com.lhs.mapper.survey.service.WarehouseInfoMapperService;
 import com.lhs.mapper.user.AkPlayerBindInfoMapper;
 import com.lhs.service.user.BindService;
-import com.lhs.service.user.OAuthUserService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

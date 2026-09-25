@@ -7,14 +7,14 @@ import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.*;
-import com.lhs.entity.dto.user.OAuth2UserInfo;
+import com.lhs.entity.dto.user.DirectLoginUserVO;
 import com.lhs.entity.po.user.OAuthUserInfo;
 import com.lhs.entity.po.user.UserExternalAccountBinding;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.mapper.user.OAuthUserInfoMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
-import com.lhs.service.user.OAuthUserService;
+import com.lhs.service.user.UserSessionService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,20 +27,20 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * OAuth2 用户中心接入后的用户服务实现
+ * 用户会话服务实现
  * <p>
  * 用户中心迁移后本地不再自建账号，本实现以 UC uid 为准维护本地资料缓存表，
  * 并承载登录态校验、用户信息查询、登出等仍被业务使用的用户逻辑
  */
 @Service
-public class OAuthUserServiceImpl implements OAuthUserService {
+public class UserSessionServiceImpl implements UserSessionService {
 
     private final OAuthUserInfoMapper oauthUserInfoMapper;
     private final RedisTemplate<String, String> redisTemplate;
     private final TencentCloudService tencentCloudService;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
-    public OAuthUserServiceImpl(OAuthUserInfoMapper oauthUserInfoMapper,
+    public UserSessionServiceImpl(OAuthUserInfoMapper oauthUserInfoMapper,
             RedisTemplate<String, String> redisTemplate,
             TencentCloudService tencentCloudService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
@@ -59,13 +59,6 @@ public class OAuthUserServiceImpl implements OAuthUserService {
         }
 
         throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-    }
-
-    @Override
-    public Boolean checkUserLoginStatus(HttpServletRequest httpServletRequest) {
-        String header = httpServletRequest.getHeader("Authorization");
-
-        return header != null && header.startsWith("Authorization") && header.length() > 30;
     }
 
     @Override
@@ -121,21 +114,6 @@ public class OAuthUserServiceImpl implements OAuthUserService {
 
         return userInfoVO;
     }
-
-    @Override
-    public UserInfoVO getUserInfoVO() {
-        // 从线程上下文获取当前登录用户资料（/auth/** 拦截器已写入）
-        OAuthUserInfo userInfo = UserContext.getUserInfo();
-        if (userInfo == null) {
-            // 上下文为空说明未登录或未经过拦截器，按未登录处理
-            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
-        }
-        // 复用私有组装逻辑（含方舟绑定信息与邮箱状态）
-        return getUserInfoVO(userInfo);
-    }
-
-
-
 
     /**
      * 判断字符串是否为超过 8 位的纯数字（用于区分临时 uid）
@@ -219,9 +197,9 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     }
 
     @Override
-    public LoginSessionVO createSessionByOAuth2Uid(OAuth2UserInfo oAuth2UserInfo) {
+    public LoginSessionVO createSession(DirectLoginUserVO directLoginUserVO) {
         // UC uid 是本地会话的唯一标识
-        Long ucUid = oAuth2UserInfo.getUid();
+        Long ucUid = directLoginUserVO.getUid();
         if (ucUid == null) {
             throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
         }
@@ -234,9 +212,9 @@ public class OAuthUserServiceImpl implements OAuthUserService {
             // 首次通过 UC 登录：插入资料缓存，id 即 UC uid
             userInfo = new OAuthUserInfo();
             userInfo.setId(ucUid);
-            userInfo.setNickname(resolveOAuth2Nickname(oAuth2UserInfo));
-            userInfo.setAvatar(resolveOAuth2Avatar(oAuth2UserInfo));
-            userInfo.setEmail(oAuth2UserInfo.getEmail());
+            userInfo.setNickname(resolveNickname(directLoginUserVO));
+            userInfo.setAvatar(resolveAvatar(directLoginUserVO));
+            userInfo.setEmail(directLoginUserVO.getEmail());
             userInfo.setStatus(1);
             userInfo.setCreateTime(now);
             userInfo.setUpdateTime(now);
@@ -244,10 +222,10 @@ public class OAuthUserServiceImpl implements OAuthUserService {
             oauthUserInfoMapper.insert(userInfo);
         } else {
             // 已存在：刷新资料缓存（资料以 UC 为准）
-            userInfo.setNickname(resolveOAuth2Nickname(oAuth2UserInfo));
-            userInfo.setAvatar(resolveOAuth2Avatar(oAuth2UserInfo));
-            if (oAuth2UserInfo.getEmail() != null) {
-                userInfo.setEmail(oAuth2UserInfo.getEmail());
+            userInfo.setNickname(resolveNickname(directLoginUserVO));
+            userInfo.setAvatar(resolveAvatar(directLoginUserVO));
+            if (directLoginUserVO.getEmail() != null) {
+                userInfo.setEmail(directLoginUserVO.getEmail());
             }
             userInfo.setUpdateTime(now);
             oauthUserInfoMapper.updateById(userInfo);
@@ -264,13 +242,13 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     /**
      * 解析昵称（UC 未返回昵称时兜底为"博士+uid"）
      *
-     * @param oAuth2UserInfo UC 用户信息
+     * @param directLoginUserVO UC 用户信息
      * @return 昵称
      */
-    private String resolveOAuth2Nickname(OAuth2UserInfo oAuth2UserInfo) {
-        String nickname = oAuth2UserInfo.getNickname();
+    private String resolveNickname(DirectLoginUserVO directLoginUserVO) {
+        String nickname = directLoginUserVO.getNickname();
         if (!checkParamsValidity(nickname)) {
-            return "博士" + oAuth2UserInfo.getUid();
+            return "博士" + directLoginUserVO.getUid();
         }
         return nickname;
     }
@@ -278,11 +256,11 @@ public class OAuthUserServiceImpl implements OAuthUserService {
     /**
      * 解析头像（UC 未返回时兜底为默认头像）
      *
-     * @param oAuth2UserInfo UC 用户信息
+     * @param directLoginUserVO UC 用户信息
      * @return 头像
      */
-    private String resolveOAuth2Avatar(OAuth2UserInfo oAuth2UserInfo) {
-        String avatar = oAuth2UserInfo.getAvatar();
+    private String resolveAvatar(DirectLoginUserVO directLoginUserVO) {
+        String avatar = directLoginUserVO.getAvatar();
         if (!checkParamsValidity(avatar)) {
             return "char_377_gdglow";
         }

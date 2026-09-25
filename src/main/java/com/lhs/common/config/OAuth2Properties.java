@@ -4,9 +4,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * 统一用户中心 OAuth2 接入配置
+ * 统一用户中心接入配置
  * <p>
- * 对应 application-test.yml 中 user-center.oauth 配置项
+ * 对应 application-test.yml 中 user-center.oauth 配置项。
+ * 授权码流程已下线，仅保留直连登录所需的 UC 地址与客户端凭证
  */
 @Component
 @ConfigurationProperties(prefix = "user-center.oauth")
@@ -20,18 +21,6 @@ public class OAuth2Properties {
 
     /** 客户端密钥（明文，仅服务端持有，入库为 BCrypt） */
     private String clientSecret;
-
-    /** 授权回调地址，必须与 UC 登记白名单精确匹配 */
-    private String redirectUri;
-
-    /** 授权范围，如 user.read */
-    private String scope;
-
-    /** UC 登录页地址，未登录时兜底跳转 */
-    private String loginPageUrl;
-
-    /** 授权成功后的前端回跳地址（可选）；配置后回调接口将 302 跳转并携带 token，未配置则返回 JSON */
-    private String frontendRedirectUrl;
 
     public String getBaseUrl() {
         return baseUrl;
@@ -55,37 +44,5 @@ public class OAuth2Properties {
 
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
-    }
-
-    public String getRedirectUri() {
-        return redirectUri;
-    }
-
-    public void setRedirectUri(String redirectUri) {
-        this.redirectUri = redirectUri;
-    }
-
-    public String getScope() {
-        return scope;
-    }
-
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
-    public String getLoginPageUrl() {
-        return loginPageUrl;
-    }
-
-    public void setLoginPageUrl(String loginPageUrl) {
-        this.loginPageUrl = loginPageUrl;
-    }
-
-    public String getFrontendRedirectUrl() {
-        return frontendRedirectUrl;
-    }
-
-    public void setFrontendRedirectUrl(String frontendRedirectUrl) {
-        this.frontendRedirectUrl = frontendRedirectUrl;
     }
 }

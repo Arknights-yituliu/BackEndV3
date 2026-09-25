@@ -3,7 +3,7 @@ package com.lhs.interceptor;
 import com.lhs.common.context.UserContext;
 import com.lhs.common.util.Logger;
 import com.lhs.entity.po.user.OAuthUserInfo;
-import com.lhs.service.user.OAuthUserService;
+import com.lhs.service.user.UserSessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -13,10 +13,10 @@ import org.springframework.web.servlet.ModelAndView;
 
 public class UserInterceptor implements HandlerInterceptor {
 
-    private final OAuthUserService oAuthUserService;
+    private final UserSessionService userSessionService;
 
-    public UserInterceptor(OAuthUserService oAuthUserService) {
-        this.oAuthUserService = oAuthUserService;
+    public UserInterceptor(UserSessionService userSessionService) {
+        this.userSessionService = userSessionService;
     }
 
     /**
@@ -38,10 +38,10 @@ public class UserInterceptor implements HandlerInterceptor {
         }
 
         // 解析 token，无合法 token 时抛 USER_NOT_LOGIN（由全局异常处理器兜底）
-        String token = oAuthUserService.extractToken(request);
+        String token = userSessionService.extractToken(request);
 
         // 校验登录态并加载用户信息（Redis 校验 + 资料缓存表查询）
-        OAuthUserInfo userInfo = oAuthUserService.getUserInfoPOByToken(token);
+        OAuthUserInfo userInfo = userSessionService.getUserInfoPOByToken(token);
 
         // 将当前登录用户上下文写入线程级容器，供 Controller/Service 直接取用
         UserContext.set(userInfo.getId(), token, userInfo);
