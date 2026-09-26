@@ -311,8 +311,8 @@ public class UserSessionServiceImpl implements UserSessionService {
         long timeStamp = System.currentTimeMillis();
         String token = AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
 
-        // 将 token 存入 Redis，支持登出撤销，有效期 90 天
-        redisTemplate.opsForValue().set(RedisKeyUtil.loginToken(token), id.toString(), 90, TimeUnit.DAYS);
+        // 将 token 存入 Redis，支持登出撤销，有效期 180 天
+        redisTemplate.opsForValue().set(RedisKeyUtil.loginToken(token), id.toString(), 180, TimeUnit.DAYS);
 
         return token;
     }

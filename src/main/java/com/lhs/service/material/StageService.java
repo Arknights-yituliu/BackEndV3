@@ -89,7 +89,7 @@ public class StageService {
 
         tencentCloudService.uploadCOS(responseAuto,"/arknights/stage-drop/matrix.json");
         // 仅刷新刚上传的单个文件，避免刷新整个目录
-        tencentCloudService.CDNRefreshUrls(Collections.singletonList("https://cos.yituliu.cn/arknights/stage-drop/matrix.json"));
+//        tencentCloudService.CDNRefreshUrls(Collections.singletonList("https://cos.yituliu.cn/arknights/stage-drop/matrix.json"));
 
     }
 

@@ -15,11 +15,11 @@ public final class RedisKeyUtil {
     /** 用户登录 token → uid 的映射 key 前缀：loginToken:{token} */
     private static final String PREFIX_LOGIN_TOKEN = "loginToken:";
 
-    /** 迁移兑换结果缓存 key 前缀：uc:migrate:issued:{uid}，同时承载服务端代持的 refresh_token */
-    private static final String PREFIX_UC_MIGRATE_ISSUED = "uc:migrate:issued:";
+    /** UC 令牌对缓存 key 前缀：uc:token:{uid}，同时承载服务端代持的 refresh_token */
+    private static final String PREFIX_UC_TOKEN = "uc:token:";
 
-    /** 迁移兑换并发去重短锁 key 前缀：uc:migrate:lock:{uid} */
-    private static final String PREFIX_UC_MIGRATE_LOCK = "uc:migrate:lock:";
+    /** UC 兑换并发去重短锁 key 前缀：uc:lock:{uid} */
+    private static final String PREFIX_UC_LOCK = "uc:lock:";
 
     /** OpenAPI 访问令牌数据 key 前缀：open-api-token:{token} */
     private static final String PREFIX_OPEN_API_TOKEN = "open-api-token:";
@@ -95,7 +95,7 @@ public final class RedisKeyUtil {
     }
 
     /**
-     * 迁移兑换结果缓存 key
+     * UC 令牌对缓存 key（正常登录与追加兑换共用）
      * <p>
      * 必须是 uid 维度：UC 侧同一 (uid, clientId) 上恒定只保留一条迁移凭证，
      * 每次兑换都会撤销上一轮凭证；若按自签 token 分片，同一用户多设备会各兑换一次
@@ -104,18 +104,18 @@ public final class RedisKeyUtil {
      * @param uid 用户 uid
      * @return Redis key
      */
-    public static String ucMigrateIssued(Long uid) {
-        return PREFIX_UC_MIGRATE_ISSUED + uid;
+    public static String ucToken(Long uid) {
+        return PREFIX_UC_TOKEN + uid;
     }
 
     /**
-     * 迁移兑换并发去重短锁 key（uid 维度，避免多标签页同时触发放大 UC 请求量）
+     * UC 兑换并发去重短锁 key（uid 维度，避免多标签页同时触发放大 UC 请求量）
      *
      * @param uid 用户 uid
      * @return Redis key
      */
-    public static String ucMigrateLock(Long uid) {
-        return PREFIX_UC_MIGRATE_LOCK + uid;
+    public static String ucLock(Long uid) {
+        return PREFIX_UC_LOCK + uid;
     }
 
     /**

@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>自签 token 是 BackEndV3 的会话权威（鉴权只查本地 loginToken，不校验 UC 令牌），
  * 本服务只负责为用户额外取得一份 UC 授权，使前端可直连 UC 接口：</p>
  * <ul>
- *   <li>按需兑换（B4）：兑换结果按 <b>uid 维度</b>缓存到 {@code uc:migrate:issued:{uid}}，
+ *   <li>按需兑换（B4）：兑换结果按 <b>uid 维度</b>缓存到 {@code uc:token:{uid}}，
  *       同一用户全程只兑换一次，既避免重复兑换击穿 UC 侧 5/分钟限流，
  *       也对齐 UC 侧「(uid, client_id) 上恒一条迁移凭证」的幂等模型——
  *       若按自签 token 分片，多设备会各兑换一次并互相撤销，旧设备刷新即掉登录；</li>
@@ -39,7 +39,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UcTokenMigrateService {
 
     /**
-     * 兑换缓存有效期（天）：与本地 loginToken 的 90 天一致，覆盖 UC refresh_token 生命周期
+     * 兑换缓存有效期（天）：对齐 UC refresh_token 的 90 天生命周期，
+     * 可早于本地 loginToken（180 天）过期；到期后下次调用按需重新兑换
      */
     private static final long ISSUED_CACHE_TTL_DAYS = 90L;
 
@@ -208,7 +209,7 @@ public class UcTokenMigrateService {
                 return cached;
             }
 
-            String lockKey = RedisKeyUtil.ucMigrateLock(uid);
+            String lockKey = RedisKeyUtil.ucLock(uid);
             Boolean locked = redisTemplate.opsForValue()
                     .setIfAbsent(lockKey, "1", LOCK_TTL_SECONDS, TimeUnit.SECONDS);
             if (!Boolean.TRUE.equals(locked)) {
@@ -252,7 +253,7 @@ public class UcTokenMigrateService {
      * @return UC 令牌对；未缓存或解析失败返回 null
      */
     private UcTokenVO readIssuedCache(Long uid) {
-        String json = redisTemplate.opsForValue().get(RedisKeyUtil.ucMigrateIssued(uid));
+        String json = redisTemplate.opsForValue().get(RedisKeyUtil.ucToken(uid));
         if (json == null || json.isBlank()) {
             return null;
         }
@@ -271,7 +272,7 @@ public class UcTokenMigrateService {
         if (json == null) {
             return;
         }
-        redisTemplate.opsForValue().set(RedisKeyUtil.ucMigrateIssued(uid),
+        redisTemplate.opsForValue().set(RedisKeyUtil.ucToken(uid),
                 json, ISSUED_CACHE_TTL_DAYS, TimeUnit.DAYS);
     }
 
@@ -281,6 +282,6 @@ public class UcTokenMigrateService {
      * @param uid 用户 uid
      */
     private void clearIssuedCache(Long uid) {
-        redisTemplate.delete(RedisKeyUtil.ucMigrateIssued(uid));
+        redisTemplate.delete(RedisKeyUtil.ucToken(uid));
     }
 }
