@@ -98,7 +98,29 @@ public class UcTokenMigrateService {
     }
 
     /**
-     * 刷新 UC access_token（前端调 UC 接口遇 401 时使用）
+     * 获取用户当前可用的 UC 令牌对（缓存优先，未命中时按需兑换）
+     *
+     * <p>与 {@link #issueByUid} 的差别在于缓存命中时<b>不受迁移开关约束</b>：
+     * 直连登录链路（{@link #saveIssuedToken}）下发的令牌同样落在该缓存，
+     * 开关关闭时也应可复用；只有缓存确实没有令牌时才回落到按需兑换。</p>
+     *
+     * @param uid 当前登录用户 uid
+     * @return UC 令牌对
+     * @throws ServiceException 未登录、兑换开关关闭或兑换失败
+     */
+    public UcTokenVO getOrIssueToken(Long uid) {
+        if (uid == null) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        UcTokenVO cached = readIssuedCache(uid);
+        if (cached != null && cached.getAccessToken() != null && !cached.getAccessToken().isBlank()) {
+            return cached;
+        }
+        return issueByUid(uid, null);
+    }
+
+    /**
+     * 刷新 UC access_token（前端调 UC 接口遇令牌失效时使用）
      *
      * <p>刷新凭据是服务端代持的 refresh_token，与 UC access_token 是否有效无关，
      * 因此不会出现「access 过期即无法刷新」的断链。UC 返回 90009（凭证已失效）

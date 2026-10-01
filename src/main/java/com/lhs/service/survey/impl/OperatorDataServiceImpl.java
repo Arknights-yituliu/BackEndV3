@@ -7,6 +7,7 @@ import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
+import com.lhs.common.exception.UcApiException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
@@ -14,6 +15,10 @@ import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.dto.user.OpenApiPermission;
+import com.lhs.entity.dto.user.UcAkAccountVO;
+import com.lhs.entity.dto.user.UcOperatorListVO;
+import com.lhs.entity.dto.user.UcOperatorVO;
+import com.lhs.entity.dto.user.UcTokenVO;
 import com.lhs.entity.po.survey.*;
 
 import com.lhs.entity.po.user.UserExternalAccountBinding;
@@ -26,6 +31,8 @@ import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.BindService;
 
 import com.lhs.service.user.OpenApiService;
+import com.lhs.service.user.UcGameDataClient;
+import com.lhs.service.user.UcTokenMigrateService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -53,13 +60,18 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final TencentCloudService tencentCloudService;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
+    private final UcGameDataClient ucGameDataClient;
+    private final UcTokenMigrateService ucTokenMigrateService;
+
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
             OpenApiService openApiService, BindService bindService,
             OperatorProgressionDataMapper operatorProgressionDataMapper,
             OperatorProgressionManualDataMapper operatorProgressionManualDataMapper,
             WarehouseInfoService warehouseInfoService,
             TencentCloudService tencentCloudService,
-            UserExternalAccountBindingMapper userExternalAccountBindingMapper) {
+            UserExternalAccountBindingMapper userExternalAccountBindingMapper,
+            UcGameDataClient ucGameDataClient,
+            UcTokenMigrateService ucTokenMigrateService) {
         this.redisTemplate = redisTemplate;
       
         this.openApiService = openApiService;
@@ -68,6 +80,8 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         this.operatorProgressionManualDataMapper = operatorProgressionManualDataMapper;
         this.tencentCloudService = tencentCloudService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
+        this.ucGameDataClient = ucGameDataClient;
+        this.ucTokenMigrateService = ucTokenMigrateService;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -358,32 +372,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         return saveOperatorData(akUid, operatorDataList);
     }
 
-    private List<OperatorProgressionDataDTO> getOperatorDataByUid(Long uid) {
-        // 查询用户绑定的方舟uid
-        LambdaQueryWrapper<UserExternalAccountBinding> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserExternalAccountBinding::getUid, uid)
-                .orderByDesc(UserExternalAccountBinding::getUpdateTime);
-        List<UserExternalAccountBinding> bindings = userExternalAccountBindingMapper.selectList(queryWrapper);
-
-        if (bindings.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        String akUid = bindings.get(0).getAkUid();
-
-        // 查询干员数据
-        LambdaQueryWrapper<OperatorProgressionData> dataQueryWrapper = new LambdaQueryWrapper<>();
-        dataQueryWrapper.eq(OperatorProgressionData::getAkUid, akUid);
-        OperatorProgressionData operatorProgressionData = operatorProgressionDataMapper.selectOne(dataQueryWrapper);
-
-        if (operatorProgressionData == null) {
-            return new ArrayList<>();
-        }
-
-        return JsonMapper.parseJSONArray(operatorProgressionData.getOperatorProgression(), new TypeReference<>() {
-        });
-    }
-
     @Override
     public Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest,
             PlayerInfoDTO playerInfoDTO) {
@@ -396,11 +384,83 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     public List<OperatorProgressionDataV2DTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
         String token = httpServletRequest.getHeader("Authorization");
         Long uid = openApiService.validateOpenApiToken(token, OpenApiPermission.operatorDataReadAccess.getCode());
-        List<OperatorProgressionDataDTO> rawDataList = getOperatorDataByUid(uid);
+
+        // 数据源为酸橙云用户后端：游戏账号绑定关系与干员正文均以 UC 侧为准
+        List<UcOperatorVO> ucOperatorList = fetchUcOperatorList(uid);
 
         // 使用启动时缓存的character_table数据进行转换
         Map<String, JsonNode> characterTableMap = getCharacterTable();
-        return transformToV2DTO(rawDataList, characterTableMap);
+        return transformToV2DTO(toProgressionDataList(ucOperatorList), characterTableMap);
+    }
+
+    /**
+     * 从 UC 读取用户干员数据（令牌失效时刷新一次并重试）
+     *
+     * @param uid 当前 open-api 令牌对应的用户 uid
+     * @return UC 侧返回的干员列表；用户未绑定游戏账号时为空列表
+     */
+    private List<UcOperatorVO> fetchUcOperatorList(Long uid) {
+        UcTokenVO ucToken = ucTokenMigrateService.getOrIssueToken(uid);
+        try {
+            return listUcOperators(ucToken.getAccessToken());
+        } catch (UcApiException e) {
+            if (e.getUcCode() == null || e.getUcCode() != UcGameDataClient.UC_CODE_TOKEN_INVALID) {
+                throw e;
+            }
+            // access_token 已失效：用服务端代持的 refresh_token 刷新后重试一次
+            UcTokenVO refreshed = ucTokenMigrateService.refreshByUid(uid);
+            return listUcOperators(refreshed.getAccessToken());
+        }
+    }
+
+    /**
+     * 取用户最近导入数据的游戏账号，并读取该账号的干员全量数据
+     *
+     * @param accessToken UC access_token
+     * @return 干员列表；未绑定账号或无干员数据时为空列表
+     */
+    private List<UcOperatorVO> listUcOperators(String accessToken) {
+        // UC 侧按更新时间倒序返回绑定账号，取首条即最近导入的账号
+        List<UcAkAccountVO> accounts = ucGameDataClient.listAkAccounts(accessToken);
+        if (accounts == null || accounts.isEmpty()) {
+            return new ArrayList<>();
+        }
+        UcOperatorListVO operatorList = ucGameDataClient.listOperators(accessToken, accounts.get(0).getAkUid());
+        if (operatorList == null || operatorList.getItems() == null) {
+            return new ArrayList<>();
+        }
+        return operatorList.getItems();
+    }
+
+    /**
+     * 将 UC 干员数据映射为本地练度数据结构，以复用角色表富化逻辑
+     *
+     * @param ucOperatorList UC 侧干员列表
+     * @return 本地练度数据列表
+     */
+    private List<OperatorProgressionDataDTO> toProgressionDataList(List<UcOperatorVO> ucOperatorList) {
+        List<OperatorProgressionDataDTO> resultList = new ArrayList<>(ucOperatorList.size());
+        for (UcOperatorVO source : ucOperatorList) {
+            OperatorProgressionDataDTO dto = new OperatorProgressionDataDTO();
+            dto.setCharId(source.getId());
+            // UC 返回的均为该账号已持有的干员，own 恒为 true
+            dto.setOwn(true);
+            dto.setRarity(source.getRarity());
+            dto.setLevel(source.getLevel());
+            dto.setElite(source.getEvolvePhase());
+            dto.setMainSkill(source.getMainSkillLevel());
+            dto.setSkill1(source.getSkill1());
+            dto.setSkill2(source.getSkill2());
+            dto.setSkill3(source.getSkill3());
+            dto.setModX(source.getEquipX());
+            dto.setModY(source.getEquipY());
+            dto.setModD(source.getEquipD());
+            dto.setModA(source.getEquipA());
+            dto.setModB(source.getEquipB());
+            dto.setPotential(source.getPotentialRank());
+            resultList.add(dto);
+        }
+        return resultList;
     }
 
     /**
