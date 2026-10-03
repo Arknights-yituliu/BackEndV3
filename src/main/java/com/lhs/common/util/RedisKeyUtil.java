@@ -70,8 +70,8 @@ public final class RedisKeyUtil {
     /** 活动商店缓存 key：Item:ActStoreInfo（供 @RedisCacheable 注解引用） */
     public static final String ACT_STORE_INFO_KEY = "Item:ActStoreInfo";
 
-    /** 干员表数据缓存 key 前缀：CharacterTable:{version} */
-    private static final String PREFIX_CHARACTER_TABLE = "CharacterTable:";
+    /** 干员表数据缓存 key：CharacterTable（供 @RedisCacheable 注解引用） */
+    public static final String CHARACTER_TABLE_KEY = "CharacterTable";
 
     /** 公招统计时间 key：LastRecruitStatisticsTime */
     private static final String KEY_LAST_RECRUIT_STATISTICS_TIME = "LastRecruitStatisticsTime";
@@ -251,16 +251,6 @@ public final class RedisKeyUtil {
      */
     public static String actStoreInfo() {
         return ACT_STORE_INFO_KEY;
-    }
-
-    /**
-     * 干员表数据缓存 key
-     *
-     * @param version 干员表版本（如 2026-07-08 14:20）
-     * @return Redis key
-     */
-    public static String characterTable(String version) {
-        return PREFIX_CHARACTER_TABLE + version;
     }
 
     /**

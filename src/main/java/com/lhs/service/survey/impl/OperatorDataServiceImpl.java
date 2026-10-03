@@ -2,13 +2,12 @@ package com.lhs.service.survey.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.exception.UcApiException;
 import com.lhs.common.util.*;
+import com.lhs.entity.dto.survey.CharacterTableOperatorDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
@@ -33,6 +32,7 @@ import com.lhs.service.user.BindService;
 import com.lhs.service.user.OpenApiService;
 import com.lhs.service.user.UcGameDataClient;
 import com.lhs.service.user.UcTokenMigrateService;
+import com.lhs.service.util.CharacterTableService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -47,8 +47,8 @@ import java.util.concurrent.TimeUnit;
 public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CharacterTableService characterTableService;
 
-    
     private final OpenApiService openApiService;
     private final BindService bindService;
 
@@ -71,9 +71,11 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             TencentCloudService tencentCloudService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
             UcGameDataClient ucGameDataClient,
-            UcTokenMigrateService ucTokenMigrateService) {
+            UcTokenMigrateService ucTokenMigrateService,
+            CharacterTableService characterTableService) {
         this.redisTemplate = redisTemplate;
-      
+        this.characterTableService = characterTableService;
+
         this.openApiService = openApiService;
         this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
@@ -83,40 +85,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         this.ucGameDataClient = ucGameDataClient;
         this.ucTokenMigrateService = ucTokenMigrateService;
         this.idGenerator = new IdGenerator(1L);
-    }
-
-    /**
-     * 获取干员角色表（初次读取时从文件系统加载并缓存到Redis，后续从Redis读取）
-     *
-     * @return 干员角色表，key为charId，value为干员详情JsonNode
-     */
-    private Map<String, JsonNode> getCharacterTable() {
-        // 尝试从Redis获取缓存的JSON字符串
-        Object cached = redisTemplate.opsForValue().get(RedisKeyUtil.characterTable("2026-07-08 14:20"));
-        String jsonText;
-        if (cached != null) {
-            jsonText = cached.toString();
-        } else {
-            // 初次读取，从文件系统加载并缓存到Redis
-            jsonText = FileUtil.read(ConfigUtil.DataFilePath + "character_table_simple.v2.json");
-            if (jsonText == null) {
-                return new HashMap<>();
-            }
-            redisTemplate.opsForValue().set(RedisKeyUtil.characterTable("2026-07-08 14:20"), jsonText);
-            Logger.info("character_table_simple.v2.json 已加载并缓存到Redis");
-        }
-
-        // 解析JSON为Map
-        Map<String, JsonNode> resultMap = new HashMap<>();
-        JsonNode root = JsonMapper.parseJSONObject(jsonText);
-        if (root != null) {
-            Iterator<Map.Entry<String, JsonNode>> fields = root.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> entry = fields.next();
-                resultMap.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return resultMap;
     }
 
     @Override
@@ -389,7 +357,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         List<UcOperatorVO> ucOperatorList = fetchUcOperatorList(uid);
 
         // 使用启动时缓存的character_table数据进行转换
-        Map<String, JsonNode> characterTableMap = getCharacterTable();
+        Map<String, CharacterTableOperatorDTO> characterTableMap = characterTableService.getCharacterTable();
         return transformToV2DTO(toProgressionDataList(ucOperatorList), characterTableMap);
     }
 
@@ -471,7 +439,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
      */
     private List<OperatorProgressionDataV2DTO> transformToV2DTO(
             List<OperatorProgressionDataDTO> rawDataList,
-            Map<String, JsonNode> characterTableMap) {
+            Map<String, CharacterTableOperatorDTO> characterTableMap) {
 
         List<OperatorProgressionDataV2DTO> resultList = new ArrayList<>();
 
@@ -484,7 +452,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             dto.setPotentialRank(raw.getPotential());
 
             // 从缓存的角色表中获取该干员的技能和模组信息
-            JsonNode charData = characterTableMap.get(raw.getCharId());
+            CharacterTableOperatorDTO charData = characterTableMap.get(raw.getCharId());
             if (charData != null) {
                 dto.setSkills(buildSkillList(charData, raw));
                 dto.setEquips(buildEquipList(charData, raw));
@@ -502,25 +470,24 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     /**
      * 构建技能列表（skillId + 练度等级），只包含干员实际拥有的技能数量
      *
-     * @param charData 角色表中缓存的干员JsonNode数据
+     * @param charData 角色表中缓存的干员数据
      * @param raw      原始练度数据
      * @return 技能信息列表
      */
     private List<OperatorProgressionDataV2DTO.SkillInfo> buildSkillList(
-            JsonNode charData, OperatorProgressionDataDTO raw) {
+            CharacterTableOperatorDTO charData, OperatorProgressionDataDTO raw) {
 
         List<OperatorProgressionDataV2DTO.SkillInfo> skillList = new ArrayList<>();
-        JsonNode skillsNode = charData.get("skills");
-        if (skillsNode == null || !skillsNode.isArray()) {
+        List<CharacterTableOperatorDTO.Skill> skills = charData.getSkills();
+        if (skills == null || skills.isEmpty()) {
             return skillList;
         }
 
         // 将DB中的skill1、skill2、skill3按顺序映射
         Integer[] skillLevels = { raw.getSkill1(), raw.getSkill2(), raw.getSkill3() };
 
-        for (int i = 0; i < skillsNode.size(); i++) {
-            JsonNode skillNode = skillsNode.get(i);
-            String skillId = skillNode.has("skillId") ? skillNode.get("skillId").asText() : null;
+        for (int i = 0; i < skills.size(); i++) {
+            String skillId = skills.get(i).getSkillId();
             Integer level = (i < skillLevels.length && skillLevels[i] != null) ? skillLevels[i] : 0;
             skillList.add(new OperatorProgressionDataV2DTO.SkillInfo(skillId, level));
         }
@@ -531,24 +498,24 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     /**
      * 构建模组列表（模组ID + 类型 + 等级），仅包含角色表中存在的模组分支
      *
-     * @param charData 角色表中缓存的干员JsonNode数据
+     * @param charData 角色表中缓存的干员数据
      * @param raw      原始练度数据
      * @return 模组信息列表
      */
     private List<OperatorProgressionDataV2DTO.EquipInfo> buildEquipList(
-            JsonNode charData, OperatorProgressionDataDTO raw) {
+            CharacterTableOperatorDTO charData, OperatorProgressionDataDTO raw) {
 
         List<OperatorProgressionDataV2DTO.EquipInfo> equipList = new ArrayList<>();
-        JsonNode equipsNode = charData.get("equip");
-        if (equipsNode == null || !equipsNode.isArray()) {
+        List<CharacterTableOperatorDTO.Equip> equips = charData.getEquip();
+        if (equips == null || equips.isEmpty()) {
             return equipList;
         }
 
         // 构建typeName2→uniEquipId的映射
         Map<String, String> typeToEquipId = new LinkedHashMap<>();
-        for (JsonNode equip : equipsNode) {
-            String typeName2 = equip.has("typeName2") ? equip.get("typeName2").asText() : null;
-            String uniEquipId = equip.has("uniEquipId") ? equip.get("uniEquipId").asText() : null;
+        for (CharacterTableOperatorDTO.Equip equip : equips) {
+            String typeName2 = equip.getTypeName2();
+            String uniEquipId = equip.getUniEquipId();
             if (typeName2 != null && uniEquipId != null) {
                 typeToEquipId.put(typeName2, uniEquipId);
             }
