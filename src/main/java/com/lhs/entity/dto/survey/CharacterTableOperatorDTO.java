@@ -13,11 +13,22 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CharacterTableOperatorDTO {
 
+    /** 干员中文名称 */
+    private String name;
+
     /** 干员技能列表 */
     private List<Skill> skills;
 
     /** 干员模组列表 */
     private List<Equip> equip;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public List<Skill> getSkills() {
         return skills;

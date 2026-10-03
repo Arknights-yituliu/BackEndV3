@@ -70,8 +70,8 @@ public final class RedisKeyUtil {
     /** 活动商店缓存 key：Item:ActStoreInfo（供 @RedisCacheable 注解引用） */
     public static final String ACT_STORE_INFO_KEY = "Item:ActStoreInfo";
 
-    /** 干员表数据缓存 key：CharacterTable（供 @RedisCacheable 注解引用） */
-    public static final String CHARACTER_TABLE_KEY = "CharacterTable";
+    /** 干员表数据缓存 key：CharacterTable:v1（供 @RedisCacheable 注解引用，缓存结构变更时递增版本号） */
+    public static final String CHARACTER_TABLE_KEY = "CharacterTable:v1";
 
     /** 公招统计时间 key：LastRecruitStatisticsTime */
     private static final String KEY_LAST_RECRUIT_STATISTICS_TIME = "LastRecruitStatisticsTime";

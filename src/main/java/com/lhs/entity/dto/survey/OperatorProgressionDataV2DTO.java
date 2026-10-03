@@ -13,6 +13,11 @@ public class OperatorProgressionDataV2DTO {
     private String id;
 
     /**
+     * 干员中文名称
+     */
+    private String name;
+
+    /**
      * 干员等级
      */
     private Integer level;
@@ -48,6 +53,14 @@ public class OperatorProgressionDataV2DTO {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Integer getLevel() {

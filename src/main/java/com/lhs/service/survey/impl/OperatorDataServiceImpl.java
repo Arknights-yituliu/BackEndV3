@@ -451,9 +451,10 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             dto.setMainSkillLevel(raw.getMainSkill());
             dto.setPotentialRank(raw.getPotential());
 
-            // 从缓存的角色表中获取该干员的技能和模组信息
+            // 从缓存的角色表中获取该干员的名称、技能和模组信息
             CharacterTableOperatorDTO charData = characterTableMap.get(raw.getCharId());
             if (charData != null) {
+                dto.setName(charData.getName());
                 dto.setSkills(buildSkillList(charData, raw));
                 dto.setEquips(buildEquipList(charData, raw));
             } else {
