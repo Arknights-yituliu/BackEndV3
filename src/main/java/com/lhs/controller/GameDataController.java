@@ -8,7 +8,7 @@ import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
 import com.lhs.service.survey.*;
-import com.lhs.service.util.ArknightsGameDataService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,6 @@ public class GameDataController {
     private final WarehouseInfoService warehouseInfoService;
 
     public GameDataController(OperatorDataService operatorDataService,
-            ArknightsGameDataService arknightsGameDataService,
             OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
