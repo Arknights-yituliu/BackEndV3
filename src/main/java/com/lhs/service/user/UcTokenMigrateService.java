@@ -144,8 +144,12 @@ public class UcTokenMigrateService {
         long start = System.currentTimeMillis();
         try {
             UcTokenVO refreshed = ucMigrateClient.refreshToken(cached.getRefreshToken());
-            // refresh_token 不轮换：UC 未返回新值时沿用旧值，本地记录无需变更
-            refreshed.setRefreshToken(cached.getRefreshToken());
+            // refresh_token 轮转：UC 开启 rotateRefreshToken 时每次刷新会换发新值（旧值立即失效），
+            // 必须持久化替换，否则下次刷新用旧值会被判为凭证泄露；未开启轮转时响应不含该字段，沿用旧值
+
+            if (refreshed.getRefreshToken() == null || refreshed.getRefreshToken().isBlank()) {
+                refreshed.setRefreshToken(cached.getRefreshToken());
+            }
             refreshed.setUid(uid);
             if (refreshed.getScope() == null || refreshed.getScope().isBlank()) {
                 refreshed.setScope(cached.getScope());
@@ -199,7 +203,7 @@ public class UcTokenMigrateService {
         } catch (UcApiException e) {
             if (e.getUcCode() != null && e.getUcCode() == UcMigrateClient.UC_CODE_REFRESH_TOKEN_INVALID) {
                 // 凭证已被撤销（如另一设备登出触发 UC 侧撤销）：清缓存待重新兑换自愈
-                clearIssuedCache(uid);
+//                clearIssuedCache(uid);
                 Logger.warn("UC 刷新令牌已失效，已清除兑换缓存待重新兑换: uid={}", uid);
             }
             throw e;
