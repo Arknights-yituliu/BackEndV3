@@ -44,6 +44,9 @@ public class UcMigrateClient {
     /** 迁移兑换端点路径：纳入签名原文，须与 UC 侧逐字节一致 */
     private static final String MIGRATE_PATH = "/oauth2/internal/migrate-token";
 
+    /** 刷新令牌直签端点路径：用 refresh_token 换取指定有效期的新 access_token */
+    private static final String FROM_REFRESH_PATH = "/oauth2/token/from-refresh";
+
     /** 迁移兑换端点 HTTP 方法：纳入签名原文，防止签名被挪用到其他端点 */
     private static final String MIGRATE_METHOD = "POST";
 
@@ -137,6 +140,41 @@ public class UcMigrateClient {
         UcTokenVO token = result.getData();
         if (token == null || token.getAccessToken() == null) {
             Logger.warn("UC 令牌刷新返回数据不完整，缺少 access_token");
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+        }
+        return token;
+    }
+
+    /**
+     * 用 refresh_token 直签指定有效期的 access_token（UC /oauth2/token/from-refresh）
+     *
+     * <p>与 {@link #refreshToken} 的区别：本端点不需要 client_secret，凭证即 refresh_token 本身，
+     * 且有效期由调用方指定；凭证不消费、不轮转，refresh_token 调用后依然有效。
+     * 该签发只在 request 的 name 下于 UC 侧 oauth_custom_token 表落一条记录，不返回新 refresh_token。</p>
+     *
+     * @param refreshToken 服务端代持的刷新令牌（认证凭证）
+     * @param expiresIn    期望的 access_token 有效期（秒），必须大于 0
+     * @param scope        期望收敛到的权限范围（英文逗号分隔），可为 null 表示沿用凭证原有范围
+     * @param name         本次签发名称（用于用户区分用途），必填且不超过 50 字符
+     * @return 新签发的令牌（access_token + token_type + expires_in + scope，不含 refresh_token）
+     * @throws UcApiException UC 返回业务错误码时抛出（如 90009 凭证无效、90003 范围不合法）
+     */
+    public UcTokenVO issueTokenFromRefresh(String refreshToken, Long expiresIn, String scope, String name) {
+        StringBuilder form = new StringBuilder()
+                .append("refresh_token=").append(encode(refreshToken))
+                .append("&expires_in=").append(encode(String.valueOf(expiresIn)))
+                .append("&name=").append(encode(name));
+        if (scope != null && !scope.isBlank()) {
+            // scope 可选：省略表示沿用凭证原有范围，仅在调用方显式收敛时才带上
+            form.append("&scope=").append(encode(scope));
+        }
+        String body = sendForm(FROM_REFRESH_PATH, form.toString());
+        Result<UcTokenVO> result = JsonMapper.parseObject(body, new TypeReference<Result<UcTokenVO>>() {
+        });
+        requireSuccess(result, "UC 刷新令牌直签");
+        UcTokenVO token = result.getData();
+        if (token == null || token.getAccessToken() == null || token.getAccessToken().isBlank()) {
+            Logger.warn("UC 刷新令牌直签返回数据不完整，缺少 access_token");
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         return token;

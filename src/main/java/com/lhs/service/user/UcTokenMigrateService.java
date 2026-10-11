@@ -165,6 +165,48 @@ public class UcTokenMigrateService {
     }
 
     /**
+     * 用服务端代持的 refresh_token 直签指定有效期的 access_token
+     *
+     * <p>供「本人」场景的转发接口调用：凭证仍是本服务按 uid 保存的 refresh_token，
+     * 不消费、不轮换，因此不影响正常登录态与后续刷新。签发失败（如 90009 凭证失效）
+     * 时清除兑换缓存，待下次按需兑换自愈，与 {@link #refreshByUid} 处置一致。</p>
+     *
+     * @param uid       当前登录用户 uid（已由拦截器校验为本人）
+     * @param expiresIn 期望的 access_token 有效期（秒），必须大于 0
+     * @param scope     期望收敛到的权限范围（英文逗号分隔），可为空表示沿用凭证原有范围
+     * @param name      本次签发名称，必填且不超过 50 字符
+     * @return 新签发的令牌（不含 refresh_token）
+     * @throws ServiceException 未登录、无本地兑换记录或 UC 调用失败
+     */
+    public UcTokenVO issueCustomTokenByUid(Long uid, Long expiresIn, String scope, String name) {
+        if (uid == null) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        UcTokenVO cached = readIssuedCache(uid);
+        if (cached == null || cached.getRefreshToken() == null || cached.getRefreshToken().isBlank()) {
+            // 无本地刷新凭据：前端应重新触发兑换后再直签
+            Logger.warn("UC 刷新令牌直签失败：本地无兑换记录或缺少 refresh_token: uid={}", uid);
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+        }
+
+        long start = System.currentTimeMillis();
+        try {
+            UcTokenVO issued = ucMigrateClient.issueTokenFromRefresh(
+                    cached.getRefreshToken(), expiresIn, scope, name);
+            Logger.info("UC 刷新令牌直签成功: uid={}, expires_in={}, 耗时={}ms",
+                    uid, expiresIn, System.currentTimeMillis() - start);
+            return issued;
+        } catch (UcApiException e) {
+            if (e.getUcCode() != null && e.getUcCode() == UcMigrateClient.UC_CODE_REFRESH_TOKEN_INVALID) {
+                // 凭证已被撤销（如另一设备登出触发 UC 侧撤销）：清缓存待重新兑换自愈
+                clearIssuedCache(uid);
+                Logger.warn("UC 刷新令牌已失效，已清除兑换缓存待重新兑换: uid={}", uid);
+            }
+            throw e;
+        }
+    }
+
+    /**
      * 登出双撤（R14）：撤销 UC 侧授权并删除本地兑换缓存
      *
      * <p>本地 loginToken 的删除由调用方负责，两处必须同时执行：

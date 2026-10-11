@@ -111,6 +111,33 @@ public class UserController {
     }
 
     /**
+     * 转发直签：用服务端代持的 refresh_token 换取指定有效期的 UC access_token
+     * <p>
+     * 请求带自签 token（拦截器已校验登录态并写入 UserContext，即「校验是本人」），
+     * 服务端按当前 uid 取出自己保存的 refresh_token 调 UC
+     * POST /oauth2/token/from-refresh 直签，调用不消费、不轮转 refresh_token，
+     * 不影响正常登录态与后续刷新。scope 只能收敛为凭证已有范围的子集
+     *
+     * @param expiresIn         期望的 access_token 有效期（秒），必填且大于 0
+     * @param scope             期望收敛到的权限范围（英文逗号分隔），可空表示沿用凭证原有范围
+     * @param name              本次签发名称，必填且不超过 50 字符
+     * @param httpServletResponse HTTP 响应（写入禁止缓存头）
+     * @return 新签发的 UC 令牌（已剥离 refresh_token）
+     */
+    @Operation(summary = "转发直签：用系统保存的 refresh_token 换取自定义有效期的 UC 令牌")
+    @PostMapping("/auth/uc-token/custom")
+    public Result<UcTokenVO> issueCustomUcToken(@RequestParam("expires_in") Long expiresIn,
+                                                @RequestParam(value = "scope", required = false) String scope,
+                                                @RequestParam("name") String name,
+                                                HttpServletResponse httpServletResponse) {
+        // 响应携带令牌：确保中间代理与浏览器不缓存
+        httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
+        UcTokenVO token = ucTokenMigrateService.issueCustomTokenByUid(
+                UserContext.getUid(), expiresIn, scope, name);
+        return Result.success(toClientToken(token));
+    }
+
+    /**
      * 转换为下发前端的响应对象
      * <p>
      * 只保留 access_token / token_type / expires_in / scope：refresh_token 与 uid
