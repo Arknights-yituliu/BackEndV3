@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
-import com.lhs.common.exception.UcApiException;
 import com.lhs.common.util.*;
 import com.lhs.entity.dto.survey.CharacterTableOperatorDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
@@ -17,7 +16,6 @@ import com.lhs.entity.dto.user.OpenApiPermission;
 import com.lhs.entity.dto.user.UcAkAccountVO;
 import com.lhs.entity.dto.user.UcOperatorListVO;
 import com.lhs.entity.dto.user.UcOperatorVO;
-import com.lhs.entity.dto.user.UcTokenVO;
 import com.lhs.entity.po.survey.*;
 
 import com.lhs.entity.po.user.UserExternalAccountBinding;
@@ -31,7 +29,6 @@ import com.lhs.service.user.BindService;
 
 import com.lhs.service.user.OpenApiService;
 import com.lhs.service.user.UcGameDataClient;
-import com.lhs.service.user.UcTokenMigrateService;
 import com.lhs.service.util.CharacterTableService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,7 +58,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
     private final UcGameDataClient ucGameDataClient;
-    private final UcTokenMigrateService ucTokenMigrateService;
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
             OpenApiService openApiService, BindService bindService,
@@ -71,7 +67,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             TencentCloudService tencentCloudService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
             UcGameDataClient ucGameDataClient,
-            UcTokenMigrateService ucTokenMigrateService,
             CharacterTableService characterTableService) {
         this.redisTemplate = redisTemplate;
         this.characterTableService = characterTableService;
@@ -83,7 +78,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         this.tencentCloudService = tencentCloudService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.ucGameDataClient = ucGameDataClient;
-        this.ucTokenMigrateService = ucTokenMigrateService;
         this.idGenerator = new IdGenerator(1L);
     }
 
@@ -350,35 +344,13 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     @Override
     public List<OperatorProgressionDataV2DTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+        // 前端传来的第三方令牌由酸橙云签发保管，本地不再保存、也不再做存在性校验，直接以其为凭证请求 UC
         String token = httpServletRequest.getHeader("Authorization");
-        Long uid = openApiService.validateOpenApiToken(token, OpenApiPermission.operatorDataReadAccess.getCode());
-
-        // 数据源为酸橙云用户后端：游戏账号绑定关系与干员正文均以 UC 侧为准
-        List<UcOperatorVO> ucOperatorList = fetchUcOperatorList(uid);
+        List<UcOperatorVO> ucOperatorList = listUcOperators(token);
 
         // 使用启动时缓存的character_table数据进行转换
         Map<String, CharacterTableOperatorDTO> characterTableMap = characterTableService.getCharacterTable();
         return transformToV2DTO(toProgressionDataList(ucOperatorList), characterTableMap);
-    }
-
-    /**
-     * 从 UC 读取用户干员数据（令牌失效时刷新一次并重试）
-     *
-     * @param uid 当前 open-api 令牌对应的用户 uid
-     * @return UC 侧返回的干员列表；用户未绑定游戏账号时为空列表
-     */
-    private List<UcOperatorVO> fetchUcOperatorList(Long uid) {
-        UcTokenVO ucToken = ucTokenMigrateService.getOrIssueToken(uid);
-        try {
-            return listUcOperators(ucToken.getAccessToken());
-        } catch (UcApiException e) {
-            if (e.getUcCode() == null || e.getUcCode() != UcGameDataClient.UC_CODE_TOKEN_INVALID) {
-                throw e;
-            }
-            // access_token 已失效：用服务端代持的 refresh_token 刷新后重试一次
-            UcTokenVO refreshed = ucTokenMigrateService.refreshByUid(uid);
-            return listUcOperators(refreshed.getAccessToken());
-        }
     }
 
     /**
