@@ -12,7 +12,6 @@ import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
-import com.lhs.entity.dto.user.OpenApiPermission;
 import com.lhs.entity.dto.user.UcAkAccountVO;
 import com.lhs.entity.dto.user.UcOperatorListVO;
 import com.lhs.entity.dto.user.UcOperatorVO;
@@ -26,8 +25,6 @@ import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.BindService;
-
-import com.lhs.service.user.OpenApiService;
 import com.lhs.service.user.UcGameDataClient;
 import com.lhs.service.util.CharacterTableService;
 import com.lhs.service.util.TencentCloudService;
@@ -46,7 +43,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final CharacterTableService characterTableService;
 
-    private final OpenApiService openApiService;
     private final BindService bindService;
 
     private final IdGenerator idGenerator;
@@ -60,7 +56,7 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     private final UcGameDataClient ucGameDataClient;
 
     public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-            OpenApiService openApiService, BindService bindService,
+            BindService bindService,
             OperatorProgressionDataMapper operatorProgressionDataMapper,
             OperatorProgressionManualDataMapper operatorProgressionManualDataMapper,
             WarehouseInfoService warehouseInfoService,
@@ -71,7 +67,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
         this.redisTemplate = redisTemplate;
         this.characterTableService = characterTableService;
 
-        this.openApiService = openApiService;
         this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
         this.operatorProgressionManualDataMapper = operatorProgressionManualDataMapper;
@@ -315,31 +310,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),
                     "/mysql/operatorProgressionData/" + dayText + "/" + i + ".json");
         }
-    }
-
-    private Map<String, Object> saveOpenApiOperatorData(Long uid, PlayerInfoDTO playerInfoDTO) {
-        String akUid = playerInfoDTO.getUid();
-        List<OperatorProgressionDataDTO> operatorDataList = playerInfoDTO.getOperatorDataList();
-
-        // 保存用户与方舟uid的绑定关系
-        AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
-        akPlayerBindInfoDTO.setAkNickName(playerInfoDTO.getNickName());
-        akPlayerBindInfoDTO.setAkUid(akUid);
-        akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
-        akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
-
-      
-        bindService.saveSklandBindingAndPlayerInfo(uid, akPlayerBindInfoDTO);
-
-        return saveOperatorData(akUid, operatorDataList);
-    }
-
-    @Override
-    public Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest,
-            PlayerInfoDTO playerInfoDTO) {
-        String token = httpServletRequest.getHeader("Authorization");
-        Long uid = openApiService.validateOpenApiToken(token, OpenApiPermission.operatorDataWriteAccess.getCode());
-        return saveOpenApiOperatorData(uid, playerInfoDTO);
     }
 
     @Override

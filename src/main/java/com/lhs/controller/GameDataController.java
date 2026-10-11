@@ -85,13 +85,6 @@ public class GameDataController {
         return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());
     }
 
-    @Operation(summary = "第三方API上传干员练度数据（需要write权限token）")
-    @PostMapping("/open-api/operator/upload")
-    public Result<Map<String, Object>> openApiUploadOperatorData(HttpServletRequest httpServletRequest,
-            @RequestBody PlayerInfoDTO playerInfoDTO) {
-        return Result.success(operatorDataService.openApiUploadOperatorData(httpServletRequest, playerInfoDTO));
-    }
-
     @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
     @GetMapping("/open-api/operator/info")
     public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {

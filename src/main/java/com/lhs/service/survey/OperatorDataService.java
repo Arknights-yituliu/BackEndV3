@@ -34,15 +34,6 @@ public interface OperatorDataService  {
     void backupOperatorProgressionData();
 
     /**
-     * 第三方API上传干员练度数据（含token校验）
-     *
-     * @param httpServletRequest HTTP请求（从Header提取token）
-     * @param playerInfoDTO      玩家信息
-     * @return 处理结果
-     */
-    Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO);
-
-    /**
      * 第三方API获取干员练度数据（含token校验）
      *
      * @param httpServletRequest HTTP请求（从Header提取token）

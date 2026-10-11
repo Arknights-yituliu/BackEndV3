@@ -21,9 +21,6 @@ public final class RedisKeyUtil {
     /** UC 兑换并发去重短锁 key 前缀：uc:lock:{uid} */
     private static final String PREFIX_UC_LOCK = "uc:lock:";
 
-    /** OpenAPI 访问令牌数据 key 前缀：open-api-token:{token} */
-    private static final String PREFIX_OPEN_API_TOKEN = "open-api-token:";
-
     // ==================== 验证码 ====================
 
     /** 邮件服务邮箱验证码 key 前缀：CODE:CODE.{email} */
@@ -116,16 +113,6 @@ public final class RedisKeyUtil {
      */
     public static String ucLock(Long uid) {
         return PREFIX_UC_LOCK + uid;
-    }
-
-    /**
-     * OpenAPI 访问令牌数据 key
-     *
-     * @param token OpenAPI token
-     * @return Redis key
-     */
-    public static String openApiToken(String token) {
-        return PREFIX_OPEN_API_TOKEN + token;
     }
 
     /**
