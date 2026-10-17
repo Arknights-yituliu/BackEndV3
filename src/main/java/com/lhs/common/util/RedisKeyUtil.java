@@ -47,6 +47,9 @@ public final class RedisKeyUtil {
     /** 1-7 每日上传上限计数 key：1-7_MAX_UPLOADS_PER_DAY */
     private static final String KEY_STAGE_ONE_SEVEN_DAILY_UPLOAD = "1-7_MAX_UPLOADS_PER_DAY";
 
+    /** 回收站产出上传间隔防重 key 前缀：RecycleDropLimit:{uid} */
+    private static final String PREFIX_RECYCLE_DROP_LOCK = "RecycleDropLimit:";
+
     /** 直连登录会话领取 IP 限流 key 前缀 */
     private static final String PREFIX_DIRECT_SESSION_IP_RATE = "DirectSession:IP:";
 
@@ -182,6 +185,16 @@ public final class RedisKeyUtil {
      */
     public static String stageOneSevenDailyUpload() {
         return KEY_STAGE_ONE_SEVEN_DAILY_UPLOAD;
+    }
+
+    /**
+     * 回收站产出上传 5 秒防重锁 key。
+     *
+     * @param uid MAA 上传请求中的用户标识
+     * @return Redis key
+     */
+    public static String recycleDropLock(String uid) {
+        return PREFIX_RECYCLE_DROP_LOCK + uid;
     }
 
     /**
