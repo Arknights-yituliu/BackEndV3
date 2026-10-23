@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.material.RecycleDropMapper">
+
+    <!-- 批量插入：一条 INSERT 写入多行 -->
+    <insert id="insertBatch">
+        INSERT INTO recycle_drop (id, item_id, drop_time, server, source, uid, version, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.itemId}, #{item.dropTime}, #{item.server}, #{item.source}, #{item.uid}, #{item.version}, #{item.createTime})
+        </foreach>
+    </insert>
+
+</mapper>

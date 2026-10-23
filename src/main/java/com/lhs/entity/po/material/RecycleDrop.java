@@ -6,13 +6,18 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
 
 /**
- * 一次回收站收获记录，drops 保存 MAA 原始产出明细 JSON。
+ * 一次回收站收获记录，一条记录对应一个物品。
  */
 @TableName
 public class RecycleDrop {
     @TableId
     private Long id;
-    private String drops;
+
+    /** 物品 id */
+    private String itemId;
+
+    /** 物品产出时间 */
+    private Date dropTime;
     private String server;
     private String source;
     private String uid;
@@ -27,12 +32,20 @@ public class RecycleDrop {
         this.id = id;
     }
 
-    public String getDrops() {
-        return drops;
+    public String getItemId() {
+        return itemId;
     }
 
-    public void setDrops(String drops) {
-        this.drops = drops;
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
+
+    public Date getDropTime() {
+        return dropTime;
+    }
+
+    public void setDropTime(Date dropTime) {
+        this.dropTime = dropTime;
     }
 
     public String getServer() {

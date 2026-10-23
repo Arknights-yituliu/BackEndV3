@@ -9,7 +9,7 @@ import java.util.List;
  */
 @Data
 public class RecycleDropDTO {
-    private List<StageDropDetailDTO> drops;
+    private List<RecycleDropItemDTO> drops;
     private String server;
     private String source;
     private String version;

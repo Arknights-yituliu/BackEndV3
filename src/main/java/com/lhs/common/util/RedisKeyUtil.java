@@ -50,6 +50,9 @@ public final class RedisKeyUtil {
     /** 回收站产出上传间隔防重 key 前缀：RecycleDropLimit:{uid} */
     private static final String PREFIX_RECYCLE_DROP_LOCK = "RecycleDropLimit:";
 
+    /** 回收站产出去重 key 前缀：RecycleDropDedup:{uid}:{itemId}:{dropTime} */
+    private static final String PREFIX_RECYCLE_DROP_DEDUP = "RecycleDropDedup:";
+
     /** 直连登录会话领取 IP 限流 key 前缀 */
     private static final String PREFIX_DIRECT_SESSION_IP_RATE = "DirectSession:IP:";
 
@@ -195,6 +198,18 @@ public final class RedisKeyUtil {
      */
     public static String recycleDropLock(String uid) {
         return PREFIX_RECYCLE_DROP_LOCK + uid;
+    }
+
+    /**
+     * 回收站产出明细去重 key，由 uid、物品 id 与产出时间共同确定。
+     *
+     * @param uid      MAA 上传请求中的用户标识
+     * @param itemId   物品 id
+     * @param dropTime 物品产出时间，毫秒级时间戳
+     * @return Redis key
+     */
+    public static String recycleDropDedup(String uid, String itemId, long dropTime) {
+        return PREFIX_RECYCLE_DROP_DEDUP + uid + ":" + itemId + ":" + dropTime;
     }
 
     /**

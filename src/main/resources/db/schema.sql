@@ -222,7 +222,8 @@ CREATE TABLE IF NOT EXISTS `recruit_statistics` (
 -- 回收站收获记录表
 CREATE TABLE IF NOT EXISTS `recycle_drop` (
   `id` bigint NOT NULL COMMENT '主键，雪花ID',
-  `drops` json NOT NULL COMMENT '收获明细JSON',
+  `item_id` varchar(100) NOT NULL COMMENT '物品id',
+  `drop_time` datetime(3) NOT NULL COMMENT '物品产出时间',
   `server` varchar(20) NOT NULL COMMENT '服务器地区',
   `source` varchar(100) NOT NULL COMMENT '数据来源',
   `create_time` datetime(3) NOT NULL COMMENT '创建时间',

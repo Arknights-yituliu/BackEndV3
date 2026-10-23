@@ -1,16 +1,16 @@
 package com.lhs.service.maa;
 
 import com.lhs.common.util.IdGenerator;
-import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.entity.dto.drop.RecycleDropDTO;
-import com.lhs.entity.dto.drop.StageDropDetailDTO;
+import com.lhs.entity.dto.drop.RecycleDropItemDTO;
 import com.lhs.entity.po.material.RecycleDrop;
 import com.lhs.mapper.material.RecycleDropMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * 设计约定：
  * <ul>
  *   <li>任何校验不通过的情况均静默返回，不抛异常、不返回错误码，避免上报端因异常反复重试；</li>
- *   <li>产出明细以 JSON 字符串整体存入 recycle_drop.drops（MySQL json 列），不做拆行存储；</li>
+ *   <li>产出明细按物品拆分为多条记录写入 recycle_drop，每条记录只保存一个物品 id 及其产出时间；</li>
  *   <li>主键由应用层雪花算法生成，不依赖数据库自增。</li>
  * </ul>
  */
@@ -39,20 +39,28 @@ public class RecycleDropUploadService {
     private static final long UPLOAD_LOCK_SECONDS = 5;
 
     /**
+     * 单条产出明细的去重窗口（小时）。
+     * <p>
+     * 以 uid + 物品 id + 产出时间作为唯一键，窗口内相同明细只落库一次，
+     * 用于抵消客户端重传或多次上报同一批数据造成的重复记录。
+     */
+    private static final long DEDUP_EXPIRE_HOURS = 24;
+
+    /**
      * 单次上报的产出条目数上限。
      * <p>
-     * 回收站一次结算的物品数量有限，超过该值视为异常报文，防止恶意请求写入超大 JSON。
+     * 回收站一次结算的物品数量有限，超过该值视为异常报文，防止一次写入过多记录。
      */
     private static final int MAX_DROP_ITEMS = 100;
 
     /**
-     * 单个产出条目的数量上限。
+     * 单条产出明细字符串的长度上限。
      * <p>
-     * 防止数量字段被填入极大值导致后续统计计算溢出或出现明显失真的数据。
+     * 与 recycle_drop.item_id 列宽（varchar(100)）保持一致，超长会导致写入失败。
      */
-    private static final int MAX_ITEM_QUANTITY = 1_000_000;
+    private static final int MAX_ITEM_LENGTH = 100;
 
-    /** 回收站产出数据访问层，使用 MyBatis-Plus 自带 insert */
+    /** 回收站产出数据访问层，批量插入走自定义 SQL */
     private final RecycleDropMapper recycleDropMapper;
 
     /** Redis 操作模板，仅用于 setIfAbsent 实现防重复提交锁 */
@@ -83,9 +91,10 @@ public class RecycleDropUploadService {
      *   <li>校验 server、source、version 非空，且产出明细合法；任一不满足直接返回；</li>
      *   <li>从 authorization 请求头解析 uid：按空白字符切分，取第二个片段（形如 "Bearer xxx"）；</li>
      *   <li>以 uid 为键写入 Redis 锁，写入失败说明 5 秒内已上报过，直接丢弃本次请求；</li>
-     *   <li>组装 RecycleDrop 实体，明细序列化为 JSON 后落库。</li>
+     *   <li>按物品拆分组装 RecycleDrop 实体，每个物品写入一条记录。</li>
      * </ol>
      * 参数或鉴权信息不合法时静默丢弃，不抛异常；同一 uid 在 5 秒内重复上报只保留第一次。
+     * 单条明细以 uid + 物品 id + 产出时间为唯一键，24 小时内重复出现时跳过该条。
      *
      * @param request HTTP 请求，从 authorization 请求头的第二个片段解析玩家 uid
      * @param dto     上报内容，包含产出明细、服务器、来源与客户端版本
@@ -118,18 +127,35 @@ public class RecycleDropUploadService {
             return;
         }
 
-        // 组装落库实体：drops 以 JSON 字符串写入 json 列，由 MySQL 负责格式校验
+        // 组装落库实体：列表按物品拆分为多条记录，每条记录只保存一个物品 id 及其产出时间
         Date now = new Date();
-        RecycleDrop recycleDrop = new RecycleDrop();
-        recycleDrop.setId(idGenerator.nextId());
-        recycleDrop.setDrops(JsonMapper.toJSONString(dto.getDrops()));
-        recycleDrop.setServer(dto.getServer());
-        recycleDrop.setSource(dto.getSource());
-        recycleDrop.setUid(uid);
-        recycleDrop.setVersion(dto.getVersion());
-        recycleDrop.setCreateTime(now);
-
-        recycleDropMapper.insert(recycleDrop);
+        List<RecycleDrop> records = new ArrayList<>(dto.getDrops().size());
+        for (RecycleDropItemDTO drop : dto.getDrops()) {
+            // 明细级去重：uid + 物品 id + 产出时间 在 24 小时内只写入一次，
+            // setIfAbsent 原子写入，键已存在说明该明细已上报过，跳过本条
+            Boolean absent = redisTemplate.opsForValue().setIfAbsent(
+                    RedisKeyUtil.recycleDropDedup(uid, drop.getItemId(), drop.getDropTime()),
+                    System.currentTimeMillis(), DEDUP_EXPIRE_HOURS, TimeUnit.HOURS);
+            if (!Boolean.TRUE.equals(absent)) {
+                continue;
+            }
+            RecycleDrop recycleDrop = new RecycleDrop();
+            recycleDrop.setId(idGenerator.nextId());
+            recycleDrop.setItemId(drop.getItemId());
+            recycleDrop.setDropTime(new Date(drop.getDropTime()));
+            recycleDrop.setServer(dto.getServer());
+            recycleDrop.setSource(dto.getSource());
+            recycleDrop.setUid(uid);
+            recycleDrop.setVersion(dto.getVersion());
+            recycleDrop.setCreateTime(now);
+            records.add(recycleDrop);
+        }
+        // 全部明细都在去重窗口内出现过时无需写库，避免执行空值 INSERT
+        if (records.isEmpty()) {
+            return;
+        }
+        // 单条 INSERT 批量写入，减少与数据库的往返次数
+        recycleDropMapper.insertBatch(records);
     }
 
     /**
@@ -138,22 +164,20 @@ public class RecycleDropUploadService {
      * 校验规则：
      * <ul>
      *   <li>列表不能为 null 或空，且条目数不超过 {@link #MAX_DROP_ITEMS}；</li>
-     *   <li>每个条目不能为 null；</li>
-     *   <li>itemId 非空白且长度不超过 50（与数据库列宽一致）；</li>
-     *   <li>quantity 非 null、大于 0 且不超过 {@link #MAX_ITEM_QUANTITY}。</li>
+     *   <li>每条明细不能为 null，其 itemId 非空白且长度不超过 {@link #MAX_ITEM_LENGTH}；</li>
+     *   <li>每条明细的 dropTime（毫秒时间戳）必须为正数。</li>
      * </ul>
      *
      * @param drops 待校验的产出明细
      * @return 全部校验通过返回 true，否则返回 false
      */
-    private boolean validDrops(List<StageDropDetailDTO> drops) {
+    private boolean validDrops(List<RecycleDropItemDTO> drops) {
         if (drops == null || drops.isEmpty() || drops.size() > MAX_DROP_ITEMS) {
             return false;
         }
-        for (StageDropDetailDTO drop : drops) {
-            if (drop == null || !hasText(drop.getItemId()) || drop.getItemId().length() > 50
-                    || drop.getQuantity() == null || drop.getQuantity() <= 0
-                    || drop.getQuantity() > MAX_ITEM_QUANTITY) {
+        for (RecycleDropItemDTO drop : drops) {
+            if (drop == null || !hasText(drop.getItemId()) || drop.getItemId().length() > MAX_ITEM_LENGTH
+                    || drop.getDropTime() == null || drop.getDropTime() <= 0) {
                 return false;
             }
         }
