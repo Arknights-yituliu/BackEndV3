@@ -1,6 +1,7 @@
 package com.lhs.service.maa;
 
 import com.lhs.common.util.IdGenerator;
+import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.entity.dto.drop.RecycleDropDTO;
 import com.lhs.entity.dto.drop.RecycleDropItemDTO;
@@ -143,6 +144,8 @@ public class RecycleDropUploadService {
             recycleDrop.setId(idGenerator.nextId());
             recycleDrop.setItemId(drop.getItemId());
             recycleDrop.setDropTime(new Date(drop.getDropTime()));
+            // 干员列表以 JSON 数组字符串写入 json 列，未上报时存空数组便于查询
+            recycleDrop.setOperators(drop.getOperators() == null ? "[]" : JsonMapper.toJSONString(drop.getOperators()));
             recycleDrop.setServer(dto.getServer());
             recycleDrop.setSource(dto.getSource());
             recycleDrop.setUid(uid);

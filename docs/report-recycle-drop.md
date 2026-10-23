@@ -68,11 +68,18 @@ authorization: Bearer {uid}
   "drops": [
     {
       "itemId": "30012",
-      "dropTime": 1759400000000
+      "dropTime": 1759400000000,
+      "operators": [
+        "char_002_amiya",
+        "char_003_kalts"
+      ]
     },
     {
       "itemId": "30063",
-      "dropTime": 1759400001234
+      "dropTime": 1759400001234,
+      "operators": [
+        "char_002_amiya"
+      ]
     }
   ],
   "server": "CN",
@@ -86,6 +93,7 @@ authorization: Bearer {uid}
 | drops | List\<Object\> | 是 | 产出明细列表，1–100 条 |
 | drops[].itemId | String | 是 | 物品 id，非空白，不超过 100 字符 |
 | drops[].dropTime | Long | 是 | 物品产出时间，毫秒级时间戳，必须为正数 |
+| drops[].operators | List\<String\> | 否 | 产出该物品的干员 id 列表，未上报时按空列表处理 |
 | server | String | 是 | 服务器地区，非空白，不超过 20 字符 |
 | source | String | 是 | 数据来源，非空白，不超过 100 字符 |
 | version | String | 是 | 客户端版本号，非空白，不超过 50 字符 |
@@ -133,11 +141,18 @@ curl -X POST 'https://backend.yituliu.cn/report/recycleDrop' \
     "drops": [
       {
         "itemId": "30012",
-        "dropTime": 1759400000000
+        "dropTime": 1759400000000,
+        "operators": [
+          "char_002_amiya",
+          "char_003_kalts"
+        ]
       },
       {
         "itemId": "30063",
-        "dropTime": 1759400001234
+        "dropTime": 1759400001234,
+        "operators": [
+          "char_002_amiya"
+        ]
       }
     ],
     "server": "CN",

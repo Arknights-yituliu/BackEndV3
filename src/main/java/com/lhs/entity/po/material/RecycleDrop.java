@@ -18,6 +18,9 @@ public class RecycleDrop {
 
     /** 物品产出时间 */
     private Date dropTime;
+
+    /** 产出该物品的干员 id 列表，以 JSON 数组字符串存储 */
+    private String operators;
     private String server;
     private String source;
     private String uid;
@@ -46,6 +49,14 @@ public class RecycleDrop {
 
     public void setDropTime(Date dropTime) {
         this.dropTime = dropTime;
+    }
+
+    public String getOperators() {
+        return operators;
+    }
+
+    public void setOperators(String operators) {
+        this.operators = operators;
     }
 
     public String getServer() {

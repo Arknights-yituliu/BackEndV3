@@ -224,6 +224,7 @@ CREATE TABLE IF NOT EXISTS `recycle_drop` (
   `id` bigint NOT NULL COMMENT '主键，雪花ID',
   `item_id` varchar(100) NOT NULL COMMENT '物品id',
   `drop_time` datetime(3) NOT NULL COMMENT '物品产出时间',
+  `operators` json DEFAULT NULL COMMENT '产出该物品的干员id列表',
   `server` varchar(20) NOT NULL COMMENT '服务器地区',
   `source` varchar(100) NOT NULL COMMENT '数据来源',
   `create_time` datetime(3) NOT NULL COMMENT '创建时间',
