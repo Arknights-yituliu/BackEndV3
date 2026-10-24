@@ -60,13 +60,6 @@ public class GameDataController {
         return Result.success(warehouseInfoService.saveWarehouseInventoryInfo(warehouseInventoryAPIParams));
     }
 
-    @Operation(summary = "用户干员练度重置")
-    @PostMapping("/survey/operator/reset")
-    public Result<Object> operatorDataReset(@RequestBody Map<String, String> params) {
-        String token = params.get("token");
-        return operatorDataService.operatorDataReset(token);
-    }
-
     @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
     @GetMapping("/open-api/operator/info")
     public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {

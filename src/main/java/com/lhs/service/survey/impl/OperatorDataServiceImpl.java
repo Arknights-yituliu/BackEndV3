@@ -247,12 +247,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
     @Override
-    public Result<Object> operatorDataReset(String token) {
-
-        return Result.success("重置了" + "条数据");
-    }
-
-    @Override
     public List<OperatorProgressionDataDTO> listOperatorProgressionData() {
         Long uid = UserContext.getUid();
         List<UserExternalAccountBinding> bindings = userExternalAccountBindingMapper.selectList(
