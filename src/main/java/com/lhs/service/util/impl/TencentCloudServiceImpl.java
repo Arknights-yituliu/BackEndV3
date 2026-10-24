@@ -83,6 +83,11 @@ public class TencentCloudServiceImpl implements TencentCloudService {
 
     @Override
     public void uploadCOS(MultipartFile multipartFile, String bucketPath) {
+        uploadCOS(multipartFile, bucketPath, null);
+    }
+
+    @Override
+    public void uploadCOS(MultipartFile multipartFile, String bucketPath, String contentType) {
         COSClient cosClient = createCOSClient();
         // 指定文件将要存放的存储桶
         String bucketName = StaticBucket;
@@ -95,6 +100,10 @@ public class TencentCloudServiceImpl implements TencentCloudService {
         }
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentLength(multipartFile.getSize());
+        if (contentType != null && !contentType.isBlank()) {
+            // 显式指定 MIME，避免存储侧按扩展名猜测后把非图片内容按 HTML 渲染
+            objectMetadata.setContentType(contentType);
+        }
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, bucketPath, inputStream,objectMetadata);
         cosClient.putObject(putObjectRequest);
         cosClient.shutdown();
