@@ -23,13 +23,14 @@ spring:
       port: 6379
       # password: 有redis密码就放开这个属性填入密码
       database: 0
-      connect-timeout: 1800000
+      connect-timeout: 2000    # 2s
+      timeout: 3000              # 命令超时 3s
       lettuce:
         pool:
-          max-active: 20
-          max-wait: -1
-          max-idle: 5
-          min-idle: 0
+          max-active: 64
+          max-idle: 16
+          min-idle: 4
+          max-wait: 2000         # 2s，宁可降级不要阻塞
 
 #资源路径
 resourcesPath:
