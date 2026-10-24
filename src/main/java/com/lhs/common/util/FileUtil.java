@@ -25,8 +25,9 @@ public class FileUtil {
         File file = new File(filepath);
 
         if(!file.exists()){
-            boolean mkdir = file.mkdirs();
-            System.out.println("创建目录结果"+mkdir);
+            if (!file.mkdirs()) {
+                Logger.error("创建目录失败：{}", filepath);
+            }
         }
 
         File file1 = new File(filepath,filename);
@@ -35,17 +36,14 @@ public class FileUtil {
             try {
                 file1.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.error("创建文件失败：{}", file1.getAbsolutePath(), e);
             }
         }
 
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(filepath+filename);
-            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-            fileOutputStream.write(bytes);
-            fileOutputStream.close();
+        try (FileOutputStream fileOutputStream = new FileOutputStream(filepath + filename)) {
+            fileOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("写入文件失败：{}", filepath + filename, e);
         }
 
     }
@@ -86,8 +84,7 @@ public class FileUtil {
             outputStream.close();
 
         } catch (Exception e) {
-
-            e.printStackTrace();
+            Logger.error("导出文件失败：{}", filePath + fileName, e);
         }
     }
 
@@ -108,7 +105,7 @@ public class FileUtil {
             return context;
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("读取文件失败：{}", fileName, e);
             return null;
         }
     }
@@ -129,7 +126,7 @@ public class FileUtil {
             return context;
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("读取文件失败：{}", file.getAbsolutePath(), e);
             return null;
         }
     }
@@ -232,7 +229,7 @@ public class FileUtil {
             os.close();
             ins.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error("输入流转文件失败：{}", file.getAbsolutePath(), e);
         }
     }
 

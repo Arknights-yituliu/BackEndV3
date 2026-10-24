@@ -239,7 +239,7 @@ public class TencentCloudServiceImpl implements TencentCloudService {
             }
 
             if (!file.exists()) {
-                System.err.println("文件不存在: " + file.getAbsolutePath());
+                Logger.warn("文件不存在，跳过上传：{}", file.getAbsolutePath());
                 continue;
             }
 
@@ -291,7 +291,7 @@ public class TencentCloudServiceImpl implements TencentCloudService {
                     .filter(Files::isRegularFile)
                     .toList();
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("遍历前端发布目录失败：{}", projectPath, e);
         }
         return paths;
     }
@@ -322,10 +322,9 @@ public class TencentCloudServiceImpl implements TencentCloudService {
             req.setArea("mainland");
             // 返回的resp是一个PurgePathCacheResponse的实例，与请求对象对应
             PurgePathCacheResponse resp = client.PurgePathCache(req);
-            // 输出json格式的字符串回包
-            System.out.println(AbstractModel.toJsonString(resp));
+            Logger.info("CDN 目录刷新响应：{}", AbstractModel.toJsonString(resp));
         } catch (TencentCloudSDKException e) {
-            e.printStackTrace();
+            Logger.error("CDN 目录刷新失败：{}", domain, e);
         }
     }
 
@@ -351,10 +350,9 @@ public class TencentCloudServiceImpl implements TencentCloudService {
             req.setArea("mainland");
             // 返回的resp是一个PurgeUrlsCacheResponse的实例，与请求对象对应
             PurgeUrlsCacheResponse resp = client.PurgeUrlsCache(req);
-            // 输出json格式的字符串回包
-            System.out.println(AbstractModel.toJsonString(resp));
+            Logger.info("CDN URL 刷新响应：{}", AbstractModel.toJsonString(resp));
         } catch (TencentCloudSDKException e) {
-            e.printStackTrace();
+            Logger.error("CDN URL 刷新失败：{}", urls, e);
         }
     }
 

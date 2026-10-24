@@ -2,6 +2,7 @@ package com.lhs.common.exception;
 
 
 import com.lhs.common.enums.ResultCode;
+import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,7 +29,7 @@ public class GlobalExceptionHandler {
 		}
 		else {
 			String message = e.getMessage();
-			e.printStackTrace();
+			Logger.error("未捕获异常", e);
 			if(message.contains("database")){
 				int index = message.indexOf("###");
 				if(index>-1){

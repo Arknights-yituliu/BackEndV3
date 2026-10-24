@@ -143,7 +143,6 @@ public class SpriteCreateUtil {
             }else {
                 File spriteFile = new File(outputDir, spriteFilename);
                 ImageIO.write(sprite, "PNG", spriteFile);
-                System.out.println("✅ 雪碧图已生成: " + spriteFile.getAbsolutePath());
             }
 
 
@@ -164,11 +163,8 @@ public class SpriteCreateUtil {
                     writer.write("}\n\n");
                 }
             }
-            System.out.println("✅ CSS 文件已生成: " + cssFile.getAbsolutePath());
-
         } catch (IOException e) {
-            System.err.println("处理文件时出错");
-            e.printStackTrace();
+            Logger.error("生成雪碧图/CSS 文件失败", e);
         }
     }
 

@@ -105,9 +105,9 @@ public class JsonMapper {
         try {
             objectMapper.writeValue(file, object);
         } catch (JsonProcessingException e) {
-            Logger.error("Object写入文件失败：{}"+ e.getMessage());
+            Logger.error("Object写入文件失败：{}", e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("Object写入文件失败：{}", file.getAbsolutePath(), e);
         }
     }
 

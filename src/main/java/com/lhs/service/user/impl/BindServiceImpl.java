@@ -68,7 +68,6 @@ public class BindServiceImpl implements BindService {
 
         userExternalAccountBinding.setUpdateTime(timeStamp);
 
-        Logger.info("要添加的外部账号绑定信息 {} " + userExternalAccountBinding);
         if (existsData == null) {
             userExternalAccountBinding.setId(idGenerator.nextId());
             userExternalAccountBinding.setCreateTime(timeStamp);
@@ -89,7 +88,6 @@ public class BindServiceImpl implements BindService {
         queryWrapper.eq(AkPlayerBindInfo::getAkUid, akPlayerBindInfo.getAkUid());
         AkPlayerBindInfo oldInfo = akPlayerBindInfoMapper.selectOne(queryWrapper);
         akPlayerBindInfo.setUpdateTime(System.currentTimeMillis());
-        Logger.info("要添加的明日方舟账号绑定信息，id为" + akPlayerBindInfo);
         if (oldInfo == null) {
             akPlayerBindInfo.setId(idGenerator.nextId());
             akPlayerBindInfo.setDeleteFlag(false);

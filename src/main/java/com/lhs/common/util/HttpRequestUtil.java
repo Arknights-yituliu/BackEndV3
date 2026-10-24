@@ -41,22 +41,20 @@ public class HttpRequestUtil {
             }
             return EntityUtils.toString(entity);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Logger.error("HTTP GET 请求失败：{}", url, e);
         } finally {
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Logger.error("关闭 HTTP 响应失败", e);
                 }
             }
             if (null != httpClient) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.error("关闭 HTTP 客户端失败", e);
                 }
             }
         }
