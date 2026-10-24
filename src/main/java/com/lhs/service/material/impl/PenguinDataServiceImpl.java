@@ -17,20 +17,15 @@ import com.lhs.entity.dto.material.OtherItemDropDTO;
 import com.lhs.entity.dto.material.StageDropAndInfoDTO;
 import com.lhs.entity.dto.material.PenguinMatrixDTO;
 import com.lhs.entity.po.material.Stage;
-import com.lhs.service.material.StageService;
 import com.lhs.service.material.PenguinDataService;
 
 
 
 @Service
 public class PenguinDataServiceImpl implements PenguinDataService {
-     private final StageService stageService;
 
-    public PenguinDataServiceImpl(StageService stageService) {
-        this.stageService = stageService;
-    }
-
-    public Map<String, List<StageDropAndInfoDTO>> getStageDropCollect(ItemValueConfigDTO itemValueConfigDTO) {
+    public Map<String, List<StageDropAndInfoDTO>> getStageDropCollect(ItemValueConfigDTO itemValueConfigDTO,
+            Map<String, Stage> stageInfoMap) {
 
         Map<String, List<StageDropAndInfoDTO>> stageDropCollect = new HashMap<>();
         String penguinMatrixText = FileUtil.read(ConfigUtil.Penguin + "penguin.json");
@@ -45,8 +40,6 @@ public class PenguinDataServiceImpl implements PenguinDataService {
         Map<String, StageDropAndInfoDTO> ytlStageDataGroupByItemId = JsonMapper.parseJSONArray(ytlStageDataText,
                 new TypeReference<>() {
                 });
-
-        Map<String, Stage> stageInfoMap = stageService.getStageInfoMap();
 
         // 将磨难关卡分离出来，方便后面与标准关卡的掉率进行合并
         List<PenguinMatrixDTO> toughStage = penguinMatrixDTOList.stream()
