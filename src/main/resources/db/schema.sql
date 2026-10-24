@@ -93,24 +93,6 @@ CREATE TABLE IF NOT EXISTS `user_external_account_binding` (
   KEY `idx_ak_uid` (`ak_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户与外部账号绑定表';
 
--- 用户仓库物品表（每次导入生成一批记录，由 last_data_id 标识批次）
--- 已废弃（2026-10-24）：仓库导入接口 POST /survey/warehouse-info/import/skland 已删除，
--- 写入链路（WarehouseInfoService / WarehouseInfoMapper）同步移除。此处仅保留建表语句以兼容
--- 存量环境的历史数据，新环境仍会建出空表，但不再有任何写入与读取。
-CREATE TABLE IF NOT EXISTS `warehouse_info` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
-  `uid` bigint NOT NULL COMMENT '一图流用户uid',
-  `ak_uid` varchar(50) NOT NULL COMMENT '明日方舟玩家uid',
-  `item_id` varchar(50) NOT NULL COMMENT '物品id',
-  `quantity` int NOT NULL DEFAULT 0 COMMENT '数量',
-  `last_data_id` bigint NOT NULL COMMENT '批次标记id',
-  `update_time` bigint DEFAULT NULL COMMENT '更新时间（毫秒时间戳）',
-  PRIMARY KEY (`id`),
-  KEY `idx_uid` (`uid`),
-  KEY `idx_ak_uid` (`ak_uid`),
-  KEY `idx_last_data_id` (`last_data_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户仓库物品表';
-
 /* ============================================================
  * 二、关卡与材料
  * ============================================================ */
@@ -355,20 +337,6 @@ CREATE TABLE IF NOT EXISTS `operator_progression_manual_data` (
   `update_time` datetime(6) DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`ak_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='干员练度人工修正数据表';
-
--- 干员练度统计结果表
--- 已废弃（2026-10-24）：干员练度统计逻辑已整体迁出至独立系统，
--- 本项目的统计任务与查询接口均已移除。此处仅保留建表语句以兼容存量环境的历史数据，
--- 新环境仍会建出空表，但不再有任何写入与读取。
-CREATE TABLE IF NOT EXISTS `operator_progression_statistical_result` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
-  `sample_size` int NOT NULL DEFAULT 0 COMMENT '样本量',
-  `statistical_result` longtext COMMENT '统计结果JSON',
-  `record_type` int NOT NULL DEFAULT 1 COMMENT '记录状态',
-  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_record_type` (`record_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='干员练度统计结果表';
 
 /* ============================================================
  * 六、基建排班
