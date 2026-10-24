@@ -288,8 +288,17 @@ CREATE TABLE IF NOT EXISTS `questionnaire_result` (
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   `ip` varchar(50) DEFAULT NULL COMMENT '提交IP',
   PRIMARY KEY (`id`),
-  KEY `idx_code_uid_create` (`questionnaire_code`, `uid`, `create_time`)
+  KEY `idx_code_uid_create` (`questionnaire_code`, `uid`, `create_time`),
+  KEY `idx_code_update_time` (`questionnaire_code`, `update_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='问卷原始结果表';
+
+-- 【存量库增量】上面的 idx_code_update_time 只对新建库生效，已存在的库需手工执行一次：
+--   ALTER TABLE `questionnaire_result`
+--     ADD INDEX `idx_code_update_time` (`questionnaire_code`, `update_time`),
+--     ALGORITHM=INPLACE, LOCK=NONE;
+-- 背景：携带率统计按 (questionnaire_code, update_time) 范围过滤并 ORDER BY update_time，
+-- 原有 idx_code_uid_create 的第三列是 create_time，排序字段无索引 → filesort + 大量回表。
+-- 该表较大，务必用 INPLACE/LOCK=NONE（MySQL 8 二级索引在线构建，不阻塞读写），并在低峰执行。
 
 -- 干员携带率统计明细表
 CREATE TABLE IF NOT EXISTS `operator_carry_rate` (
