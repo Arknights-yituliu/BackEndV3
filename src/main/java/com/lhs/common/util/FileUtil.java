@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
@@ -89,42 +90,33 @@ public class FileUtil {
     }
 
 
+    /**
+     * 读取文本文件（UTF-8）
+     * <p>
+     * 一次性读取，不使用逐字符的 {@code Reader.read()}（读 2MB 文件约 200 万次方法调用）。
+     * 与 {@code InputStreamReader} 一致，**不剥离 UTF-8 BOM**，调用方对首字符的处理无需调整。
+     *
+     * @param fileName 文件路径
+     * @return 文件内容；读取失败（含文件不存在）返回 null
+     */
     public static String read(String fileName) {
-        String context = "";
         try {
-            File jsonFile = new File(fileName);
-            Reader reader = new InputStreamReader(Files.newInputStream(jsonFile.toPath()), StandardCharsets.UTF_8);
-            int ch = 0;
-            StringBuilder sb = new StringBuilder();
-            while ((ch = reader.read()) != -1) {
-                sb.append((char) ch);
-            }
-
-            reader.close();
-            context = sb.toString();
-            return context;
-
+            return Files.readString(Path.of(fileName), StandardCharsets.UTF_8);
         } catch (IOException e) {
             Logger.error("读取文件失败：{}", fileName, e);
             return null;
         }
     }
 
-
+    /**
+     * 读取文本文件（UTF-8）
+     *
+     * @param file 文件
+     * @return 文件内容；读取失败（含文件不存在）返回 null
+     */
     public static String read(File file) {
-        String context = "";
         try {
-            Reader reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8);
-            int ch = 0;
-            StringBuilder sb = new StringBuilder();
-            while ((ch = reader.read()) != -1) {
-                sb.append((char) ch);
-            }
-
-            reader.close();
-            context = sb.toString();
-            return context;
-
+            return Files.readString(file.toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             Logger.error("读取文件失败：{}", file.getAbsolutePath(), e);
             return null;
