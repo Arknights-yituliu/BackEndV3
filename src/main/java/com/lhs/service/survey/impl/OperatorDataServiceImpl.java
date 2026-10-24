@@ -23,7 +23,6 @@ import com.lhs.mapper.survey.OperatorProgressionDataMapper;
 import com.lhs.mapper.survey.OperatorProgressionManualDataMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.survey.OperatorDataService;
-import com.lhs.service.survey.WarehouseInfoService;
 import com.lhs.service.user.BindService;
 import com.lhs.service.user.UcGameDataClient;
 import com.lhs.service.util.CharacterTableService;
@@ -59,7 +58,6 @@ public class OperatorDataServiceImpl implements OperatorDataService {
             BindService bindService,
             OperatorProgressionDataMapper operatorProgressionDataMapper,
             OperatorProgressionManualDataMapper operatorProgressionManualDataMapper,
-            WarehouseInfoService warehouseInfoService,
             TencentCloudService tencentCloudService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
             UcGameDataClient ucGameDataClient,

@@ -5,7 +5,6 @@ import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
-import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
 import com.lhs.service.survey.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,12 +21,8 @@ import java.util.Map;
 public class GameDataController {
     private final OperatorDataService operatorDataService;
 
-    private final WarehouseInfoService warehouseInfoService;
-
-    public GameDataController(OperatorDataService operatorDataService,
-            WarehouseInfoService warehouseInfoService) {
+    public GameDataController(OperatorDataService operatorDataService) {
         this.operatorDataService = operatorDataService;
-        this.warehouseInfoService = warehouseInfoService;
     }
 
     @Operation(summary = "获取干员数据")
@@ -51,13 +46,6 @@ public class GameDataController {
     public Result<Map<String, Object>> importManualOperatorData(
             @RequestBody ManualOperatorDataDTO manualOperatorDataDTO) {
         return Result.success(operatorDataService.importManualOperatorData(manualOperatorDataDTO));
-    }
-
-    @Operation(summary = "通过森空岛导入仓库材料")
-    @PostMapping("/survey/warehouse-info/import/skland")
-    public Result<Object> importWarehouseInfoBySKLand(
-            @RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {
-        return Result.success(warehouseInfoService.saveWarehouseInventoryInfo(warehouseInventoryAPIParams));
     }
 
     @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")

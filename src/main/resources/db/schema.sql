@@ -94,6 +94,9 @@ CREATE TABLE IF NOT EXISTS `user_external_account_binding` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户与外部账号绑定表';
 
 -- 用户仓库物品表（每次导入生成一批记录，由 last_data_id 标识批次）
+-- 已废弃（2026-10-24）：仓库导入接口 POST /survey/warehouse-info/import/skland 已删除，
+-- 写入链路（WarehouseInfoService / WarehouseInfoMapper）同步移除。此处仅保留建表语句以兼容
+-- 存量环境的历史数据，新环境仍会建出空表，但不再有任何写入与读取。
 CREATE TABLE IF NOT EXISTS `warehouse_info` (
   `id` bigint NOT NULL COMMENT '主键，雪花ID',
   `uid` bigint NOT NULL COMMENT '一图流用户uid',
