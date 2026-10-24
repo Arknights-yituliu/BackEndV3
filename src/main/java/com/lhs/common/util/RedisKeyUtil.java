@@ -59,6 +59,15 @@ public final class RedisKeyUtil {
     /** 直连登录会话领取客户端指纹限流 key 前缀 */
     private static final String PREFIX_DIRECT_SESSION_FINGERPRINT_RATE = "DirectSession:Fingerprint:";
 
+    /** 管理端验证码发送频控（分钟级）key 前缀：AdminCodeSendMin:{account} */
+    private static final String PREFIX_ADMIN_CODE_SEND_MIN = "AdminCodeSendMin:";
+
+    /** 管理端验证码发送频控（小时级）key 前缀：AdminCodeSendHour:{account} */
+    private static final String PREFIX_ADMIN_CODE_SEND_HOUR = "AdminCodeSendHour:";
+
+    /** 管理端登录失败计数 key 前缀：AdminLoginFail:{email} */
+    private static final String PREFIX_ADMIN_LOGIN_FAIL = "AdminLoginFail:";
+
     // ==================== 数据缓存 ====================
 
     /** 干员标签数据缓存 key：Tag:OperatorData */
@@ -139,6 +148,36 @@ public final class RedisKeyUtil {
      */
     public static String adminEmailCode(String email) {
         return PREFIX_ADMIN_EMAIL_CODE + email + SUFFIX_ADMIN_EMAIL_CODE;
+    }
+
+    /**
+     * 管理端验证码发送频控（分钟级）key：同一账号 60 秒内只允许发送一次
+     *
+     * @param account 账号（开发者标识或邮箱）
+     * @return Redis key
+     */
+    public static String adminCodeSendMinRate(String account) {
+        return PREFIX_ADMIN_CODE_SEND_MIN + account;
+    }
+
+    /**
+     * 管理端验证码发送频控（小时级）key：同一账号 5 小时内最多发送 5 次
+     *
+     * @param account 账号（开发者标识或邮箱）
+     * @return Redis key
+     */
+    public static String adminCodeSendHourRate(String account) {
+        return PREFIX_ADMIN_CODE_SEND_HOUR + account;
+    }
+
+    /**
+     * 管理端登录失败计数 key：用于验证码错误次数限制与临时锁定
+     *
+     * @param email 管理员邮箱（验证码的存放维度）
+     * @return Redis key
+     */
+    public static String adminLoginFail(String email) {
+        return PREFIX_ADMIN_LOGIN_FAIL + email;
     }
 
     /**

@@ -19,9 +19,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,6 +38,9 @@ public class EmailServiceImpl implements EmailService {
 
     /** 腾讯云 SES 每日发送上限：超过后拒绝发送，避免超配额产生失败调用 */
     private static final int TENCENT_DAILY_LIMIT = 21000;
+
+    /** 验证码生成使用的密码学随机源 */
+    private static final SecureRandom CODE_RANDOM = new SecureRandom();
 
     private final String secretId;
     private final String secretKey;
@@ -130,7 +135,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Integer createVerificationCode(String emailAddress, Integer maxCodeNum) {
-        int random = new Random().nextInt(8999) + 1000;
+        int random = CODE_RANDOM.nextInt(8999) + 1000;
         String code = String.valueOf(random);
         redisTemplate.opsForValue().set(RedisKeyUtil.emailCode(emailAddress), code, 300, TimeUnit.SECONDS);
         return random;
@@ -144,14 +149,17 @@ public class EmailServiceImpl implements EmailService {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_EXIST);
         }
 
-        Logger.info("输入的验证码：" + inputCode + "---------服务端验证码：" + code);
-
         if (inputCode == null) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_ENTER);
         }
 
-        if (!inputCode.equals(code)) {
+        // 常量时间比较，避免通过响应耗时推断验证码；不再打印任何验证码内容
+        if (!MessageDigest.isEqual(inputCode.trim().getBytes(StandardCharsets.UTF_8),
+                String.valueOf(code).getBytes(StandardCharsets.UTF_8))) {
             throw new ServiceException(ResultCode.VERIFICATION_CODE_ERROR);
         }
+
+        // 一次性消费：校验通过即失效，避免同一验证码被重复使用
+        redisTemplate.delete(RedisKeyUtil.emailCode(key));
     }
 }

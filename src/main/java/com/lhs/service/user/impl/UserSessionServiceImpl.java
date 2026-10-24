@@ -1,8 +1,6 @@
 package com.lhs.service.user.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.AES;
-import com.lhs.common.config.ConfigUtil;
 import com.lhs.common.context.UserContext;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
@@ -22,9 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -298,21 +294,23 @@ public class UserSessionServiceImpl implements UserSessionService {
 
     /**
      * 生成用户登录凭证并写入 Redis
+     * <p>
+     * token 为 256 bit 不透明随机串，不含任何用户信息，也不依赖密钥加密：
+     * 「token → uid」的映射完全由 Redis 承载，命中即放行、删除即失效。
+     * 因此 encryption.secret 泄漏无法再用于伪造身份，也无需在请求链路上做解密。
+     * <p>
+     * 存量 AES token 仍可正常使用（校验路径只查 Redis，不解析 token 内容），
+     * 切换过程对在线用户无感知。
      *
      * @param userInfo 用户信息
      * @return 登录 token
      */
     private String tokenGenerator(OAuthUserInfo userInfo) {
-        // 用户凭证 由用户id+时间戳 加密得到
-        Map<String, Object> hashMap = new HashMap<>();
-        Long id = userInfo.getId();
-        hashMap.put("id", userInfo.getId());
-        String header = JsonMapper.toJSONString(hashMap);
-        long timeStamp = System.currentTimeMillis();
-        String token = AES.encrypt(header + "." + id + "." + timeStamp, ConfigUtil.Secret);
+        String token = TokenGenerator.newUserToken();
 
         // 将 token 存入 Redis，支持登出撤销，有效期 180 天
-        redisTemplate.opsForValue().set(RedisKeyUtil.loginToken(token), id.toString(), 180, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(RedisKeyUtil.loginToken(token),
+                userInfo.getId().toString(), 180, TimeUnit.DAYS);
 
         return token;
     }

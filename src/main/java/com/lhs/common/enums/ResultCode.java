@@ -84,6 +84,7 @@ public enum ResultCode {
 	OSS_UPLOAD_ERROR(39005, "OSS上传错误"),
 	EMAIL_SENT_TOO_FREQUENTLY(39006,"邮件发送间隔时间30秒"),
 	NOT_REPEAT_REQUESTS(39007,"不要重复请求"),
+	VERIFICATION_CODE_LOCKED(39008, "验证码错误次数过多，请重新获取"),
 
 
 	/* 系统错误：40001-49999 */
