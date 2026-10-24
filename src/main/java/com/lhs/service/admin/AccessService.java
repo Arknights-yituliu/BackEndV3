@@ -6,8 +6,6 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Logger;
-import com.lhs.common.util.RedisKeyUtil;
-import com.lhs.common.util.RedisRateLimiter;
 import com.lhs.common.util.UserAgentUtil;
 import com.lhs.entity.dto.AccessLogDTO;
 import com.lhs.entity.dto.UrlCountDTO;
@@ -26,7 +24,6 @@ import com.lhs.mapper.admin.AccessLogMapper;
 import com.lhs.mapper.admin.AccessLogUrlDailyStatsMapper;
 import com.lhs.mapper.admin.AccessLogUrlDailyStatsTaskMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,12 +73,6 @@ public class AccessService {
      * 几条 MB 级 UA 就能把整表撑爆，且 text 超长会退化为行外存储影响读取
      */
     private static final int USER_AGENT_MAX_LENGTH = 512;
-
-    /** 单 IP 每分钟允许上报的访问日志条数 */
-    private static final long ACCESS_LOG_IP_LIMIT = 60;
-
-    /** 访问日志上报限流窗口（秒） */
-    private static final long ACCESS_LOG_RATE_WINDOW_SECONDS = 60;
 
     /**
      * 单日单个URL统计的最大落库条数
@@ -197,20 +188,17 @@ public class AccessService {
     private final AccessLogUrlDailyStatsMapper accessLogUrlDailyStatsMapper;
     private final AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper;
     private final IdGenerator idGenerator;
-    private final RedisTemplate<String, String> redisTemplate;
 
     public AccessService(AccessLogMapper accessLogMapper,
             AccessLogHourlyStatsMapper accessLogHourlyStatsMapper,
             AccessLogHourlyStatsTaskMapper accessLogHourlyStatsTaskMapper,
             AccessLogUrlDailyStatsMapper accessLogUrlDailyStatsMapper,
-            AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper,
-            RedisTemplate<String, String> redisTemplate) {
+            AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper) {
         this.accessLogMapper = accessLogMapper;
         this.accessLogHourlyStatsMapper = accessLogHourlyStatsMapper;
         this.accessLogHourlyStatsTaskMapper = accessLogHourlyStatsTaskMapper;
         this.accessLogUrlDailyStatsMapper = accessLogUrlDailyStatsMapper;
         this.accessLogUrlDailyStatsTaskMapper = accessLogUrlDailyStatsTaskMapper;
-        this.redisTemplate = redisTemplate;
         this.idGenerator = new IdGenerator(3L);
     }
 
@@ -221,12 +209,6 @@ public class AccessService {
      * @param accessLogDTO 访问日志数据（url, region）
      */
     public void saveAccessLog(HttpServletRequest request, AccessLogDTO accessLogDTO) {
-        String ip = IpUtil.getIpAddress(request);
-        // 匿名写入接口，先限流再落库：不限制则主表可被无界灌入，后续统计任务的成本随之线性上涨
-        RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.accessLogIpRate(ip),
-                ACCESS_LOG_IP_LIMIT, ACCESS_LOG_RATE_WINDOW_SECONDS,
-                ResultCode.ACCESS_LOG_REPORT_TOO_FREQUENTLY);
-
         AccessLog accessLog = new AccessLog();
 
         accessLog.setId(idGenerator.nextId());
@@ -242,7 +224,7 @@ public class AccessService {
         accessLog.setAccessTime(new Date());
 
         // IP：来源可能是客户端可伪造的 X-Forwarded-For，长度不可信
-        accessLog.setIp(truncate(ip, IP_MAX_LENGTH, "Unknown"));
+        accessLog.setIp(truncate(IpUtil.getIpAddress(request), IP_MAX_LENGTH, "Unknown"));
 
         // User-Agent 解析
         accessLog.setBrowser(UserAgentUtil.getBrowser(request));

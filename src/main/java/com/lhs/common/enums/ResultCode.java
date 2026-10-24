@@ -86,7 +86,6 @@ public enum ResultCode {
 	NOT_REPEAT_REQUESTS(39007,"不要重复请求"),
 	VERIFICATION_CODE_LOCKED(39008, "验证码错误次数过多，请重新获取"),
 	TOKEN_ISSUE_TOO_FREQUENTLY(39009, "令牌签发请求过于频繁，请稍后重试"),
-	ACCESS_LOG_REPORT_TOO_FREQUENTLY(39010, "访问日志上报过于频繁，请稍后重试"),
 
 
 	/* 系统错误：40001-49999 */
