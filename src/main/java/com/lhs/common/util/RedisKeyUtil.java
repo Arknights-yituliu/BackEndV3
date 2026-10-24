@@ -56,6 +56,9 @@ public final class RedisKeyUtil {
     /** 直连登录会话领取客户端指纹限流 key 前缀 */
     private static final String PREFIX_DIRECT_SESSION_FINGERPRINT_RATE = "DirectSession:Fingerprint:";
 
+    /** UC 令牌直签接口的 uid 维度限流 key 前缀：uc:issue:rate:{uid} */
+    private static final String PREFIX_UC_ISSUE_RATE = "uc:issue:rate:";
+
     /** 管理端验证码发送频控（分钟级）key 前缀：AdminCodeSendMin:{account} */
     private static final String PREFIX_ADMIN_CODE_SEND_MIN = "AdminCodeSendMin:";
 
@@ -264,6 +267,19 @@ public final class RedisKeyUtil {
      */
     public static String directSessionFingerprintRate(String fingerprint) {
         return PREFIX_DIRECT_SESSION_FINGERPRINT_RATE + fingerprint;
+    }
+
+    /**
+     * UC 令牌直签接口的 uid 维度限流 key。
+     * <p>
+     * 直签每次都会真实请求 UC（不消费、不轮转 refresh_token），必须限制单用户频率，
+     * 避免把本服务当成 UC 调用放大器。
+     *
+     * @param uid 用户 uid
+     * @return Redis key
+     */
+    public static String ucIssueRate(Long uid) {
+        return PREFIX_UC_ISSUE_RATE + uid;
     }
 
     /**

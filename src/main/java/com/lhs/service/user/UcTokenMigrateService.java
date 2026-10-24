@@ -8,6 +8,7 @@ import com.lhs.common.exception.UcApiException;
 import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.RedisKeyUtil;
+import com.lhs.common.util.RedisRateLimiter;
 import com.lhs.entity.dto.user.UcTokenVO;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,28 @@ public class UcTokenMigrateService {
 
     /** 连续兑换失败告警阈值：达到即打 error 日志，提示排查迁移端点与签名配置 */
     private static final int FAIL_ALERT_THRESHOLD = 10;
+
+    /**
+     * 直签 access_token 允许的最长有效期（秒）：10 年
+     * <p>
+     * 上限按业务要求取 10 年——需要支持签发长期令牌（如给自建工具长期免刷新的凭证）。
+     * 但"无上限"不可接受：客户端传入超大值（或 Long 边界值）会原样透传给 UC，
+     * 得到语焉不详的上游报错，也无法在本地做任何约束。因此保留一个显式天花板，
+     * 既覆盖全部合法场景，又能拦住明显异常的入参
+     */
+    private static final long CUSTOM_TOKEN_MAX_EXPIRES_SECONDS = 10L * 365 * 24 * 60 * 60;
+
+    /** 直签名称最大长度：与 UC 侧字段约定一致（超长会被上游拒绝，提前拦截避免无效外调） */
+    private static final int CUSTOM_TOKEN_NAME_MAX_LENGTH = 50;
+
+    /** 直签 scope 最大长度：超出必然被上游拒绝，提前拦截避免无效外调 */
+    private static final int CUSTOM_TOKEN_SCOPE_MAX_LENGTH = 500;
+
+    /** 直签接口单用户限流：窗口内允许的调用次数 */
+    private static final long CUSTOM_TOKEN_ISSUE_MAX_PER_WINDOW = 3L;
+
+    /** 直签接口单用户限流窗口（秒） */
+    private static final long CUSTOM_TOKEN_ISSUE_WINDOW_SECONDS = 60L;
 
     private final OAuth2Properties oauth2Properties;
     private final UcMigrateClient ucMigrateClient;
@@ -186,6 +209,13 @@ public class UcTokenMigrateService {
         if (uid == null) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
+        // 先做纯入参校验，再查缓存、再扣限流额度：非法参数不该消耗调用配额
+        validateCustomTokenParams(expiresIn, scope, name);
+        // 直签每次都真实请求 UC，按 uid 限流，避免把本服务当作 UC 调用放大器
+        RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.ucIssueRate(uid),
+                CUSTOM_TOKEN_ISSUE_MAX_PER_WINDOW, CUSTOM_TOKEN_ISSUE_WINDOW_SECONDS,
+                ResultCode.TOKEN_ISSUE_TOO_FREQUENTLY);
+
         UcTokenVO cached = readIssuedCache(uid);
         if (cached == null || cached.getRefreshToken() == null || cached.getRefreshToken().isBlank()) {
             // 无本地刷新凭据：前端应重新触发兑换后再直签
@@ -203,10 +233,44 @@ public class UcTokenMigrateService {
         } catch (UcApiException e) {
             if (e.getUcCode() != null && e.getUcCode() == UcMigrateClient.UC_CODE_REFRESH_TOKEN_INVALID) {
                 // 凭证已被撤销（如另一设备登出触发 UC 侧撤销）：清缓存待重新兑换自愈
-//                clearIssuedCache(uid);
+                clearIssuedCache(uid);
                 Logger.warn("UC 刷新令牌已失效，已清除兑换缓存待重新兑换: uid={}", uid);
             }
             throw e;
+        }
+    }
+
+    /**
+     * 校验直签接口入参
+     * <p>
+     * 仅做"能提前判定必然失败"的校验，不猜测 UC 侧的额外规则：
+     * <ul>
+     *   <li>{@code expires_in} 必填且不超过 {@link #CUSTOM_TOKEN_MAX_EXPIRES_SECONDS}（10 年）；</li>
+     *   <li>{@code name} 必填且不超过 {@link #CUSTOM_TOKEN_NAME_MAX_LENGTH} 字符；</li>
+     *   <li>{@code scope} 可空，非空时不超过 {@link #CUSTOM_TOKEN_SCOPE_MAX_LENGTH} 字符。</li>
+     * </ul>
+     * 抽成静态方法便于单测：不依赖 UC、Redis 与 Spring 上下文
+     *
+     * @param expiresIn 期望的 access_token 有效期（秒）
+     * @param scope     期望收敛到的权限范围（英文逗号分隔，可为空）
+     * @param name      本次签发名称
+     * @throws ServiceException 参数不合法
+     */
+    static void validateCustomTokenParams(Long expiresIn, String scope, String name) {
+        if (expiresIn == null || expiresIn <= 0 || expiresIn > CUSTOM_TOKEN_MAX_EXPIRES_SECONDS) {
+            throw new ServiceException(ResultCode.PARAM_IS_INVALID,
+                    "expires_in 必须在 1~" + CUSTOM_TOKEN_MAX_EXPIRES_SECONDS + " 秒之间");
+        }
+        if (name == null || name.isBlank()) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK, "name 不能为空");
+        }
+        if (name.length() > CUSTOM_TOKEN_NAME_MAX_LENGTH) {
+            throw new ServiceException(ResultCode.PARAM_IS_INVALID,
+                    "name 长度不能超过 " + CUSTOM_TOKEN_NAME_MAX_LENGTH + " 字符");
+        }
+        if (scope != null && scope.length() > CUSTOM_TOKEN_SCOPE_MAX_LENGTH) {
+            throw new ServiceException(ResultCode.PARAM_IS_INVALID,
+                    "scope 长度不能超过 " + CUSTOM_TOKEN_SCOPE_MAX_LENGTH + " 字符");
         }
     }
 

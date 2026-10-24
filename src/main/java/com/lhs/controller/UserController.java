@@ -117,8 +117,12 @@ public class UserController {
      * 服务端按当前 uid 取出自己保存的 refresh_token 调 UC
      * POST /oauth2/token/from-refresh 直签，调用不消费、不轮转 refresh_token，
      * 不影响正常登录态与后续刷新。scope 只能收敛为凭证已有范围的子集
+     * <p>
+     * 入参约束（超出直接返回 10001/10002，不发起 UC 调用）：
+     * `expires_in` 为 1~315360000 秒（最长 10 年）、`name` 不超过 50 字符、`scope` 不超过 500 字符；
+     * 单用户 60 秒内最多调用 3 次（超出返回 39009）
      *
-     * @param expiresIn         期望的 access_token 有效期（秒），必填且大于 0
+     * @param expiresIn         期望的 access_token 有效期（秒），必填，取值 1~315360000（10 年）
      * @param scope             期望收敛到的权限范围（英文逗号分隔），可空表示沿用凭证原有范围
      * @param name              本次签发名称，必填且不超过 50 字符
      * @param httpServletResponse HTTP 响应（写入禁止缓存头）

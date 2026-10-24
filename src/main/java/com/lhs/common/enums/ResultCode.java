@@ -85,6 +85,7 @@ public enum ResultCode {
 	EMAIL_SENT_TOO_FREQUENTLY(39006,"邮件发送间隔时间30秒"),
 	NOT_REPEAT_REQUESTS(39007,"不要重复请求"),
 	VERIFICATION_CODE_LOCKED(39008, "验证码错误次数过多，请重新获取"),
+	TOKEN_ISSUE_TOO_FREQUENTLY(39009, "令牌签发请求过于频繁，请稍后重试"),
 
 
 	/* 系统错误：40001-49999 */
