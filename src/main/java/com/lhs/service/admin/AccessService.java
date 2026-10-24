@@ -26,7 +26,9 @@ import com.lhs.mapper.admin.AccessLogUrlDailyStatsTaskMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,8 +45,46 @@ public class AccessService {
     /** 允许查询的最大时间范围（35 天），覆盖整月 31 天的边界情况 */
     private static final long MAX_RANGE_MILLIS = 35L * 24 * 60 * 60 * 1000;
 
-    private static final SimpleDateFormat HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:00");
-    private static final SimpleDateFormat DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    /**
+     * 小时维度格式：yyyy-MM-dd HH:00
+     * <p>
+     * 使用 DateTimeFormatter（不可变、线程安全）而非 SimpleDateFormat：
+     * 后者内部持有可变 Calendar，被静态共享时并发 format 会把 A 天的时间格式化成 B 天
+     */
+    private static final DateTimeFormatter HOUR_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00");
+
+    /** 天维度格式：yyyy-MM-dd */
+    private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    /**
+     * 按天格式化（yyyy-MM-dd）
+     *
+     * @param date 时间
+     * @return 格式化结果，按 JVM 默认时区换算
+     */
+    private static String formatDay(Date date) {
+        return DAY_FORMAT.format(toLocalDateTime(date));
+    }
+
+    /**
+     * 按小时格式化（yyyy-MM-dd HH:00）
+     *
+     * @param date 时间
+     * @return 格式化结果，按 JVM 默认时区换算
+     */
+    private static String formatHour(Date date) {
+        return HOUR_FORMAT.format(toLocalDateTime(date));
+    }
+
+    /**
+     * java.util.Date 转 LocalDateTime，时区与 SimpleDateFormat 默认行为保持一致
+     *
+     * @param date 时间
+     * @return 本地时间
+     */
+    private static LocalDateTime toLocalDateTime(Date date) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
 
     private final AccessLogMapper accessLogMapper;
     private final AccessLogHourlyStatsMapper accessLogHourlyStatsMapper;
@@ -147,7 +187,7 @@ public class AccessService {
         // url → (day → count)
         Map<String, Map<String, Long>> urlDayCount = new HashMap<>();
         for (AccessLogUrlDailyStats stat : stats) {
-            String day = DAY_FORMAT.format(stat.getStatDay());
+            String day = formatDay(stat.getStatDay());
             urlDayCount
                     .computeIfAbsent(stat.getUrl(), k -> new HashMap<>())
                     .merge(day, stat.getVisitCount(), Long::sum);
@@ -262,7 +302,7 @@ public class AccessService {
                             .eq(AccessLogUrlDailyStats::getRecordCode, RecordType.DISPLAY.code())
             );
             if (expiredRows > 0) {
-                Logger.info("URL每日访问量统计：{} 旧数据 {} 条已标记为过期", DAY_FORMAT.format(startDay), expiredRows);
+                Logger.info("URL每日访问量统计：{} 旧数据 {} 条已标记为过期", formatDay(startDay), expiredRows);
             }
         }
 
@@ -294,7 +334,7 @@ public class AccessService {
             accessLogUrlDailyStatsTaskMapper.insert(newTask);
         }
 
-        Logger.info("URL每日访问量统计完成：{} 共 {} 个URL task_id {}", DAY_FORMAT.format(startDay), urlCountMap.size(), newTaskId);
+        Logger.info("URL每日访问量统计完成：{} 共 {} 个URL task_id {}", formatDay(startDay), urlCountMap.size(), newTaskId);
         return urlCountMap.size();
     }
 
@@ -422,7 +462,7 @@ public class AccessService {
         // stat_hour → visit_count
         Map<String, Long> hourCount = new HashMap<>();
         for (AccessLogHourlyStats stat : stats) {
-            hourCount.put(HOUR_FORMAT.format(stat.getStatHour()), stat.getVisitCount());
+            hourCount.put(formatHour(stat.getStatHour()), stat.getVisitCount());
         }
 
         // 按区间生成所有整点小时并补齐零值
@@ -508,7 +548,7 @@ public class AccessService {
                             .eq(AccessLogHourlyStats::getRecordCode, RecordType.DISPLAY.code())
             );
             if (expiredRows > 0) {
-                Logger.info("小时访问量统计：{} 旧数据 {} 条已标记为过期", HOUR_FORMAT.format(startHour), expiredRows);
+                Logger.info("小时访问量统计：{} 旧数据 {} 条已标记为过期", formatHour(startHour), expiredRows);
             }
         }
 
@@ -537,7 +577,7 @@ public class AccessService {
             accessLogHourlyStatsTaskMapper.insert(newTask);
         }
 
-        Logger.info("每小时访问量统计完成：{} 访问量 {} task_id {}", HOUR_FORMAT.format(startHour), visitCount, newTaskId);
+        Logger.info("每小时访问量统计完成：{} 访问量 {} task_id {}", formatHour(startHour), visitCount, newTaskId);
         return visitCount;
     }
 
@@ -588,7 +628,7 @@ public class AccessService {
         // 按天汇总各URL访问量
         Map<String, Long> dayCount = new HashMap<>();
         for (AccessLogUrlDailyStats stat : stats) {
-            String day = DAY_FORMAT.format(stat.getStatDay());
+            String day = formatDay(stat.getStatDay());
             dayCount.merge(day, stat.getVisitCount(), Long::sum);
         }
 
@@ -620,7 +660,7 @@ public class AccessService {
 
         List<String> hours = new ArrayList<>();
         while (!cal.after(end)) {
-            hours.add(HOUR_FORMAT.format(cal.getTime()));
+            hours.add(formatHour(cal.getTime()));
             cal.add(Calendar.HOUR_OF_DAY, 1);
         }
         return hours;
@@ -646,7 +686,7 @@ public class AccessService {
 
         List<String> days = new ArrayList<>();
         while (!cal.after(end)) {
-            days.add(DAY_FORMAT.format(cal.getTime()));
+            days.add(formatDay(cal.getTime()));
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
         return days;

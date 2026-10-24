@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 
 public class JsonMapper {
 
@@ -32,7 +31,9 @@ public class JsonMapper {
         //忽略空Bean转json的错误
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         //所有的日期格式都统一为以下的格式，即yyyy-MM-dd HH:mm:ss
-        objectMapper.setDateFormat(new SimpleDateFormat(STANDARD_FORMAT));
+        //用 ThreadSafeDateFormat 包装：ObjectMapper 会把 DateFormat 引用交给共享的序列化器，
+        //直接放 SimpleDateFormat 会形成跨线程共享，并发下日期错乱
+        objectMapper.setDateFormat(new ThreadSafeDateFormat(STANDARD_FORMAT));
         //忽略 在json字符串中存在，但在java对象中不存在对应属性的情况。防止错误
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
