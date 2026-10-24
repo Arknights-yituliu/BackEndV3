@@ -44,14 +44,6 @@ public class MaaController {
     }
 
 
-    @Operation(summary = "公招统计")
-    @GetMapping("/recruit/statistics")
-    public Result<Object> saveMaaRecruitStatistical() {
-        Map<String, Integer> result = recruitTagUploadService.recruitStatistics();
-        return Result.success(result);
-    }
-
-
     @Operation(summary = "公招统计结果")
     @GetMapping("/recruit/result")
     public Result<Object> queryMaaRecruitStatistical() {

@@ -354,6 +354,9 @@ CREATE TABLE IF NOT EXISTS `operator_progression_manual_data` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='干员练度人工修正数据表';
 
 -- 干员练度统计结果表
+-- 已废弃（2026-10-24）：干员练度统计逻辑已整体迁出至独立系统，
+-- 本项目的统计任务与查询接口均已移除。此处仅保留建表语句以兼容存量环境的历史数据，
+-- 新环境仍会建出空表，但不再有任何写入与读取。
 CREATE TABLE IF NOT EXISTS `operator_progression_statistical_result` (
   `id` bigint NOT NULL COMMENT '主键，雪花ID',
   `sample_size` int NOT NULL DEFAULT 0 COMMENT '样本量',

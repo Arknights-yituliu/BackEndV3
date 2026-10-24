@@ -4,7 +4,6 @@ import com.lhs.service.admin.AccessService;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.survey.OperatorCarryRateService;
 import com.lhs.service.survey.OperatorDataService;
-import com.lhs.service.survey.OperatorProgressionStatisticsService;
 import com.lhs.service.material.*;
 
 import com.lhs.service.survey.QuestionnaireService;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 public class TaskService {
 
     private final StageService stageService;
-    private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
     private final RecruitTagUploadService recruitTagUploadService;
     private final OperatorCarryRateService operatorCarryRateService;
 
@@ -36,7 +34,6 @@ public class TaskService {
     public TaskService(
 
             StageService stageService,
-            OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             RecruitTagUploadService recruitTagUploadService,
             OperatorCarryRateService operatorCarryRateService,
             QuestionnaireService questionnaireService,
@@ -48,7 +45,6 @@ public class TaskService {
         this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
 
         this.stageService = stageService;
-        this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.recruitTagUploadService = recruitTagUploadService;
         this.operatorCarryRateService = operatorCarryRateService;
         this.questionnaireService = questionnaireService;
@@ -155,22 +151,6 @@ public class TaskService {
     @Scheduled(cron = "0 4 * * * ?")
     public void pullPenguinStagesApi() {
         stageService.getPenguinStagesDropData();
-    }
-
-    /**
-     * 统计干员练度数据
-     */
-    @Scheduled(cron = "0 10 0/6 * * ?")
-    public void statisticsProgressionOperatorData() {
-        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
-    }
-
-    /**
-     * 归档干员练度数据
-     */
-    @Scheduled(cron = "0 12 0/6 * * ?")
-    public void archivedOperatorProgressionResult() {
-        operatorProgressionStatisticsService.archivedOperatorProgressionResult();
     }
 
     /**

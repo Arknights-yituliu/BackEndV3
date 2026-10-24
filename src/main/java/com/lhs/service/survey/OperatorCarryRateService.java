@@ -10,7 +10,6 @@ import com.lhs.entity.dto.survey.OperatorCarryRateDailyDataRequestParamsDTO;
 import com.lhs.entity.po.survey.OperatorCarryRate;
 import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 import com.lhs.entity.po.survey.QuestionnaireResult;
-import com.lhs.entity.tmp.QuestionnaireResultDTO;
 import com.lhs.entity.vo.survey.CarryRateDailyDataVO;
 import com.lhs.entity.vo.survey.OperatorCarryRateDailyDataVO;
 import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
@@ -239,23 +238,6 @@ public class OperatorCarryRateService {
 
         return operatorCarryRateStatisticsVO;
 
-    }
-
-
-    public void moveDate() {
-
-        List<QuestionnaireResultDTO> oldData = operatorCarryRateStatisticsMapper.getOldData();
-        for (QuestionnaireResultDTO dto : oldData) {
-            QuestionnaireResult questionnaireResult = new QuestionnaireResult();
-            questionnaireResult.setId(dto.getId());
-            questionnaireResult.setUid(dto.getUid());
-            questionnaireResult.setQuestionnaireCode(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME.code());
-            questionnaireResult.setContent(dto.getContent());
-            questionnaireResult.setCreateTime(dto.getCreateTime());
-            questionnaireResult.setUpdateTime(dto.getUpdateTime());
-            questionnaireResult.setIp(dto.getIp());
-            questionnaireResultMapper.insert(questionnaireResult);
-        }
     }
 
 

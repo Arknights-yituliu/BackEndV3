@@ -6,7 +6,6 @@ import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
 import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
-import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
 import com.lhs.service.survey.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,23 +22,12 @@ import java.util.Map;
 public class GameDataController {
     private final OperatorDataService operatorDataService;
 
-    private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
-
     private final WarehouseInfoService warehouseInfoService;
 
     public GameDataController(OperatorDataService operatorDataService,
-            OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             WarehouseInfoService warehouseInfoService) {
         this.operatorDataService = operatorDataService;
-        this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.warehouseInfoService = warehouseInfoService;
-    }
-
-    @Operation(summary = "手动统计")
-    @GetMapping("/survey/statistic")
-    public Result<Object> statistic() {
-        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
-        return Result.success();
     }
 
     @Operation(summary = "获取干员数据")
@@ -77,12 +65,6 @@ public class GameDataController {
     public Result<Object> operatorDataReset(@RequestBody Map<String, String> params) {
         String token = params.get("token");
         return operatorDataService.operatorDataReset(token);
-    }
-
-    @Operation(summary = "干员练度调查表统计结果")
-    @GetMapping("/survey/operator/result/v2")
-    public Result<OperatorProgressionStatisticalResultVOV2> characterStatisticalResultV2() {
-        return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());
     }
 
     @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
