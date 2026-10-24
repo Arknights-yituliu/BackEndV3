@@ -1,293 +1,56 @@
 package com.lhs.service.survey.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.lhs.common.context.UserContext;
-import com.lhs.common.enums.ResultCode;
-import com.lhs.common.exception.ServiceException;
-import com.lhs.common.util.*;
+import com.lhs.common.util.JsonMapper;
+import com.lhs.common.util.TimeUtil;
 import com.lhs.entity.dto.survey.CharacterTableOperatorDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
-import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
-import com.lhs.entity.dto.survey.PlayerInfoDTO;
-import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import com.lhs.entity.dto.user.UcAkAccountVO;
 import com.lhs.entity.dto.user.UcOperatorListVO;
 import com.lhs.entity.dto.user.UcOperatorVO;
-import com.lhs.entity.po.survey.*;
-
-import com.lhs.entity.po.user.UserExternalAccountBinding;
-import com.lhs.entity.vo.survey.UserInfoVO;
+import com.lhs.entity.po.survey.OperatorProgressionData;
 import com.lhs.mapper.survey.OperatorProgressionDataMapper;
-import com.lhs.mapper.survey.OperatorProgressionManualDataMapper;
-import com.lhs.mapper.user.UserExternalAccountBindingMapper;
 import com.lhs.service.survey.OperatorDataService;
-import com.lhs.service.user.BindService;
 import com.lhs.service.user.UcGameDataClient;
 import com.lhs.service.util.CharacterTableService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * 干员练度服务实现
+ * <p>
+ * 本地导入与回读链路（森空岛导入、手动导入、按绑定关系回读）已随对应接口下线一并移除，
+ * 本类只保留两条能力：
+ * <ol>
+ *   <li>定时任务使用的本地练度数据备份；</li>
+ *   <li>第三方读取接口所需的 UC 令牌转发与结构富化。</li>
+ * </ol>
+ */
 @Service
 public class OperatorDataServiceImpl implements OperatorDataService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final CharacterTableService characterTableService;
 
-    private final BindService bindService;
-
-    private final IdGenerator idGenerator;
-
     private final OperatorProgressionDataMapper operatorProgressionDataMapper;
-    private final OperatorProgressionManualDataMapper operatorProgressionManualDataMapper;
 
     private final TencentCloudService tencentCloudService;
-    private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
 
     private final UcGameDataClient ucGameDataClient;
 
-    public OperatorDataServiceImpl(RedisTemplate<String, Object> redisTemplate,
-            BindService bindService,
-            OperatorProgressionDataMapper operatorProgressionDataMapper,
-            OperatorProgressionManualDataMapper operatorProgressionManualDataMapper,
+    public OperatorDataServiceImpl(OperatorProgressionDataMapper operatorProgressionDataMapper,
             TencentCloudService tencentCloudService,
-            UserExternalAccountBindingMapper userExternalAccountBindingMapper,
             UcGameDataClient ucGameDataClient,
             CharacterTableService characterTableService) {
-        this.redisTemplate = redisTemplate;
-        this.characterTableService = characterTableService;
-
-        this.bindService = bindService;
         this.operatorProgressionDataMapper = operatorProgressionDataMapper;
-        this.operatorProgressionManualDataMapper = operatorProgressionManualDataMapper;
         this.tencentCloudService = tencentCloudService;
-        this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
         this.ucGameDataClient = ucGameDataClient;
-        this.idGenerator = new IdGenerator(1L);
-    }
-
-    @Override
-    public Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO) {
-
-        Long uid = UserContext.getUid();
-
-        // 防止用户多次点击上传
-        Boolean done = redisTemplate.opsForValue().setIfAbsent(RedisKeyUtil.surveyOperatorUploadInterval(uid),
-                "done", 5, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(done)) {
-            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
-        }
-
-        List<OperatorProgressionDataDTO> operatorDataList = playerInfoDTO.getOperatorDataList();
-        String akUid = playerInfoDTO.getUid();
-
-        AkPlayerBindInfoDTO akPlayerBindInfoDTO = new AkPlayerBindInfoDTO();
-        akPlayerBindInfoDTO.setAkNickName(playerInfoDTO.getNickName());
-        akPlayerBindInfoDTO.setAkUid(akUid);
-        akPlayerBindInfoDTO.setChannelName(playerInfoDTO.getChannelName());
-        akPlayerBindInfoDTO.setChannelMasterId(playerInfoDTO.getChannelMasterId());
-        bindService.saveSklandBindingAndPlayerInfo(uid, akPlayerBindInfoDTO);
-
-        return saveOperatorData(akUid, operatorDataList);
-    }
-
-    @Override
-    @Transactional
-    public Map<String, Object> importManualOperatorData(ManualOperatorDataDTO manualOperatorDataDTO) {
-        Long uid = UserContext.getUid();
-        checkOperatorDataUploadInterval(uid);
-
-        List<OperatorProgressionDataDTO> operatorDataList = manualOperatorDataDTO.getOperatorDataList();
-        if (operatorDataList == null) {
-            throw new ServiceException(ResultCode.PARAM_IS_BLANK, "operatorDataList is required");
-        }
-
-        // 手动数据没有可验证的游戏 UID，固定使用当前一图流用户 UID，防止客户端伪造归属。
-        return saveManualOperatorData(String.valueOf(uid), operatorDataList);
-    }
-
-    private void checkOperatorDataUploadInterval(Long uid) {
-        // 同一用户短时间内只允许一次导入，避免并发请求同时覆盖同一份练度数据。
-        Boolean done = redisTemplate.opsForValue().setIfAbsent(RedisKeyUtil.surveyOperatorUploadInterval(uid),
-                "done", 5, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(done)) {
-            throw new ServiceException(ResultCode.NOT_REPEAT_REQUESTS);
-        }
-    }
-
-    /**
-     * 保存干员数据
-     *
-     * @param akUid                          明日方舟玩家uid
-     * @param operatorProgressionDataDTOList 干员练度调查表
-     * @return 成功信息
-     */
-    private Map<String, Object> saveOperatorData(String akUid,
-            List<OperatorProgressionDataDTO> operatorProgressionDataDTOList) {
-
-        // 本次修改影响的数据行数
-        int affectedRows = 0;
-
-        // 循环上传的干员练度
-        for (OperatorProgressionDataDTO operatorProgressionDataDTO : operatorProgressionDataDTOList) {
-            // 更新数据条数
-            operatorProgressionDataDTO.setOwn(true);
-            checkOperatorDataValidity(operatorProgressionDataDTO);
-            affectedRows++; // 新增数据条数
-        }
-
-        LambdaQueryWrapper<OperatorProgressionData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OperatorProgressionData::getAkUid, akUid);
-        boolean exists = operatorProgressionDataMapper.exists(queryWrapper);
-
-        OperatorProgressionData operatorProgressionData = new OperatorProgressionData();
-        operatorProgressionData.setAkUid(akUid);
-        operatorProgressionData.setOperatorProgression(JsonMapper.toJSONString(operatorProgressionDataDTOList));
-        operatorProgressionData.setCreateTime(new Date());
-
-        if (exists) {
-            operatorProgressionDataMapper.updateById(operatorProgressionData);
-        } else {
-            operatorProgressionDataMapper.insert(operatorProgressionData);
-        }
-
-        Date date = new Date();
-        // 更新用户最后一次上传时间
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-
-        Map<String, Object> hashMap = new HashMap<>();
-        hashMap.put("affectedRows", affectedRows);
-        hashMap.put("updateTime", simpleDateFormat.format(date));
-
-        return hashMap;
-    }
-
-    /**
-     * 覆盖保存手动录入的干员数据。该表以一图流用户 UID 为主键，与森空岛来源的数据隔离。
-     */
-    private Map<String, Object> saveManualOperatorData(String akUid,
-            List<OperatorProgressionDataDTO> operatorProgressionDataDTOList) {
-        for (OperatorProgressionDataDTO operatorProgressionDataDTO : operatorProgressionDataDTOList) {
-            operatorProgressionDataDTO.setOwn(true);
-            checkOperatorDataValidity(operatorProgressionDataDTO);
-        }
-
-        OperatorProgressionManualData existingData = operatorProgressionManualDataMapper.getTimeInfoByAkUid(akUid);
-        Date now = new Date();
-        OperatorProgressionManualData operatorProgressionData = new OperatorProgressionManualData();
-        operatorProgressionData.setAkUid(akUid);
-        operatorProgressionData.setOperatorProgression(JsonMapper.toJSONString(operatorProgressionDataDTOList));
-        operatorProgressionData.setCreateTime(existingData == null ? now : existingData.getCreateTime());
-        operatorProgressionData.setUpdateTime(now);
-
-        if (existingData != null) {
-            operatorProgressionManualDataMapper.updateById(operatorProgressionData);
-        } else {
-            operatorProgressionManualDataMapper.insert(operatorProgressionData);
-        }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("affectedRows", operatorProgressionDataDTOList.size());
-        result.put("updateTime", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(now));
-        return result;
-    }
-
-    /**
-     * 对新老干员数据进行检查，是否有非法数据
-     *
-     * @param operatorProgressionDataDTO 新干员数据
-     */
-    private void checkOperatorDataValidity(OperatorProgressionDataDTO operatorProgressionDataDTO) {
-
-        // 精英化阶段小于2 不能专精和开模组
-        if (operatorProgressionDataDTO.getElite() < 2) {
-            operatorProgressionDataDTO.setSkill1(0);
-            operatorProgressionDataDTO.setSkill2(0);
-            operatorProgressionDataDTO.setSkill3(0);
-            operatorProgressionDataDTO.setModX(0);
-            operatorProgressionDataDTO.setModY(0);
-            operatorProgressionDataDTO.setModD(0);
-        }
-
-        if (operatorProgressionDataDTO.getRarity() < 6) {
-            if (!operatorProgressionDataDTO.getCharId().contains("amiya")) {
-                operatorProgressionDataDTO.setSkill3(0);
-            }
-        }
-
-        if (!operatorProgressionDataDTO.getOwn()) {
-            operatorProgressionDataDTO.setMainSkill(0);
-            operatorProgressionDataDTO.setPotential(0);
-            operatorProgressionDataDTO.setSkill1(0);
-            operatorProgressionDataDTO.setSkill2(0);
-            operatorProgressionDataDTO.setSkill3(0);
-            operatorProgressionDataDTO.setModX(0);
-            operatorProgressionDataDTO.setModY(0);
-            operatorProgressionDataDTO.setModD(0);
-        }
-
-        if (operatorProgressionDataDTO.getMainSkill() == null) {
-            operatorProgressionDataDTO.setMainSkill(1);
-        }
-
-        if (operatorProgressionDataDTO.getModD() == null) {
-            operatorProgressionDataDTO.setModD(0);
-        }
-
-    }
-
-    @Override
-    public List<OperatorProgressionDataDTO> listOperatorProgressionData() {
-        Long uid = UserContext.getUid();
-        List<UserExternalAccountBinding> bindings = userExternalAccountBindingMapper.selectList(
-                new LambdaQueryWrapper<UserExternalAccountBinding>()
-                        .eq(UserExternalAccountBinding::getUid, uid));
-
-        // 绑定表的更新时间也会被仓库导入修改，不能用于判断练度数据的新旧。
-        OperatorProgressionData latestSklandData = null;
-        for (UserExternalAccountBinding binding : bindings) {
-            OperatorProgressionData sklandData = operatorProgressionDataMapper.selectById(binding.getAkUid());
-            if (sklandData == null || sklandData.getOperatorProgression() == null) {
-                continue;
-            }
-            if (latestSklandData == null || isLater(sklandData.getCreateTime(), latestSklandData.getCreateTime())) {
-                latestSklandData = sklandData;
-            }
-        }
-
-        String manualAkUid = String.valueOf(uid);
-        OperatorProgressionManualData manualTimeData = operatorProgressionManualDataMapper
-                .getTimeInfoByAkUid(manualAkUid);
-        Date manualUpdateTime = manualTimeData == null ? null
-                : (manualTimeData.getUpdateTime() == null ? manualTimeData.getCreateTime() : manualTimeData.getUpdateTime());
-
-        // 仅在手动数据更晚时读取其完整 JSON，避免不必要地加载 LONGTEXT 字段。
-        if (manualTimeData != null && (latestSklandData == null
-                || isLater(manualUpdateTime, latestSklandData.getCreateTime()))) {
-            OperatorProgressionManualData manualData = operatorProgressionManualDataMapper.selectById(manualAkUid);
-            if (manualData != null && manualData.getOperatorProgression() != null) {
-                return JsonMapper.parseJSONArray(manualData.getOperatorProgression(), new TypeReference<>() {
-                });
-            }
-        }
-
-        if (latestSklandData != null) {
-            return JsonMapper.parseJSONArray(latestSklandData.getOperatorProgression(), new TypeReference<>() {
-            });
-        }
-        throw new ServiceException(ResultCode.OPERATOR_DATA_NOT_FOUND);
-    }
-
-    private boolean isLater(Date candidateTime, Date currentTime) {
-        return candidateTime != null && (currentTime == null || candidateTime.after(currentTime));
+        this.characterTableService = characterTableService;
     }
 
     @Override
@@ -368,7 +131,8 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     /**
      * 将原始干员练度数据转换为富化后的V2格式
      *
-     * @param rawDataList 原始干员练度数据
+     * @param rawDataList       原始干员练度数据
+     * @param characterTableMap 角色表（charId → 干员数据）
      * @return 富化后的干员练度数据列表
      */
     private List<OperatorProgressionDataV2DTO> transformToV2DTO(

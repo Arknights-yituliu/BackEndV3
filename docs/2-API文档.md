@@ -465,63 +465,6 @@ https://backend.yituliu.cn/store/pack
 
 # 调查与统计
 
-## 获取用户的干员练度信息 POST
-
-### 路径：
-
-```
-https://backend.yituliu.cn/survey/operator/info
-```
-
-### 参数：
-```json5
-{
-  token:"用户登录后服务器返回的用户凭证"
-}
-```
-
-### 响应数据：
-```json5
-{
-  //状态码
-  "code": 200,
-  //返回信息描述
-  "msg": "操作成功",
-  //返回值
-  "data": [
-    {
-      //干员id
-      "charId": "char_136_hsguma",
-      //是否拥有
-      "own": true,
-      //干员等级
-      "level": 90,
-      //干员精英化等级
-      "elite": 2,
-      //干员潜能等级
-      "potential": 6,
-      //干员星级
-      "rarity": 6,
-      //干员通过技能等级
-      "mainSkill": 7,
-      //干员1技能等级
-      "skill1": 0,
-      //干员2技能等级
-      "skill2": 3,
-      //干员3技能等级
-      "skill3": 0,
-      //干员X分支模组等级
-      "modX": 1,
-      //干员Y分支模组等级
-      "modY": 0,
-      //干员D分支模组等级
-      "modD": 0
-    }
-  ]
-}
-```
-
-
 ## 获取干员练度调查结果 GET
 
 ### 路径：

@@ -2,7 +2,6 @@ package com.lhs.entity.po.user;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.lhs.entity.dto.user.AkPlayerBindInfoDTO;
 import lombok.Data;
 
 @TableName
@@ -24,13 +23,5 @@ public class AkPlayerBindInfo {
     private Boolean deleteFlag;
     //
     private Long updateTime;
-
-    public void copyByAkPlayerBindInfoDTO(AkPlayerBindInfoDTO akPlayerBindInfoDTO){
-        this.akUid = akPlayerBindInfoDTO.getAkUid();
-        this.akNickName = akPlayerBindInfoDTO.getAkNickName();
-        this.channelName = akPlayerBindInfoDTO.getChannelName();
-        this.channelMasterId = akPlayerBindInfoDTO.getChannelMasterId();
-        this.warehouseInfoId = akPlayerBindInfoDTO.getWarehouseInfoId();
-    }
 
 }

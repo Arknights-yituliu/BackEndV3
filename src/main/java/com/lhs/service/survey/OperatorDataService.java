@@ -1,28 +1,21 @@
 package com.lhs.service.survey;
 
-import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
-import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
-import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.*;
+import java.util.List;
 
-
-public interface OperatorDataService  {
-
+/**
+ * 干员练度服务
+ * <p>
+ * 本地的练度导入与回读方法（listOperatorProgressionData / importSKLandPlayerInfoV3 /
+ * importManualOperatorData）已随对应接口下线一并移除，仅保留后台备份与第三方读取能力
+ */
+public interface OperatorDataService {
 
     /**
-     * 找回用户填写的数据
-     * @return 成功消息
+     * 备份本地干员练度数据到对象存储（定时任务调用）
      */
-    List<OperatorProgressionDataDTO> listOperatorProgressionData();
-
-
-    Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO);
-
-    Map<String, Object> importManualOperatorData(ManualOperatorDataDTO manualOperatorDataDTO);
-
     void backupOperatorProgressionData();
 
     /**

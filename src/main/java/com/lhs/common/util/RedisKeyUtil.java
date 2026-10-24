@@ -38,9 +38,6 @@ public final class RedisKeyUtil {
     /** 问卷提交频控 key 前缀：SurveySubmitterIP:{ip} */
     private static final String PREFIX_SURVEY_SUBMITTER = "SurveySubmitterIP:";
 
-    /** 干员数据上传间隔防重 key 前缀：SurveyOperatorInfoUploadInterval:{uid} */
-    private static final String PREFIX_OPERATOR_UPLOAD_INTERVAL = "SurveyOperatorInfoUploadInterval:";
-
     /** 掉落数据防重锁 key 前缀：StageDropLimit:{penguinId} */
     private static final String PREFIX_STAGE_DROP_LOCK = "StageDropLimit:";
 
@@ -206,16 +203,6 @@ public final class RedisKeyUtil {
      */
     public static String surveySubmitterIp(String ip) {
         return PREFIX_SURVEY_SUBMITTER + ip;
-    }
-
-    /**
-     * 干员数据上传间隔防重 key
-     *
-     * @param uid 用户 uid
-     * @return Redis key
-     */
-    public static String surveyOperatorUploadInterval(Long uid) {
-        return PREFIX_OPERATOR_UPLOAD_INTERVAL + uid;
     }
 
     /**
