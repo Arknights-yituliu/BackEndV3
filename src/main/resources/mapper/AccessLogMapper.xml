@@ -23,14 +23,21 @@
         ]]>
     </select>
 
-    <!-- 按URL分组统计指定时间范围内各URL的访问量（先截断?及后面的查询参数，只按URL本身统计） -->
+    <!--
+        按URL分组统计指定时间范围内各URL的访问量。
+        url 在入库时已去除查询参数与结尾斜杠（AccessService#normalizeUrlForStore），
+        因此这里可以直接 GROUP BY url：函数包裹列会让 idx_url 失效，也会强制走临时表。
+        排序与条数一并下推，避免把当天全部 URL 拉进内存再排序（URL 由客户端上报，基数不可控）。
+    -->
     <select id="countByUrl" resultType="com.lhs.entity.dto.UrlCountDTO">
         <![CDATA[
-            SELECT SUBSTRING_INDEX(url, '?', 1) AS url, COUNT(*) AS count
+            SELECT url AS url, COUNT(*) AS count
             FROM access_log
             WHERE access_time >= #{startTime}
               AND access_time < #{endTime}
-            GROUP BY SUBSTRING_INDEX(url, '?', 1)
+            GROUP BY url
+            ORDER BY COUNT(*) DESC
+            LIMIT #{limit}
         ]]>
     </select>
 

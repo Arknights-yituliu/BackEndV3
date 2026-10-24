@@ -59,6 +59,9 @@ public final class RedisKeyUtil {
     /** UC 令牌直签接口的 uid 维度限流 key 前缀：uc:issue:rate:{uid} */
     private static final String PREFIX_UC_ISSUE_RATE = "uc:issue:rate:";
 
+    /** 访问日志上报的 IP 维度限流 key 前缀：AccessLog:IP:{ip} */
+    private static final String PREFIX_ACCESS_LOG_IP_RATE = "AccessLog:IP:";
+
     /** 管理端验证码发送频控（分钟级）key 前缀：AdminCodeSendMin:{account} */
     private static final String PREFIX_ADMIN_CODE_SEND_MIN = "AdminCodeSendMin:";
 
@@ -280,6 +283,19 @@ public final class RedisKeyUtil {
      */
     public static String ucIssueRate(Long uid) {
         return PREFIX_UC_ISSUE_RATE + uid;
+    }
+
+    /**
+     * 访问日志上报的 IP 维度限流 key。
+     * <p>
+     * `/access-log` 是匿名写入接口，每次请求产生一条 insert；
+     * 不限制则主表可被无界灌入，进而拖慢后续全表重算的统计任务。
+     *
+     * @param ip 请求来源 IP
+     * @return Redis key
+     */
+    public static String accessLogIpRate(String ip) {
+        return PREFIX_ACCESS_LOG_IP_RATE + ip;
     }
 
     /**

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.admin.AccessLogUrlDailyStatsMapper">
+
+    <!--
+        批量插入每日URL访问量统计。
+        create_time 交给数据库默认值（CURRENT_TIMESTAMP），避免应用时钟与库时钟不一致。
+        调用方保证 list 非空（空列表会拼出非法 SQL）。
+    -->
+    <insert id="insertBatch">
+        INSERT INTO access_log_url_daily_stats
+        (id, url, stat_day, visit_count, task_id, record_code)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.url}, #{item.statDay}, #{item.visitCount}, #{item.taskId}, #{item.recordCode})
+        </foreach>
+    </insert>
+
+</mapper>

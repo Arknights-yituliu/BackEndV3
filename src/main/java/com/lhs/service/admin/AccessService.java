@@ -6,6 +6,8 @@ import com.lhs.common.exception.ServiceException;
 import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.IpUtil;
 import com.lhs.common.util.Logger;
+import com.lhs.common.util.RedisKeyUtil;
+import com.lhs.common.util.RedisRateLimiter;
 import com.lhs.common.util.UserAgentUtil;
 import com.lhs.entity.dto.AccessLogDTO;
 import com.lhs.entity.dto.UrlCountDTO;
@@ -24,7 +26,9 @@ import com.lhs.mapper.admin.AccessLogMapper;
 import com.lhs.mapper.admin.AccessLogUrlDailyStatsMapper;
 import com.lhs.mapper.admin.AccessLogUrlDailyStatsTaskMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -59,6 +63,36 @@ public class AccessService {
     /** 日志字段最大长度，与 access_log.url / referer 的 varchar(500) 对齐 */
     private static final int LOG_FIELD_MAX_LENGTH = 500;
 
+    /** 地域字段最大长度，与 access_log.region 的 varchar(100) 对齐 */
+    private static final int REGION_MAX_LENGTH = 100;
+
+    /** IP 字段最大长度，与 access_log.ip 的 varchar(50) 对齐 */
+    private static final int IP_MAX_LENGTH = 50;
+
+    /**
+     * User-Agent 最大长度
+     * <p>
+     * 字段是 text（理论上限 65535 字节），但不做截断等于让客户端决定单行大小：
+     * 几条 MB 级 UA 就能把整表撑爆，且 text 超长会退化为行外存储影响读取
+     */
+    private static final int USER_AGENT_MAX_LENGTH = 512;
+
+    /** 单 IP 每分钟允许上报的访问日志条数 */
+    private static final long ACCESS_LOG_IP_LIMIT = 60;
+
+    /** 访问日志上报限流窗口（秒） */
+    private static final long ACCESS_LOG_RATE_WINDOW_SECONDS = 60;
+
+    /**
+     * 单日单个URL统计的最大落库条数
+     * <p>
+     * url 由客户端上报，基数不受控；若全量落库，日统计表与区间查询（最长 35 天）
+     * 的内存占用随上报方的想象力线性增长。
+     * 取 200 而不是接口展示的 30：接口取的是"区间内累计 Top30"，
+     * 只留 30 会让"每天都排 31 名、但每天榜单都换人"的 URL 在跨区间累计时被误删。
+     */
+    private static final int URL_DAILY_STATS_MAX_ROWS = 200;
+
     /**
      * 按天格式化（yyyy-MM-dd）
      *
@@ -91,6 +125,53 @@ public class AccessService {
     }
 
     /**
+     * 按列宽截断任意字符串
+     *
+     * @param value     原始值
+     * @param maxLength 目标列的最大长度
+     * @param fallback  值为 null/空白时的占位内容
+     * @return 截断后的值
+     */
+    private static String truncate(String value, int maxLength, String fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        return value.length() > maxLength ? value.substring(0, maxLength) : value;
+    }
+
+    /**
+     * 归一化入库的 URL：去查询参数、去结尾斜杠、绝对地址只留 path
+     * <p>
+     * 归一化放在写入侧而不是统计侧：统计 SQL 一旦用函数包裹 url 列就无法用索引，
+     * 且"同一页面的不同写法"会在 GROUP BY 里被拆成多行。
+     * 兼容前端可能上报的三种形态：{@code /a/b}、{@code /a/b/}、{@code https://host/a/b}。
+     *
+     * @param value 上报的 URL
+     * @return 归一化后的 URL，始终以 "/" 开头（空值返回 "Empty"）
+     */
+    static String normalizeUrlForStore(String value) {
+        if (value == null || value.isBlank()) {
+            return "Empty";
+        }
+        String trimmed = sanitizeUrlField(value.trim(), "Empty");
+
+        // 绝对地址（location.href 形态）只保留 path 部分
+        int schemeIndex = trimmed.indexOf("://");
+        if (schemeIndex >= 0) {
+            int pathIndex = trimmed.indexOf('/', schemeIndex + 3);
+            trimmed = pathIndex >= 0 ? trimmed.substring(pathIndex) : "/";
+        }
+
+        if (trimmed.length() > 1 && trimmed.endsWith("/")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        if (trimmed.isEmpty()) {
+            return "/";
+        }
+        return trimmed.startsWith("/") ? trimmed : "/" + trimmed;
+    }
+
+    /**
      * 按小时格式化（yyyy-MM-dd HH:00）
      *
      * @param date 时间
@@ -116,17 +197,20 @@ public class AccessService {
     private final AccessLogUrlDailyStatsMapper accessLogUrlDailyStatsMapper;
     private final AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper;
     private final IdGenerator idGenerator;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public AccessService(AccessLogMapper accessLogMapper,
             AccessLogHourlyStatsMapper accessLogHourlyStatsMapper,
             AccessLogHourlyStatsTaskMapper accessLogHourlyStatsTaskMapper,
             AccessLogUrlDailyStatsMapper accessLogUrlDailyStatsMapper,
-            AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper) {
+            AccessLogUrlDailyStatsTaskMapper accessLogUrlDailyStatsTaskMapper,
+            RedisTemplate<String, String> redisTemplate) {
         this.accessLogMapper = accessLogMapper;
         this.accessLogHourlyStatsMapper = accessLogHourlyStatsMapper;
         this.accessLogHourlyStatsTaskMapper = accessLogHourlyStatsTaskMapper;
         this.accessLogUrlDailyStatsMapper = accessLogUrlDailyStatsMapper;
         this.accessLogUrlDailyStatsTaskMapper = accessLogUrlDailyStatsTaskMapper;
+        this.redisTemplate = redisTemplate;
         this.idGenerator = new IdGenerator(3L);
     }
 
@@ -137,6 +221,12 @@ public class AccessService {
      * @param accessLogDTO 访问日志数据（url, region）
      */
     public void saveAccessLog(HttpServletRequest request, AccessLogDTO accessLogDTO) {
+        String ip = IpUtil.getIpAddress(request);
+        // 匿名写入接口，先限流再落库：不限制则主表可被无界灌入，后续统计任务的成本随之线性上涨
+        RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.accessLogIpRate(ip),
+                ACCESS_LOG_IP_LIMIT, ACCESS_LOG_RATE_WINDOW_SECONDS,
+                ResultCode.ACCESS_LOG_REPORT_TOO_FREQUENTLY);
+
         AccessLog accessLog = new AccessLog();
 
         accessLog.setId(idGenerator.nextId());
@@ -145,13 +235,14 @@ public class AccessService {
         // 前端曾把 token 拼在 query 上（如 /user/info?token=xxx），原样入库等于把登录凭证写进数据库；
         // 同时限制长度，避免超长值触发 "Data too long for column" 导致整条日志写入失败
         accessLog.setReferer(sanitizeUrlField(request.getHeader("Referer"), "Unknown"));
-        accessLog.setUrl(sanitizeUrlField(accessLogDTO.getUrl(), "Empty"));
+        // URL 额外做归一化（去结尾斜杠、绝对地址取 path），统计侧才能直接 GROUP BY url
+        accessLog.setUrl(normalizeUrlForStore(accessLogDTO.getUrl()));
 
         // 访问时间
         accessLog.setAccessTime(new Date());
 
-        // IP
-        accessLog.setIp(IpUtil.getIpAddress(request));
+        // IP：来源可能是客户端可伪造的 X-Forwarded-For，长度不可信
+        accessLog.setIp(truncate(ip, IP_MAX_LENGTH, "Unknown"));
 
         // User-Agent 解析
         accessLog.setBrowser(UserAgentUtil.getBrowser(request));
@@ -160,12 +251,11 @@ public class AccessService {
 
         // 若浏览器/OS/设备任一为Unknown，保存完整User-Agent备查
         if ("Unknown".equals(accessLog.getBrowser()) || "Unknown".equals(accessLog.getOs()) || "Unknown".equals(accessLog.getDevice())) {
-            accessLog.setUserAgent(UserAgentUtil.getUserAgent(request));
+            accessLog.setUserAgent(truncate(UserAgentUtil.getUserAgent(request), USER_AGENT_MAX_LENGTH, "Unknown"));
         }
 
-        // 地域
-        String region = accessLogDTO.getRegion();
-        accessLog.setRegion(region != null ? region : "Unknown");
+        // 地域：客户端完全可控，超长会触发 "Data too long for column region"
+        accessLog.setRegion(truncate(accessLogDTO.getRegion(), REGION_MAX_LENGTH, "Unknown"));
 
         accessLogMapper.insert(accessLog);
     }
@@ -238,9 +328,13 @@ public class AccessService {
     /**
      * 定时统计昨天的每个URL访问量并写入 access_log_url_daily_stats 表
      * 计算昨天的起止时间，委托给 {@link #statisticsUrlDailyVisits(Date, Date)} 执行核心统计
+     * <p>
+     * 事务注解必须同时加在本方法上：类内自调用不经过 Spring 代理，
+     * 只标 {@link #statisticsUrlDailyVisits(Date, Date)} 的话定时任务进来是没有事务的。
      *
      * @return 本次统计写入的URL数量
      */
+    @Transactional(rollbackFor = Exception.class)
     public long statisticsYesterdayUrlDailyVisits() {
         // 计算昨天的起止时间：[昨天00:00, 今天00:00)
         Calendar cal = Calendar.getInstance();
@@ -262,6 +356,7 @@ public class AccessService {
      *
      * @return 本次统计写入的URL数量
      */
+    @Transactional(rollbackFor = Exception.class)
     public long statisticsTodayUrlDailyVisits() {
         // 计算今天的起止时间：[今天00:00, 明天00:00)
         Calendar cal = Calendar.getInstance();
@@ -289,12 +384,14 @@ public class AccessService {
      * @param endDay   统计结束日期（当天00:00，不含）
      * @return 本次统计写入的URL数量
      */
+    @Transactional(rollbackFor = Exception.class)
     public long statisticsUrlDailyVisits(Date startDay, Date endDay) {
         // 强制将 startDay 对齐到当天零点，保证 stat_day 标识的唯一性与匹配一致性
         startDay = truncateToDay(startDay);
 
-        // 按URL分组统计区间内的访问量，URL标准化去尾部斜杠后聚合
-        List<UrlCountDTO> urlCounts = accessLogMapper.countByUrl(startDay, endDay);
+        // 按URL分组统计区间内的访问量，取访问量最高的前 N 个URL
+        // url 在入库时已归一化，这里仍走一次 normalizeUrl 是为了兼容改造前的历史行（带结尾斜杠）
+        List<UrlCountDTO> urlCounts = accessLogMapper.countByUrl(startDay, endDay, URL_DAILY_STATS_MAX_ROWS);
         Map<String, Long> urlCountMap = new HashMap<>();
         for (UrlCountDTO dto : urlCounts) {
             String url = normalizeUrl(dto.getUrl());
@@ -322,17 +419,21 @@ public class AccessService {
             }
         }
 
-        // 3. 生成新 task_id，写入新的统计数据
+        // 3. 生成新 task_id，批量写入新的统计数据
         long newTaskId = idGenerator.nextId();
-        for (Map.Entry<String, Long> entry : urlCountMap.entrySet()) {
-            AccessLogUrlDailyStats stats = new AccessLogUrlDailyStats();
-            stats.setId(idGenerator.nextId());
-            stats.setUrl(entry.getKey());
-            stats.setStatDay(startDay);
-            stats.setVisitCount(entry.getValue());
-            stats.setTaskId(newTaskId);
-            stats.setRecordCode(RecordType.DISPLAY.code());
-            accessLogUrlDailyStatsMapper.insert(stats);
+        if (!urlCountMap.isEmpty()) {
+            List<AccessLogUrlDailyStats> batch = new ArrayList<>(urlCountMap.size());
+            for (Map.Entry<String, Long> entry : urlCountMap.entrySet()) {
+                AccessLogUrlDailyStats stats = new AccessLogUrlDailyStats();
+                stats.setId(idGenerator.nextId());
+                stats.setUrl(entry.getKey());
+                stats.setStatDay(startDay);
+                stats.setVisitCount(entry.getValue());
+                stats.setTaskId(newTaskId);
+                stats.setRecordCode(RecordType.DISPLAY.code());
+                batch.add(stats);
+            }
+            accessLogUrlDailyStatsMapper.insertBatch(batch);
         }
 
         // 4. 更新/插入任务记录表，task_id 指向新值
@@ -512,6 +613,7 @@ public class AccessService {
      *
      * @return 本次统计写入的访问量
      */
+    @Transactional(rollbackFor = Exception.class)
     public long statisticsLastHour() {
         // 计算上一完整小时的起止时间
         Calendar cal = Calendar.getInstance();
@@ -539,6 +641,7 @@ public class AccessService {
      * @param endHour   统计结束时间（不含）
      * @return 本次统计写入的访问量
      */
+    @Transactional(rollbackFor = Exception.class)
     public long statisticsLastHour(Date startHour, Date endHour) {
         // 强制将 startHour 对齐到整点（分秒毫秒置零），保证 stat_hour 标识的唯一性与匹配一致性
         startHour = truncateToHour(startHour);
