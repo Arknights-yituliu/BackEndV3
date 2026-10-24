@@ -16,7 +16,9 @@ import com.lhs.mapper.admin.AdminMapper;
 import com.lhs.service.admin.AdminService;
 import com.lhs.service.util.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -45,6 +47,12 @@ public class AdminServiceImpl implements AdminService {
 
     /** 登录失败计数窗口（分钟）：窗口过后自动解锁 */
     private static final long LOGIN_FAIL_WINDOW_MINUTES = 10L;
+
+    /** SCAN 每批返回条数的提示值（服务端不保证精确） */
+    private static final int CACHE_SCAN_BATCH = 200;
+
+    /** 单次查询返回的 key 上限，防止缓存较多时把大对象一次性拉进内存 */
+    private static final int CACHE_MAX_KEYS = 500;
 
     public AdminServiceImpl(RedisTemplate<String, Object> redisTemplate,
                             AdminMapper adminMapper,
@@ -163,18 +171,43 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Map<String, Object> getCacheKeys() {
-        Map<String, Object> map = new HashMap<>();
-        Set<String> keys = redisTemplate.keys("Item:*");
-        for(String key :keys){
-            map.put(key,redisTemplate.opsForValue().get(key));
+        // 用 SCAN 游标分批遍历，避免 KEYS 这类 O(N) 阻塞命令卡住整个实例
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(RedisKeyUtil.PREFIX_ITEM_CACHE + "*")
+                .count(CACHE_SCAN_BATCH)
+                .build();
+
+        List<String> keys = new ArrayList<>(CACHE_SCAN_BATCH);
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext() && keys.size() < CACHE_MAX_KEYS) {
+                keys.add(cursor.next());
+            }
         }
-        return map;
+
+        if (keys.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        // 一次 MGET 取回全部 value，避免 N 次往返；返回条数有上限，防止把大对象全拉进内存
+        List<Object> values = redisTemplate.opsForValue().multiGet(keys);
+        Map<String, Object> result = new LinkedHashMap<>(keys.size());
+        for (int i = 0; i < keys.size(); i++) {
+            result.put(keys.get(i), values == null || i >= values.size() ? null : values.get(i));
+        }
+        return result;
     }
 
     @Override
     public String deleteCacheKey(String key) {
-        Boolean delete = redisTemplate.delete(key);
-        return delete?"删除成功":"删除失败";
+        // 只允许删除缓存前缀下的 key，防止误删会话/频控等关键 key
+        if (key == null || key.isBlank()) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK);
+        }
+        if (!key.startsWith(RedisKeyUtil.PREFIX_ITEM_CACHE)) {
+            throw new ServiceException(ResultCode.PARAM_IS_INVALID);
+        }
+        Boolean deleted = redisTemplate.delete(key);
+        return Boolean.TRUE.equals(deleted) ? "删除成功" : "删除失败";
     }
 
     @Override

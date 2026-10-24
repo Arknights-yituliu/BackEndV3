@@ -76,6 +76,14 @@ public final class RedisKeyUtil {
     /** 礼包数据缓存 key：Item:PackInfo（供 @RedisCacheable 注解引用） */
     public static final String PACK_INFO_KEY = "Item:PackInfo";
 
+    /**
+     * 缓存类 key 的统一前缀
+     * <p>
+     * 管理端缓存接口只允许查看/删除该前缀下的 key，避免误删 {@code loginToken:*}、
+     * {@code uc:token:*} 等会话与频控 key
+     */
+    public static final String PREFIX_ITEM_CACHE = "Item:";
+
     /** 礼包数据版本 key：Item:PackInfoVersion */
     private static final String KEY_PACK_INFO_VERSION = "Item:PackInfoVersion";
 
