@@ -36,9 +36,10 @@ public class HttpRequestUtil {
             httpResponse = httpClient.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             if(httpResponse.getStatusLine().getStatusCode() != 200){
-                // 只记录状态码：响应体可能包含上游凭证或内部报错，不写入日志
-                Logger.warn("HTTP GET 返回非 200：{} status={}",
-                        url, httpResponse.getStatusLine().getStatusCode());
+                // 上游报错需要原文才能定位问题，这里有意保留响应体（P1-3 的回退点）：
+                // 代价是非 200 响应体会进日志，若上游会回显凭证，需在上游侧收敛或改用脱敏白名单
+                Logger.warn("HTTP GET 返回非 200：{} status={}，响应：{}",
+                        url, httpResponse.getStatusLine().getStatusCode(), EntityUtils.toString(entity));
                 return null;
             }
             return EntityUtils.toString(entity);
