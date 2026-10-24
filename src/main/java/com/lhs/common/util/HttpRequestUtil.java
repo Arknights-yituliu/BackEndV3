@@ -36,7 +36,9 @@ public class HttpRequestUtil {
             httpResponse = httpClient.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             if(httpResponse.getStatusLine().getStatusCode() != 200){
-                Logger.info(EntityUtils.toString(entity));
+                // 只记录状态码：响应体可能包含上游凭证或内部报错，不写入日志
+                Logger.warn("HTTP GET 返回非 200：{} status={}",
+                        url, httpResponse.getStatusLine().getStatusCode());
                 return null;
             }
             return EntityUtils.toString(entity);

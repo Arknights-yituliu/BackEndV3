@@ -56,6 +56,9 @@ public class AccessService {
     /** 天维度格式：yyyy-MM-dd */
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    /** 日志字段最大长度，与 access_log.url / referer 的 varchar(500) 对齐 */
+    private static final int LOG_FIELD_MAX_LENGTH = 500;
+
     /**
      * 按天格式化（yyyy-MM-dd）
      *
@@ -64,6 +67,27 @@ public class AccessService {
      */
     private static String formatDay(Date date) {
         return DAY_FORMAT.format(toLocalDateTime(date));
+    }
+
+    /**
+     * 裁剪 URL / Referer 的查询参数并限制长度
+     * <p>
+     * 只保留 "?" 之前的部分：query 里可能带 token 等凭证，也会让字段长度不可控
+     *
+     * @param value    原始值
+     * @param fallback 值为 null 时的占位内容
+     * @return 裁剪后的值
+     */
+    private static String sanitizeUrlField(String value, String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        int queryIndex = value.indexOf('?');
+        String trimmed = queryIndex >= 0 ? value.substring(0, queryIndex) : value;
+        if (trimmed.length() > LOG_FIELD_MAX_LENGTH) {
+            trimmed = trimmed.substring(0, LOG_FIELD_MAX_LENGTH);
+        }
+        return trimmed;
     }
 
     /**
@@ -117,19 +141,11 @@ public class AccessService {
 
         accessLog.setId(idGenerator.nextId());
 
-        // Referer
-        String referer = request.getHeader("Referer");
-        accessLog.setReferer(referer != null ? referer : "Unknown");
-
-        // URL（去除 ? 及后面的查询参数）
-        String url = accessLogDTO.getUrl();
-        if (url != null) {
-            int queryIndex = url.indexOf('?');
-            if (queryIndex >= 0) {
-                url = url.substring(0, queryIndex);
-            }
-        }
-        accessLog.setUrl(url != null ? url : "Empty");
+        // Referer 与 URL 一律裁剪掉查询参数
+        // 前端曾把 token 拼在 query 上（如 /user/info?token=xxx），原样入库等于把登录凭证写进数据库；
+        // 同时限制长度，避免超长值触发 "Data too long for column" 导致整条日志写入失败
+        accessLog.setReferer(sanitizeUrlField(request.getHeader("Referer"), "Unknown"));
+        accessLog.setUrl(sanitizeUrlField(accessLogDTO.getUrl(), "Empty"));
 
         // 访问时间
         accessLog.setAccessTime(new Date());
