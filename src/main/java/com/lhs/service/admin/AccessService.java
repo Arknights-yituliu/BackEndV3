@@ -75,7 +75,7 @@ public class AccessService {
     private static final int USER_AGENT_MAX_LENGTH = 512;
 
     /**
-     * 单日单个URL统计的最大落库条数
+     * 单日统计最多落库的 URL 条数（按访问量取 Top N）
      * <p>
      * url 由客户端上报，基数不受控；若全量落库，日统计表与区间查询（最长 35 天）
      * 的内存占用随上报方的想象力线性增长。
@@ -131,14 +131,15 @@ public class AccessService {
     }
 
     /**
-     * 归一化入库的 URL：去查询参数、去结尾斜杠、绝对地址只留 path
+     * 归一化入库的 URL：去查询参数、去结尾斜杠，保留协议与域名
      * <p>
      * 归一化放在写入侧而不是统计侧：统计 SQL 一旦用函数包裹 url 列就无法用索引，
      * 且"同一页面的不同写法"会在 GROUP BY 里被拆成多行。
-     * 兼容前端可能上报的三种形态：{@code /a/b}、{@code /a/b/}、{@code https://host/a/b}。
+     * 保留协议与域名是为了与存量数据口径一致（历史 access_log.url 均为完整地址）；
+     * 兼容三种形态：{@code /a/b}、{@code /a/b/}、{@code https://host/a/b/}。
      *
      * @param value 上报的 URL
-     * @return 归一化后的 URL，始终以 "/" 开头（空值返回 "Empty"）
+     * @return 归一化后的 URL（空值返回 "Empty"）
      */
     static String normalizeUrlForStore(String value) {
         if (value == null || value.isBlank()) {
@@ -146,20 +147,11 @@ public class AccessService {
         }
         String trimmed = sanitizeUrlField(value.trim(), "Empty");
 
-        // 绝对地址（location.href 形态）只保留 path 部分
-        int schemeIndex = trimmed.indexOf("://");
-        if (schemeIndex >= 0) {
-            int pathIndex = trimmed.indexOf('/', schemeIndex + 3);
-            trimmed = pathIndex >= 0 ? trimmed.substring(pathIndex) : "/";
-        }
-
+        // 只去掉结尾斜杠，避免同一页面因写法不同在统计时被拆开；协议与域名原样保留
         if (trimmed.length() > 1 && trimmed.endsWith("/")) {
             trimmed = trimmed.substring(0, trimmed.length() - 1);
         }
-        if (trimmed.isEmpty()) {
-            return "/";
-        }
-        return trimmed.startsWith("/") ? trimmed : "/" + trimmed;
+        return trimmed.isEmpty() ? "/" : trimmed;
     }
 
     /**

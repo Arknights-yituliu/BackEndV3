@@ -25,7 +25,7 @@
 
     <!--
         按URL分组统计指定时间范围内各URL的访问量。
-        url 在入库时已去除查询参数与结尾斜杠（AccessService#normalizeUrlForStore），
+        url 在入库时已去除查询参数与结尾斜杠、保留协议与域名（AccessService#normalizeUrlForStore），
         因此这里可以直接 GROUP BY url：函数包裹列会让 idx_url 失效，也会强制走临时表。
         排序与条数一并下推，避免把当天全部 URL 拉进内存再排序（URL 由客户端上报，基数不可控）。
     -->
