@@ -330,23 +330,6 @@ CREATE TABLE IF NOT EXISTS `operator_carry_rate_statistics` (
   KEY `idx_code_period` (`questionnaire_code`, `start_time`, `end_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='干员携带率统计结果表';
 
--- 干员练度原始数据表
-CREATE TABLE IF NOT EXISTS `operator_progression_data` (
-  `ak_uid` varchar(255) NOT NULL COMMENT '明日方舟玩家uid',
-  `operator_progression` longtext COMMENT '干员练度JSON',
-  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
-  PRIMARY KEY (`ak_uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='干员练度原始数据表';
-
--- 干员练度人工修正数据表
-CREATE TABLE IF NOT EXISTS `operator_progression_manual_data` (
-  `ak_uid` varchar(255) NOT NULL COMMENT '明日方舟玩家uid',
-  `operator_progression` longtext COMMENT '干员练度JSON',
-  `create_time` datetime(6) DEFAULT NULL COMMENT '创建时间',
-  `update_time` datetime(6) DEFAULT NULL COMMENT '更新时间',
-  PRIMARY KEY (`ak_uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='干员练度人工修正数据表';
-
 /* ============================================================
  * 六、基建排班
  * ============================================================ */

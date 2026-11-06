@@ -1,19 +1,14 @@
 package com.lhs.service.survey.impl;
 
-import com.lhs.common.util.JsonMapper;
-import com.lhs.common.util.TimeUtil;
 import com.lhs.entity.dto.survey.CharacterTableOperatorDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
 import com.lhs.entity.dto.user.UcAkAccountVO;
 import com.lhs.entity.dto.user.UcOperatorListVO;
 import com.lhs.entity.dto.user.UcOperatorVO;
-import com.lhs.entity.po.survey.OperatorProgressionData;
-import com.lhs.mapper.survey.OperatorProgressionDataMapper;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.user.UcGameDataClient;
 import com.lhs.service.util.CharacterTableService;
-import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
@@ -26,45 +21,19 @@ import java.util.Map;
  * 干员练度服务实现
  * <p>
  * 本地导入与回读链路（森空岛导入、手动导入、按绑定关系回读）已随对应接口下线一并移除，
- * 本类只保留两条能力：
- * <ol>
- *   <li>定时任务使用的本地练度数据备份；</li>
- *   <li>第三方读取接口所需的 UC 令牌转发与结构富化。</li>
- * </ol>
+ * 本类只保留第三方读取接口所需的 UC 令牌转发与结构富化。
  */
 @Service
 public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final CharacterTableService characterTableService;
 
-    private final OperatorProgressionDataMapper operatorProgressionDataMapper;
-
-    private final TencentCloudService tencentCloudService;
-
     private final UcGameDataClient ucGameDataClient;
 
-    public OperatorDataServiceImpl(OperatorProgressionDataMapper operatorProgressionDataMapper,
-            TencentCloudService tencentCloudService,
-            UcGameDataClient ucGameDataClient,
+    public OperatorDataServiceImpl(UcGameDataClient ucGameDataClient,
             CharacterTableService characterTableService) {
-        this.operatorProgressionDataMapper = operatorProgressionDataMapper;
-        this.tencentCloudService = tencentCloudService;
         this.ucGameDataClient = ucGameDataClient;
         this.characterTableService = characterTableService;
-    }
-
-    @Override
-    public void backupOperatorProgressionData() {
-        String dayText = TimeUtil.getDayText();
-        List<OperatorProgressionData> operatorProgressionDataList;
-        for (int i = 0; i < 100; i++) {
-            operatorProgressionDataList = operatorProgressionDataMapper.getOperatorProgressionData(i * 2000, 2000);
-            if (operatorProgressionDataList.isEmpty()) {
-                break;
-            }
-            tencentCloudService.backupCOS(JsonMapper.toJSONString(operatorProgressionDataList),
-                    "/mysql/operatorProgressionData/" + dayText + "/" + i + ".json");
-        }
     }
 
     @Override

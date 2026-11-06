@@ -3,7 +3,6 @@ package com.lhs.task;
 import com.lhs.service.admin.AccessService;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.survey.OperatorCarryRateService;
-import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.material.*;
 
 import com.lhs.service.survey.QuestionnaireService;
@@ -22,8 +21,6 @@ public class TaskService {
 
     private final QuestionnaireService questionnaireService;
 
-    private final OperatorDataService operatorDataService;
-
     private final UserSessionService userSessionService;
     private final BindService bindService;
 
@@ -37,7 +34,6 @@ public class TaskService {
             RecruitTagUploadService recruitTagUploadService,
             OperatorCarryRateService operatorCarryRateService,
             QuestionnaireService questionnaireService,
-            OperatorDataService operatorDataService,
             UserSessionService userSessionService,
             BindService bindService,
             AccessService accessService,
@@ -48,7 +44,6 @@ public class TaskService {
         this.recruitTagUploadService = recruitTagUploadService;
         this.operatorCarryRateService = operatorCarryRateService;
         this.questionnaireService = questionnaireService;
-        this.operatorDataService = operatorDataService;
         this.userSessionService = userSessionService;
         this.bindService = bindService;
         this.accessService = accessService;
@@ -71,14 +66,6 @@ public class TaskService {
     @Scheduled(cron = "0 32 4 * * ?")
     public void backupQuestionnaireResult() {
         questionnaireService.backup();
-    }
-
-    /**
-     * 备份干员练度数据
-     */
-    @Scheduled(cron = "0 33 4 * * ?")
-    public void backupOperatorProgressionData() {
-        operatorDataService.backupOperatorProgressionData();
     }
 
     // 按小时执行的任务
