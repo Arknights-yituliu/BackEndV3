@@ -36,23 +36,6 @@ CREATE TABLE IF NOT EXISTS `admin` (
   KEY `idx_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='后台管理员表';
 
--- 本地用户表（历史账号体系遗留，当前用户中心已迁移至 OAuth）
-CREATE TABLE IF NOT EXISTS `user_info` (
-  `id` bigint NOT NULL COMMENT '主键，雪花ID',
-  `user_name` varchar(50) DEFAULT NULL COMMENT '用户名',
-  `pass_word` varchar(255) DEFAULT NULL COMMENT '密码',
-  `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
-  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
-  `update_time` datetime DEFAULT NULL COMMENT '最后一次上传数据时间',
-  `ip` varchar(50) DEFAULT NULL COMMENT 'IP地址',
-  `status` int DEFAULT 1 COMMENT '用户状态：1正常，0封禁',
-  `avatar` varchar(255) DEFAULT NULL COMMENT '用户头像',
-  `delete_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标记',
-  PRIMARY KEY (`id`),
-  KEY `idx_user_name` (`user_name`),
-  KEY `idx_email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='本地用户表（历史遗留）';
-
 -- OAuth2 用户中心资料缓存表，id 即用户中心 uid
 CREATE TABLE IF NOT EXISTS `oauth_user_info` (
   `id` bigint NOT NULL COMMENT '用户中心 uid',
