@@ -140,10 +140,7 @@ POST /stage/v7/recommended
             "end": 4073691312000,
             "spm": 0.0,
             "apCost": 6,
-            "stageExpectedOutput": 6.0,
-            "dropDetail": [
-              { "itemId": "30012", "itemName": "固源岩", "itemValue": 6.0, "expectedOutput": 6.0, "knockRating": 1.0, "isUnlimited": false, "rarity": 1, "quantity": 1, "times": 1200, "sampleSize": 1200, "end": 4073691312000 }
-            ]
+            "stageExpectedOutput": 6.0
           }
         ]
       }
@@ -186,7 +183,7 @@ POST /stage/v7/recommended
 
 | 字段 | 类型 | 说明 |
 | :-- | :-- | :-- |
-| recommendedStage | List\<RecommendedStageVO\> | 按材料系列聚合的开放关卡推荐，每个系列内按 `stageEfficiency` 降序 |
+| recommendedStage | List\<RecommendedStageVO\> | 按材料系列聚合的开放关卡推荐，每个系列内按 `stageEfficiency` 降序，关卡不含 `dropDetail` |
 | orundumRecommendedStageVO | List\<StageEfficiencyVO\> | 搓玉推荐关卡，按 `orundumPerAp` 降序 |
 | historyActStage | List\<HistoryActStageVO\> | 历史活动关卡（仅 T3 主产物），按活动结束时间降序 |
 | historyActOrundumStage | List\<HistoryActStageVO\> | 历史活动搓玉关卡，按活动结束时间降序 |
@@ -227,13 +224,13 @@ POST /stage/v7/recommended
 | lmdCost | Double | 每搓一抽所需龙门币，单位万；无搓玉产出时为 `null` |
 | apCost | Integer | 关卡理智消耗 |
 | end | Long | 关卡结束时间（毫秒时间戳） |
-| dropDetail | List\<StageDropDetailVO\> | 掉落明细 |
+| dropDetail | List\<StageDropDetailVO\> | 掉落明细；仅搓玉推荐与历史活动关卡返回，材料系列推荐关卡不返回 |
 
 完整字段说明（含 `leT2Efficiency`、`stageExpectedOutput`、`StageDropDetailVO` 等）见 [材料价值与关卡推荐API-全参数.md](./材料价值与关卡推荐API-全参数.md)。
 
 ### 推荐口径摘要
 
-1. 开放推荐关卡只保留 `stageEfficiency > 0.5` 且尚未结束的关卡，按材料系列聚合。
+1. 开放推荐关卡只保留 `stageEfficiency > 0.5` 且尚未结束的关卡，按材料系列聚合；该列表不返回 `dropDetail`。
 2. 搓玉推荐只保留 `orundumPerAp > 0.2` 的关卡，按每理智合成玉降序。
 3. 历史活动关卡只聚合 `ACT` / `ACT_REP` 且主产物稀有度为 3 的关卡。
 

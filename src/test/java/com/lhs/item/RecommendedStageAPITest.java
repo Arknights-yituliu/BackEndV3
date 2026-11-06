@@ -3,6 +3,7 @@ package com.lhs.item;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -59,6 +60,8 @@ public class RecommendedStageAPITest {
             for (StageEfficiencyVO stage : stageList) {
                 assertNotNull(stage.getEnd(), "关卡 " + stage.getStageCode() + " 的结束时间不应为 null");
                 assertTrue(stage.getEnd() > now, "关卡 " + stage.getStageCode() + " 已结束却出现在推荐列表");
+                // 材料系列推荐关卡不返回掉落明细
+                assertNull(stage.getDropDetail(), "关卡 " + stage.getStageCode() + " 不应返回掉落明细");
             }
             assertStageEfficiencyDesc(stageList);
 
