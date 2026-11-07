@@ -258,10 +258,7 @@ POST /stage/v7/recommended
             "end": 4073691312000,
             "spm": 0.0,
             "apCost": 6,
-            "stageExpectedOutput": 6.0,
-            "dropDetail": [
-              { "itemId": "30012", "itemName": "固源岩", "itemValue": 6.0, "expectedOutput": 6.0, "knockRating": 1.0, "isUnlimited": false, "rarity": 1, "quantity": 1, "times": 1200, "sampleSize": 1200, "end": 4073691312000 }
-            ]
+            "stageExpectedOutput": 6.0
           }
         ]
       }
@@ -330,7 +327,7 @@ POST /stage/v7/recommended
 | 字段 | 类型 | 说明 |
 | :-- | :-- | :-- |
 | itemSeriesId | String | 材料系列 ID |
-| stageResultList | List\<StageEfficiencyVO\> | 该系列的推荐关卡，按 `stageEfficiency` 降序 |
+| stageResultList | List\<StageEfficiencyVO\> | 该系列的推荐关卡，按 `stageEfficiency` 降序；不返回 `dropDetail` 字段 |
 
 #### HistoryActStageVO
 
@@ -368,7 +365,7 @@ POST /stage/v7/recommended
 | spm | Double | 每分钟理智消耗 |
 | apCost | Integer | 关卡理智消耗 |
 | stageExpectedOutput | Double | 关卡期望产出总价值（理智） |
-| dropDetail | List\<StageDropDetailVO\> | 掉落明细，按期望产出价值降序 |
+| dropDetail | List\<StageDropDetailVO\> | 掉落明细，按期望产出价值降序；仅 `orundumRecommendedStageVO`、`historyActStage`、`historyActOrundumStage` 返回，`recommendedStage` 不返回该字段 |
 
 #### StageDropDetailVO
 
@@ -390,7 +387,7 @@ POST /stage/v7/recommended
 
 1. 材料价值由基础物品（合成玉、源石、龙门币、经验、模组解锁凭证、采购凭证、家具零件、自定义材料等）按配置策略确定，再结合关卡掉率与加工站合成/副产物关系迭代收敛，最多 10 轮，单轮总变化小于 `1e-6` 时停止。
 2. 关卡理智转化率 `stageEfficiency` = 该关所有掉落期望价值之和 / 关卡理智消耗。
-3. 开放推荐关卡只保留 `stageEfficiency > 0.5` 且结束时间晚于当前时间的关卡，按材料系列聚合，系列内按 `stageEfficiency` 降序。
+3. 开放推荐关卡只保留 `stageEfficiency > 0.5` 且结束时间晚于当前时间的关卡，按材料系列聚合，系列内按 `stageEfficiency` 降序；材料系列推荐关卡不返回 `dropDetail`。
 4. 搓玉推荐只保留 `orundumPerAp > 0.2` 的关卡，按 `orundumPerAp` 降序；`orundumPerApEfficiency` 为相对榜首的比值。
 5. 主产物取掉落明细中期望产出价值最高的物品；若最高项为活动商店无限池虚拟掉落，则与第二名交换，保证主产物是真实掉落物。主产物不属于任何精英材料系列时，该关卡结果被丢弃。
 6. 活动关卡（`ACT` / `ACT_REP` / `YTL_VIRTUAL`）会按活动商店无限池最优兑换物追加一条虚拟掉落（`isUnlimited=true`）。

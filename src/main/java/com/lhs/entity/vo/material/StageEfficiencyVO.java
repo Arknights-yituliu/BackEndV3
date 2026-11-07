@@ -2,6 +2,8 @@ package com.lhs.entity.vo.material;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * 关卡效率结果 VO
  * 对应前端 stageEfficiencyCal.js 中 calculationStageEfficiency 返回的单条关卡结果
@@ -54,7 +56,8 @@ public class StageEfficiencyVO {
     private Integer apCost;
     /** 关卡期望产出总价值 */
     private Double stageExpectedOutput;
-    /** 掉落明细 */
+    /** 掉落明细（为 null 时序列化阶段直接省略该字段） */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<StageDropDetailVO> dropDetail;
 
     public String getStageCode() {

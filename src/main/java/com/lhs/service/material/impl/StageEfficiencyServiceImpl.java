@@ -116,9 +116,9 @@ public class StageEfficiencyServiceImpl implements StageEfficiencyService {
         }
 
         StageEfficiencyResultVO resultVO = new StageEfficiencyResultVO();
-        // 先按材料系列分组，再计算搓玉效率，保证分组内的对象同样带有搓玉效率字段（与前端引用同一对象的逻辑一致）
-        resultVO.setRecommendedStage(getRecommendedStageList(openStageResult));
+        // 先计算搓玉效率（会写入共享对象的搓玉效率字段），再构建材料系列推荐关卡，保证推荐副本同样带有该字段
         resultVO.setOrundumRecommendedStageVO(getOrundumRecommendedStage(openStageResult));
+        resultVO.setRecommendedStage(getRecommendedStageList(openStageResult));
         resultVO.setHistoryActStage(getHistoryActStage(stageResultList));
         resultVO.setHistoryActOrundumStage(getHistoryActOrundumStage(stageResultList));
         return resultVO;
@@ -378,7 +378,11 @@ public class StageEfficiencyServiceImpl implements StageEfficiencyService {
 
         List<RecommendedStageVO> recommendedStage = new ArrayList<>(recommendedStageCollect.size());
         for (Map.Entry<String, List<StageEfficiencyVO>> entry : recommendedStageCollect.entrySet()) {
-            List<StageEfficiencyVO> stageList = entry.getValue();
+            // 复制关卡对象并移除掉落明细，避免影响其它区块（搓玉推荐、历史活动关卡）中共享的同一对象
+            List<StageEfficiencyVO> stageList = new ArrayList<>(entry.getValue().size());
+            for (StageEfficiencyVO stage : entry.getValue()) {
+                stageList.add(copyStageEfficiencyVOWithoutDropDetail(stage));
+            }
             stageList.sort((a, b) -> Double.compare(b.getStageEfficiency(), a.getStageEfficiency()));
             RecommendedStageVO recommendedStageVO = new RecommendedStageVO();
             recommendedStageVO.setItemSeriesId(entry.getKey());
@@ -499,6 +503,19 @@ public class StageEfficiencyServiceImpl implements StageEfficiencyService {
     private StageEfficiencyVO copyStageEfficiencyVO(StageEfficiencyVO source) {
         StageEfficiencyVO copy = new StageEfficiencyVO();
         BeanUtils.copyProperties(source, copy);
+        return copy;
+    }
+
+    /**
+     * 浅拷贝关卡结果并移除掉落明细
+     * 材料系列推荐关卡不需要返回 dropDetail，用副本置空以免影响共享同一对象的其它区块
+     *
+     * @param source 源对象
+     * @return 不含掉落明细的拷贝对象
+     */
+    private StageEfficiencyVO copyStageEfficiencyVOWithoutDropDetail(StageEfficiencyVO source) {
+        StageEfficiencyVO copy = copyStageEfficiencyVO(source);
+        copy.setDropDetail(null);
         return copy;
     }
 
