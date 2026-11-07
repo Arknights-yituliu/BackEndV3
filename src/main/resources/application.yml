@@ -1,5 +1,5 @@
 #  用于切换生产和开发环境的配置文件，如开发环境配置文件为application-dev.yml 下面的active属性改成dev
 spring:
   profiles:
-    active: pro
+    active: dev
 
