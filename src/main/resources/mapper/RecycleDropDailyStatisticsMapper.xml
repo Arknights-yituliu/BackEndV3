@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.material.RecycleDropDailyStatisticsMapper">
+
+    <!--
+        批量插入回收站每日物品产出统计。
+        create_time 交给数据库默认值（CURRENT_TIMESTAMP），避免应用时钟与库时钟不一致。
+        调用方保证 list 非空（空列表会拼出非法 SQL）。
+    -->
+    <insert id="insertBatch">
+        INSERT INTO recycle_drop_daily_statistics
+        (id, stat_day, item_id, quantity, times, task_id, record_code)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.statDay}, #{item.itemId}, #{item.quantity}, #{item.times}, #{item.taskId}, #{item.recordCode})
+        </foreach>
+    </insert>
+
+    <!--
+        全量未过期数据按 item_id 聚合：quantity/times 为各天求和。
+        同一天只保留一份 DISPLAY 数据（重跑会先把旧 task 置为 EXPIRE），可以直接 SUM。
+    -->
+    <select id="selectAllItemTotal" resultType="com.lhs.entity.dto.drop.RecycleDropDailyCountDTO">
+        SELECT item_id AS itemId,
+               SUM(quantity) AS quantity,
+               SUM(times) AS times
+        FROM recycle_drop_daily_statistics
+        WHERE record_code = 1
+        GROUP BY item_id
+        ORDER BY quantity DESC
+    </select>
+
+</mapper>

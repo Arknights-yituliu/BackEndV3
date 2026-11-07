@@ -28,6 +28,8 @@ public class TaskService {
 
     private final StageDropHourStatisticsService stageDropHourStatisticsService;
 
+    private final RecycleDropDailyStatisticsService recycleDropDailyStatisticsService;
+
     public TaskService(
 
             StageService stageService,
@@ -37,8 +39,11 @@ public class TaskService {
             UserSessionService userSessionService,
             BindService bindService,
             AccessService accessService,
-            StageDropHourStatisticsService stageDropHourStatisticsService) {
-        this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
+            StageDropHourStatisticsService stageDropHourStatisticsService,
+            RecycleDropDailyStatisticsService recycleDropDailyStatisticsService) {
+        this.stageDropHourStatisticsService = stageDropHourStatisticsService;
+
+        this.recycleDropDailyStatisticsService = recycleDropDailyStatisticsService;
 
         this.stageService = stageService;
         this.recruitTagUploadService = recruitTagUploadService;
@@ -77,6 +82,33 @@ public class TaskService {
     @Scheduled(cron = "0 15 * * * ?")
     public void statisticsLastHour() {
         stageDropHourStatisticsService.statisticsLastHour();
+    }
+
+    /**
+     * 统计当天回收站每个物品的产出数量与上报批次数
+     * 每小时执行一次，反复刷新当天数据，重跑幂等（旧数据置为过期）
+     */
+    @Scheduled(cron = "0 25 * * * ?")
+    public void statisticsTodayRecycleDrop() {
+        recycleDropDailyStatisticsService.statisticsToday();
+    }
+
+    /**
+     * 统计昨天回收站每个物品的产出数量与上报批次数
+     * 每天 4:00、22:00 各执行一次，22:00 用于补齐 4:00 之后补传的前一天数据
+     */
+    @Scheduled(cron = "0 0 4,22 * * ?")
+    public void statisticsYesterdayRecycleDrop() {
+        recycleDropDailyStatisticsService.statisticsYesterday();
+    }
+
+    /**
+     * 删除回收站每日产出统计中已过期的数据
+     * 每天 4:40 执行一次，清理重跑后遗留的 EXPIRE 记录
+     */
+    @Scheduled(cron = "0 40 4 * * ?")
+    public void deleteExpireRecycleDropStatistics() {
+        recycleDropDailyStatisticsService.deleteExpireStatistics();
     }
 
     /**

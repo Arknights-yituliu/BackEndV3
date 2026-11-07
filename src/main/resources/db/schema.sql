@@ -200,7 +200,8 @@ CREATE TABLE IF NOT EXISTS `recycle_drop` (
   `version` varchar(50) NOT NULL COMMENT 'MAA版本号',
   PRIMARY KEY (`id`),
   KEY `idx_recycle_drop_create_time` (`create_time`),
-  KEY `idx_recycle_drop_uid_create_time` (`uid`, `create_time`)
+  KEY `idx_recycle_drop_uid_create_time` (`uid`, `create_time`),
+  KEY `idx_recycle_drop_drop_time` (`drop_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='回收站收获记录表';
 
 /* ============================================================
@@ -256,6 +257,34 @@ CREATE TABLE IF NOT EXISTS `stage_drop_statistics_task_log` (
   PRIMARY KEY (`id`),
   KEY `idx_granularity_start` (`time_granularity`, `start_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='掉落统计任务日志表';
+
+-- 回收站每日物品产出统计表
+CREATE TABLE IF NOT EXISTS `recycle_drop_daily_statistics` (
+  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `stat_day` datetime NOT NULL COMMENT '统计日期（当天 00:00:00）',
+  `item_id` varchar(100) NOT NULL COMMENT '物品id',
+  `quantity` bigint NOT NULL DEFAULT 0 COMMENT '当天该物品产出总数量',
+  `times` bigint NOT NULL DEFAULT 0 COMMENT '当天该物品上报批次数',
+  `task_id` bigint NOT NULL COMMENT '统计任务ID',
+  `record_code` int NOT NULL DEFAULT 1 COMMENT '记录状态：1=展示，-1=过期',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_stat_day_code` (`stat_day`, `record_code`),
+  KEY `idx_task_id` (`task_id`),
+  KEY `idx_item_id` (`item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='回收站每日物品产出统计表';
+
+-- 回收站每日物品产出统计任务记录表
+CREATE TABLE IF NOT EXISTS `recycle_drop_daily_statistics_task` (
+  `id` bigint NOT NULL COMMENT '主键，雪花ID',
+  `stat_day` datetime NOT NULL COMMENT '统计日期（当天 00:00:00）',
+  `task_id` bigint NOT NULL COMMENT '该日当前有效的任务ID',
+  `data_count` bigint NOT NULL DEFAULT 0 COMMENT '该日统计的物品数量',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '首次创建时间',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最近一次重新统计时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_stat_day` (`stat_day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='回收站每日物品产出统计任务记录表';
 
 /* ============================================================
  * 五、问卷与干员统计
