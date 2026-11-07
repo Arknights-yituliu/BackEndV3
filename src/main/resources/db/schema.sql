@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS `recycle_drop_daily_statistics` (
   `stat_day` datetime NOT NULL COMMENT '统计日期（当天 00:00:00）',
   `item_id` varchar(100) NOT NULL COMMENT '物品id',
   `quantity` bigint NOT NULL DEFAULT 0 COMMENT '当天该物品产出总数量',
-  `times` bigint NOT NULL DEFAULT 0 COMMENT '当天该物品上报批次数',
+  `times` bigint NOT NULL DEFAULT 0 COMMENT '当天全部物品的记录条数总和（不分材料），同一天每行相同',
   `task_id` bigint NOT NULL COMMENT '统计任务ID',
   `record_code` int NOT NULL DEFAULT 1 COMMENT '记录状态：1=展示，-1=过期',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

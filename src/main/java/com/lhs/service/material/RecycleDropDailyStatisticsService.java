@@ -8,10 +8,12 @@ import com.lhs.common.util.IdGenerator;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.TimeUtil;
 import com.lhs.entity.dto.drop.RecycleDropDailyCountDTO;
+import com.lhs.entity.dto.drop.RecycleDropStatDayRangeDTO;
 import com.lhs.entity.po.material.RecycleDropDailyStatistics;
 import com.lhs.entity.po.material.RecycleDropDailyStatisticsTask;
 import com.lhs.entity.vo.drop.RecycleDropBackfillResultVO;
 import com.lhs.entity.vo.drop.RecycleDropItemTotalVO;
+import com.lhs.entity.vo.drop.RecycleDropStatisticsVO;
 import com.lhs.mapper.material.RecycleDropDailyStatisticsMapper;
 import com.lhs.mapper.material.RecycleDropDailyStatisticsTaskMapper;
 import com.lhs.mapper.material.RecycleDropMapper;
@@ -32,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * 回收站每日物品产出统计服务。
  * <p>
- * 统计 recycle_drop 中每个物品在一天内的产出总数量（quantity）与上报批次数（times），
+ * 统计 recycle_drop 中每个物品在一天内的产出总数量（quantity）与当天全部记录条数（times），
  * 按 stat_day 写入 recycle_drop_daily_statistics，同一天只保留最新一次任务的数据。
  * <p>
  * 两个定时任务共用同一份数据，统计区间统一为完整自然日：
@@ -172,20 +174,34 @@ public class RecycleDropDailyStatisticsService {
     }
 
     /**
-     * 查询全部未过期数据中每个物品的产出总数与上报批次数总和。
+     * 查询全部未过期数据中每个物品的产出总数与总记录条数，并带上数据覆盖的日期范围。
+     * <p>
+     * times 为全部统计日的记录条数总和（不分材料），所有物品取到同一个值，作为掉率分母；
+     * 按物品跨天相加会重复，因此由 {@link RecycleDropDailyStatisticsMapper#selectTotalTimes()} 单独计算。
      *
-     * @return 按产出总数降序的物品统计，无数据时返回空列表
+     * @return 统计结果，包含数据开始/结束日期与物品列表；无数据时日期为 null、列表为空
      */
-    public List<RecycleDropItemTotalVO> getAllItemTotal() {
-        List<RecycleDropDailyCountDTO> countList = recycleDropDailyStatisticsMapper.selectAllItemTotal();
-        List<RecycleDropItemTotalVO> result = new ArrayList<>(countList.size());
+    public RecycleDropStatisticsVO getItemTotal() {
+        List<RecycleDropDailyCountDTO> countList = recycleDropDailyStatisticsMapper.selectItemTotal();
+        Long totalTimes = recycleDropDailyStatisticsMapper.selectTotalTimes();
+        RecycleDropStatDayRangeDTO dayRange = recycleDropDailyStatisticsMapper.selectStatDayRange();
+        long times = totalTimes == null ? 0L : totalTimes;
+
+        List<RecycleDropItemTotalVO> items = new ArrayList<>(countList.size());
         for (RecycleDropDailyCountDTO count : countList) {
             RecycleDropItemTotalVO vo = new RecycleDropItemTotalVO();
             vo.setItemId(count.getItemId());
             vo.setQuantity(count.getQuantity());
-            vo.setTimes(count.getTimes());
-            result.add(vo);
+            vo.setTimes(times);
+            items.add(vo);
         }
+
+        RecycleDropStatisticsVO result = new RecycleDropStatisticsVO();
+        if (dayRange != null && dayRange.getStartDay() != null) {
+            result.setStartDay(formatDay(dayRange.getStartDay()));
+            result.setEndDay(formatDay(dayRange.getEndDay()));
+        }
+        result.setItems(items);
         return result;
     }
 
@@ -222,7 +238,7 @@ public class RecycleDropDailyStatisticsService {
             return 0;
         }
 
-        // 按 item_id 聚合区间内的产出数量与上报批次数
+        // 按 item_id 聚合区间内的产出数量与全部记录条数
         List<RecycleDropDailyCountDTO> countList = recycleDropMapper.selectDailyItemCount(startDay, endDay);
 
         // 1. 查询任务记录表：该日是否已执行过

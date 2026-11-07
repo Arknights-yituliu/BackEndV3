@@ -26,7 +26,7 @@ public class RecycleDropDailyStatistics {
     /** 当天该物品的产出总数量 */
     private Long quantity;
 
-    /** 当天该物品的上报批次数 */
+    /** 当天所有物品的明细行数总和（不分材料），同一天每一行取值相同，作为掉率分母 */
     private Long times;
 
     /** 本次统计的任务ID，关联 recycle_drop_daily_statistics_task.task_id */

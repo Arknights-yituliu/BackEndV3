@@ -13,20 +13,22 @@
     </insert>
 
     <!--
-        按 item_id 聚合时段内的产出数量与上报批次数。
-        quantity：明细行数，一行代表一件产出。
-        times：上报批次数，一次上报的所有明细共用同一个 create_time，按 uid + create_time 去重；
-               同一物品在同一批次里产出多件时只计 1 次。
-        去重直接用多列 COUNT(DISTINCT)，避免每行 CONCAT 字符串的开销。
+        按 item_id 聚合时段内的产出数量与全部记录条数。
+        quantity：该物品的明细行数，一行代表一件产出。
+        times：时段内所有物品的明细行数总和（不分材料），每个物品取到的是同一个值，
+               作为掉率分母使用；用窗口函数对分组结果求和，避免再扫一次全表。
     -->
     <select id="selectDailyItemCount" resultType="com.lhs.entity.dto.drop.RecycleDropDailyCountDTO">
-        SELECT item_id AS itemId,
-               COUNT(*) AS quantity,
-               COUNT(DISTINCT uid, create_time) AS times
-        FROM recycle_drop
-        WHERE drop_time &gt;= #{startTime}
-          AND drop_time &lt; #{endTime}
-        GROUP BY item_id
+        SELECT t.item_id AS itemId,
+               t.quantity AS quantity,
+               SUM(t.quantity) OVER () AS times
+        FROM (
+            SELECT item_id, COUNT(*) AS quantity
+            FROM recycle_drop
+            WHERE drop_time &gt;= #{startTime}
+              AND drop_time &lt; #{endTime}
+            GROUP BY item_id
+        ) t
     </select>
 
 </mapper>

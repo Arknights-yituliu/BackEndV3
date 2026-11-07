@@ -18,17 +18,39 @@
     </insert>
 
     <!--
-        全量未过期数据按 item_id 聚合：quantity/times 为各天求和。
-        同一天只保留一份 DISPLAY 数据（重跑会先把旧 task 置为 EXPIRE），可以直接 SUM。
+        全部未过期数据按 item_id 汇总产出数量。
+        同一天只保留一份 DISPLAY 数据（重跑会先把旧 task 置为 EXPIRE），可以直接 SUM(quantity)。
+        times 不在这里 SUM：同一天每一行的 times 相同（当天全部记录条数），按物品跨天相加会重复，
+        由 selectTotalTimes 单独计算。
     -->
-    <select id="selectAllItemTotal" resultType="com.lhs.entity.dto.drop.RecycleDropDailyCountDTO">
+    <select id="selectItemTotal" resultType="com.lhs.entity.dto.drop.RecycleDropDailyCountDTO">
         SELECT item_id AS itemId,
-               SUM(quantity) AS quantity,
-               SUM(times) AS times
+               SUM(quantity) AS quantity
         FROM recycle_drop_daily_statistics
         WHERE record_code = 1
         GROUP BY item_id
         ORDER BY quantity DESC
+    </select>
+
+    <!--
+        全部未过期数据的总记录条数：每天取一次 times（当天每行相同），再跨天求和。
+    -->
+    <select id="selectTotalTimes" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(day_times), 0)
+        FROM (
+            SELECT stat_day, MAX(times) AS day_times
+            FROM recycle_drop_daily_statistics
+            WHERE record_code = 1
+            GROUP BY stat_day
+        ) t
+    </select>
+
+    <!-- 全部未过期数据覆盖的日期范围，无数据时两列均为 NULL -->
+    <select id="selectStatDayRange" resultType="com.lhs.entity.dto.drop.RecycleDropStatDayRangeDTO">
+        SELECT MIN(stat_day) AS startDay,
+               MAX(stat_day) AS endDay
+        FROM recycle_drop_daily_statistics
+        WHERE record_code = 1
     </select>
 
 </mapper>

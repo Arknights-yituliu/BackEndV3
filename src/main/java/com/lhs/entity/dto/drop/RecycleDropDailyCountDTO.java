@@ -11,9 +11,9 @@ public class RecycleDropDailyCountDTO {
     /** 物品 id */
     private String itemId;
 
-    /** 当天该物品的产出总数量，一条 recycle_drop 明细视为一件产出 */
+    /** 该物品的产出总数量，一条 recycle_drop 明细视为一件产出 */
     private Long quantity;
 
-    /** 当天该物品出现的上报批次数，同一批次内重复产出只算一次 */
+    /** 统计区间内所有物品的明细行数总和（不分材料），作为掉率分母，每个物品取到的值相同 */
     private Long times;
 }

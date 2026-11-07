@@ -21,10 +21,10 @@ public interface RecycleDropMapper extends BaseMapper<RecycleDrop> {
     int insertBatch(@Param("list") List<RecycleDrop> list);
 
     /**
-     * 按物品聚合时间区间 [startTime, endTime) 内的产出数量与上报批次数。
+     * 按物品聚合时间区间 [startTime, endTime) 内的产出数量与全部记录条数。
      * <p>
-     * 口径：recycle_drop 一行代表一件产出，因此 quantity 为明细行数；
-     * 一次上报写入的记录共用同一个 create_time，按 uid + create_time 去重即为上报批次数（times）。
+     * 口径：recycle_drop 一行代表一件产出，quantity 为该物品的明细行数；
+     * times 为区间内所有物品的明细行数总和（不分材料），每个物品取到同一个值，作为掉率分母。
      * 统计按 drop_time（物品产出时间）归属日期，补传的历史数据能落到实际产出当日。
      *
      * @param startTime 统计区间开始时间（含）
