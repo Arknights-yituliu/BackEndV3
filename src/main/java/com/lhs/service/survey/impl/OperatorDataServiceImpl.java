@@ -3,11 +3,11 @@ package com.lhs.service.survey.impl;
 import com.lhs.entity.dto.survey.CharacterTableOperatorDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
-import com.lhs.entity.dto.user.UcAkAccountVO;
-import com.lhs.entity.dto.user.UcOperatorListVO;
-import com.lhs.entity.dto.user.UcOperatorVO;
+import com.lhs.entity.dto.user.TclAkAccountVO;
+import com.lhs.entity.dto.user.TclOperatorListVO;
+import com.lhs.entity.dto.user.TclOperatorVO;
 import com.lhs.service.survey.OperatorDataService;
-import com.lhs.service.user.UcGameDataClient;
+import com.lhs.service.user.TclGameDataClient;
 import com.lhs.service.util.CharacterTableService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
@@ -21,45 +21,45 @@ import java.util.Map;
  * 干员练度服务实现
  * <p>
  * 本地导入与回读链路（森空岛导入、手动导入、按绑定关系回读）已随对应接口下线一并移除，
- * 本类只保留第三方读取接口所需的 UC 令牌转发与结构富化。
+ * 本类只保留第三方读取接口所需的 TCL 令牌转发与结构富化。
  */
 @Service
 public class OperatorDataServiceImpl implements OperatorDataService {
 
     private final CharacterTableService characterTableService;
 
-    private final UcGameDataClient ucGameDataClient;
+    private final TclGameDataClient tclGameDataClient;
 
-    public OperatorDataServiceImpl(UcGameDataClient ucGameDataClient,
+    public OperatorDataServiceImpl(TclGameDataClient tclGameDataClient,
             CharacterTableService characterTableService) {
-        this.ucGameDataClient = ucGameDataClient;
+        this.tclGameDataClient = tclGameDataClient;
         this.characterTableService = characterTableService;
     }
 
     @Override
     public List<OperatorProgressionDataV2DTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
-        // 前端传来的第三方令牌由酸橙云签发保管，本地不再保存、也不再做存在性校验，直接以其为凭证请求 UC
+        // 前端传来的第三方令牌由酸橙云签发保管，本地不再保存、也不再做存在性校验，直接以其为凭证请求 TCL
         String token = httpServletRequest.getHeader("Authorization");
-        List<UcOperatorVO> ucOperatorList = listUcOperators(token);
+        List<TclOperatorVO> tclOperatorList = listTclOperators(token);
 
         // 使用启动时缓存的character_table数据进行转换
         Map<String, CharacterTableOperatorDTO> characterTableMap = characterTableService.getCharacterTable();
-        return transformToV2DTO(toProgressionDataList(ucOperatorList), characterTableMap);
+        return transformToV2DTO(toProgressionDataList(tclOperatorList), characterTableMap);
     }
 
     /**
      * 取用户最近导入数据的游戏账号，并读取该账号的干员全量数据
      *
-     * @param accessToken UC access_token
+     * @param accessToken TCL access_token
      * @return 干员列表；未绑定账号或无干员数据时为空列表
      */
-    private List<UcOperatorVO> listUcOperators(String accessToken) {
-        // UC 侧按更新时间倒序返回绑定账号，取首条即最近导入的账号
-        List<UcAkAccountVO> accounts = ucGameDataClient.listAkAccounts(accessToken);
+    private List<TclOperatorVO> listTclOperators(String accessToken) {
+        // TCL 侧按更新时间倒序返回绑定账号，取首条即最近导入的账号
+        List<TclAkAccountVO> accounts = tclGameDataClient.listAkAccounts(accessToken);
         if (accounts == null || accounts.isEmpty()) {
             return new ArrayList<>();
         }
-        UcOperatorListVO operatorList = ucGameDataClient.listOperators(accessToken, accounts.get(0).getAkUid());
+        TclOperatorListVO operatorList = tclGameDataClient.listOperators(accessToken, accounts.get(0).getAkUid());
         if (operatorList == null || operatorList.getItems() == null) {
             return new ArrayList<>();
         }
@@ -67,17 +67,17 @@ public class OperatorDataServiceImpl implements OperatorDataService {
     }
 
     /**
-     * 将 UC 干员数据映射为本地练度数据结构，以复用角色表富化逻辑
+     * 将 TCL 干员数据映射为本地练度数据结构，以复用角色表富化逻辑
      *
-     * @param ucOperatorList UC 侧干员列表
+     * @param tclOperatorList TCL 侧干员列表
      * @return 本地练度数据列表
      */
-    private List<OperatorProgressionDataDTO> toProgressionDataList(List<UcOperatorVO> ucOperatorList) {
-        List<OperatorProgressionDataDTO> resultList = new ArrayList<>(ucOperatorList.size());
-        for (UcOperatorVO source : ucOperatorList) {
+    private List<OperatorProgressionDataDTO> toProgressionDataList(List<TclOperatorVO> tclOperatorList) {
+        List<OperatorProgressionDataDTO> resultList = new ArrayList<>(tclOperatorList.size());
+        for (TclOperatorVO source : tclOperatorList) {
             OperatorProgressionDataDTO dto = new OperatorProgressionDataDTO();
             dto.setCharId(source.getId());
-            // UC 返回的均为该账号已持有的干员，own 恒为 true
+            // TCL 返回的均为该账号已持有的干员，own 恒为 true
             dto.setOwn(true);
             dto.setRarity(source.getRarity());
             dto.setLevel(source.getLevel());

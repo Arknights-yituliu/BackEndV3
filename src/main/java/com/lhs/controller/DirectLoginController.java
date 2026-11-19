@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * UC 直连登录接口（方案 B：保持旧系统登录页）
+ * TCL 直连登录接口（方案 B：保持旧系统登录页）
  * <p>
- * 前端先调用 /legacy/direct-session 获取 channel，将登录/注册凭证直接提交 UC
+ * 前端先调用 /direct-session 获取 channel，将登录/注册凭证直接提交 TCL
  * （/oauth2/direct-login、/oauth2/direct-register）换取 ticket，
- * 再调用 /legacy/complete-login 由后端凭 ticket 兑换用户信息并发自家会话
+ * 再调用 /complete-login 由后端凭 ticket 兑换用户信息并发自家会话
  */
 @RestController
 @Tag(name = "直连登录")

@@ -5,6 +5,7 @@ package com.lhs.common.util;
  *
  * <p>统一管理 key 的拼接规则，避免散落各处导致冲突或格式不一致。
  * 注意：所有方法返回的 key 字符串与历史硬编码完全一致，保证线上数据兼容。</p>
+ * <p>TCL 相关常量和方法已统一命名，实际 Redis key 仍保留历史 uc: 前缀。</p>
  *
  * @author UserCenter
  */
@@ -15,11 +16,11 @@ public final class RedisKeyUtil {
     /** 用户登录 token → uid 的映射 key 前缀：loginToken:{token} */
     private static final String PREFIX_LOGIN_TOKEN = "loginToken:";
 
-    /** UC 令牌对缓存 key 前缀：uc:token:{uid}，同时承载服务端代持的 refresh_token */
-    private static final String PREFIX_UC_TOKEN = "uc:token:";
+    /** TCL 令牌对缓存 key 前缀：uc:token:{uid}，同时承载服务端代持的 refresh_token */
+    private static final String PREFIX_TCL_TOKEN = "uc:token:";
 
-    /** UC 兑换并发去重短锁 key 前缀：uc:lock:{uid} */
-    private static final String PREFIX_UC_LOCK = "uc:lock:";
+    /** TCL 兑换并发去重短锁 key 前缀：uc:lock:{uid} */
+    private static final String PREFIX_TCL_LOCK = "uc:lock:";
 
     // ==================== 验证码 ====================
 
@@ -56,8 +57,8 @@ public final class RedisKeyUtil {
     /** 直连登录会话领取客户端指纹限流 key 前缀 */
     private static final String PREFIX_DIRECT_SESSION_FINGERPRINT_RATE = "DirectSession:Fingerprint:";
 
-    /** UC 令牌直签接口的 uid 维度限流 key 前缀：uc:issue:rate:{uid} */
-    private static final String PREFIX_UC_ISSUE_RATE = "uc:issue:rate:";
+    /** TCL 令牌直签接口的 uid 维度限流 key 前缀：uc:issue:rate:{uid} */
+    private static final String PREFIX_TCL_ISSUE_RATE = "uc:issue:rate:";
 
     /** 管理端验证码发送频控（分钟级）key 前缀：AdminCodeSendMin:{account} */
     private static final String PREFIX_ADMIN_CODE_SEND_MIN = "AdminCodeSendMin:";
@@ -115,27 +116,27 @@ public final class RedisKeyUtil {
     }
 
     /**
-     * UC 令牌对缓存 key（正常登录与追加兑换共用）
+     * TCL 令牌对缓存 key（正常登录与追加兑换共用）
      * <p>
-     * 必须是 uid 维度：UC 侧同一 (uid, clientId) 上恒定只保留一条迁移凭证，
+     * 必须是 uid 维度：TCL 侧同一 (uid, clientId) 上恒定只保留一条迁移凭证，
      * 每次兑换都会撤销上一轮凭证；若按自签 token 分片，同一用户多设备会各兑换一次
      * 并互相撤销，旧设备刷新时直接掉登录
      *
      * @param uid 用户 uid
      * @return Redis key
      */
-    public static String ucToken(Long uid) {
-        return PREFIX_UC_TOKEN + uid;
+    public static String tclToken(Long uid) {
+        return PREFIX_TCL_TOKEN + uid;
     }
 
     /**
-     * UC 兑换并发去重短锁 key（uid 维度，避免多标签页同时触发放大 UC 请求量）
+     * TCL 兑换并发去重短锁 key（uid 维度，避免多标签页同时触发放大 TCL 请求量）
      *
      * @param uid 用户 uid
      * @return Redis key
      */
-    public static String ucLock(Long uid) {
-        return PREFIX_UC_LOCK + uid;
+    public static String tclLock(Long uid) {
+        return PREFIX_TCL_LOCK + uid;
     }
 
     /**
@@ -270,16 +271,16 @@ public final class RedisKeyUtil {
     }
 
     /**
-     * UC 令牌直签接口的 uid 维度限流 key。
+     * TCL 令牌直签接口的 uid 维度限流 key。
      * <p>
-     * 直签每次都会真实请求 UC（不消费、不轮转 refresh_token），必须限制单用户频率，
-     * 避免把本服务当成 UC 调用放大器。
+     * 直签每次都会真实请求 TCL（不消费、不轮转 refresh_token），必须限制单用户频率，
+     * 避免把本服务当成 TCL 调用放大器。
      *
      * @param uid 用户 uid
      * @return Redis key
      */
-    public static String ucIssueRate(Long uid) {
-        return PREFIX_UC_ISSUE_RATE + uid;
+    public static String tclIssueRate(Long uid) {
+        return PREFIX_TCL_ISSUE_RATE + uid;
     }
 
     /**

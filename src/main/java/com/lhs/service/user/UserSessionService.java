@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * 用户会话服务
  * <p>
  * 用户中心迁移后，本地不再自建账号。本服务承载所有与"当前登录用户"相关的逻辑：
- * 会话建立（UC 返回的用户信息落库资料缓存 + 生成 Token）、登录态校验、用户信息查询等。
+ * 会话建立（TCL 返回的用户信息落库资料缓存 + 生成 Token）、登录态校验、用户信息查询等。
  * 已随迁移下线的注册/密码/找回/改密等逻辑保留在 UserService，不再对外使用
  */
 public interface UserSessionService {
@@ -48,11 +48,11 @@ public interface UserSessionService {
     void logout(HttpServletRequest httpServletRequest);
 
     /**
-     * 通过 UC 返回的用户信息建立本地会话（资料缓存 upsert + 生成本地 Token）
+     * 通过 TCL 返回的用户信息建立本地会话（资料缓存 upsert + 生成本地 Token）
      * <p>
-     * 以 UC uid 为准，仅维护本地资料缓存表，不保存任何身份/密码信息
+     * 以 TCL uid 为准，仅维护本地资料缓存表，不保存任何身份/密码信息
      *
-     * @param directLoginUserVO UC 返回的用户信息
+     * @param directLoginUserVO TCL 返回的用户信息
      * @return 本地会话（含 token）
      */
     LoginSessionVO createSession(DirectLoginUserVO directLoginUserVO);

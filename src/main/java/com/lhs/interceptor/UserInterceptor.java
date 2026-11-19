@@ -23,8 +23,8 @@ public class UserInterceptor implements HandlerInterceptor {
      * 登录检查写在这里，如果没有登录，就不执行目标方法
      * <p>
      * 鉴权路径全程不变：只查本地 Redis loginToken:{token} → uid，命中即放行，
-     * 不调用 UC、不校验 UC 令牌，也不在此触发迁移兑换（兑换由前端主动调用
-     * /auth/uc-token/issue 触发）。因此 UC 不可用时业务与用户登录态完全不受影响
+     * 不调用 TCL、不校验 TCL 令牌，也不在此触发迁移兑换（兑换由前端主动调用
+     * /auth/uc-token/issue 触发）。因此 TCL 不可用时业务与用户登录态完全不受影响
      *
      * @param request  请求
      * @param response 响应

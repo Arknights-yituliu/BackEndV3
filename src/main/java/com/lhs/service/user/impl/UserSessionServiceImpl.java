@@ -12,7 +12,7 @@ import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.entity.vo.user.LoginSessionVO;
 import com.lhs.mapper.user.OAuthUserInfoMapper;
 import com.lhs.mapper.user.UserExternalAccountBindingMapper;
-import com.lhs.service.user.UcTokenMigrateService;
+import com.lhs.service.user.TclTokenMigrateService;
 import com.lhs.service.user.UserSessionService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 用户会话服务实现
  * <p>
- * 用户中心迁移后本地不再自建账号，本实现以 UC uid 为准维护本地资料缓存表，
+ * 用户中心迁移后本地不再自建账号，本实现以 TCL uid 为准维护本地资料缓存表，
  * 并承载登录态校验、用户信息查询、登出等仍被业务使用的用户逻辑
  */
 @Service
@@ -36,18 +36,18 @@ public class UserSessionServiceImpl implements UserSessionService {
     private final RedisTemplate<String, String> redisTemplate;
     private final TencentCloudService tencentCloudService;
     private final UserExternalAccountBindingMapper userExternalAccountBindingMapper;
-    private final UcTokenMigrateService ucTokenMigrateService;
+    private final TclTokenMigrateService tclTokenMigrateService;
 
     public UserSessionServiceImpl(OAuthUserInfoMapper oauthUserInfoMapper,
             RedisTemplate<String, String> redisTemplate,
             TencentCloudService tencentCloudService,
             UserExternalAccountBindingMapper userExternalAccountBindingMapper,
-            UcTokenMigrateService ucTokenMigrateService) {
+            TclTokenMigrateService tclTokenMigrateService) {
         this.oauthUserInfoMapper = oauthUserInfoMapper;
         this.redisTemplate = redisTemplate;
         this.tencentCloudService = tencentCloudService;
         this.userExternalAccountBindingMapper = userExternalAccountBindingMapper;
-        this.ucTokenMigrateService = ucTokenMigrateService;
+        this.tclTokenMigrateService = tclTokenMigrateService;
     }
 
     @Override
@@ -151,7 +151,7 @@ public class UserSessionServiceImpl implements UserSessionService {
         }
         Long yituliuId = Long.parseLong(uidStr);
 
-        // 从 UC 资料缓存表获取用户信息
+        // 从 TCL 资料缓存表获取用户信息
         OAuthUserInfo userInfo = oauthUserInfoMapper.selectById(yituliuId);
         if (userInfo == null) {
             throw new ServiceException(ResultCode.USER_NOT_EXIST);
@@ -168,9 +168,9 @@ public class UserSessionServiceImpl implements UserSessionService {
         String token = extractToken(httpServletRequest);
         // 先按自签 token 反查 uid（登出后 loginToken 即被删除，必须先取）
         String uidStr = redisTemplate.opsForValue().get(RedisKeyUtil.loginToken(token));
-        // 双撤：先撤销 UC 侧授权（含刷新能力），再删本地会话；缺一即留下仍可用的凭据
+        // 双撤：先撤销 TCL 侧授权（含刷新能力），再删本地会话；缺一即留下仍可用的凭据
         if (uidStr != null) {
-            ucTokenMigrateService.revokeByUid(Long.parseLong(uidStr));
+            tclTokenMigrateService.revokeByUid(Long.parseLong(uidStr));
         }
         redisTemplate.delete(RedisKeyUtil.loginToken(token));
         Logger.info("用户token已登出撤销");
@@ -204,20 +204,20 @@ public class UserSessionServiceImpl implements UserSessionService {
 
     @Override
     public LoginSessionVO createSession(DirectLoginUserVO directLoginUserVO) {
-        // UC uid 是本地会话的唯一标识
-        Long ucUid = directLoginUserVO.getUid();
-        if (ucUid == null) {
+        // TCL uid 是本地会话的唯一标识
+        Long tclUid = directLoginUserVO.getUid();
+        if (tclUid == null) {
             throw new ServiceException(ResultCode.USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN);
         }
 
         Date now = new Date();
-        // 查询本地资料缓存（oauth_user_info 表存 UC 资料副本）
-        OAuthUserInfo userInfo = oauthUserInfoMapper.selectById(ucUid);
+        // 查询本地资料缓存（oauth_user_info 表存 TCL 资料副本）
+        OAuthUserInfo userInfo = oauthUserInfoMapper.selectById(tclUid);
 
         if (userInfo == null) {
-            // 首次通过 UC 登录：插入资料缓存，id 即 UC uid
+            // 首次通过 TCL 登录：插入资料缓存，id 即 TCL uid
             userInfo = new OAuthUserInfo();
-            userInfo.setId(ucUid);
+            userInfo.setId(tclUid);
             userInfo.setNickname(resolveNickname(directLoginUserVO));
             userInfo.setAvatar(resolveAvatar(directLoginUserVO));
             userInfo.setEmail(directLoginUserVO.getEmail());
@@ -227,7 +227,7 @@ public class UserSessionServiceImpl implements UserSessionService {
             userInfo.setDeleteFlag(false);
             oauthUserInfoMapper.insert(userInfo);
         } else {
-            // 已存在：刷新资料缓存（资料以 UC 为准）
+            // 已存在：刷新资料缓存（资料以 TCL 为准）
             userInfo.setNickname(resolveNickname(directLoginUserVO));
             userInfo.setAvatar(resolveAvatar(directLoginUserVO));
             if (directLoginUserVO.getEmail() != null) {
@@ -237,27 +237,27 @@ public class UserSessionServiceImpl implements UserSessionService {
             oauthUserInfoMapper.updateById(userInfo);
         }
 
-        // 生成本地会话 Token（兼作 UC 令牌的刷新凭据，长期保留、不随迁移清理）
+        // 生成本地会话 Token（兼作 TCL 令牌的刷新凭据，长期保留、不随迁移清理）
         String token = tokenGenerator(userInfo);
 
-        // 接住 UC 一并签发的令牌：refresh_token 落服务端 uid 维度缓存用于刷新，access_token 随本响应回带前端
-        ucTokenMigrateService.saveIssuedToken(ucUid, directLoginUserVO.getAccessToken(),
+        // 接住 TCL 一并签发的令牌：refresh_token 落服务端 uid 维度缓存用于刷新，access_token 随本响应回带前端
+        tclTokenMigrateService.saveIssuedToken(tclUid, directLoginUserVO.getAccessToken(),
                 directLoginUserVO.getRefreshToken(), directLoginUserVO.getExpiresIn(),
                 directLoginUserVO.getScope());
 
         LoginSessionVO session = new LoginSessionVO();
         session.setToken(token);
-        session.setUid(ucUid);
-        session.setUcAccessToken(directLoginUserVO.getAccessToken());
-        session.setUcTokenExpiresIn(directLoginUserVO.getExpiresIn());
-        session.setUcTokenScope(directLoginUserVO.getScope());
+        session.setUid(tclUid);
+        session.setTclAccessToken(directLoginUserVO.getAccessToken());
+        session.setTclTokenExpiresIn(directLoginUserVO.getExpiresIn());
+        session.setTclTokenScope(directLoginUserVO.getScope());
         return session;
     }
 
     /**
-     * 解析昵称（UC 未返回昵称时兜底为"博士+uid"）
+     * 解析昵称（TCL 未返回昵称时兜底为"博士+uid"）
      *
-     * @param directLoginUserVO UC 用户信息
+     * @param directLoginUserVO TCL 用户信息
      * @return 昵称
      */
     private String resolveNickname(DirectLoginUserVO directLoginUserVO) {
@@ -269,9 +269,9 @@ public class UserSessionServiceImpl implements UserSessionService {
     }
 
     /**
-     * 解析头像（UC 未返回时兜底为默认头像）
+     * 解析头像（TCL 未返回时兜底为默认头像）
      *
-     * @param directLoginUserVO UC 用户信息
+     * @param directLoginUserVO TCL 用户信息
      * @return 头像
      */
     private String resolveAvatar(DirectLoginUserVO directLoginUserVO) {

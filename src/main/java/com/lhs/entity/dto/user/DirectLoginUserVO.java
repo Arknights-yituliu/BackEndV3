@@ -6,9 +6,9 @@ import lombok.Data;
 /**
  * 直连登录-兑换用户信息响应 VO
  * <p>
- * 对应 UC /oauth2/direct-user 接口 data 部分：uid、昵称、头像、脱敏邮箱、状态，
- * 以及 UC 一并签发的 OAuth 令牌（access_token + refresh_token）。
- * 令牌为新增能力：refresh_token 只留在服务端，access_token 随登录响应回带前端调 UC 接口
+ * 对应 TCL /oauth2/direct-user 接口 data 部分：uid、昵称、头像、脱敏邮箱、状态，
+ * 以及 TCL 一并签发的 OAuth 令牌（access_token + refresh_token）。
+ * 令牌为新增能力：refresh_token 只留在服务端，access_token 随登录响应回带前端调 TCL 接口
  */
 @Data
 public class DirectLoginUserVO {
@@ -28,7 +28,7 @@ public class DirectLoginUserVO {
     /** 状态：1=正常；-1=封禁 */
     private Integer status;
 
-    /** UC access_token，前端调 UC 接口时携带 */
+    /** TCL access_token，前端调 TCL 接口时携带 */
     @JsonProperty("access_token")
     private String accessToken;
 
@@ -40,7 +40,7 @@ public class DirectLoginUserVO {
     @JsonProperty("expires_in")
     private Long expiresIn;
 
-    /** UC refresh_token：仅服务端落库用于刷新，绝不下发浏览器 */
+    /** TCL refresh_token：仅服务端落库用于刷新，绝不下发浏览器 */
     @JsonProperty("refresh_token")
     private String refreshToken;
 

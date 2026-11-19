@@ -4,24 +4,24 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * UC 令牌对（服务端间传输与缓存载体）
+ * TCL 令牌对（服务端间传输与缓存载体）
  *
- * <p>同时用于三处：① 解析 UC /oauth2/internal/migrate-token 与 /oauth2/token 的响应；
+ * <p>同时用于三处：① 解析 TCL /oauth2/internal/migrate-token 与 /oauth2/token 的响应；
  * ② 作为 Redis 兑换缓存的 JSON 值；③ 刷新后回带前端。refresh_token 只在本类与
  * Redis 缓存中存在，绝不下发浏览器。</p>
  *
- * <p>字段命名与 UC 响应保持一致（snake_case），避免多一层映射。</p>
+ * <p>字段命名与 TCL 响应保持一致（snake_case），避免多一层映射。</p>
  *
  * @author BackEndV3
  */
-public class UcTokenVO {
+public class TclTokenVO {
 
     /** 用户 uid（迁移兑换响应返回；刷新响应不含此字段，为 null；下发前端前会被清空） */
     @JsonProperty("uid")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long uid;
 
-    /** 访问令牌，前端调 UC 接口时携带 */
+    /** 访问令牌，前端调 TCL 接口时携带 */
     @JsonProperty("access_token")
     private String accessToken;
 

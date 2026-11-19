@@ -3,9 +3,9 @@ package com.lhs.controller;
 import com.lhs.common.context.UserContext;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.SignUtil;
-import com.lhs.entity.dto.user.UcTokenVO;
+import com.lhs.entity.dto.user.TclTokenVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.service.user.UcTokenMigrateService;
+import com.lhs.service.user.TclTokenMigrateService;
 import com.lhs.service.user.UserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +21,7 @@ import java.util.Map;
  * 用户中心迁移后：注册/登录/找回/改密/邮箱绑定等接口已下线，
  * 登录统一走直连登录（见 /direct-session 与 /complete-login）。
  * <p>
- * UC 令牌相关的两个接口（兑换 / 刷新）只负责把 UC access_token 交给前端，
+ * TCL 令牌相关的两个接口（兑换 / 刷新）只负责把 TCL access_token 交给前端，
  * 它们不参与 BackEndV3 自身的鉴权——鉴权始终依据本地 loginToken
  */
 @RestController
@@ -33,11 +33,11 @@ public class UserController {
 
     private final UserSessionService userSessionService;
 
-    private final UcTokenMigrateService ucTokenMigrateService;
+    private final TclTokenMigrateService tclTokenMigrateService;
 
-    public UserController(UserSessionService userSessionService, UcTokenMigrateService ucTokenMigrateService) {
+    public UserController(UserSessionService userSessionService, TclTokenMigrateService tclTokenMigrateService) {
         this.userSessionService = userSessionService;
-        this.ucTokenMigrateService = ucTokenMigrateService;
+        this.tclTokenMigrateService = tclTokenMigrateService;
     }
 
     @Operation(summary = "根据token检查用户登录状态吗，返回用户信息")
@@ -71,54 +71,54 @@ public class UserController {
     }
 
     /**
-     * 兑换 UC 令牌（前端主动触发）
+     * 兑换 TCL 令牌（前端主动触发）
      * <p>
-     * 前端在应用启动 / 进入业务页时发现本地无 UC_ACCESS_TOKEN 才调用本接口；
+     * 前端在应用启动 / 进入业务页时发现本地无 TCL_ACCESS_TOKEN 才调用本接口；
      * 请求携带自签 token（拦截器已校验并写入上下文），
-     * 内部按 uid 查兑换缓存，未命中才签名调用 UC 兑换。兑换失败不影响业务请求
+     * 内部按 uid 查兑换缓存，未命中才签名调用 TCL 兑换。兑换失败不影响业务请求
      *
      * @param httpServletResponse HTTP 响应（写入禁止缓存头）
-     * @return UC 令牌（已剥离 refresh_token，不含用户资料）
+     * @return TCL 令牌（已剥离 refresh_token，不含用户资料）
      */
-    @Operation(summary = "兑换 UC 令牌（前端启动时本地无 UC_ACCESS_TOKEN 才调用）")
+    @Operation(summary = "兑换 TCL 令牌（前端启动时本地无 TCL_ACCESS_TOKEN 才调用）")
     @PostMapping("/auth/uc-token/issue")
-    public Result<UcTokenVO> issueUcToken(HttpServletResponse httpServletResponse) {
+    public Result<TclTokenVO> issueTclToken(HttpServletResponse httpServletResponse) {
         // 响应携带令牌：确保中间代理与浏览器不缓存
         httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
-        // legacy_token_hash 仅作 UC 侧审计，不参与鉴权与幂等判断
+        // legacy_token_hash 仅作 TCL 侧审计，不参与鉴权与幂等判断
         String legacyTokenHash = SignUtil.sha256(UserContext.getToken());
-        UcTokenVO token = ucTokenMigrateService.issueByUid(UserContext.getUid(), legacyTokenHash);
+        TclTokenVO token = tclTokenMigrateService.issueByUid(UserContext.getUid(), legacyTokenHash);
         return Result.success(toClientToken(token));
     }
 
     /**
-     * 刷新 UC access_token
+     * 刷新 TCL access_token
      * <p>
-     * 前端调 UC 接口遇 401 时带自签 token 调用：按 uid 取服务端代持的 refresh_token
-     * 向 UC 换取新 access_token。刷新失败（如 90009）时前端删除本地 UC_ACCESS_TOKEN，
+     * 前端调 TCL 接口遇 401 时带自签 token 调用：按 uid 取服务端代持的 refresh_token
+     * 向 TCL 换取新 access_token。刷新失败（如 90009）时前端删除本地 TCL_ACCESS_TOKEN，
      * 下次启动重新触发兑换自愈，用户不会掉登录
      *
      * @param httpServletResponse HTTP 响应（写入禁止缓存头）
-     * @return 新的 UC 令牌（已剥离 refresh_token）
+     * @return 新的 TCL 令牌（已剥离 refresh_token）
      */
-    @Operation(summary = "刷新 UC access_token（前端调 UC 接口遇 401 时带自签 token 调用）")
+    @Operation(summary = "刷新 TCL access_token（前端调 TCL 接口遇 401 时带自签 token 调用）")
     @PostMapping("/auth/token/refresh")
-    public Result<UcTokenVO> refreshUcToken(HttpServletResponse httpServletResponse) {
+    public Result<TclTokenVO> refreshTclToken(HttpServletResponse httpServletResponse) {
         // 响应携带令牌：确保中间代理与浏览器不缓存
         httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
-        UcTokenVO token = ucTokenMigrateService.refreshByUid(UserContext.getUid());
+        TclTokenVO token = tclTokenMigrateService.refreshByUid(UserContext.getUid());
         return Result.success(toClientToken(token));
     }
 
     /**
-     * 转发直签：用服务端代持的 refresh_token 换取指定有效期的 UC access_token
+     * 转发直签：用服务端代持的 refresh_token 换取指定有效期的 TCL access_token
      * <p>
      * 请求带自签 token（拦截器已校验登录态并写入 UserContext，即「校验是本人」），
-     * 服务端按当前 uid 取出自己保存的 refresh_token 调 UC
+     * 服务端按当前 uid 取出自己保存的 refresh_token 调 TCL
      * POST /oauth2/token/from-refresh 直签，调用不消费、不轮转 refresh_token，
      * 不影响正常登录态与后续刷新。scope 只能收敛为凭证已有范围的子集
      * <p>
-     * 入参约束（超出直接返回 10001/10002，不发起 UC 调用）：
+     * 入参约束（超出直接返回 10001/10002，不发起 TCL 调用）：
      * `expires_in` 为 1~315360000 秒（最长 10 年）、`name` 不超过 50 字符、`scope` 不超过 500 字符；
      * 单用户 60 秒内最多调用 3 次（超出返回 39009）
      *
@@ -126,17 +126,17 @@ public class UserController {
      * @param scope             期望收敛到的权限范围（英文逗号分隔），可空表示沿用凭证原有范围
      * @param name              本次签发名称，必填且不超过 50 字符
      * @param httpServletResponse HTTP 响应（写入禁止缓存头）
-     * @return 新签发的 UC 令牌（已剥离 refresh_token）
+     * @return 新签发的 TCL 令牌（已剥离 refresh_token）
      */
-    @Operation(summary = "转发直签：用系统保存的 refresh_token 换取自定义有效期的 UC 令牌")
+    @Operation(summary = "转发直签：用系统保存的 refresh_token 换取自定义有效期的 TCL 令牌")
     @PostMapping("/auth/uc-token/custom")
-    public Result<UcTokenVO> issueCustomUcToken(@RequestParam("expires_in") Long expiresIn,
+    public Result<TclTokenVO> issueCustomTclToken(@RequestParam("expires_in") Long expiresIn,
                                                 @RequestParam(value = "scope", required = false) String scope,
                                                 @RequestParam("name") String name,
                                                 HttpServletResponse httpServletResponse) {
         // 响应携带令牌：确保中间代理与浏览器不缓存
         httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
-        UcTokenVO token = ucTokenMigrateService.issueCustomTokenByUid(
+        TclTokenVO token = tclTokenMigrateService.issueCustomTokenByUid(
                 UserContext.getUid(), expiresIn, scope, name);
         return Result.success(toClientToken(token));
     }
@@ -147,10 +147,10 @@ public class UserController {
      * 只保留 access_token / token_type / expires_in / scope：refresh_token 与 uid
      * 只留在服务端，不下发浏览器，也不回带用户资料
      *
-     * @param token UC 令牌对
+     * @param token TCL 令牌对
      * @return 可下发前端的令牌对象
      */
-    private static UcTokenVO toClientToken(UcTokenVO token) {
+    private static TclTokenVO toClientToken(TclTokenVO token) {
         token.setRefreshToken(null);
         token.setUid(null);
         return token;

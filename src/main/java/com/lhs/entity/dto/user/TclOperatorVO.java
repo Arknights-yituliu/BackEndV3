@@ -1,14 +1,14 @@
 package com.lhs.entity.dto.user;
 
 /**
- * UC 单条干员数据（GET /oauth2/ak-accounts/operators 响应中的 items 元素）
+ * TCL 单条干员数据（GET /oauth2/ak-accounts/operators 响应中的 items 元素）
  *
- * <p>字段与 UC 侧 OperatorVO 一一对应，命名保持 camelCase 与 UC 响应一致，
- * 数值字段 UC 侧保证不返回 null。</p>
+ * <p>字段与 TCL 侧 OperatorVO 一一对应，命名保持 camelCase 与 TCL 响应一致，
+ * 数值字段 TCL 侧保证不返回 null。</p>
  *
  * @author BackEndV3
  */
-public class UcOperatorVO {
+public class TclOperatorVO {
 
     /** 稳定干员编码，对应本地 charId */
     private String id;
