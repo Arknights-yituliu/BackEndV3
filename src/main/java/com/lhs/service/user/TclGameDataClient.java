@@ -1,54 +1,51 @@
 package com.lhs.service.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.lhs.common.config.OAuth2Properties;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
 import com.lhs.common.exception.TclApiException;
-import com.lhs.common.util.JsonMapper;
 import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.user.TclAkAccountVO;
 import com.lhs.entity.dto.user.TclOperatorListVO;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.List;
 
 /**
- * TCL 游戏数据客户端：读取用户已绑定的游戏账号与干员数据
+ * TCL PAT 消费客户端：目标账号由 PAT 的 payload 或历史默认来源决定。
  *
  * <p>与 {@link TclMigrateClient} 的分工：本类只负责「业务数据读取」，
  * 令牌的兑换、刷新与撤销仍由 TclMigrateClient 承担。两者都调用 TCL，
- * 但认证方式不同——本类用用户维度的 Bearer access_token，
+ * 但认证方式不同——本类用 Bearer PAT，
  * 迁移兑换用 Ed25519 签名 + IP 白名单。</p>
  *
- * <p>对应 TCL 文档《OAuth 游戏数据接口》第 2、3 节，需要 gama-data.read 授权范围。
- * access_token 失效时 TCL 返回业务码 80001（HTTP 状态仍为 200），
- * 调用方应刷新令牌后重试一次。</p>
+ * <p>对应《PAT接口文档》第 7 节，需要 ak-data.read（上级 gama-data.read 可覆盖）。
+ * PAT 不能刷新或用于 OAuth 资源接口；失效后需重新签发。</p>
  *
  * @author BackEndV3
  */
 @Component
 public class TclGameDataClient {
 
-    /** 已绑定游戏账号列表接口路径 */
-    private static final String AK_ACCOUNTS_PATH = "/oauth2/ak-accounts";
+    /** 不附加 akUid 或 source；账号选择交由 TCL PAT 消费端执行。 */
+    private static final String PAT_OPERATORS_PATH = "/pat/ak-accounts/operators";
 
-    /** 干员数据全量读取接口路径 */
-    private static final String AK_OPERATORS_PATH = "/oauth2/ak-accounts/operators";
+    private static final ObjectMapper PAT_JSON_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /** TCL 统一响应中的成功码 */
     private static final int TCL_SUCCESS_CODE = 200;
 
-    /** TCL 错误码：access_token 缺失、无效或已过期，需刷新令牌后重试 */
-    public static final int TCL_CODE_TOKEN_INVALID = 80001;
+    /** TCL 错误码：PAT 缺失、无效或已过期，不尝试 OAuth 刷新。 */
+    private static final int TCL_CODE_TOKEN_INVALID = 80001;
 
     /** 单次调用 TCL 的超时（秒）：业务数据读取比令牌兑换耗时更长，取值略大于迁移配置 */
     private static final long REQUEST_TIMEOUT_SECONDS = 5L;
@@ -64,53 +61,32 @@ public class TclGameDataClient {
                 .build();
     }
 
-    /**
-     * 查询用户已绑定的游戏账号列表
-     *
-     * @param accessToken 用户维度的 TCL access_token
-     * @return 已绑定游戏账号列表（TCL 侧按更新时间倒序返回）；无绑定时为空列表
-     * @throws TclApiException   TCL 返回业务错误码（80001 表示令牌失效）
-     * @throws ServiceException TCL 不可达或响应无法解析
-     */
-    public List<TclAkAccountVO> listAkAccounts(String accessToken) {
-        String body = sendGet(AK_ACCOUNTS_PATH, accessToken);
-        Result<List<TclAkAccountVO>> result = JsonMapper.parseObject(body,
-                new TypeReference<Result<List<TclAkAccountVO>>>() {
-                });
-        return requireSuccess(result, "TCL 游戏账号列表查询");
+    /** 读取 PAT 指定账号的干员数据；旧 64 位令牌由 TCL 按历史默认来源处理。 */
+    public TclOperatorListVO listPatOperators(String patToken) {
+        String body = sendGet(PAT_OPERATORS_PATH, patToken);
+        try {
+            Result<TclOperatorListVO> result = PAT_JSON_MAPPER.readValue(body,
+                    new TypeReference<Result<TclOperatorListVO>>() {});
+            return requireSuccess(result, "TCL PAT 干员数据读取");
+        } catch (JsonProcessingException e) {
+            // 响应异常时不记录正文，避免泄露凭证或玩家数据。
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+        }
     }
 
     /**
-     * 全量读取指定游戏账号的干员数据
+     * 发送带 Bearer PAT 的 GET 请求到 TCL 并返回响应体
      *
-     * @param accessToken 用户维度的 TCL access_token
-     * @param akUid       游戏账号 UID
-     * @return 干员数据（含 akUid 与 items）；无数据时 items 为空数组
-     * @throws TclApiException   TCL 返回业务错误码（80001 令牌失效，80008 账号不在该用户名下）
-     * @throws ServiceException TCL 不可达或响应无法解析
-     */
-    public TclOperatorListVO listOperators(String accessToken, String akUid) {
-        String path = AK_OPERATORS_PATH + "?akUid=" + encode(akUid);
-        String body = sendGet(path, accessToken);
-        Result<TclOperatorListVO> result = JsonMapper.parseObject(body,
-                new TypeReference<Result<TclOperatorListVO>>() {
-                });
-        return requireSuccess(result, "TCL 干员数据读取");
-    }
-
-    /**
-     * 发送带 Bearer 令牌的 GET 请求到 TCL 并返回响应体
-     *
-     * @param path        接口路径（可含查询串，以 / 开头）
-     * @param accessToken TCL access_token
+     * @param path     接口路径（不附加账号查询参数）
+     * @param patToken PAT 明文
      * @return 响应体字符串
      * @throws ServiceException TCL 不可达或 HTTP 状态非 200
      */
-    private String sendGet(String path, String accessToken) {
+    private String sendGet(String path, String patToken) {
         String url = trimTrailingSlash(oauth2Properties.getBaseUrl()) + path;
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .header("Authorization", "Bearer " + (accessToken == null ? "" : accessToken))
+                .header("Authorization", "Bearer " + patToken)
                 .GET()
                 .timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS))
                 .build();
@@ -152,44 +128,27 @@ public class TclGameDataClient {
         int code = result.getCode();
         String desc = describeTclCode(code);
         if (code == TCL_CODE_TOKEN_INVALID) {
-            // 令牌失效属可自愈状态：由调用方刷新令牌后重试，只记 info 避免告警噪音
             Logger.info("{}失败，TCL 错误码 {}（{}）", scene, code, desc);
         } else {
-            Logger.warn("{}失败，TCL 错误码 {}（{}），TCL 描述: {}", scene, code, desc, result.getMsg());
+            Logger.warn("{}失败，TCL 错误码 {}（{}）", scene, code, desc);
         }
         throw new TclApiException(code, desc);
     }
 
     /**
-     * TCL 游戏数据相关错误码含义描述（依据《OAuth 游戏数据接口》第 5 节）
+     * TCL PAT 消费相关错误码含义描述（依据《PAT接口文档》）
      *
      * @param code TCL 错误码
      * @return 含义描述
      */
     private static String describeTclCode(int code) {
         return switch (code) {
-            case 80001 -> "access_token 缺失、无效或已过期";
-            case 80008 -> "缺少 gama-data.read 授权范围，或该游戏账号不在当前用户名下";
-            case 10002 -> "请求参数校验失败";
-            case 30006 -> "该游戏账号上传过于频繁";
-            case 40003 -> "限流服务不可用";
-            case 40004 -> "干员数据保存冲突";
+            case 80001 -> "PAT 缺失、无效或已过期";
+            case 80008 -> "PAT 缺少 ak-data.read 授权范围，或游戏账号未绑定当前用户";
+            case 10002 -> "PAT 未指定有效的游戏账号";
             case 40001 -> "TCL 服务端内部错误";
             default -> "TCL 返回未知错误码";
         };
-    }
-
-    /**
-     * URL 编码工具方法
-     *
-     * @param value 待编码字符串
-     * @return 编码结果
-     */
-    private static String encode(String value) {
-        if (value == null) {
-            return "";
-        }
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     /**

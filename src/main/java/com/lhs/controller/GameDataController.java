@@ -7,6 +7,7 @@ import com.lhs.service.survey.OperatorDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,9 +30,11 @@ public class GameDataController {
         this.operatorDataService = operatorDataService;
     }
 
-    @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
+    @Operation(summary = "第三方API获取干员练度数据（PAT，需 ak-data.read 或 gama-data.read）")
     @GetMapping("/open-api/operator/info")
-    public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+    public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest,
+                                                                          HttpServletResponse response) {
+        response.setHeader("Cache-Control", "private, no-cache");
         return Result.success(operatorDataService.openApiGetOperatorData(httpServletRequest));
     }
 

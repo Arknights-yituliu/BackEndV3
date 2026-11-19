@@ -3,12 +3,13 @@ package com.lhs.service.survey.impl;
 import com.lhs.entity.dto.survey.CharacterTableOperatorDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
-import com.lhs.entity.dto.user.TclAkAccountVO;
 import com.lhs.entity.dto.user.TclOperatorListVO;
 import com.lhs.entity.dto.user.TclOperatorVO;
 import com.lhs.service.survey.OperatorDataService;
 import com.lhs.service.user.TclGameDataClient;
 import com.lhs.service.util.CharacterTableService;
+import com.lhs.common.enums.ResultCode;
+import com.lhs.common.exception.ServiceException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
@@ -38,32 +39,24 @@ public class OperatorDataServiceImpl implements OperatorDataService {
 
     @Override
     public List<OperatorProgressionDataV2DTO> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
-        // 前端传来的第三方令牌由酸橙云签发保管，本地不再保存、也不再做存在性校验，直接以其为凭证请求 TCL
+        // 兼容旧调用方直接传明文；标准调用使用 Bearer，转发时统一只拼接一次前缀。
         String token = httpServletRequest.getHeader("Authorization");
-        List<TclOperatorVO> tclOperatorList = listTclOperators(token);
+        if (token != null) {
+            token = token.trim();
+            if (token.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                token = token.substring(7).trim();
+            }
+        }
+        if (token == null || token.isBlank()) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        TclOperatorListVO operatorList = tclGameDataClient.listPatOperators(token);
+        List<TclOperatorVO> tclOperatorList = operatorList == null || operatorList.getItems() == null
+                ? List.of() : operatorList.getItems();
 
         // 使用启动时缓存的character_table数据进行转换
         Map<String, CharacterTableOperatorDTO> characterTableMap = characterTableService.getCharacterTable();
         return transformToV2DTO(toProgressionDataList(tclOperatorList), characterTableMap);
-    }
-
-    /**
-     * 取用户最近导入数据的游戏账号，并读取该账号的干员全量数据
-     *
-     * @param accessToken TCL access_token
-     * @return 干员列表；未绑定账号或无干员数据时为空列表
-     */
-    private List<TclOperatorVO> listTclOperators(String accessToken) {
-        // TCL 侧按更新时间倒序返回绑定账号，取首条即最近导入的账号
-        List<TclAkAccountVO> accounts = tclGameDataClient.listAkAccounts(accessToken);
-        if (accounts == null || accounts.isEmpty()) {
-            return new ArrayList<>();
-        }
-        TclOperatorListVO operatorList = tclGameDataClient.listOperators(accessToken, accounts.get(0).getAkUid());
-        if (operatorList == null || operatorList.getItems() == null) {
-            return new ArrayList<>();
-        }
-        return operatorList.getItems();
     }
 
     /**

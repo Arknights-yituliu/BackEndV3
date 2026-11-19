@@ -3,7 +3,7 @@ package com.lhs.entity.dto.user;
 import java.util.List;
 
 /**
- * TCL 干员数据全量读取结果（GET /oauth2/ak-accounts/operators 响应 data 部分）
+ * TCL 干员数据全量读取结果（GET /pat/ak-accounts/operators 响应 data 部分）
  *
  * <p>TCL 侧始终返回该游戏账号的全部干员，星级筛选由调用方完成。</p>
  *

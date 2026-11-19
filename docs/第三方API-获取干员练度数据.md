@@ -8,18 +8,24 @@ GET /open-api/operator/info
 
 ## 认证
 
-需要在请求头 `Authorization` 中携带有效的 OpenAPI Token（需具备 `read` 或 `write` 权限）。
+请求头使用 `Authorization: Bearer <PAT>`。PAT 需具备 `ak-data.read`，上级 `gama-data.read` 或历史 `all` 可覆盖；只写权限不能读取。OAuth access_token 不能用于此接口。
+
+为兼容已有调用方，也接受 `Authorization: <PAT明文>`。已经由 TCL 迁移为 PAT 的旧 64 位令牌可继续使用原明文；迁移由用户中心负责，本接口不执行迁移。
 
 ## 请求参数
 
 无请求参数。
+
+新 PAT 由签发时的 `payload.game_uid` 确定账号，且该账号必须绑定当前用户并有森空岛数据；不能通过 `akUid` 参数切换账号。无 payload 的历史令牌沿用用户中心的「默认来源 → 最近变更」取数规则。当前 PAT 消费接口仅提供读取。
+
+响应包含 `Cache-Control: private, no-cache`，调用方不应公开缓存用户数据。
 
 ## 返回格式
 
 ```json
 {
   "code": 200,
-  "message": "success",
+  "msg": "操作成功",
   "data": [
     {
       "id": "char_102_texas",
