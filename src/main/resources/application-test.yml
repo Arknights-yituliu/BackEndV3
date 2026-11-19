@@ -23,28 +23,14 @@ spring:
       port: 6379
       # password: 有redis密码就放开这个属性填入密码
       database: 0
-      connect-timeout: 1800000
+      connect-timeout: 2000    # 2s
+      timeout: 3000              # 命令超时 3s
       lettuce:
         pool:
-          max-active: 20
-          max-wait: -1
-          max-idle: 5
-          min-idle: 0
-  mail:
-    host: smtp.163.com
-    port: 465
-    username: 邮箱名
-    password: 密钥
-    default-encoding: utf-8
-    properties:
-      mail:
-        smtp:
-          socketFactory:
-            port: 465
-          socketFactoryClass: javax.net.ssl.SSLSocketFactory
-          ssl:
-            enable: true
-    protocol: smtp
+          max-active: 64
+          max-idle: 16
+          min-idle: 4
+          max-wait: 2000         # 2s，宁可降级不要阻塞
 
 #资源路径
 resourcesPath:
@@ -87,23 +73,31 @@ skland:
 swagger2:
   enable: true
 
-# 统一用户中心 OAuth2 接入
+# 统一用户中心接入（直连登录 + 存量登录态迁移）
 user-center:
   oauth:
-    # UC 服务地址（/oauth2/** 根）
+    # TCL 服务地址（/oauth2/** 根）；迁移端点仅接受 HTTPS，生产环境必须为 https://
     base-url: http://localhost:8080
-    # 客户端 ID（与 UC oauth_client 表 id 一致）
+    # 客户端 ID（与 TCL oauth_client 表 id 一致）
     client-id: arknights-yituliu-web
     # 客户端密钥（明文，妥善保管，仅服务端持有）
     client-secret: arknights-yituliu-web
-    # 回调地址（必须与 UC 登记白名单精确匹配）
-    redirect-uri: http://localhost:10010/oauth/callback
-    # 授权范围
-    scope: user.read
-    # UC 登录页地址（未登录时兜底跳转，可留空）
-    login-page-url:
-    # 授权成功后的前端回跳地址（可选，配置后回调接口将302跳转并携带token；留空则回调返回JSON）
-    frontend-redirect-url: http://localhost:4000/dev/oauth-test
+    # 存量登录态迁移（自签 token → TCL 令牌按需兑换），详见 docs/BackEndV3与TCL令牌统一方案.md
+    migrate:
+      # 总开关：默认关闭，上线时显式打开，存量迁移完成后立即关闭
+      enabled: false
+      # 当前生效的签名私钥标识（对应 TCL 侧 kid → 公钥映射表，用于密钥轮换）
+      kid: k1
+      # Ed25519 签名私钥（PKCS#8 未加密，Base64）；仅本侧持有，严禁进入日志
+      # 上线前须改为环境变量注入，测试环境可临时明文填写
+      # 对应公钥（配到 TCL 侧 verify-keys）：MCowBQYDK2VwAyEA3cSsnnG7Skv8OvgPqOGt/KUUQHJLD7WvYYnwAuDAGfc=
+      private-key: "MC4CAQAwBQYDK2VwBCIEIGkrRU0wGpdFXgoqMDTrNamKKXUryXE+01yQRF4DCXwn"
+      # 允许的请求时间偏移（秒），须与 TCL 侧 clock-skew-seconds 一致
+      clock-skew-seconds: 120
+      # 来源标识，仅用于 TCL 侧审计落库
+      origin: backendv3-legacy
+      # 单次调用 TCL 的超时（秒）：迁移位于请求主链路上，必须短超时避免拖慢业务
+      timeout-seconds: 3
 
 
 

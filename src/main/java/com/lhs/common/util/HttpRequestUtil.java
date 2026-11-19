@@ -36,27 +36,28 @@ public class HttpRequestUtil {
             httpResponse = httpClient.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             if(httpResponse.getStatusLine().getStatusCode() != 200){
-                Logger.info(EntityUtils.toString(entity));
+                // 上游报错需要原文才能定位问题，这里有意保留响应体（P1-3 的回退点）：
+                // 代价是非 200 响应体会进日志，若上游会回显凭证，需在上游侧收敛或改用脱敏白名单
+                Logger.warn("HTTP GET 返回非 200：{} status={}，响应：{}",
+                        url, httpResponse.getStatusLine().getStatusCode(), EntityUtils.toString(entity));
                 return null;
             }
             return EntityUtils.toString(entity);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Logger.error("HTTP GET 请求失败：{}", url, e);
         } finally {
             if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Logger.error("关闭 HTTP 响应失败", e);
                 }
             }
             if (null != httpClient) {
                 try {
                     httpClient.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.error("关闭 HTTP 客户端失败", e);
                 }
             }
         }

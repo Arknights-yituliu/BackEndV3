@@ -14,6 +14,18 @@ public interface TencentCloudService {
 
    void uploadCOS(MultipartFile multipartFile, String bucketPath);
 
+    /**
+     * 上传文件并显式指定 Content-Type
+     * <p>
+     * 用于图片上传：对象元信息中的 Content-Type 由服务端按魔数推导后写入，
+     * 不依赖存储侧按扩展名猜测，避免对象被浏览器当作 HTML/SVG 渲染
+     *
+     * @param multipartFile 上传文件
+     * @param bucketPath    对象键
+     * @param contentType   MIME 类型，为空时交由存储侧推断
+     */
+    void uploadCOS(MultipartFile multipartFile, String bucketPath, String contentType);
+
     void backupCOS(String text, String bucketPath);
 
     void backupCOS(File file, String bucketPath);

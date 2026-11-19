@@ -10,7 +10,6 @@ import com.lhs.entity.dto.survey.OperatorCarryRateDailyDataRequestParamsDTO;
 import com.lhs.entity.po.survey.OperatorCarryRate;
 import com.lhs.entity.po.survey.OperatorCarryRateStatistics;
 import com.lhs.entity.po.survey.QuestionnaireResult;
-import com.lhs.entity.tmp.QuestionnaireResultDTO;
 import com.lhs.entity.vo.survey.CarryRateDailyDataVO;
 import com.lhs.entity.vo.survey.OperatorCarryRateDailyDataVO;
 import com.lhs.entity.vo.survey.OperatorCarryRateStatisticsVO;
@@ -242,23 +241,6 @@ public class OperatorCarryRateService {
     }
 
 
-    public void moveDate() {
-
-        List<QuestionnaireResultDTO> oldData = operatorCarryRateStatisticsMapper.getOldData();
-        for (QuestionnaireResultDTO dto : oldData) {
-            QuestionnaireResult questionnaireResult = new QuestionnaireResult();
-            questionnaireResult.setId(dto.getId());
-            questionnaireResult.setUid(dto.getUid());
-            questionnaireResult.setQuestionnaireCode(QuestionnaireType.MAIN_AND_SIDE_STORY_FOR_NEW_GAME.code());
-            questionnaireResult.setContent(dto.getContent());
-            questionnaireResult.setCreateTime(dto.getCreateTime());
-            questionnaireResult.setUpdateTime(dto.getUpdateTime());
-            questionnaireResult.setIp(dto.getIp());
-            questionnaireResultMapper.insert(questionnaireResult);
-        }
-    }
-
-
     public OperatorCarryRateDailyDataVO getOperatorCarryRateLineChart(OperatorCarryRateDailyDataRequestParamsDTO operatorCarryRateDailyDataRequestParamsDTO) {
         Long startTimeStamp = operatorCarryRateDailyDataRequestParamsDTO.getStart();
         Long endTimeStamp = operatorCarryRateDailyDataRequestParamsDTO.getEnd();
@@ -271,11 +253,16 @@ public class OperatorCarryRateService {
         }
 
         LambdaQueryWrapper<OperatorCarryRate> queryWrapper = new LambdaQueryWrapper<>();
+        // 过滤与排序一律下推到 SQL：原来是把区间内所有行取回内存后再 filter + sorted，
+        // 无效行（样本量或携带数为 0）白占传输与对象分配，且排序要靠内存完成
         queryWrapper.eq(OperatorCarryRate::getCharId, operatorCarryRateDailyDataRequestParamsDTO.getCharId())
                 .eq(OperatorCarryRate::getRecordType,RecordType.DISPLAY.code())
                 .eq(OperatorCarryRate::getQuestionnaireCode, operatorCarryRateDailyDataRequestParamsDTO.getQuestionnaireCode())
                 .ge(OperatorCarryRate::getStartTime, new Date(startTimeStamp))
-                .le(OperatorCarryRate::getEndTime, new Date(endTimeStamp));
+                .le(OperatorCarryRate::getEndTime, new Date(endTimeStamp))
+                .gt(OperatorCarryRate::getSampleSize, 0)
+                .gt(OperatorCarryRate::getCarryCount, 0)
+                .orderByAsc(OperatorCarryRate::getStartTime);
         List<OperatorCarryRate> operatorCarryRateList = operatorCarryRateMapper.selectList(queryWrapper);
 
         if (operatorCarryRateList.isEmpty()) {
@@ -283,20 +270,16 @@ public class OperatorCarryRateService {
         }
 
         OperatorCarryRateDailyDataVO operatorCarryRateDailyDataVO = new OperatorCarryRateDailyDataVO();
-        List<CarryRateDailyDataVO> carryRateDailyDataVOList = new ArrayList<>();
-        List<Long> dateList = new ArrayList<>();
+        List<CarryRateDailyDataVO> carryRateDailyDataVOList = new ArrayList<>(operatorCarryRateList.size());
+        List<Long> dateList = new ArrayList<>(operatorCarryRateList.size());
 
-        operatorCarryRateList.stream()
-                .sorted(Comparator.comparing(OperatorCarryRate::getStartTime))
-                .filter(e->e.getSampleSize()>0&&e.getCarryCount()>0)
-                .forEach(e -> {
-//                    System.out.println(e);
-                    CarryRateDailyDataVO carryRateDailyDataVO = new CarryRateDailyDataVO();
-                    carryRateDailyDataVO.setCarryCount(e.getCarryCount());
-                    carryRateDailyDataVO.setSampleSize(e.getSampleSize());
-                    carryRateDailyDataVOList.add(carryRateDailyDataVO);
-                    dateList.add(e.getStartTime().getTime());
-                });
+        for (OperatorCarryRate e : operatorCarryRateList) {
+            CarryRateDailyDataVO carryRateDailyDataVO = new CarryRateDailyDataVO();
+            carryRateDailyDataVO.setCarryCount(e.getCarryCount());
+            carryRateDailyDataVO.setSampleSize(e.getSampleSize());
+            carryRateDailyDataVOList.add(carryRateDailyDataVO);
+            dateList.add(e.getStartTime().getTime());
+        }
 
         operatorCarryRateDailyDataVO.setDate(dateList);
         operatorCarryRateDailyDataVO.setList(carryRateDailyDataVOList);

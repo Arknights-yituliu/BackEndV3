@@ -19,6 +19,7 @@ import com.lhs.entity.dto.material.WorkshopItemDTO;
 import com.lhs.entity.dto.material.WorkshopStrategyDTO;
 import com.lhs.service.material.CustomItemService;
 import com.lhs.service.material.PenguinDataService;
+import com.lhs.service.material.StageService;
 import com.lhs.service.material.impl.CustomItemServiceImpl;
 
 import jakarta.annotation.Resource;
@@ -35,6 +36,8 @@ public class CustomItemAPITest {
     private CustomItemServiceImpl customItemServiceImpl;
     @Resource
     private PenguinDataService penguinDataServiceService;
+    @Resource
+    private StageService stageService;
 
     /**
      * 测试 getCustomItemList 方法
@@ -62,7 +65,7 @@ public class CustomItemAPITest {
     @Test
     void getStageCollect() {
          ItemValueConfigDTO config = buildDefaultConfig();
-         Map<String, List<StageDropAndInfoDTO>> stageDropCollect = penguinDataServiceService.getStageDropCollect(config);
+         Map<String, List<StageDropAndInfoDTO>> stageDropCollect = penguinDataServiceService.getStageDropCollect(config, stageService.getStageInfoMap());
          for(String stage : stageDropCollect.keySet()) {
             System.out.println(stage);
             List<StageDropAndInfoDTO> stageList = stageDropCollect.get(stage);

@@ -3,13 +3,11 @@ package com.lhs.task;
 import com.lhs.service.admin.AccessService;
 import com.lhs.service.maa.RecruitTagUploadService;
 import com.lhs.service.survey.OperatorCarryRateService;
-import com.lhs.service.survey.OperatorDataService;
-import com.lhs.service.survey.OperatorProgressionStatisticsService;
 import com.lhs.service.material.*;
 
 import com.lhs.service.survey.QuestionnaireService;
 import com.lhs.service.user.BindService;
-import com.lhs.service.user.OAuthUserService;
+import com.lhs.service.user.UserSessionService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -18,42 +16,40 @@ import org.springframework.stereotype.Service;
 public class TaskService {
 
     private final StageService stageService;
-    private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
     private final RecruitTagUploadService recruitTagUploadService;
     private final OperatorCarryRateService operatorCarryRateService;
 
     private final QuestionnaireService questionnaireService;
 
-    private final OperatorDataService operatorDataService;
-
-    private final OAuthUserService oAuthUserService;
+    private final UserSessionService userSessionService;
     private final BindService bindService;
 
     private final AccessService accessService;
 
     private final StageDropHourStatisticsService stageDropHourStatisticsService;
 
+    private final RecycleDropDailyStatisticsService recycleDropDailyStatisticsService;
+
     public TaskService(
 
             StageService stageService,
-            OperatorProgressionStatisticsService operatorProgressionStatisticsService,
             RecruitTagUploadService recruitTagUploadService,
             OperatorCarryRateService operatorCarryRateService,
             QuestionnaireService questionnaireService,
-            OperatorDataService operatorDataService,
-            OAuthUserService oAuthUserService,
+            UserSessionService userSessionService,
             BindService bindService,
             AccessService accessService,
-            StageDropHourStatisticsService stageDropHourStatisticsService) {
-        this.stageDropHourStatisticsService = stageDropHourStatisticsService;   
+            StageDropHourStatisticsService stageDropHourStatisticsService,
+            RecycleDropDailyStatisticsService recycleDropDailyStatisticsService) {
+        this.stageDropHourStatisticsService = stageDropHourStatisticsService;
+
+        this.recycleDropDailyStatisticsService = recycleDropDailyStatisticsService;
 
         this.stageService = stageService;
-        this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
         this.recruitTagUploadService = recruitTagUploadService;
         this.operatorCarryRateService = operatorCarryRateService;
         this.questionnaireService = questionnaireService;
-        this.operatorDataService = operatorDataService;
-        this.oAuthUserService = oAuthUserService;
+        this.userSessionService = userSessionService;
         this.bindService = bindService;
         this.accessService = accessService;
     }
@@ -65,7 +61,7 @@ public class TaskService {
      */
     @Scheduled(cron = "0 31 4 * * ?")
     public void backupUserInfo() {
-        oAuthUserService.backupUserInfo();
+        userSessionService.backupUserInfo();
         bindService.backupUserExternalAccountBinding();
     }
 
@@ -77,14 +73,6 @@ public class TaskService {
         questionnaireService.backup();
     }
 
-    /**
-     * 备份干员练度数据
-     */
-    @Scheduled(cron = "0 33 4 * * ?")
-    public void backupOperatorProgressionData() {
-        operatorDataService.backupOperatorProgressionData();
-    }
-
     // 按小时执行的任务
 
 
@@ -94,6 +82,33 @@ public class TaskService {
     @Scheduled(cron = "0 15 * * * ?")
     public void statisticsLastHour() {
         stageDropHourStatisticsService.statisticsLastHour();
+    }
+
+    /**
+     * 统计当天回收站每个物品的产出数量与上报批次数
+     * 每小时执行一次，反复刷新当天数据，重跑幂等（旧数据置为过期）
+     */
+    @Scheduled(cron = "0 25 * * * ?")
+    public void statisticsTodayRecycleDrop() {
+        recycleDropDailyStatisticsService.statisticsToday();
+    }
+
+    /**
+     * 统计昨天回收站每个物品的产出数量与上报批次数
+     * 每天 4:00、22:00 各执行一次，22:00 用于补齐 4:00 之后补传的前一天数据
+     */
+    @Scheduled(cron = "0 0 4,22 * * ?")
+    public void statisticsYesterdayRecycleDrop() {
+        recycleDropDailyStatisticsService.statisticsYesterday();
+    }
+
+    /**
+     * 删除回收站每日产出统计中已过期的数据
+     * 每天 4:40 执行一次，清理重跑后遗留的 EXPIRE 记录
+     */
+    @Scheduled(cron = "0 40 4 * * ?")
+    public void deleteExpireRecycleDropStatistics() {
+        recycleDropDailyStatisticsService.deleteExpireStatistics();
     }
 
     /**
@@ -155,22 +170,6 @@ public class TaskService {
     @Scheduled(cron = "0 4 * * * ?")
     public void pullPenguinStagesApi() {
         stageService.getPenguinStagesDropData();
-    }
-
-    /**
-     * 统计干员练度数据
-     */
-    @Scheduled(cron = "0 10 0/6 * * ?")
-    public void statisticsProgressionOperatorData() {
-        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
-    }
-
-    /**
-     * 归档干员练度数据
-     */
-    @Scheduled(cron = "0 12 0/6 * * ?")
-    public void archivedOperatorProgressionResult() {
-        operatorProgressionStatisticsService.archivedOperatorProgressionResult();
     }
 
     /**

@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
@@ -25,8 +26,9 @@ public class FileUtil {
         File file = new File(filepath);
 
         if(!file.exists()){
-            boolean mkdir = file.mkdirs();
-            System.out.println("创建目录结果"+mkdir);
+            if (!file.mkdirs()) {
+                Logger.error("创建目录失败：{}", filepath);
+            }
         }
 
         File file1 = new File(filepath,filename);
@@ -35,17 +37,14 @@ public class FileUtil {
             try {
                 file1.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.error("创建文件失败：{}", file1.getAbsolutePath(), e);
             }
         }
 
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(filepath+filename);
-            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-            fileOutputStream.write(bytes);
-            fileOutputStream.close();
+        try (FileOutputStream fileOutputStream = new FileOutputStream(filepath + filename)) {
+            fileOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("写入文件失败：{}", filepath + filename, e);
         }
 
     }
@@ -86,84 +85,111 @@ public class FileUtil {
             outputStream.close();
 
         } catch (Exception e) {
-
-            e.printStackTrace();
+            Logger.error("导出文件失败：{}", filePath + fileName, e);
         }
     }
 
 
+    /**
+     * 读取文本文件（UTF-8）
+     * <p>
+     * 一次性读取，不使用逐字符的 {@code Reader.read()}（读 2MB 文件约 200 万次方法调用）。
+     * 与 {@code InputStreamReader} 一致，**不剥离 UTF-8 BOM**，调用方对首字符的处理无需调整。
+     *
+     * @param fileName 文件路径
+     * @return 文件内容；读取失败（含文件不存在）返回 null
+     */
     public static String read(String fileName) {
-        String context = "";
         try {
-            File jsonFile = new File(fileName);
-            Reader reader = new InputStreamReader(Files.newInputStream(jsonFile.toPath()), StandardCharsets.UTF_8);
-            int ch = 0;
-            StringBuilder sb = new StringBuilder();
-            while ((ch = reader.read()) != -1) {
-                sb.append((char) ch);
-            }
-
-            reader.close();
-            context = sb.toString();
-            return context;
-
+            return Files.readString(Path.of(fileName), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("读取文件失败：{}", fileName, e);
             return null;
         }
     }
 
-
+    /**
+     * 读取文本文件（UTF-8）
+     *
+     * @param file 文件
+     * @return 文件内容；读取失败（含文件不存在）返回 null
+     */
     public static String read(File file) {
-        String context = "";
         try {
-            Reader reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8);
-            int ch = 0;
-            StringBuilder sb = new StringBuilder();
-            while ((ch = reader.read()) != -1) {
-                sb.append((char) ch);
-            }
-
-            reader.close();
-            context = sb.toString();
-            return context;
-
+            return Files.readString(file.toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error("读取文件失败：{}", file.getAbsolutePath(), e);
             return null;
         }
     }
 
-    public static String read(MultipartFile multipartFile) {
-        String jsonStr = "";
-        try {
-            File file = null;
-            if (multipartFile.getSize() <= 0) {
-                multipartFile = null;
-            } else {
-                InputStream ins = null;
-                ins = multipartFile.getInputStream();
-                file = new File(Objects.requireNonNull(multipartFile.getOriginalFilename()));
-                inputStreamToFile(ins, file);
-                ins.close();
-            }
-
-            assert file != null;
-            Reader reader = new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8);
-            int ch = 0;
-            StringBuilder sb = new StringBuilder();
-            while ((ch = reader.read()) != -1) {
-                sb.append((char) ch);
-            }
-
-            reader.close();
-            jsonStr = sb.toString();
-            boolean delete = file.delete();
-            return jsonStr;
-        } catch (IOException e) {
-            e.printStackTrace();
+    /**
+     * 按文件头（魔数）推导图片扩展名，非图片返回 null
+     * <p>
+     * 扩展名完全由文件内容决定，不读取、不信任 {@code originalFilename}，
+     * 因此无法通过改文件名把 .html/.svg 之类的可执行内容伪装成图片写入静态桶
+     *
+     * @param multipartFile 上传文件
+     * @return 扩展名（jpg/png/webp/gif），非图片返回 null
+     */
+    public static String detectImageExt(MultipartFile multipartFile) {
+        if (multipartFile == null) {
             return null;
         }
+        byte[] h;
+        try (InputStream in = multipartFile.getInputStream()) {
+            h = in.readNBytes(12);
+        } catch (IOException e) {
+            return null;
+        }
+        if (h.length < 12) {
+            return null;
+        }
+        // JPEG: FF D8 FF
+        if (u(h[0]) == 0xFF && u(h[1]) == 0xD8 && u(h[2]) == 0xFF) {
+            return "jpg";
+        }
+        // PNG: 89 50 4E 47 0D 0A 1A 0A
+        if (u(h[0]) == 0x89 && h[1] == 'P' && h[2] == 'N' && h[3] == 'G'
+                && u(h[4]) == 0x0D && u(h[5]) == 0x0A && u(h[6]) == 0x1A && u(h[7]) == 0x0A) {
+            return "png";
+        }
+        // WEBP: RIFF....WEBP
+        if (h[0] == 'R' && h[1] == 'I' && h[2] == 'F' && h[3] == 'F'
+                && h[8] == 'W' && h[9] == 'E' && h[10] == 'B' && h[11] == 'P') {
+            return "webp";
+        }
+        // GIF: GIF87a / GIF89a
+        if (h[0] == 'G' && h[1] == 'I' && h[2] == 'F' && h[3] == '8'
+                && (h[4] == '7' || h[4] == '9') && h[5] == 'a') {
+            return "gif";
+        }
+        return null;
+    }
+
+    /**
+     * 图片扩展名对应的 Content-Type
+     * <p>
+     * 上传时显式写入对象元信息，避免存储侧按扩展名猜测导致的可执行内容渲染
+     *
+     * @param ext {@link #detectImageExt} 返回的扩展名
+     * @return MIME 类型
+     */
+    public static String imageContentType(String ext) {
+        if (ext == null) {
+            return "application/octet-stream";
+        }
+        return switch (ext) {
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "webp" -> "image/webp";
+            case "gif" -> "image/gif";
+            default -> "application/octet-stream";
+        };
+    }
+
+    private static int u(byte b) {
+        return b & 0xFF;
     }
 
 
@@ -195,7 +221,7 @@ public class FileUtil {
             os.close();
             ins.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error("输入流转文件失败：{}", file.getAbsolutePath(), e);
         }
     }
 

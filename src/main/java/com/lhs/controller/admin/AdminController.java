@@ -75,13 +75,15 @@ public class AdminController {
     }
 
 
+    @Operation(summary = "获取缓存 key 列表（仅 Item: 前缀）")
     @GetMapping("/admin/cache/keys")
     public Result<Map<String, Object>> cacheKeys(HttpServletRequest httpServletRequest) {
         return Result.success(adminService.getCacheKeys());
     }
 
-    @GetMapping("/admin/cache/delete")
-    public Result<String> deleteCacheKey(HttpServletRequest httpServletRequest,@RequestParam("key") String key) {
+    @Operation(summary = "删除指定缓存 key（仅 Item: 前缀，POST 防预取）")
+    @PostMapping("/admin/cache/delete")
+    public Result<String> deleteCacheKey(HttpServletRequest httpServletRequest, @RequestParam("key") String key) {
         return Result.success(adminService.deleteCacheKey(key));
     }
 

@@ -28,6 +28,12 @@ public interface AccessLogMapper extends BaseMapper<AccessLog> {
 
     /**
      * 按URL分组统计指定时间范围内各URL的访问量
+     *
+     * @param startTime 起始时间（含）
+     * @param endTime   结束时间（不含）
+     * @param limit     返回的最大URL条数（按访问量降序）
      */
-    List<UrlCountDTO> countByUrl(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
+    List<UrlCountDTO> countByUrl(@Param("startTime") Date startTime,
+            @Param("endTime") Date endTime,
+            @Param("limit") int limit);
 }

@@ -1,9 +1,8 @@
 package com.lhs.interceptor;
 
 import com.lhs.common.context.UserContext;
-import com.lhs.common.util.Logger;
 import com.lhs.entity.po.user.OAuthUserInfo;
-import com.lhs.service.user.OAuthUserService;
+import com.lhs.service.user.UserSessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -13,15 +12,19 @@ import org.springframework.web.servlet.ModelAndView;
 
 public class UserInterceptor implements HandlerInterceptor {
 
-    private final OAuthUserService oAuthUserService;
+    private final UserSessionService userSessionService;
 
-    public UserInterceptor(OAuthUserService oAuthUserService) {
-        this.oAuthUserService = oAuthUserService;
+    public UserInterceptor(UserSessionService userSessionService) {
+        this.userSessionService = userSessionService;
     }
 
     /**
      * 目标方法执行之前
      * 登录检查写在这里，如果没有登录，就不执行目标方法
+     * <p>
+     * 鉴权路径全程不变：只查本地 Redis loginToken:{token} → uid，命中即放行，
+     * 不调用 TCL、不校验 TCL 令牌，也不在此触发迁移兑换（兑换由前端主动调用
+     * /auth/uc-token/issue 触发）。因此 TCL 不可用时业务与用户登录态完全不受影响
      *
      * @param request  请求
      * @param response 响应
@@ -38,10 +41,10 @@ public class UserInterceptor implements HandlerInterceptor {
         }
 
         // 解析 token，无合法 token 时抛 USER_NOT_LOGIN（由全局异常处理器兜底）
-        String token = oAuthUserService.extractToken(request);
+        String token = userSessionService.extractToken(request);
 
         // 校验登录态并加载用户信息（Redis 校验 + 资料缓存表查询）
-        OAuthUserInfo userInfo = oAuthUserService.getUserInfoPOByToken(token);
+        OAuthUserInfo userInfo = userSessionService.getUserInfoPOByToken(token);
 
         // 将当前登录用户上下文写入线程级容器，供 Controller/Service 直接取用
         UserContext.set(userInfo.getId(), token, userInfo);

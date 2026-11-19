@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * 直连登录-发起会话响应 VO
  * <p>
- * 对应 UC /oauth2/direct-session 接口 data 部分：channel（发起会话凭证）与有效期
+ * 对应 TCL /oauth2/direct-session 接口 data 部分：channel（发起会话凭证）与有效期
  */
 @Data
 public class DirectLoginSessionVO {

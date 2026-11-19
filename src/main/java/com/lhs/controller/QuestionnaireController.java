@@ -49,12 +49,5 @@ public class QuestionnaireController {
         return Result.success(operatorCarryRateService.getOperatorCarryRateLineChart(operatorCarryRateDailyDataRequestParamsDTO));
     }
 
-    @Operation(summary ="迁移数据")
-    @GetMapping("/questionnaire/move")
-    public Result<Object> getOperatorCarryStatisticsResult() {
-        operatorCarryRateService.moveDate();
-        return Result.success();
-    }
-
 
 }

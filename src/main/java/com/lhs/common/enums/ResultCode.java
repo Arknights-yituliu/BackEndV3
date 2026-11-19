@@ -53,9 +53,6 @@ public enum ResultCode {
 	USER_NAME_MUST_BE_IN_CHINESE_OR_ENGLISH(20025, "用户名只能由中文、英文、数字组成"),
 	PASS_WORD_MUST_BE_IN_CHINESE_OR_ENGLISH(20026, "密码只能由英文、数字组成"),
 	USER_TOKEN_FORMAT_ERROR_OR_USER_NOT_LOGIN(20027, "用户登录凭证解析错误或用户未登录，请进行反馈"),
-	OPEN_API_TOKEN_COUNT_EXCEEDED(20028, "第三方API Token生成数量已达上限（最多5个）"),
-	OPEN_API_TOKEN_EXPIRED(20029, "第三方API Token已过期，请重新生成"),
-
 
 
 	/* 业务错误：30000-39999 */
@@ -87,6 +84,8 @@ public enum ResultCode {
 	OSS_UPLOAD_ERROR(39005, "OSS上传错误"),
 	EMAIL_SENT_TOO_FREQUENTLY(39006,"邮件发送间隔时间30秒"),
 	NOT_REPEAT_REQUESTS(39007,"不要重复请求"),
+	VERIFICATION_CODE_LOCKED(39008, "验证码错误次数过多，请重新获取"),
+	TOKEN_ISSUE_TOO_FREQUENTLY(39009, "令牌签发请求过于频繁，请稍后重试"),
 
 
 	/* 系统错误：40001-49999 */

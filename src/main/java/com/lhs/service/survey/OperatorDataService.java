@@ -1,46 +1,17 @@
 package com.lhs.service.survey;
 
-import com.lhs.common.util.Result;
-import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
-import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
-import com.lhs.entity.dto.survey.PlayerInfoDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.*;
+import java.util.List;
 
-
-public interface OperatorDataService  {
-
-
-    /**
-     * 重置个人上传的干员数据
-     * @param token 一图流凭证
-     * @return 成功消息
-     */
-    Result<Object> operatorDataReset(String token);
-
-    /**
-     * 找回用户填写的数据
-     * @return 成功消息
-     */
-    List<OperatorProgressionDataDTO> listOperatorProgressionData();
-
-
-    Object importSKLandPlayerInfoV3(HttpServletRequest httpServletRequest,PlayerInfoDTO playerInfoDTO);
-
-    Map<String, Object> importManualOperatorData(ManualOperatorDataDTO manualOperatorDataDTO);
-
-    void backupOperatorProgressionData();
-
-    /**
-     * 第三方API上传干员练度数据（含token校验）
-     *
-     * @param httpServletRequest HTTP请求（从Header提取token）
-     * @param playerInfoDTO      玩家信息
-     * @return 处理结果
-     */
-    Map<String, Object> openApiUploadOperatorData(HttpServletRequest httpServletRequest, PlayerInfoDTO playerInfoDTO);
+/**
+ * 干员练度服务
+ * <p>
+ * 本地的练度导入与回读方法（listOperatorProgressionData / importSKLandPlayerInfoV3 /
+ * importManualOperatorData）已随对应接口下线一并移除，仅保留第三方读取能力
+ */
+public interface OperatorDataService {
 
     /**
      * 第三方API获取干员练度数据（含token校验）

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lhs.mapper.material.RecycleDropMapper">
+
+    <!-- 批量插入：一条 INSERT 写入多行 -->
+    <insert id="insertBatch">
+        INSERT INTO recycle_drop (id, item_id, drop_time, operators, server, source, uid, version, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.itemId}, #{item.dropTime}, #{item.operators}, #{item.server}, #{item.source}, #{item.uid}, #{item.version}, #{item.createTime})
+        </foreach>
+    </insert>
+
+    <!--
+        按 item_id 聚合时段内的产出数量与全部记录条数。
+        quantity：该物品的明细行数，一行代表一件产出。
+        times：时段内所有物品的明细行数总和（不分材料），每个物品取到的是同一个值，
+               作为掉率分母使用；用窗口函数对分组结果求和，避免再扫一次全表。
+    -->
+    <select id="selectDailyItemCount" resultType="com.lhs.entity.dto.drop.RecycleDropDailyCountDTO">
+        SELECT t.item_id AS itemId,
+               t.quantity AS quantity,
+               SUM(t.quantity) OVER () AS times
+        FROM (
+            SELECT item_id, COUNT(*) AS quantity
+            FROM recycle_drop
+            WHERE drop_time &gt;= #{startTime}
+              AND drop_time &lt; #{endTime}
+            GROUP BY item_id
+        ) t
+    </select>
+
+</mapper>

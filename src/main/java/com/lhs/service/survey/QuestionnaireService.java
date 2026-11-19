@@ -9,7 +9,6 @@ import com.lhs.common.enums.ResultCode;
 import com.lhs.entity.dto.survey.OperatorCarryQuestionnaireDTO;
 import com.lhs.entity.po.survey.QuestionnaireResult;
 import com.lhs.mapper.survey.QuestionnaireResultMapper;
-import com.lhs.service.user.OAuthUserService;
 import com.lhs.service.util.TencentCloudService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,16 +25,14 @@ public class QuestionnaireService {
     private final QuestionnaireResultMapper questionnaireResultMapper;
 
     private final IdGenerator idGenerator;
-    private final OAuthUserService oAuthUserService;
     private final TencentCloudService tencentCloudService;
 
 
     public QuestionnaireService(RedisTemplate<String, String> redisTemplate,
                                 QuestionnaireResultMapper questionnaireResultMapper,
-                                OAuthUserService oAuthUserService, TencentCloudService tencentCloudService) {
+                                TencentCloudService tencentCloudService) {
         this.redisTemplate = redisTemplate;
         this.questionnaireResultMapper = questionnaireResultMapper;
-        this.oAuthUserService = oAuthUserService;
         this.tencentCloudService = tencentCloudService;
 
         this.idGenerator = new IdGenerator(1L);

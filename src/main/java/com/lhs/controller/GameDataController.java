@@ -1,101 +1,40 @@
 package com.lhs.controller;
 
 import com.lhs.common.util.Result;
-import com.lhs.entity.dto.survey.OperatorProgressionDataDTO;
 import com.lhs.entity.dto.survey.OperatorProgressionDataV2DTO;
-import com.lhs.entity.dto.survey.ManualOperatorDataDTO;
-import com.lhs.entity.dto.survey.PlayerInfoDTO;
-import com.lhs.entity.dto.survey.WarehouseInventoryAPIParams;
-import com.lhs.entity.vo.survey.OperatorProgressionStatisticalResultVOV2;
-import com.lhs.service.survey.*;
-import com.lhs.service.util.ArknightsGameDataService;
+import com.lhs.service.survey.OperatorDataService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
+/**
+ * 干员练度相关接口
+ * <p>
+ * 本地导入与查询链路（/auth/survey/operator/info、/auth/survey/operator/import/skland/v3、
+ * /auth/survey/operator/import/manual）已下线，本地不再承接练度数据的写入与回读；
+ * 本控制器只保留第三方读取接口（/open-api/**，令牌由用户中心签发并校验）
+ */
 @RestController
 @Tag(name = "干员练度调查")
-
 public class GameDataController {
+
     private final OperatorDataService operatorDataService;
 
-    private final OperatorProgressionStatisticsService operatorProgressionStatisticsService;
-
-    private final WarehouseInfoService warehouseInfoService;
-
-    public GameDataController(OperatorDataService operatorDataService,
-            ArknightsGameDataService arknightsGameDataService,
-            OperatorProgressionStatisticsService operatorProgressionStatisticsService,
-            WarehouseInfoService warehouseInfoService) {
+    public GameDataController(OperatorDataService operatorDataService) {
         this.operatorDataService = operatorDataService;
-        this.operatorProgressionStatisticsService = operatorProgressionStatisticsService;
-        this.warehouseInfoService = warehouseInfoService;
     }
 
-    @Operation(summary = "手动统计")
-    @GetMapping("/survey/statistic")
-    public Result<Object> statistic() {
-        operatorProgressionStatisticsService.statisticsOperatorProgressionDataV2(false);
-        return Result.success();
-    }
-
-    @Operation(summary = "获取干员数据")
-    @GetMapping("/auth/survey/operator/info")
-    public Result<Object> getOperatorTable() {
-        List<OperatorProgressionDataDTO> operatorProgressionDataDTOList = operatorDataService
-                .listOperatorProgressionData();
-        return Result.success(operatorProgressionDataDTOList);
-    }
-
-    @Operation(summary = "通过森空岛导入干员练度V3")
-    @PostMapping("/auth/survey/operator/import/skland/v3")
-    public Result<Object> importSurveyCharacterFormBySKLandV3(HttpServletRequest httpServletRequest,
-            @RequestBody PlayerInfoDTO playerInfoDTO) {
-
-        return Result.success(operatorDataService.importSKLandPlayerInfoV3(httpServletRequest, playerInfoDTO));
-    }
-
-    @Operation(summary = "手动导入干员练度")
-    @PostMapping("/auth/survey/operator/import/manual")
-    public Result<Map<String, Object>> importManualOperatorData(
-            @RequestBody ManualOperatorDataDTO manualOperatorDataDTO) {
-        return Result.success(operatorDataService.importManualOperatorData(manualOperatorDataDTO));
-    }
-
-    @Operation(summary = "通过森空岛导入仓库材料")
-    @PostMapping("/survey/warehouse-info/import/skland")
-    public Result<Object> importWarehouseInfoBySKLand(
-            @RequestBody WarehouseInventoryAPIParams warehouseInventoryAPIParams) {
-        return Result.success(warehouseInfoService.saveWarehouseInventoryInfo(warehouseInventoryAPIParams));
-    }
-
-    @Operation(summary = "用户干员练度重置")
-    @PostMapping("/survey/operator/reset")
-    public Result<Object> operatorDataReset(@RequestBody Map<String, String> params) {
-        String token = params.get("token");
-        return operatorDataService.operatorDataReset(token);
-    }
-
-    @Operation(summary = "干员练度调查表统计结果")
-    @GetMapping("/survey/operator/result/v2")
-    public Result<OperatorProgressionStatisticalResultVOV2> characterStatisticalResultV2() {
-        return Result.success(operatorProgressionStatisticsService.getOperatorProgressionStatisticalResultV2());
-    }
-
-    @Operation(summary = "第三方API上传干员练度数据（需要write权限token）")
-    @PostMapping("/open-api/operator/upload")
-    public Result<Map<String, Object>> openApiUploadOperatorData(HttpServletRequest httpServletRequest,
-            @RequestBody PlayerInfoDTO playerInfoDTO) {
-        return Result.success(operatorDataService.openApiUploadOperatorData(httpServletRequest, playerInfoDTO));
-    }
-
-    @Operation(summary = "第三方API获取干员练度数据（需要read或write权限token）")
+    @Operation(summary = "第三方API获取干员练度数据（PAT，需 ak-data.read 或 gama-data.read）")
     @GetMapping("/open-api/operator/info")
-    public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest) {
+    public Result<List<OperatorProgressionDataV2DTO>> openApiGetOperatorData(HttpServletRequest httpServletRequest,
+                                                                          HttpServletResponse response) {
+        response.setHeader("Cache-Control", "private, no-cache");
         return Result.success(operatorDataService.openApiGetOperatorData(httpServletRequest));
     }
 

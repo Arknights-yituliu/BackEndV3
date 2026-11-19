@@ -83,7 +83,8 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
 
         JsonNode resp = postJson(GEN_SCAN_LOGIN_URL, body, buildScanHeaders());
         if (resp.get("status") == null || resp.get("status").asInt() != 0 || resp.get("data") == null) {
-            Logger.error("森空岛申请扫码二维码失败，响应：{}", resp);
+            Logger.error("森空岛申请扫码二维码失败，status={}，msg={}",
+                    resp.path("status").asText(), resp.path("msg").asText());
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         JsonNode data = resp.get("data");
@@ -118,7 +119,7 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
         if (status == 0) {
             JsonNode data = resp.get("data");
             if (data == null || data.get("scanCode") == null) {
-                Logger.error("森空岛扫码确认成功但缺少 scanCode，响应：{}", resp);
+                Logger.error("森空岛扫码确认成功但缺少 scanCode，msg={}", resp.path("msg").asText());
                 throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
             }
             String scanCode = data.get("scanCode").asText();
@@ -143,7 +144,8 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
         JsonNode resp = postJson(TOKEN_BY_SCAN_CODE_URL, body, buildScanHeaders());
         if (resp.get("status") == null || resp.get("status").asInt() != 0
                 || resp.get("data") == null || resp.get("data").get("token") == null) {
-            Logger.error("森空岛扫码换通行证 token 失败，响应：{}", resp);
+            Logger.error("森空岛扫码换通行证 token 失败，status={}，msg={}",
+                    resp.path("status").asText(), resp.path("msg").asText());
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
         return resp.get("data").get("token").asText();
@@ -174,7 +176,8 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
         JsonNode resp = postJson(OAUTH2_URL, body, headers);
         JsonNode data = resp.get("data");
         if (data == null || data.get("code") == null) {
-            Logger.error("grant 接口调用失败，响应：{}", resp);
+            Logger.error("grant 接口调用失败，status={}，msg={}",
+                    resp.path("status").asText(), resp.path("msg").asText());
             // 提取森空岛返回的 msg 透传给前端（如"需要进行设备验证"）
             JsonNode msgNode = resp.get("msg");
             if (msgNode != null && !msgNode.asText().isEmpty()) {
@@ -208,7 +211,8 @@ public class SklandHgTokenServiceImpl implements SklandHgTokenService {
 
         JsonNode resp = postJson(GENERATE_CRED_BY_CODE_URL, body, headers);
         if (resp.get("code") == null || resp.get("code").asInt() != 0) {
-            Logger.error("generate_cred_by_code 接口调用失败，响应：{}", resp);
+            Logger.error("generate_cred_by_code 接口调用失败，code={}，msg={}",
+                    resp.path("code").asText(), resp.path("msg").asText());
             // 提取森空岛返回的 msg 透传给前端（如"需要进行设备验证"）
             JsonNode msgNode = resp.get("msg");
             if (msgNode != null && !msgNode.asText().isEmpty()) {

@@ -82,7 +82,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
                 }
 
                 File dest = new File(endPath + charId + ".png");
-                System.out.println(endPath + charId + ".png");
                 FileUtil.copyFile(source, dest);
 
             }
@@ -479,7 +478,6 @@ public class ArknightsGameDataServiceImpl implements ArknightsGameDataService {
     // 提取方法：解析物品消耗
     private List<Map<String, Object>> parseItemCost(JsonNode itemCost) {
 
-        System.out.println(itemCost);
         List<Map<String, Object>> itemCostMapList = new ArrayList<>();
         for (JsonNode rank : itemCost) {
             Map<String, Object> itemCostMap = new HashMap<>();

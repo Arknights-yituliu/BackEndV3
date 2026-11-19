@@ -5,6 +5,7 @@ package com.lhs.common.util;
  *
  * <p>统一管理 key 的拼接规则，避免散落各处导致冲突或格式不一致。
  * 注意：所有方法返回的 key 字符串与历史硬编码完全一致，保证线上数据兼容。</p>
+ * <p>TCL 相关常量和方法已统一命名，实际 Redis key 仍保留历史 uc: 前缀。</p>
  *
  * @author UserCenter
  */
@@ -15,11 +16,11 @@ public final class RedisKeyUtil {
     /** 用户登录 token → uid 的映射 key 前缀：loginToken:{token} */
     private static final String PREFIX_LOGIN_TOKEN = "loginToken:";
 
-    /** OAuth2 授权 state → code_verifier 缓存 key 前缀：oauth2:auth:state:{state} */
-    private static final String PREFIX_OAUTH2_STATE = "oauth2:auth:state:";
+    /** TCL 令牌对缓存 key 前缀：uc:token:{uid}，同时承载服务端代持的 refresh_token */
+    private static final String PREFIX_TCL_TOKEN = "uc:token:";
 
-    /** OpenAPI 访问令牌数据 key 前缀：open-api-token:{token} */
-    private static final String PREFIX_OPEN_API_TOKEN = "open-api-token:";
+    /** TCL 兑换并发去重短锁 key 前缀：uc:lock:{uid} */
+    private static final String PREFIX_TCL_LOCK = "uc:lock:";
 
     // ==================== 验证码 ====================
 
@@ -38,20 +39,35 @@ public final class RedisKeyUtil {
     /** 问卷提交频控 key 前缀：SurveySubmitterIP:{ip} */
     private static final String PREFIX_SURVEY_SUBMITTER = "SurveySubmitterIP:";
 
-    /** 干员数据上传间隔防重 key 前缀：SurveyOperatorInfoUploadInterval:{uid} */
-    private static final String PREFIX_OPERATOR_UPLOAD_INTERVAL = "SurveyOperatorInfoUploadInterval:";
-
     /** 掉落数据防重锁 key 前缀：StageDropLimit:{penguinId} */
     private static final String PREFIX_STAGE_DROP_LOCK = "StageDropLimit:";
 
     /** 1-7 每日上传上限计数 key：1-7_MAX_UPLOADS_PER_DAY */
     private static final String KEY_STAGE_ONE_SEVEN_DAILY_UPLOAD = "1-7_MAX_UPLOADS_PER_DAY";
 
+    /** 回收站产出上传间隔防重 key 前缀：RecycleDropLimit:{uid} */
+    private static final String PREFIX_RECYCLE_DROP_LOCK = "RecycleDropLimit:";
+
+    /** 回收站产出去重 key 前缀：RecycleDropDedup:{uid}:{itemId}:{dropTime} */
+    private static final String PREFIX_RECYCLE_DROP_DEDUP = "RecycleDropDedup:";
+
     /** 直连登录会话领取 IP 限流 key 前缀 */
     private static final String PREFIX_DIRECT_SESSION_IP_RATE = "DirectSession:IP:";
 
     /** 直连登录会话领取客户端指纹限流 key 前缀 */
     private static final String PREFIX_DIRECT_SESSION_FINGERPRINT_RATE = "DirectSession:Fingerprint:";
+
+    /** TCL 令牌直签接口的 uid 维度限流 key 前缀：uc:issue:rate:{uid} */
+    private static final String PREFIX_TCL_ISSUE_RATE = "uc:issue:rate:";
+
+    /** 管理端验证码发送频控（分钟级）key 前缀：AdminCodeSendMin:{account} */
+    private static final String PREFIX_ADMIN_CODE_SEND_MIN = "AdminCodeSendMin:";
+
+    /** 管理端验证码发送频控（小时级）key 前缀：AdminCodeSendHour:{account} */
+    private static final String PREFIX_ADMIN_CODE_SEND_HOUR = "AdminCodeSendHour:";
+
+    /** 管理端登录失败计数 key 前缀：AdminLoginFail:{email} */
+    private static final String PREFIX_ADMIN_LOGIN_FAIL = "AdminLoginFail:";
 
     // ==================== 数据缓存 ====================
 
@@ -61,14 +77,22 @@ public final class RedisKeyUtil {
     /** 礼包数据缓存 key：Item:PackInfo（供 @RedisCacheable 注解引用） */
     public static final String PACK_INFO_KEY = "Item:PackInfo";
 
+    /**
+     * 缓存类 key 的统一前缀
+     * <p>
+     * 管理端缓存接口只允许查看/删除该前缀下的 key，避免误删 {@code loginToken:*}、
+     * {@code uc:token:*} 等会话与频控 key
+     */
+    public static final String PREFIX_ITEM_CACHE = "Item:";
+
     /** 礼包数据版本 key：Item:PackInfoVersion */
     private static final String KEY_PACK_INFO_VERSION = "Item:PackInfoVersion";
 
     /** 活动商店缓存 key：Item:ActStoreInfo（供 @RedisCacheable 注解引用） */
     public static final String ACT_STORE_INFO_KEY = "Item:ActStoreInfo";
 
-    /** 干员表数据缓存 key 前缀：CharacterTable:{version} */
-    private static final String PREFIX_CHARACTER_TABLE = "CharacterTable:";
+    /** 干员表数据缓存 key：CharacterTable:v1（供 @RedisCacheable 注解引用，缓存结构变更时递增版本号） */
+    public static final String CHARACTER_TABLE_KEY = "CharacterTable:v1";
 
     /** 公招统计时间 key：LastRecruitStatisticsTime */
     private static final String KEY_LAST_RECRUIT_STATISTICS_TIME = "LastRecruitStatisticsTime";
@@ -92,23 +116,27 @@ public final class RedisKeyUtil {
     }
 
     /**
-     * OAuth2 授权 state 缓存 key（存放 code_verifier）
+     * TCL 令牌对缓存 key（正常登录与追加兑换共用）
+     * <p>
+     * 必须是 uid 维度：TCL 侧同一 (uid, clientId) 上恒定只保留一条迁移凭证，
+     * 每次兑换都会撤销上一轮凭证；若按自签 token 分片，同一用户多设备会各兑换一次
+     * 并互相撤销，旧设备刷新时直接掉登录
      *
-     * @param state 授权 state
+     * @param uid 用户 uid
      * @return Redis key
      */
-    public static String oauth2State(String state) {
-        return PREFIX_OAUTH2_STATE + state;
+    public static String tclToken(Long uid) {
+        return PREFIX_TCL_TOKEN + uid;
     }
 
     /**
-     * OpenAPI 访问令牌数据 key
+     * TCL 兑换并发去重短锁 key（uid 维度，避免多标签页同时触发放大 TCL 请求量）
      *
-     * @param token OpenAPI token
+     * @param uid 用户 uid
      * @return Redis key
      */
-    public static String openApiToken(String token) {
-        return PREFIX_OPEN_API_TOKEN + token;
+    public static String tclLock(Long uid) {
+        return PREFIX_TCL_LOCK + uid;
     }
 
     /**
@@ -132,6 +160,36 @@ public final class RedisKeyUtil {
     }
 
     /**
+     * 管理端验证码发送频控（分钟级）key：同一账号 60 秒内只允许发送一次
+     *
+     * @param account 账号（开发者标识或邮箱）
+     * @return Redis key
+     */
+    public static String adminCodeSendMinRate(String account) {
+        return PREFIX_ADMIN_CODE_SEND_MIN + account;
+    }
+
+    /**
+     * 管理端验证码发送频控（小时级）key：同一账号 5 小时内最多发送 5 次
+     *
+     * @param account 账号（开发者标识或邮箱）
+     * @return Redis key
+     */
+    public static String adminCodeSendHourRate(String account) {
+        return PREFIX_ADMIN_CODE_SEND_HOUR + account;
+    }
+
+    /**
+     * 管理端登录失败计数 key：用于验证码错误次数限制与临时锁定
+     *
+     * @param email 管理员邮箱（验证码的存放维度）
+     * @return Redis key
+     */
+    public static String adminLoginFail(String email) {
+        return PREFIX_ADMIN_LOGIN_FAIL + email;
+    }
+
+    /**
      * 问卷接口 IP 频控 key
      *
      * @param encryptedIp 加密后的 IP
@@ -149,16 +207,6 @@ public final class RedisKeyUtil {
      */
     public static String surveySubmitterIp(String ip) {
         return PREFIX_SURVEY_SUBMITTER + ip;
-    }
-
-    /**
-     * 干员数据上传间隔防重 key
-     *
-     * @param uid 用户 uid
-     * @return Redis key
-     */
-    public static String surveyOperatorUploadInterval(Long uid) {
-        return PREFIX_OPERATOR_UPLOAD_INTERVAL + uid;
     }
 
     /**
@@ -181,6 +229,28 @@ public final class RedisKeyUtil {
     }
 
     /**
+     * 回收站产出上传 5 秒防重锁 key。
+     *
+     * @param uid MAA 上传请求中的用户标识
+     * @return Redis key
+     */
+    public static String recycleDropLock(String uid) {
+        return PREFIX_RECYCLE_DROP_LOCK + uid;
+    }
+
+    /**
+     * 回收站产出明细去重 key，由 uid、物品 id 与产出时间共同确定。
+     *
+     * @param uid      MAA 上传请求中的用户标识
+     * @param itemId   物品 id
+     * @param dropTime 物品产出时间，毫秒级时间戳
+     * @return Redis key
+     */
+    public static String recycleDropDedup(String uid, String itemId, long dropTime) {
+        return PREFIX_RECYCLE_DROP_DEDUP + uid + ":" + itemId + ":" + dropTime;
+    }
+
+    /**
      * 直连登录会话领取的 IP 限流 key。
      *
      * @param ip 请求来源 IP
@@ -198,6 +268,19 @@ public final class RedisKeyUtil {
      */
     public static String directSessionFingerprintRate(String fingerprint) {
         return PREFIX_DIRECT_SESSION_FINGERPRINT_RATE + fingerprint;
+    }
+
+    /**
+     * TCL 令牌直签接口的 uid 维度限流 key。
+     * <p>
+     * 直签每次都会真实请求 TCL（不消费、不轮转 refresh_token），必须限制单用户频率，
+     * 避免把本服务当成 TCL 调用放大器。
+     *
+     * @param uid 用户 uid
+     * @return Redis key
+     */
+    public static String tclIssueRate(Long uid) {
+        return PREFIX_TCL_ISSUE_RATE + uid;
     }
 
     /**
@@ -234,16 +317,6 @@ public final class RedisKeyUtil {
      */
     public static String actStoreInfo() {
         return ACT_STORE_INFO_KEY;
-    }
-
-    /**
-     * 干员表数据缓存 key
-     *
-     * @param version 干员表版本（如 2026-07-08 14:20）
-     * @return Redis key
-     */
-    public static String characterTable(String version) {
-        return PREFIX_CHARACTER_TABLE + version;
     }
 
     /**

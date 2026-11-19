@@ -1,62 +1,58 @@
 package com.lhs.controller;
 
-import com.lhs.common.util.Logger;
+import com.lhs.common.context.UserContext;
 import com.lhs.common.util.Result;
+import com.lhs.common.util.SignUtil;
+import com.lhs.entity.dto.user.TclTokenVO;
+import com.lhs.entity.dto.user.PatIssueRequestDTO;
+import com.lhs.entity.dto.user.TclPatVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
-import com.lhs.service.user.OAuth2ClientService;
-import com.lhs.service.user.OAuthUserService;
+import com.lhs.service.user.TclTokenMigrateService;
+import com.lhs.service.user.UserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 一图流用户系统控制器
  * <p>
  * 用户中心迁移后：注册/登录/找回/改密/邮箱绑定等接口已下线，
- * 登录统一走 OAuth2 授权（见 /user/oauth2/login 与 /oauth/callback）
+ * 登录统一走直连登录（见 /direct-session 与 /complete-login）。
+ * <p>
+ * TCL 令牌相关的两个接口（兑换 / 刷新）只负责把 TCL access_token 交给前端，
+ * 它们不参与 BackEndV3 自身的鉴权——鉴权始终依据本地 loginToken
  */
 @RestController
 @Tag(name = "一图流用户系统")
 public class UserController {
 
-    private final OAuthUserService oAuthUserService;
-    private final OAuth2ClientService oAuth2ClientService;
+    /** 响应携带令牌，禁止中间代理与浏览器缓存 */
+    private static final String CACHE_CONTROL_NO_STORE = "no-store";
 
-    public UserController(OAuthUserService oAuthUserService, OAuth2ClientService oAuth2ClientService) {
-        this.oAuthUserService = oAuthUserService;
-        this.oAuth2ClientService = oAuth2ClientService;
-    }
+    private final UserSessionService userSessionService;
 
-    @Operation(summary = "OAuth2 登录引导，返回 UC 授权跳转地址")
-    @GetMapping("/user/oauth2/login")
-    public Result<HashMap<String, Object>> oauth2Login() {
-        Logger.info("【OAuth2 登录】发起授权引导，生成 state + PKCE 参数");
-        // 生成 state + PKCE 参数并缓存 code_verifier
-        Map<String, String> authSession = oAuth2ClientService.createAuthorizationSession();
-        // 构造 UC 授权地址
-        String authorizeUrl = oAuth2ClientService.buildAuthorizeUrl(
-                authSession.get("state"), authSession.get("codeChallenge"));
-        Logger.info("【OAuth2 登录】授权引导生成完成");
-        HashMap<String, Object> result = new HashMap<>();
-        result.put("authorizeUrl", authorizeUrl);
-        return Result.success(result);
+    private final TclTokenMigrateService tclTokenMigrateService;
+
+    public UserController(UserSessionService userSessionService, TclTokenMigrateService tclTokenMigrateService) {
+        this.userSessionService = userSessionService;
+        this.tclTokenMigrateService = tclTokenMigrateService;
     }
 
     @Operation(summary = "根据token检查用户登录状态吗，返回用户信息")
     @GetMapping("/user/info")
     public Result<UserInfoVO> getUserInfo(@RequestParam String token) {
-        UserInfoVO response = oAuthUserService.getUserInfoVOByToken(token);
+        UserInfoVO response = userSessionService.getUserInfoVOByToken(token);
         return Result.success(response);
     }
 
     @Operation(summary = "用户登出，使当前登录token失效")
     @PostMapping("/auth/user/logout")
     public Result<Object> logout(HttpServletRequest httpServletRequest) {
-        oAuthUserService.logout(httpServletRequest);
+        userSessionService.logout(httpServletRequest);
         return Result.success();
     }
 
@@ -64,7 +60,7 @@ public class UserController {
     @PostMapping("/auth/user/nickname")
     public Result<Object> updateNickname(HttpServletRequest httpServletRequest,
             @RequestBody Map<String, String> body) {
-        oAuthUserService.updateNickname(httpServletRequest, body.get("nickname"));
+        userSessionService.updateNickname(httpServletRequest, body.get("nickname"));
         return Result.success();
     }
 
@@ -72,8 +68,80 @@ public class UserController {
     @PostMapping("/auth/user/avatar")
     public Result<Object> updateAvatar(HttpServletRequest httpServletRequest,
             @RequestBody Map<String, String> body) {
-        oAuthUserService.updateAvatar(httpServletRequest, body.get("avatar"));
+        userSessionService.updateAvatar(httpServletRequest, body.get("avatar"));
         return Result.success();
+    }
+
+    /**
+     * 兑换 TCL 令牌（前端主动触发）
+     * <p>
+     * 前端在应用启动 / 进入业务页时发现本地无 TCL_ACCESS_TOKEN 才调用本接口；
+     * 请求携带自签 token（拦截器已校验并写入上下文），
+     * 内部按 uid 查兑换缓存，未命中才签名调用 TCL 兑换。兑换失败不影响业务请求
+     *
+     * @param httpServletResponse HTTP 响应（写入禁止缓存头）
+     * @return TCL 令牌（已剥离 refresh_token，不含用户资料）
+     */
+    @Operation(summary = "兑换 TCL 令牌（前端启动时本地无 TCL_ACCESS_TOKEN 才调用）")
+    @PostMapping("/auth/uc-token/issue")
+    public Result<TclTokenVO> issueTclToken(HttpServletResponse httpServletResponse) {
+        // 响应携带令牌：确保中间代理与浏览器不缓存
+        httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
+        // legacy_token_hash 仅作 TCL 侧审计，不参与鉴权与幂等判断
+        String legacyTokenHash = SignUtil.sha256(UserContext.getToken());
+        TclTokenVO token = tclTokenMigrateService.issueByUid(UserContext.getUid(), legacyTokenHash);
+        return Result.success(toClientToken(token));
+    }
+
+    /**
+     * 刷新 TCL access_token
+     * <p>
+     * 前端调 TCL 接口遇 401 时带自签 token 调用：按 uid 取服务端代持的 refresh_token
+     * 向 TCL 换取新 access_token。刷新失败（如 90009）时前端删除本地 TCL_ACCESS_TOKEN，
+     * 下次启动重新触发兑换自愈，用户不会掉登录
+     *
+     * @param httpServletResponse HTTP 响应（写入禁止缓存头）
+     * @return 新的 TCL 令牌（已剥离 refresh_token）
+     */
+    @Operation(summary = "刷新 TCL access_token（前端调 TCL 接口遇 401 时带自签 token 调用）")
+    @PostMapping("/auth/token/refresh")
+    public Result<TclTokenVO> refreshTclToken(HttpServletResponse httpServletResponse) {
+        // 响应携带令牌：确保中间代理与浏览器不缓存
+        httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
+        TclTokenVO token = tclTokenMigrateService.refreshByUid(UserContext.getUid());
+        return Result.success(toClientToken(token));
+    }
+
+    /**
+     * 用服务端代持的 refresh_token 调 TCL POST /oauth2/pat 签发 PAT。
+     * 本地会话校验、uid 限流和刷新凭证失效处理继续沿用；refresh_token 不下发前端。
+     *
+     * @param request PAT 签发参数，payload.game_uid 指定读取账号
+     * @param httpServletResponse HTTP 响应（写入禁止缓存头）
+     * @return PAT 明文及签发元数据
+     */
+    @Operation(summary = "签发绑定游戏账号的个人访问令牌 PAT")
+    @PostMapping("/auth/pat")
+    public Result<TclPatVO> issuePat(@RequestBody PatIssueRequestDTO request,
+                                    HttpServletResponse httpServletResponse) {
+        // 响应携带令牌：确保中间代理与浏览器不缓存
+        httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
+        return Result.success(tclTokenMigrateService.issuePatByUid(UserContext.getUid(), request));
+    }
+
+    /**
+     * 转换为下发前端的响应对象
+     * <p>
+     * 只保留 access_token / token_type / expires_in / scope：refresh_token 与 uid
+     * 只留在服务端，不下发浏览器，也不回带用户资料
+     *
+     * @param token TCL 令牌对
+     * @return 可下发前端的令牌对象
+     */
+    private static TclTokenVO toClientToken(TclTokenVO token) {
+        token.setRefreshToken(null);
+        token.setUid(null);
+        return token;
     }
 
 }
