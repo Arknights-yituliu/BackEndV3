@@ -1,6 +1,10 @@
 package com.lhs.service.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lhs.common.config.OAuth2Properties;
 import com.lhs.common.enums.ResultCode;
 import com.lhs.common.exception.ServiceException;
@@ -10,6 +14,8 @@ import com.lhs.common.util.Logger;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.SignUtil;
 import com.lhs.entity.dto.user.TclTokenVO;
+import com.lhs.entity.dto.user.PatIssueRequestDTO;
+import com.lhs.entity.dto.user.TclPatVO;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -44,8 +50,11 @@ public class TclMigrateClient {
     /** 迁移兑换端点路径：纳入签名原文，须与 TCL 侧逐字节一致 */
     private static final String MIGRATE_PATH = "/oauth2/internal/migrate-token";
 
-    /** 刷新令牌直签端点路径：用 refresh_token 换取指定有效期的新 access_token */
-    private static final String FROM_REFRESH_PATH = "/oauth2/token/from-refresh";
+    /** 凭服务端 refresh_token 签发 PAT，凭证不消费、不轮转。 */
+    private static final String PAT_ISSUE_PATH = "/oauth2/pat";
+
+    private static final ObjectMapper PAT_JSON_MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /** 迁移兑换端点 HTTP 方法：纳入签名原文，防止签名被挪用到其他端点 */
     private static final String MIGRATE_METHOD = "POST";
@@ -146,38 +155,26 @@ public class TclMigrateClient {
     }
 
     /**
-     * 用 refresh_token 直签指定有效期的 access_token（TCL /oauth2/token/from-refresh）
-     *
-     * <p>与 {@link #refreshToken} 的区别：本端点不需要 client_secret，凭证即 refresh_token 本身，
-     * 且有效期由调用方指定；凭证不消费、不轮转，refresh_token 调用后依然有效。
-     * 该签发只在 request 的 name 下于 TCL 侧 oauth_custom_token 表落一条记录，不返回新 refresh_token。</p>
-     *
-     * @param refreshToken 服务端代持的刷新令牌（认证凭证）
-     * @param expiresIn    期望的 access_token 有效期（秒），必须大于 0
-     * @param scope        期望收敛到的权限范围（英文逗号分隔），可为 null 表示沿用凭证原有范围
-     * @param name         本次签发名称（用于用户区分用途），必填且不超过 50 字符
-     * @return 新签发的令牌（access_token + token_type + expires_in + scope，不含 refresh_token）
-     * @throws TclApiException TCL 返回业务错误码时抛出（如 90009 凭证无效、90003 范围不合法）
+     * 凭服务端代持的 refresh_token 签发 PAT。归属由凭证决定，不传 client_id。
+     * 请求和响应均包含敏感凭证，解析失败时只报告协议错误，不记录正文。
      */
-    public TclTokenVO issueTokenFromRefresh(String refreshToken, Long expiresIn, String scope, String name) {
-        StringBuilder form = new StringBuilder()
-                .append("refresh_token=").append(encode(refreshToken))
-                .append("&expires_in=").append(encode(String.valueOf(expiresIn)))
-                .append("&name=").append(encode(name));
-        if (scope != null && !scope.isBlank()) {
-            // scope 可选：省略表示沿用凭证原有范围，仅在调用方显式收敛时才带上
-            form.append("&scope=").append(encode(scope));
-        }
-        String body = sendForm(FROM_REFRESH_PATH, form.toString());
-        Result<TclTokenVO> result = JsonMapper.parseObject(body, new TypeReference<Result<TclTokenVO>>() {
-        });
-        requireSuccess(result, "TCL 刷新令牌直签");
-        TclTokenVO token = result.getData();
-        if (token == null || token.getAccessToken() == null || token.getAccessToken().isBlank()) {
-            Logger.warn("TCL 刷新令牌直签返回数据不完整，缺少 access_token");
+    public TclPatVO issuePatFromRefresh(String refreshToken, PatIssueRequestDTO request) {
+        try {
+            ObjectNode body = PAT_JSON_MAPPER.valueToTree(request);
+            body.put("refresh_token", refreshToken);
+            String response = sendJson(PAT_ISSUE_PATH, PAT_JSON_MAPPER.writeValueAsString(body));
+            Result<TclPatVO> result = PAT_JSON_MAPPER.readValue(response,
+                    new TypeReference<Result<TclPatVO>>() {});
+            requireSuccess(result, "TCL PAT 签发");
+            TclPatVO pat = result.getData();
+            if (pat == null || pat.getToken() == null || pat.getToken().isBlank()) {
+                throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+            }
+            return pat;
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            Logger.warn("TCL PAT 签发响应或请求格式异常");
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
-        return token;
     }
 
     /**
@@ -211,7 +208,7 @@ public class TclMigrateClient {
      * @throws TclApiException TCL 返回业务错误码
      * @throws ServiceException 响应结构异常
      */
-    private static void requireSuccess(Result<TclTokenVO> result, String scene) {
+    private static void requireSuccess(Result<?> result, String scene) {
         if (result == null || result.getCode() == null) {
             Logger.warn("{}失败：TCL 响应无法解析", scene);
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
@@ -246,6 +243,8 @@ public class TclMigrateClient {
             case 90017 -> "迁移请求已过期或已被使用";
             case 80008 -> "请求 IP 不在白名单";
             case 90009 -> "刷新令牌已失效或已被吊销";
+            case 90003 -> "请求的 PAT 权限范围未授权";
+            case 10001, 10002 -> "PAT 签发参数不合法";
             case 30005 -> "触发限流，请检查是否重复兑换";
             case 90001 -> "客户端不存在";
             case 90013 -> "客户端未审批";
@@ -271,6 +270,20 @@ public class TclMigrateClient {
                 .POST(HttpRequest.BodyPublishers.ofString(form))
                 .timeout(Duration.ofSeconds(oauth2Properties.getMigrate().getTimeoutSeconds()))
                 .build();
+        return sendRequest(request, path);
+    }
+
+    private String sendJson(String path, String json) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(trimTrailingSlash(oauth2Properties.getBaseUrl()) + path))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .timeout(Duration.ofSeconds(oauth2Properties.getMigrate().getTimeoutSeconds()))
+                .build();
+        return sendRequest(request, path);
+    }
+
+    private String sendRequest(HttpRequest request, String path) {
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {

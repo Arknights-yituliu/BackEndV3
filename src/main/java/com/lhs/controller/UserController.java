@@ -4,6 +4,8 @@ import com.lhs.common.context.UserContext;
 import com.lhs.common.util.Result;
 import com.lhs.common.util.SignUtil;
 import com.lhs.entity.dto.user.TclTokenVO;
+import com.lhs.entity.dto.user.PatIssueRequestDTO;
+import com.lhs.entity.dto.user.TclPatVO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.service.user.TclTokenMigrateService;
 import com.lhs.service.user.UserSessionService;
@@ -111,34 +113,20 @@ public class UserController {
     }
 
     /**
-     * 转发直签：用服务端代持的 refresh_token 换取指定有效期的 TCL access_token
-     * <p>
-     * 请求带自签 token（拦截器已校验登录态并写入 UserContext，即「校验是本人」），
-     * 服务端按当前 uid 取出自己保存的 refresh_token 调 TCL
-     * POST /oauth2/token/from-refresh 直签，调用不消费、不轮转 refresh_token，
-     * 不影响正常登录态与后续刷新。scope 只能收敛为凭证已有范围的子集
-     * <p>
-     * 入参约束（超出直接返回 10001/10002，不发起 TCL 调用）：
-     * `expires_in` 为 1~315360000 秒（最长 10 年）、`name` 不超过 50 字符、`scope` 不超过 500 字符；
-     * 单用户 60 秒内最多调用 3 次（超出返回 39009）
+     * 用服务端代持的 refresh_token 调 TCL POST /oauth2/pat 签发 PAT。
+     * 本地会话校验、uid 限流和刷新凭证失效处理继续沿用；refresh_token 不下发前端。
      *
-     * @param expiresIn         期望的 access_token 有效期（秒），必填，取值 1~315360000（10 年）
-     * @param scope             期望收敛到的权限范围（英文逗号分隔），可空表示沿用凭证原有范围
-     * @param name              本次签发名称，必填且不超过 50 字符
+     * @param request PAT 签发参数，payload.game_uid 指定读取账号
      * @param httpServletResponse HTTP 响应（写入禁止缓存头）
-     * @return 新签发的 TCL 令牌（已剥离 refresh_token）
+     * @return PAT 明文及签发元数据
      */
-    @Operation(summary = "转发直签：用系统保存的 refresh_token 换取自定义有效期的 TCL 令牌")
-    @PostMapping("/auth/uc-token/custom")
-    public Result<TclTokenVO> issueCustomTclToken(@RequestParam("expires_in") Long expiresIn,
-                                                @RequestParam(value = "scope", required = false) String scope,
-                                                @RequestParam("name") String name,
-                                                HttpServletResponse httpServletResponse) {
+    @Operation(summary = "签发绑定游戏账号的个人访问令牌 PAT")
+    @PostMapping("/auth/pat")
+    public Result<TclPatVO> issuePat(@RequestBody PatIssueRequestDTO request,
+                                    HttpServletResponse httpServletResponse) {
         // 响应携带令牌：确保中间代理与浏览器不缓存
         httpServletResponse.setHeader("Cache-Control", CACHE_CONTROL_NO_STORE);
-        TclTokenVO token = tclTokenMigrateService.issueCustomTokenByUid(
-                UserContext.getUid(), expiresIn, scope, name);
-        return Result.success(toClientToken(token));
+        return Result.success(tclTokenMigrateService.issuePatByUid(UserContext.getUid(), request));
     }
 
     /**

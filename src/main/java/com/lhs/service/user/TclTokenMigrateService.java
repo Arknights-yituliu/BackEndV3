@@ -10,10 +10,13 @@ import com.lhs.common.util.Logger;
 import com.lhs.common.util.RedisKeyUtil;
 import com.lhs.common.util.RedisRateLimiter;
 import com.lhs.entity.dto.user.TclTokenVO;
+import com.lhs.entity.dto.user.PatIssueRequestDTO;
+import com.lhs.entity.dto.user.TclPatVO;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,27 +54,20 @@ public class TclTokenMigrateService {
     /** 连续兑换失败告警阈值：达到即打 error 日志，提示排查迁移端点与签名配置 */
     private static final int FAIL_ALERT_THRESHOLD = 10;
 
-    /**
-     * 直签 access_token 允许的最长有效期（秒）：10 年
-     * <p>
-     * 上限按业务要求取 10 年——需要支持签发长期令牌（如给自建工具长期免刷新的凭证）。
-     * 但"无上限"不可接受：客户端传入超大值（或 Long 边界值）会原样透传给 TCL，
-     * 得到语焉不详的上游报错，也无法在本地做任何约束。因此保留一个显式天花板，
-     * 既覆盖全部合法场景，又能拦住明显异常的入参
-     */
-    private static final long CUSTOM_TOKEN_MAX_EXPIRES_SECONDS = 10L * 365 * 24 * 60 * 60;
+    /** PAT 文档约定的最长有效期：10 年零 1 个月。 */
+    private static final long PAT_MAX_EXPIRES_SECONDS = 318038400L;
 
-    /** 直签名称最大长度：与 TCL 侧字段约定一致（超长会被上游拒绝，提前拦截避免无效外调） */
-    private static final int CUSTOM_TOKEN_NAME_MAX_LENGTH = 50;
+    /** PAT 名称最大长度。 */
+    private static final int PAT_NAME_MAX_LENGTH = 50;
 
-    /** 直签 scope 最大长度：超出必然被上游拒绝，提前拦截避免无效外调 */
-    private static final int CUSTOM_TOKEN_SCOPE_MAX_LENGTH = 500;
+    /** PAT scope 文档上限。 */
+    private static final int PAT_SCOPE_MAX_LENGTH = 256;
 
-    /** 直签接口单用户限流：窗口内允许的调用次数 */
-    private static final long CUSTOM_TOKEN_ISSUE_MAX_PER_WINDOW = 3L;
+    /** PAT 签发单用户限流：窗口内允许的调用次数。 */
+    private static final long PAT_ISSUE_MAX_PER_WINDOW = 3L;
 
-    /** 直签接口单用户限流窗口（秒） */
-    private static final long CUSTOM_TOKEN_ISSUE_WINDOW_SECONDS = 60L;
+    /** PAT 签发单用户限流窗口（秒）。 */
+    private static final long PAT_ISSUE_WINDOW_SECONDS = 60L;
 
     private final OAuth2Properties oauth2Properties;
     private final TclMigrateClient tclMigrateClient;
@@ -192,43 +188,40 @@ public class TclTokenMigrateService {
     }
 
     /**
-     * 用服务端代持的 refresh_token 直签指定有效期的 access_token
+     * 用服务端代持的 refresh_token 签发绑定游戏账号的 PAT
      *
      * <p>供「本人」场景的转发接口调用：凭证仍是本服务按 uid 保存的 refresh_token，
      * 不消费、不轮换，因此不影响正常登录态与后续刷新。签发失败（如 90009 凭证失效）
      * 时清除兑换缓存，待下次按需兑换自愈，与 {@link #refreshByUid} 处置一致。</p>
      *
      * @param uid       当前登录用户 uid（已由拦截器校验为本人）
-     * @param expiresIn 期望的 access_token 有效期（秒），必须大于 0
-     * @param scope     期望收敛到的权限范围（英文逗号分隔），可为空表示沿用凭证原有范围
-     * @param name      本次签发名称，必填且不超过 50 字符
-     * @return 新签发的令牌（不含 refresh_token）
+     * @param request   名称、有效期、权限及固定账号的 payload
+     * @return 新签发的 PAT（不含 refresh_token）
      * @throws ServiceException 未登录、无本地兑换记录或 TCL 调用失败
      */
-    public TclTokenVO issueCustomTokenByUid(Long uid, Long expiresIn, String scope, String name) {
+    public TclPatVO issuePatByUid(Long uid, PatIssueRequestDTO request) {
         if (uid == null) {
             throw new ServiceException(ResultCode.USER_NOT_LOGIN);
         }
-        // 先做纯入参校验，再查缓存、再扣限流额度：非法参数不该消耗调用配额
-        validateCustomTokenParams(expiresIn, scope, name);
-        // 直签每次都真实请求 TCL，按 uid 限流，避免把本服务当作 TCL 调用放大器
+        // 先校验入参再扣限流额度、读取缓存：非法参数不消耗调用配额。
+        validatePatParams(request);
+        // 签发每次都真实请求 TCL，沿用已有 uid 限流键与额度。
         RedisRateLimiter.tryAcquire(redisTemplate, RedisKeyUtil.tclIssueRate(uid),
-                CUSTOM_TOKEN_ISSUE_MAX_PER_WINDOW, CUSTOM_TOKEN_ISSUE_WINDOW_SECONDS,
+                PAT_ISSUE_MAX_PER_WINDOW, PAT_ISSUE_WINDOW_SECONDS,
                 ResultCode.TOKEN_ISSUE_TOO_FREQUENTLY);
 
         TclTokenVO cached = readIssuedCache(uid);
         if (cached == null || cached.getRefreshToken() == null || cached.getRefreshToken().isBlank()) {
-            // 无本地刷新凭据：前端应重新触发兑换后再直签
-            Logger.warn("TCL 刷新令牌直签失败：本地无兑换记录或缺少 refresh_token: uid={}", uid);
+            // 无本地刷新凭据：前端应重新触发兑换后再签发 PAT。
+            Logger.warn("TCL PAT 签发失败：本地无兑换记录或缺少 refresh_token: uid={}", uid);
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
 
         long start = System.currentTimeMillis();
         try {
-            TclTokenVO issued = tclMigrateClient.issueTokenFromRefresh(
-                    cached.getRefreshToken(), expiresIn, scope, name);
-            Logger.info("TCL 刷新令牌直签成功: uid={}, expires_in={}, 耗时={}ms",
-                    uid, expiresIn, System.currentTimeMillis() - start);
+            TclPatVO issued = tclMigrateClient.issuePatFromRefresh(cached.getRefreshToken(), request);
+            Logger.info("TCL PAT 签发成功: uid={}, expires_in={}, 耗时={}ms",
+                    uid, request.getExpiresIn(), System.currentTimeMillis() - start);
             return issued;
         } catch (TclApiException e) {
             if (e.getTclCode() != null && e.getTclCode() == TclMigrateClient.TCL_CODE_REFRESH_TOKEN_INVALID) {
@@ -241,36 +234,41 @@ public class TclTokenMigrateService {
     }
 
     /**
-     * 校验直签接口入参
-     * <p>
-     * 仅做"能提前判定必然失败"的校验，不猜测 TCL 侧的额外规则：
-     * <ul>
-     *   <li>{@code expires_in} 必填且不超过 {@link #CUSTOM_TOKEN_MAX_EXPIRES_SECONDS}（10 年）；</li>
-     *   <li>{@code name} 必填且不超过 {@link #CUSTOM_TOKEN_NAME_MAX_LENGTH} 字符；</li>
-     *   <li>{@code scope} 可空，非空时不超过 {@link #CUSTOM_TOKEN_SCOPE_MAX_LENGTH} 字符。</li>
-     * </ul>
-     * 抽成静态方法便于单测：不依赖 TCL、Redis 与 Spring 上下文
+     * 校验 PAT 签发入参。本站签发用途为读取指定游戏账号，因此要求 game_uid，
+     * 避免签出因缺少账号而无法使用的凭证。绑定关系和权限上限由 TCL 校验。
      *
-     * @param expiresIn 期望的 access_token 有效期（秒）
-     * @param scope     期望收敛到的权限范围（英文逗号分隔，可为空）
-     * @param name      本次签发名称
+     * @param request PAT 签发参数
      * @throws ServiceException 参数不合法
      */
-    static void validateCustomTokenParams(Long expiresIn, String scope, String name) {
-        if (expiresIn == null || expiresIn <= 0 || expiresIn > CUSTOM_TOKEN_MAX_EXPIRES_SECONDS) {
+    static void validatePatParams(PatIssueRequestDTO request) {
+        if (request == null) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK);
+        }
+        Long expiresIn = request.getExpiresIn();
+        String name = request.getName();
+        String scope = request.getScope();
+        if (expiresIn == null || expiresIn <= 0 || expiresIn > PAT_MAX_EXPIRES_SECONDS) {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID,
-                    "expires_in 必须在 1~" + CUSTOM_TOKEN_MAX_EXPIRES_SECONDS + " 秒之间");
+                    "expires_in 必须在 1~" + PAT_MAX_EXPIRES_SECONDS + " 秒之间");
         }
         if (name == null || name.isBlank()) {
             throw new ServiceException(ResultCode.PARAM_IS_BLANK, "name 不能为空");
         }
-        if (name.length() > CUSTOM_TOKEN_NAME_MAX_LENGTH) {
+        if (name.trim().length() > PAT_NAME_MAX_LENGTH) {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID,
-                    "name 长度不能超过 " + CUSTOM_TOKEN_NAME_MAX_LENGTH + " 字符");
+                    "name 长度不能超过 " + PAT_NAME_MAX_LENGTH + " 字符");
         }
-        if (scope != null && scope.length() > CUSTOM_TOKEN_SCOPE_MAX_LENGTH) {
+        if (scope != null && scope.length() > PAT_SCOPE_MAX_LENGTH) {
             throw new ServiceException(ResultCode.PARAM_IS_INVALID,
-                    "scope 长度不能超过 " + CUSTOM_TOKEN_SCOPE_MAX_LENGTH + " 字符");
+                    "scope 长度不能超过 " + PAT_SCOPE_MAX_LENGTH + " 字符");
+        }
+        if (request.getPayload() == null || request.getPayload().getGameUid() == null
+                || request.getPayload().getGameUid().isBlank()) {
+            throw new ServiceException(ResultCode.PARAM_IS_BLANK, "请选择 PAT 读取的游戏账号");
+        }
+        String payload = JsonMapper.toJSONString(request.getPayload());
+        if (payload == null || payload.getBytes(StandardCharsets.UTF_8).length > 4096) {
+            throw new ServiceException(ResultCode.PARAM_IS_INVALID, "payload 长度不能超过 4KB");
         }
     }
 
