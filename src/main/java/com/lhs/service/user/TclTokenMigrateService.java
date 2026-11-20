@@ -233,6 +233,55 @@ public class TclTokenMigrateService {
         }
     }
 
+    /** 发送注销验证码，只使用当前用户缓存的 refresh_token。 */
+    public void sendAccountDeletionCodeByUid(Long uid) {
+        String refreshToken = requireAccountRefreshToken(uid);
+        try {
+            tclMigrateClient.sendAccountDeletionCode(refreshToken);
+        } catch (TclApiException e) {
+            clearInvalidAccountRefreshToken(uid, e);
+            throw e;
+        }
+    }
+
+    /** 委托用户中心注销账户；成功后的本地资料与凭证清理由会话服务统一处理。 */
+    public void deleteAccountByUid(Long uid, String code) {
+        if (uid == null) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        if (code == null || code.isBlank()) {
+            throw new ServiceException(ResultCode.VERIFICATION_CODE_NOT_ENTER);
+        }
+        if (!code.matches("[0-9]{6}")) {
+            throw new ServiceException(ResultCode.PARAM_IS_INVALID, "注销验证码必须为6位数字");
+        }
+        String refreshToken = requireAccountRefreshToken(uid);
+        try {
+            tclMigrateClient.deleteAccount(refreshToken, code);
+        } catch (TclApiException e) {
+            clearInvalidAccountRefreshToken(uid, e);
+            throw e;
+        }
+    }
+
+    private String requireAccountRefreshToken(Long uid) {
+        if (uid == null) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        TclTokenVO cached = readIssuedCache(uid);
+        if (cached == null || cached.getRefreshToken() == null || cached.getRefreshToken().isBlank()) {
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR,
+                    "缺少账户注销凭证，请重新登录后重试");
+        }
+        return cached.getRefreshToken();
+    }
+
+    private void clearInvalidAccountRefreshToken(Long uid, TclApiException e) {
+        if (e.getTclCode() != null && e.getTclCode() == TclMigrateClient.TCL_CODE_REFRESH_TOKEN_INVALID) {
+            clearIssuedCache(uid);
+        }
+    }
+
     /**
      * 校验 PAT 签发入参。本站签发用途为读取指定游戏账号，因此要求 game_uid，
      * 避免签出因缺少账号而无法使用的凭证。绑定关系和权限上限由 TCL 校验。

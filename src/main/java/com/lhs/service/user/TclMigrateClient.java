@@ -53,7 +53,7 @@ public class TclMigrateClient {
     /** 凭服务端 refresh_token 签发 PAT，凭证不消费、不轮转。 */
     private static final String PAT_ISSUE_PATH = "/oauth2/pat";
 
-    private static final ObjectMapper PAT_JSON_MAPPER = new ObjectMapper()
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /** 迁移兑换端点 HTTP 方法：纳入签名原文，防止签名被挪用到其他端点 */
@@ -160,10 +160,10 @@ public class TclMigrateClient {
      */
     public TclPatVO issuePatFromRefresh(String refreshToken, PatIssueRequestDTO request) {
         try {
-            ObjectNode body = PAT_JSON_MAPPER.valueToTree(request);
+            ObjectNode body = JSON_MAPPER.valueToTree(request);
             body.put("refresh_token", refreshToken);
-            String response = sendJson(PAT_ISSUE_PATH, PAT_JSON_MAPPER.writeValueAsString(body));
-            Result<TclPatVO> result = PAT_JSON_MAPPER.readValue(response,
+            String response = sendJson(PAT_ISSUE_PATH, JSON_MAPPER.writeValueAsString(body));
+            Result<TclPatVO> result = JSON_MAPPER.readValue(response,
                     new TypeReference<Result<TclPatVO>>() {});
             requireSuccess(result, "TCL PAT 签发");
             TclPatVO pat = result.getData();
@@ -173,6 +173,33 @@ public class TclMigrateClient {
             return pat;
         } catch (JsonProcessingException | IllegalArgumentException e) {
             Logger.warn("TCL PAT 签发响应或请求格式异常");
+            throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
+        }
+    }
+
+    /** 凭服务端 refresh_token 向其所属账户的绑定邮箱发送注销验证码。 */
+    public void sendAccountDeletionCode(String refreshToken) {
+        sendAccountRequest("/oauth2/account/send-delete-code", refreshToken, null);
+    }
+
+    /** 凭服务端 refresh_token 和邮箱验证码永久注销账户。 */
+    public void deleteAccount(String refreshToken, String code) {
+        sendAccountRequest("/oauth2/account/delete", refreshToken, code);
+    }
+
+    private void sendAccountRequest(String path, String refreshToken, String code) {
+        try {
+            ObjectNode body = JSON_MAPPER.createObjectNode();
+            body.put("refresh_token", refreshToken);
+            if (code != null) {
+                body.put("code", code);
+            }
+            String response = sendJson(path, JSON_MAPPER.writeValueAsString(body));
+            Result<Void> result = JSON_MAPPER.readValue(response, new TypeReference<Result<Void>>() {});
+            requireSuccess(result, "TCL 账户注销");
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            // 不能记录请求、响应正文，避免泄漏 refresh_token 和验证码。
+            Logger.warn("TCL 账户注销响应或请求格式异常");
             throw new ServiceException(ResultCode.INTERFACE_OUTER_INVOKE_ERROR);
         }
     }
@@ -244,13 +271,19 @@ public class TclMigrateClient {
             case 80008 -> "请求 IP 不在白名单";
             case 90009 -> "刷新令牌已失效或已被吊销";
             case 90003 -> "请求的 PAT 权限范围未授权";
-            case 10001, 10002 -> "PAT 签发参数不合法";
-            case 30005 -> "触发限流，请检查是否重复兑换";
+            case 10001, 10002 -> "请求参数不合法";
+            case 30001 -> "验证码错误";
+            case 30002 -> "验证码已过期，请重新获取";
+            case 30003 -> "验证码发送过于频繁，请稍后再试";
+            case 30005 -> "请求过于频繁，请稍后再试";
+            case 40002 -> "验证码发送失败，请稍后再试";
+            case 40003 -> "限流服务不可用，请稍后再试";
             case 90001 -> "客户端不存在";
             case 90013 -> "客户端未审批";
             case 90014 -> "客户端未开通直连认证";
             case 20001 -> "用户不存在";
             case 20004 -> "用户已封禁";
+            case 20006 -> "该账号未绑定邮箱";
             default -> "TCL 返回未知错误码";
         };
     }

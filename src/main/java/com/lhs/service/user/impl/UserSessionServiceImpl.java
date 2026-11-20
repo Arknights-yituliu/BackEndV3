@@ -177,6 +177,31 @@ public class UserSessionServiceImpl implements UserSessionService {
     }
 
     @Override
+    public void deleteAccount(String code) {
+        Long uid = UserContext.getUid();
+        String token = UserContext.getToken();
+        if (uid == null || token == null || token.isBlank()) {
+            throw new ServiceException(ResultCode.USER_NOT_LOGIN);
+        }
+        // 上游校验验证码并完成注销后，才能改变本地资料与会话。
+        tclTokenMigrateService.deleteAccountByUid(uid, code);
+
+        // 所有设备鉴权均会查此资料，负状态使其他旧 loginToken 也无法继续使用。
+        OAuthUserInfo deleted = new OAuthUserInfo();
+        deleted.setId(uid);
+        deleted.setStatus(-1);
+        deleted.setDeleteFlag(true);
+        deleted.setUpdateTime(new Date());
+        if (oauthUserInfoMapper.updateById(deleted) != 1) {
+            throw new ServiceException(ResultCode.SYSTEM_INNER_ERROR);
+        }
+        // 先禁用资料再清理凭证：缓存清理异常时，所有旧会话仍会被鉴权拒绝。
+        redisTemplate.delete(RedisKeyUtil.tclToken(uid));
+        redisTemplate.delete(RedisKeyUtil.loginToken(token));
+        Logger.info("用户账户已注销: uid={}", uid);
+    }
+
+    @Override
     public void updateNickname(HttpServletRequest httpServletRequest, String nickname) {
         // 校验昵称非空，空值直接拒绝
         if (!checkParamsValidity(nickname)) {

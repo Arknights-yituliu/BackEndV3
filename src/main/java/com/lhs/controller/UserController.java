@@ -6,6 +6,7 @@ import com.lhs.common.util.SignUtil;
 import com.lhs.entity.dto.user.TclTokenVO;
 import com.lhs.entity.dto.user.PatIssueRequestDTO;
 import com.lhs.entity.dto.user.TclPatVO;
+import com.lhs.entity.dto.user.DeleteAccountRequestDTO;
 import com.lhs.entity.vo.survey.UserInfoVO;
 import com.lhs.service.user.TclTokenMigrateService;
 import com.lhs.service.user.UserSessionService;
@@ -53,6 +54,20 @@ public class UserController {
     @PostMapping("/auth/user/logout")
     public Result<Object> logout(HttpServletRequest httpServletRequest) {
         userSessionService.logout(httpServletRequest);
+        return Result.success();
+    }
+
+    @Operation(summary = "发送账户注销验证码到当前绑定邮箱")
+    @PostMapping("/auth/user/account/send-delete-code")
+    public Result<Object> sendAccountDeletionCode() {
+        tclTokenMigrateService.sendAccountDeletionCodeByUid(UserContext.getUid());
+        return Result.success();
+    }
+
+    @Operation(summary = "凭邮箱验证码永久注销当前账户，保留游戏数据")
+    @PostMapping("/auth/user/account/delete")
+    public Result<Object> deleteAccount(@RequestBody(required = false) DeleteAccountRequestDTO request) {
+        userSessionService.deleteAccount(request == null ? null : request.getCode());
         return Result.success();
     }
 

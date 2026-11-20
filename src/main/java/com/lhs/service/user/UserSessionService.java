@@ -47,6 +47,9 @@ public interface UserSessionService {
      */
     void logout(HttpServletRequest httpServletRequest);
 
+    /** 凭绑定邮箱验证码注销当前账户，成功后禁用本地资料并清理当前会话。 */
+    void deleteAccount(String code);
+
     /**
      * 通过 TCL 返回的用户信息建立本地会话（资料缓存 upsert + 生成本地 Token）
      * <p>
